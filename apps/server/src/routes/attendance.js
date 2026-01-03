@@ -66,26 +66,15 @@ router.get('/today', authenticate, requireWarden, async (req, res, next) => {
     
     const { data, error } = await supabaseAdmin
       .from('attendance')
-      .select(`
-        id,
-        status,
-        scan_time,
-        student:student_id (
-          id,
-          roll_number,
-          profile:id (
-            full_name
-          )
-        )
-      `)
+      .select(`*, students!attendance_student_id_fkey(roll_number, profiles!students_id_fkey(full_name))`)
       .eq('date', today)
 
     if (error) throw error
 
     const formattedData = data.map(item => ({
       id: item.id,
-      full_name: item.student?.profile?.full_name,
-      roll_number: item.student?.roll_number,
+      full_name: item.students?.profiles?.full_name || item.student?.profile?.full_name,
+      roll_number: item.students?.roll_number || item.student?.roll_number,
       status: item.status,
       scan_time: item.scan_time
     }))

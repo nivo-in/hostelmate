@@ -3,9 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+    request: { headers: request.headers },
   })
 
   const supabase = createServerClient(
@@ -17,75 +15,43 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          })
+          request.cookies.set({ name, value, ...options })
+          response = NextResponse.next({ request: { headers: request.headers } })
+          response.cookies.set({ name, value, ...options })
         },
         remove(name: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
+          request.cookies.set({ name, value: '', ...options })
+          response = NextResponse.next({ request: { headers: request.headers } })
+          response.cookies.set({ name, value: '', ...options })
         },
       },
     }
   )
 
   const { data: { session } } = await supabase.auth.getSession()
-
   const path = request.nextUrl.pathname
-  const isPublicPath = path === '/login' || path === '/'
 
+  const publicPaths = ['/login']
+  const isPublicPath = publicPaths.includes(path)
+
+  // No session → redirect to login
   if (!session && !isPublicPath) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
+  // Has session + login page → redirect to dashboard
   if (session && isPublicPath) {
-    // Determine redirect based on role
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single()
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single()
     const role = profile?.role || 'student'
-    return NextResponse.redirect(new URL(`/${role}`, request.url))
+    return NextResponse.redirect(new URL(`/${role}/dashboard`, request.url))
   }
 
-  if (session && !isPublicPath) {
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single()
-    const role = profile?.role || 'student'
-    
-    // Check path permissions
-    if (path.startsWith('/student') && role !== 'student') {
-      return NextResponse.redirect(new URL(`/${role}`, request.url))
-    }
-    if (path.startsWith('/warden') && role !== 'warden') {
-      return NextResponse.redirect(new URL(`/${role}`, request.url))
-    }
-    if (path.startsWith('/parent') && role !== 'parent') {
-      return NextResponse.redirect(new URL(`/${role}`, request.url))
-    }
-  }
-
+  // Has session → allow all, no role blocking
+  // Role protection handled by individual pages
   return response
 }
 
