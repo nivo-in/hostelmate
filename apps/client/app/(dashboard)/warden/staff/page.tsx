@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Header } from '@/components/ui/Header'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
@@ -96,7 +96,7 @@ export default function StaffDirectory() {
 
   return (
     <div className="min-h-screen bg-white p-8 max-w-5xl mx-auto">
-      <Header title="Staff Directory" onSignOut={handleSignOut} />
+      <PageHeader title="Staff Directory" showBack onSignOut={handleSignOut} />
       
       <div className="mb-12 mt-8">
         <h2 className="text-xl font-medium tracking-tight text-gray-900 mb-6">Add New Staff</h2>

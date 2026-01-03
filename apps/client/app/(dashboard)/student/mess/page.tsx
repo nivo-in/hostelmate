@@ -1,85 +1,152 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { Header } from '@/components/ui/Header'
-import { createClient } from '@/lib/supabase/client'
-import { useApi } from '@/hooks/useApi'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { createClient } from '@/lib/supabase/client';
+import { useApi } from '@/hooks/useApi';
+import { useRouter } from 'next/navigation';
 
 export default function StudentMess() {
-  const [activeDay, setActiveDay] = useState('monday')
-  const [menu, setMenu] = useState<any[]>([])
+  const [activeDay, setActiveDay] = useState('');
+  const [menu, setMenu] = useState<any[]>([]);
+  const [ratings, setRatings] = useState<Record<string, { rating: number; comment: string }>>({});
+  const [success, setSuccess] = useState('');
   
-  const { apiGet } = useApi()
-  const router = useRouter()
-  const supabase = createClient()
+  const { apiGet, apiPost } = useApi();
+  const router = useRouter();
+  const supabase = createClient();
+
+  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const meals = ['breakfast', 'lunch', 'snacks', 'dinner'];
 
   useEffect(() => {
-    apiGet('/api/mess/menu').then(res => {
-      if (res.success) setMenu(res.data)
-    })
-  }, [])
+    const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+    setActiveDay(todayStr);
+
+    const fetchMenu = async () => {
+      try {
+        const res = await apiGet('/api/mess/menu');
+        if (res.success) setMenu(res.data || []);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchMenu();
+  }, []);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
 
-  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-  const meals = ['breakfast', 'lunch', 'snacks', 'dinner']
+  const handleRatingChange = (meal: string, rating: number) => {
+    setRatings(prev => ({
+      ...prev,
+      [meal]: { ...prev[meal], rating, comment: prev[meal]?.comment || '' }
+    }));
+  };
 
-  const todayMenu = menu.filter(m => m.day_of_week === activeDay)
+  const handleCommentChange = (meal: string, comment: string) => {
+    setRatings(prev => ({
+      ...prev,
+      [meal]: { ...prev[meal], rating: prev[meal]?.rating || 0, comment }
+    }));
+  };
+
+  const handleSubmitRatings = async () => {
+    const promises = Object.entries(ratings)
+      .filter(([_, data]) => data.rating > 0)
+      .map(([meal_type, data]) => 
+        apiPost('/api/mess/reviews', { meal_type, rating: data.rating, comments: data.comment })
+      );
+      
+    if (promises.length === 0) return;
+    
+    try {
+      await Promise.all(promises);
+      setSuccess('Ratings submitted successfully!');
+      setRatings({});
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const activeMenu = menu.filter(m => m.day_of_week === activeDay);
 
   return (
-    <div className="min-h-screen bg-white p-8 max-w-5xl mx-auto">
-      <Header title="Mess" onSignOut={handleSignOut} />
+    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
+      <PageHeader title="Mess" showBack onSignOut={handleSignOut} />
       
-      <div className="mb-10">
-        <h2 className="font-medium tracking-tight text-gray-900 mb-4">Weekly Menu</h2>
-        <div className="flex overflow-x-auto gap-2 mb-6 pb-2">
+      <div className="mb-8">
+        <div className="flex overflow-x-auto border-b border-gray-100 mb-6 pb-2 no-scrollbar">
           {days.map(d => (
-            <button key={d} onClick={() => setActiveDay(d)} className={`capitalize px-4 py-2 rounded-lg text-sm whitespace-nowrap ${activeDay === d ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}>
-              {d}
+            <button
+              key={d}
+              onClick={() => setActiveDay(d)}
+              className={`px-4 py-2 text-sm font-medium capitalize whitespace-nowrap transition-colors ${activeDay === d ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+            >
+              {d.substring(0, 3)}
             </button>
           ))}
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {meals.map(meal => {
-            const mealData = todayMenu.find(m => m.meal_type === meal)
+            const item = activeMenu.find(m => m.meal_type === meal);
             return (
-              <div key={meal} className="p-4 border border-gray-100 rounded-xl bg-gray-50/50">
-                <h3 className="font-medium text-gray-900 capitalize mb-2">{meal}</h3>
+              <div key={meal} className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors bg-white">
+                <h3 className="text-sm font-medium text-gray-900 capitalize mb-2">{meal}</h3>
                 <p className="text-sm text-gray-600">
-                  {mealData?.items?.join(', ') || 'No items listed'}
+                  {item && item.items && item.items.length > 0 ? item.items.join(', ') : 'Menu not set'}
                 </p>
               </div>
-            )
+            );
           })}
         </div>
       </div>
 
-      <div className="p-6 border border-gray-100 rounded-xl">
-        <h2 className="font-medium tracking-tight text-gray-900 mb-4">Rate Today's Meals</h2>
-        <p className="text-sm text-gray-500 mb-4">Select a meal and provide your rating</p>
-        <form onSubmit={(e) => { e.preventDefault(); alert('Rating submitted!') }} className="space-y-4 max-w-md">
-          <select className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white outline-none focus:border-gray-500">
-            <option value="breakfast">Breakfast</option>
-            <option value="lunch">Lunch</option>
-            <option value="snacks">Snacks</option>
-            <option value="dinner">Dinner</option>
-          </select>
-          <select className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white outline-none focus:border-gray-500">
-            <option value="5">5 Stars - Excellent</option>
-            <option value="4">4 Stars - Good</option>
-            <option value="3">3 Stars - Average</option>
-            <option value="2">2 Stars - Poor</option>
-            <option value="1">1 Star - Terrible</option>
-          </select>
-          <textarea className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm min-h-[80px] outline-none focus:border-gray-500" placeholder="Optional comments..."></textarea>
-          <button type="submit" className="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm hover:bg-gray-700">Submit Rating</button>
-        </form>
+      <div className="border border-gray-100 rounded-xl p-6 mb-8">
+        <h2 className="text-lg font-medium text-gray-900 mb-2">Rate Today's Meals</h2>
+        <p className="text-xs text-gray-500 mb-6">{new Date().toLocaleDateString()}</p>
+        
+        <div className="space-y-6">
+          {meals.map(meal => (
+            <div key={meal} className="flex flex-col sm:flex-row sm:items-center gap-4 border-b border-gray-50 pb-4 last:border-0 last:pb-0">
+              <span className="w-24 text-sm font-medium text-gray-900 capitalize">{meal}</span>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <button 
+                    key={star} 
+                    onClick={() => handleRatingChange(meal, star)}
+                    className={`text-xl focus:outline-none ${ratings[meal]?.rating >= star ? 'text-yellow-400' : 'text-gray-200 hover:text-gray-300'}`}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+              <input 
+                type="text" 
+                placeholder="Optional comment..." 
+                value={ratings[meal]?.comment || ''}
+                onChange={e => handleCommentChange(meal, e.target.value)}
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-500 transition-colors"
+              />
+            </div>
+          ))}
+        </div>
+        
+        <div className="mt-6 flex items-center gap-4">
+          <button 
+            onClick={handleSubmitRatings}
+            className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors"
+          >
+            Submit All Ratings
+          </button>
+          {success && <span className="text-sm text-green-600">{success}</span>}
+        </div>
       </div>
     </div>
-  )
+  );
 }
