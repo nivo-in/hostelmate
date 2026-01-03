@@ -7,10 +7,11 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { LeaveWithStudent } from '@/types'
 
 export default function WardenLeaves() {
   const [activeTab, setActiveTab] = useState('All');
-  const [leaves, setLeaves] = useState<any[]>([]);
+  const [leaves, setLeaves] = useState<LeaveWithStudent[]>([]);
   const [message, setMessage] = useState('');
   
   const { apiGet, apiPatch } = useApi();

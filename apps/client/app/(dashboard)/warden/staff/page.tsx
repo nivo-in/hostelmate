@@ -5,11 +5,20 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
+interface StaffProfile {
+  id: string
+  full_name?: string
+  phone?: string
+  email?: string
+  role: string
+  staff?: unknown[]
+}
+
 export default function StaffDirectory() {
   const router = useRouter()
   const supabase = createClient()
   
-  const [staffList, setStaffList] = useState<any[]>([])
+  const [staffList, setStaffList] = useState<StaffProfile[]>([])
   const [loading, setLoading] = useState(true)
   
   const [formData, setFormData] = useState({
@@ -21,12 +30,12 @@ export default function StaffDirectory() {
 
   const fetchStaff = async () => {
     setLoading(true)
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('profiles')
       .select('*, staff(*)')
     
     if (data) {
-      const filtered = data.filter((p: any) => p.role === 'warden' || (p.staff && p.staff.length > 0) || ['admin', 'cleaner', 'security'].includes(p.role))
+      const filtered = data.filter((p: StaffProfile) => p.role === 'warden' || (p.staff && p.staff.length > 0) || ['admin', 'cleaner', 'security'].includes(p.role))
       setStaffList(filtered || [])
     } else {
       setStaffList([])
@@ -36,6 +45,7 @@ export default function StaffDirectory() {
 
   useEffect(() => {
     fetchStaff()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleSignOut = async () => {

@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { useProfile } from '@/hooks/useProfile';
+import { Student, Attendance } from '@/types'
 
 export default function ParentTrack() {
   const router = useRouter();
@@ -14,8 +15,8 @@ export default function ParentTrack() {
   const { apiGet } = useApi();
   const { profile, loading: profileLoading } = useProfile();
   
-  const [student, setStudent] = useState<any>(null);
-  const [todayRecord, setTodayRecord] = useState<any>(null);
+  const [student, setStudent] = useState<Student | null>(null);
+  const [todayRecord, setTodayRecord] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,7 +42,7 @@ export default function ParentTrack() {
           const res = await apiGet(`/api/attendance/student/${parentData.student_id}?month=current`);
           if (res.success) {
             const todayStr = new Date().toISOString().split('T')[0];
-            const today = res.data.find((r: any) => r.date === todayStr);
+            const today = res.data.find((r: Attendance) => r.date === todayStr);
             setTodayRecord(today || null);
           }
         } catch (e) {

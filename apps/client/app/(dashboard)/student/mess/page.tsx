@@ -6,10 +6,11 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { MessMenu } from '@/types'
 
 export default function StudentMess() {
   const [activeDay, setActiveDay] = useState('');
-  const [menu, setMenu] = useState<any[]>([]);
+  const [menu, setMenu] = useState<MessMenu[]>([]);
   const [ratings, setRatings] = useState<Record<string, { rating: number; comment: string }>>({});
   const [success, setSuccess] = useState('');
   

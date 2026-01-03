@@ -10,22 +10,23 @@ import { useApi } from '@/hooks/useApi';
 import { useProfile } from '@/hooks/useProfile';
 import { useRouter } from 'next/navigation';
 
+interface AttendanceRecord {
+  id?: string;
+  date: string;
+  status: string;
+  scan_time: string | null;
+}
+
 export default function StudentAttendance() {
   const [scanning, setScanning] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<AttendanceRecord[]>([]);
   
   const { profile } = useProfile();
   const { apiGet, apiPost } = useApi();
   const router = useRouter();
   const supabase = createClient();
-
-  useEffect(() => {
-    if (profile?.id) {
-      fetchHistory();
-    }
-  }, [profile?.id]);
 
   const fetchHistory = async () => {
     if (!profile?.id) return;
@@ -36,6 +37,12 @@ export default function StudentAttendance() {
       console.error(e);
     }
   };
+
+  useEffect(() => {
+    if (profile?.id) {
+      fetchHistory();
+    }
+  }, [profile?.id]);
 
   const startScanner = () => {
     setScanning(true);
@@ -62,8 +69,8 @@ export default function StudentAttendance() {
               } else {
                 setError(res.error || 'Failed to mark attendance');
               }
-            } catch (err: any) {
-              setError(err.message || 'Failed to mark attendance');
+            } catch (err: unknown) {
+              setError((err as Error).message || 'Failed to mark attendance');
             }
           }, (err) => {
             setError('Camera access denied or geolocation required: ' + err.message);

@@ -5,12 +5,13 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { Profile } from '@/types'
 
 export default function ParentContact() {
   const router = useRouter();
   const supabase = createClient();
   
-  const [warden, setWarden] = useState<any>(null);
+  const [warden, setWarden] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

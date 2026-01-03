@@ -6,9 +6,10 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { Notice } from '@/types'
 
 export default function ParentNotices() {
-  const [notices, setNotices] = useState<any[]>([]);
+  const [notices, setNotices] = useState<Notice[]>([]);
   const { apiGet } = useApi();
   const router = useRouter();
   const supabase = createClient();

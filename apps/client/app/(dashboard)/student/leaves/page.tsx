@@ -7,12 +7,13 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { LeaveRequest } from '@/types'
 
 export default function StudentLeaves() {
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
   const [reason, setReason] = useState('');
-  const [leaves, setLeaves] = useState<any[]>([]);
+  const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
@@ -61,8 +62,8 @@ export default function StudentLeaves() {
       } else {
         setError(res.error || 'Failed to submit leave');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to submit leave');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to submit leave');
     }
   };
 

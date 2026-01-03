@@ -7,13 +7,14 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { LostAndFound } from '@/types'
 
 export default function StudentLostFound() {
   const [itemName, setItemName] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('lost');
   const [location, setLocation] = useState('');
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<LostAndFound[]>([]);
   const [filter, setFilter] = useState('All');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -62,8 +63,8 @@ export default function StudentLostFound() {
       } else {
         setError(res.error || 'Failed to submit report');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to submit report');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to submit report');
     }
   };
 

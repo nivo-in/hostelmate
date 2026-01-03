@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { useProfile } from '@/hooks/useProfile';
+import { Student, LeaveRequest } from '@/types'
 
 export default function ParentLeaves() {
   const router = useRouter();
@@ -16,8 +17,8 @@ export default function ParentLeaves() {
   const { apiGet } = useApi();
   const { profile, loading: profileLoading } = useProfile();
   
-  const [student, setStudent] = useState<any>(null);
-  const [leaves, setLeaves] = useState<any[]>([]);
+  const [student, setStudent] = useState<Student | null>(null);
+  const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

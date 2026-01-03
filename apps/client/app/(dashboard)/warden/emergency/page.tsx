@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { Notice } from '@/types'
 
 export default function EmergencyAlert() {
   const router = useRouter()
   const supabase = createClient()
   
   const [message, setMessage] = useState('')
-  const [notices, setNotices] = useState<any[]>([])
+  const [notices, setNotices] = useState<Notice[]>([])
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [success, setSuccess] = useState('')
@@ -23,7 +24,7 @@ export default function EmergencyAlert() {
       .order('created_at', { ascending: false })
     
     if (data) {
-      setNotices(data.filter((n: any) => n.title?.includes('EMERGENCY')) || [])
+      setNotices(data.filter((n: Notice) => n.title?.includes('EMERGENCY')) || [])
     } else {
       setNotices([])
     }
