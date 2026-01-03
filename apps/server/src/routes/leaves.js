@@ -2,16 +2,16 @@ import { Router } from 'express'
 import { supabaseAdmin } from '../config/supabase.js'
 import { authenticate } from '../middleware/auth.js'
 import { requireStudent, requireWarden } from '../middleware/rbac.js'
+import { validate } from '../middleware/validate.js'
+import { leaveSchema } from '../config/validation.js'
+import logger from '../config/logger.js'
+import { deleteCache } from '../config/redis.js'
 
 const router = Router()
 
-router.post('/', authenticate, requireStudent, async (req, res, next) => {
+router.post('/', authenticate, requireStudent, validate(leaveSchema), async (req, res, next) => {
   try {
     const { start_date, end_date, reason } = req.body
-
-    if (!start_date || !end_date || !reason) {
-      return res.status(400).json({ success: false, error: 'start_date, end_date, and reason are required' })
-    }
 
     const today = new Date().toISOString().split('T')[0]
     
@@ -37,6 +37,8 @@ router.post('/', authenticate, requireStudent, async (req, res, next) => {
 
     if (error) throw error
 
+    logger.info(`Leave request submitted by user ${req.user.id}`)
+    await deleteCache('stats:dashboard')
     res.json({ success: true, data: record })
   } catch (error) {
     next(error)
@@ -62,18 +64,17 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
 router.get('/all', authenticate, requireWarden, async (req, res, next) => {
   try {
     const { data, error } = await supabaseAdmin
-      .from('leave_requests')
-      .select(`
-        *,
-        student:student_id (
-          id,
-          roll_number,
-          profile:id (
-            full_name
-          )
-        )
-      `)
-      .order('created_at', { ascending: false })
+  .from('leave_requests')
+  .select(`
+    *,
+    students!leave_requests_student_id_fkey (
+      roll_number,
+      profiles!students_id_fkey (
+        full_name
+      )
+    )
+  `)
+  .order('created_at', { ascending: false })
 
     if (error) throw error
 
@@ -89,13 +90,15 @@ router.patch('/:id/approve', authenticate, requireWarden, async (req, res, next)
 
     const { data, error } = await supabaseAdmin
       .from('leave_requests')
-      .update({ status: 'approved' })
+      .update({ status: 'approved', approved_by: req.user.id })
       .eq('id', id)
       .select()
       .single()
 
     if (error) throw error
 
+    logger.info(`Leave request ${id} approved by ${req.user.id}`)
+    await deleteCache('stats:dashboard')
     res.json({ success: true, data })
   } catch (error) {
     next(error)
@@ -108,13 +111,15 @@ router.patch('/:id/reject', authenticate, requireWarden, async (req, res, next) 
 
     const { data, error } = await supabaseAdmin
       .from('leave_requests')
-      .update({ status: 'rejected' })
+      .update({ status: 'rejected', approved_by: req.user.id })
       .eq('id', id)
       .select()
       .single()
 
     if (error) throw error
 
+    logger.info(`Leave request ${id} rejected by ${req.user.id}`)
+    await deleteCache('stats:dashboard')
     res.json({ success: true, data })
   } catch (error) {
     next(error)

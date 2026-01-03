@@ -2,21 +2,16 @@ import { Router } from 'express'
 import { supabaseAdmin } from '../config/supabase.js'
 import { authenticate } from '../middleware/auth.js'
 import { requireWarden } from '../middleware/rbac.js'
+import { validate } from '../middleware/validate.js'
+import { noticeSchema } from '../config/validation.js'
+import logger from '../config/logger.js'
+import { getCache, setCache, deleteCache } from '../config/redis.js'
 
 const router = Router()
 
-router.post('/', authenticate, requireWarden, async (req, res, next) => {
+router.post('/', authenticate, requireWarden, validate(noticeSchema), async (req, res, next) => {
   try {
     const { title, content, target_audience } = req.body
-
-    const allowedAudiences = ['students', 'parents', 'all']
-    if (!target_audience || !allowedAudiences.includes(target_audience)) {
-      return res.status(400).json({ success: false, error: 'Invalid or missing target_audience' })
-    }
-
-    if (!title || !content) {
-      return res.status(400).json({ success: false, error: 'title and content are required' })
-    }
 
     const { data: record, error } = await supabaseAdmin
       .from('notices')
@@ -31,6 +26,13 @@ router.post('/', authenticate, requireWarden, async (req, res, next) => {
 
     if (error) throw error
 
+    logger.info(`Notice "${title}" posted by ${req.user.id}`)
+    
+    await deleteCache('notices:student')
+    await deleteCache('notices:parent')
+    await deleteCache('notices:warden')
+    await deleteCache('stats:dashboard')
+    
     res.json({ success: true, data: record })
   } catch (error) {
     next(error)
@@ -40,6 +42,14 @@ router.post('/', authenticate, requireWarden, async (req, res, next) => {
 router.get('/', authenticate, async (req, res, next) => {
   try {
     const role = req.profile.role
+    const cacheKey = `notices:${role}`
+    
+    const cached = await getCache(cacheKey)
+    if (cached) {
+      logger.info(`Cache hit: notices ${role}`)
+      return res.json({ success: true, data: cached })
+    }
+    logger.info(`Cache miss: notices ${role}`)
 
     let query = supabaseAdmin
       .from('notices')
@@ -56,6 +66,7 @@ router.get('/', authenticate, async (req, res, next) => {
 
     if (error) throw error
 
+    await setCache(cacheKey, data, 180)
     res.json({ success: true, data })
   } catch (error) {
     next(error)

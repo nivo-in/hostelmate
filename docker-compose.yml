@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  client:
+    build: ./apps/client
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./apps/client/.env.local
+    depends_on:
+      - server
+
+  server:
+    build: ./apps/server
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./apps/server/.env
+    volumes:
+      - ./apps/server/logs:/app/logs

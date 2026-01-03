@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "logs/.0039a9efcfd0f00fb32d7f4ebd786b508a76e1be-audit.json",
+    "files": [
+        {
+            "date": 1778224803267,
+            "name": "logs/hostelmate-2026-05-08.log",
+            "hash": "4d7b16d2cf8b7795d3f4ec462dff305292ab42b5403debfa28ac1e35deeb364a"
+        }
+    ],
+    "hashType": "sha256"
+}
