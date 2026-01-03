@@ -64,5 +64,18 @@ export function useApi() {
     return handleResponse(res)
   }
 
-  return { apiGet, apiPost, apiPatch, apiDelete }
+  const apiPut = async (path: string, body: any) => {
+    const token = await getToken()
+    const res = await fetch(`${baseUrl}${path}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify(body)
+    })
+    return handleResponse(res)
+  }
+
+  return { apiGet, apiPost, apiPatch, apiPut, apiDelete }
 }
