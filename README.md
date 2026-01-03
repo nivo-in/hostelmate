@@ -1,108 +1,527 @@
-# HostelMate
+<![CDATA[<div align="center">
 
-**HostelMate** is a smart, end-to-end hostel management SaaS platform built by Nivo Technologies. It streamlines attendance, leave requests, complaints, and mess management for students, wardens, and parents in a unified, modern interface.
+# 🏨 HostelMate
 
-## Tech Stack
+### Smart Hostel Management Infrastructure for Institutions
 
-| Technology | Usage |
-| --- | --- |
-| Next.js 14 (App Router) | Frontend Framework |
-| TypeScript | Type Safety |
-| Tailwind CSS | Styling & Design System |
-| Node.js + Express | Backend API |
-| Supabase | Database & Authentication |
+[![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://supabase.com/)
+[![Redis](https://img.shields.io/badge/Redis-Upstash-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://upstash.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)](LICENSE)
 
-## Features by Role
+**HostelMate replaces manual hostel registers, WhatsApp complaint groups, and paper-based leave forms with a secure, real-time platform — built for scale.**
 
-### 🎓 Students
-- **Smart Attendance:** Mark daily attendance via geofenced QR code scanning.
-- **Leave Requests:** Apply for leaves and track approval status.
-- **Complaints:** Report maintenance issues and track resolution.
-- **Mess Menu:** View weekly menus and rate daily meals.
-- **Lost & Found:** Report lost items or claim found ones.
-- **Notices:** Receive real-time announcements from administration.
+[Getting Started](#-getting-started) · [Architecture](#-architecture) · [API Docs](#-api-documentation) · [Contributing](#-contributing)
 
-### 👮 Wardens
-- **Attendance Management:** Generate dynamic QR codes and view daily stats.
-- **Leave Management:** Approve or reject student leave requests.
-- **Complaint Resolution:** Track and update the status of student complaints.
-- **Mess Management:** Update weekly menus and review meal ratings.
-- **Notice Board:** Post announcements targeting students, parents, or both.
-- **Lost & Found:** Manage reported items and mark them as claimed.
+---
 
-### 👪 Parents
-- **Student Tracking:** Monitor their child's daily attendance with a 30-day calendar view.
-- **Leave Status:** View all leave applications and their current status.
-- **Notices:** Receive official communications from the hostel administration.
-- **Contact:** Quickly access emergency contact details for the chief warden.
+> *[Dashboard Screenshot — Warden Analytics View]*
+>
+> *[Student Mobile View — QR Attendance]*
+>
+> *[Parent Dashboard — Real-time Tracking]*
 
-## Folder Structure
+</div>
+
+---
+
+## 📋 Table of Contents
+
+- [Overview](#-overview)
+- [Architecture](#-architecture)
+- [Tech Stack](#-tech-stack)
+- [Engineering Highlights](#-engineering-highlights)
+- [Features by Role](#-features-by-role)
+- [Project Structure](#-project-structure)
+- [Getting Started](#-getting-started)
+- [API Documentation](#-api-documentation)
+- [Security](#-security)
+- [Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
+
+## 🎯 Overview
+
+Every hostel in India manages **500+ students** using register books, WhatsApp groups, and verbal complaints. HostelMate digitizes this entirely.
+
+### The Problem
+
+| Traditional Process | Pain Point |
+|---|---|
+| Paper attendance registers | Proxy attendance, no analytics |
+| WhatsApp complaint groups | Messages get buried, no tracking |
+| Verbal leave requests | No audit trail, parents uninformed |
+| Printed mess menus | Outdated, no feedback mechanism |
+| Notice boards | Students miss critical updates |
+
+### The Solution
+
+HostelMate provides a **role-based platform** where students, wardens, and parents each get purpose-built interfaces. Attendance uses **rotating QR codes + GPS geofencing** to eliminate proxy. Complaints flow through a **ticketing system** with urgency flags. Parents get **real-time visibility** into their child's hostel activity.
+
+---
+
+## 🏗 Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        CLIENT (Next.js 14)                      │
+│              TypeScript · App Router · Tailwind CSS              │
+│         Role-based dashboards: Student / Warden / Parent         │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │ HTTPS (REST)
+                            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      API SERVER (Express.js)                     │
+│                                                                  │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────────┐  │
+│  │   Auth   │ │   RBAC   │ │  Zod     │ │  Rate Limiter      │  │
+│  │Middleware│ │Middleware │ │Validate  │ │  100 req/15min     │  │
+│  └──────────┘ └──────────┘ └──────────┘ └────────────────────┘  │
+│                                                                  │
+│  Routes: /attendance /leaves /complaints /mess /notices /stats   │
+└──────┬─────────────────────────────┬────────────────────────────┘
+       │                             │
+       ▼                             ▼
+┌──────────────┐            ┌──────────────────┐
+│   Supabase   │            │   Redis (Upstash) │
+│  PostgreSQL  │            │   Cache Layer     │
+│              │            │                   │
+│  • RLS       │            │  • TTL: 2-60 min  │
+│  • Auth      │            │  • Smart invalidn │
+│  • Realtime  │            │  • Pattern delete │
+└──────────────┘            └──────────────────┘
+       │
+       ▼
+┌──────────────┐
+│   Winston    │
+│   Logging    │
+│              │
+│  • Daily     │
+│    rotation  │
+│  • 14-day    │
+│    retention │
+└──────────────┘
+```
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| **Frontend** | Next.js 14 + TypeScript | Server-side rendering, App Router |
+| **Styling** | Tailwind CSS | Utility-first responsive design |
+| **Backend** | Node.js + Express | RESTful API server (ES Modules) |
+| **Database** | Supabase (PostgreSQL) | Managed Postgres with Row Level Security |
+| **Cache** | Redis (Upstash) | Response caching with intelligent invalidation |
+| **Auth** | Supabase Auth + JWT | Authentication with role-based access control |
+| **Validation** | Zod | Runtime type-safe request validation |
+| **Logging** | Winston + DailyRotateFile | Structured logging with 14-day file rotation |
+| **Geofencing** | Haversine Formula | GPS-based attendance radius enforcement |
+| **Containers** | Docker + Docker Compose | Multi-service containerization |
+| **API Docs** | Swagger / OpenAPI 3.0 | Interactive documentation at `/api/docs` |
+| **Monorepo** | Turborepo + pnpm | Workspace management and build orchestration |
+
+---
+
+## ⚡ Engineering Highlights
+
+### 1. Rotating QR Codes — Eliminating Screenshot Fraud
+
+Students sharing QR screenshots is the #1 proxy attendance method. HostelMate generates QR codes that **rotate every 60 seconds** with embedded timestamps.
+
+```
+QR Payload: {
+  "date": "2026-05-08",
+  "token": "2026-05-08-secret123-1715150400"  // date + secret + epoch
+}
+```
+
+**Validation logic:** The server verifies both `parsedQr.date === today` AND `parsedQr.token.startsWith(today-secret)`. A screenshot taken at 9:00 AM is invalid by 9:01 AM.
+
+### 2. Haversine Geofencing — Location-Based Enforcement
+
+Even with valid QR codes, students could scan from outside campus. HostelMate enforces a **100-meter radius** using the Haversine formula:
+
+```
+a = sin²(Δφ/2) + cos(φ₁) · cos(φ₂) · sin²(Δλ/2)
+c = 2 · atan2(√a, √(1−a))
+d = R · c        // R = 6,371,000 meters
+```
+
+The API returns the exact distance if rejected: *"You are 342m away from hostel. Must be within 100m."*
+
+### 3. Redis Caching with Smart Invalidation
+
+Not all data is equal. HostelMate uses **tiered TTL caching** based on data volatility:
+
+| Cache Key | TTL | Invalidated By |
+|---|---|---|
+| `mess:menu` | 1 hour | Menu update |
+| `stats:dashboard` | 3 min | Any data mutation |
+| `attendance:stats:today` | 5 min | New attendance mark |
+| `attendance:today:{date}` | 2 min | New attendance mark |
+| `notices:{role}` | 3 min | New notice posted |
+| `mess:reviews` | 5 min | New review submitted |
+
+Every write operation triggers **targeted cache invalidation** — never stale data, never unnecessary DB hits.
+
+### 4. Role-Based Access Control (RBAC)
+
+Every route is gated by middleware that verifies JWT → fetches user profile → checks role:
+
+```
+Request → authenticate() → requireWarden() → validate(schema) → handler
+```
+
+Three roles with strict separation: **Student**, **Warden**, **Parent**. A student cannot access warden analytics. A parent cannot submit complaints. Enforced at the middleware layer, not the frontend.
+
+### 5. Zod Schema Validation
+
+Every request body is validated against a Zod schema before reaching the handler. Invalid requests get structured error responses:
+
+```json
+{
+  "success": false,
+  "error": "Validation failed",
+  "details": [
+    { "field": "reason", "message": "Reason must be at least 20 characters" }
+  ]
+}
+```
+
+---
+
+## 👥 Features by Role
+
+### 🎓 Student
+| Feature | Description |
+|---|---|
+| QR Attendance | Scan rotating QR code within geofenced zone |
+| Leave Requests | Submit with date range and reason (20+ chars) |
+| Complaints | File categorized complaints with urgency flags |
+| Mess Reviews | Rate meals (1-5 stars) with comments |
+| Lost & Found | Report or browse lost/found items |
+| Notices | View role-filtered announcements |
+
+### 🏛 Warden
+| Feature | Description |
+|---|---|
+| Analytics Dashboard | Redis-cached stats: attendance, leaves, complaints |
+| Attendance Management | View today's attendance with student details |
+| Leave Approvals | Approve/reject with `approved_by` audit trail |
+| Complaint Tracking | Update status: open → in_progress → resolved |
+| Mess Menu Management | CRUD menu items by day and meal type |
+| Notices Broadcast | Post to students, parents, or all |
+| Staff Directory | Manage hostel staff records |
+| Emergency Alerts | System-wide emergency notifications |
+
+### 👨‍👩‍👧 Parent
+| Feature | Description |
+|---|---|
+| Student Tracking | Real-time attendance and leave status |
+| Leave Visibility | Track child's leave requests and approvals |
+| Notices | View parent-targeted announcements |
+| Contact Warden | Direct communication channel |
+
+---
+
+## 📁 Project Structure
 
 ```
 hostelmate/
 ├── apps/
-│   ├── client/          # Next.js 14 frontend app
-│   │   ├── app/         # Next.js App Router (Auth & Dashboard routes)
-│   │   ├── components/  # Reusable UI components
-│   │   ├── hooks/       # Custom React hooks (useApi, useProfile)
-│   │   ├── lib/         # Supabase client/server utilities
-│   │   └── types/       # TypeScript interface definitions
-│   └── server/          # Express.js backend API
+│   ├── client/                          # Next.js 14 Frontend
+│   │   ├── app/
+│   │   │   ├── (auth)/                  # Login/register pages
+│   │   │   ├── (dashboard)/
+│   │   │   │   ├── student/             # Student dashboard pages
+│   │   │   │   │   ├── attendance/
+│   │   │   │   │   ├── complaints/
+│   │   │   │   │   ├── dashboard/
+│   │   │   │   │   ├── leaves/
+│   │   │   │   │   ├── lost-found/
+│   │   │   │   │   ├── mess/
+│   │   │   │   │   └── notices/
+│   │   │   │   ├── warden/              # Warden dashboard pages
+│   │   │   │   │   ├── attendance/
+│   │   │   │   │   ├── complaints/
+│   │   │   │   │   ├── dashboard/
+│   │   │   │   │   ├── emergency/
+│   │   │   │   │   ├── leaves/
+│   │   │   │   │   ├── lost-found/
+│   │   │   │   │   ├── mess/
+│   │   │   │   │   ├── notices/
+│   │   │   │   │   └── staff/
+│   │   │   │   └── parent/              # Parent dashboard pages
+│   │   │   │       ├── contact/
+│   │   │   │       ├── dashboard/
+│   │   │   │       ├── leaves/
+│   │   │   │       ├── notices/
+│   │   │   │       └── track/
+│   │   │   ├── globals.css
+│   │   │   └── layout.tsx
+│   │   ├── components/ui/               # Shared UI components
+│   │   ├── hooks/                       # Custom React hooks
+│   │   ├── lib/supabase/                # Supabase client config
+│   │   ├── middleware.ts                # Auth + role routing
+│   │   ├── types/                       # TypeScript definitions
+│   │   └── Dockerfile
+│   │
+│   └── server/                          # Express.js Backend
 │       ├── src/
-│       │   ├── config/  # Database/Env configuration
-│       │   ├── middleware/# Auth, RBAC, Rate Limiting
-│       │   └── routes/  # API endpoint handlers
+│       │   ├── config/
+│       │   │   ├── geofence.js          # Haversine distance calc
+│       │   │   ├── logger.js            # Winston configuration
+│       │   │   ├── redis.js             # Upstash Redis client
+│       │   │   ├── supabase.js          # Supabase admin client
+│       │   │   └── validation.js        # Zod schemas
+│       │   ├── middleware/
+│       │   │   ├── auth.js              # JWT authentication
+│       │   │   ├── cache.js             # Cache middleware
+│       │   │   ├── errorHandler.js      # Global error handler
+│       │   │   ├── rateLimit.js         # Rate limiting
+│       │   │   ├── rbac.js              # Role-based access
+│       │   │   ├── requestLogger.js     # HTTP request logging
+│       │   │   └── validate.js          # Zod validation middleware
+│       │   ├── routes/
+│       │   │   ├── attendance.js        # QR + geofence attendance
+│       │   │   ├── complaints.js        # Complaint ticketing
+│       │   │   ├── leaves.js            # Leave management
+│       │   │   ├── lost-found.js        # Lost & found directory
+│       │   │   ├── mess.js              # Menu + reviews
+│       │   │   ├── notices.js           # Announcements
+│       │   │   └── stats.js             # Dashboard analytics
+│       │   └── index.js                 # Server entry point
+│       └── Dockerfile
+│
+├── docker-compose.yml                   # Multi-service orchestration
+├── turbo.json                           # Turborepo config
+├── pnpm-workspace.yaml                  # pnpm workspaces
+└── package.json
 ```
 
-## Getting Started
+---
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repo-url>
-   cd hostelmate
-   ```
+## 🚀 Getting Started
 
-2. **Install dependencies:**
-   ```bash
-   # Install client dependencies
-   cd apps/client
-   pnpm install
+### Prerequisites
 
-   # Install server dependencies
-   cd ../server
-   pnpm install
-   ```
+| Tool | Version | Purpose |
+|---|---|---|
+| Node.js | ≥ 20.x | Runtime |
+| pnpm | ≥ 9.x | Package manager |
+| Docker | ≥ 24.x | Containerization (optional) |
 
-3. **Environment Variables:**
-   Create `.env.local` in `apps/client` and `.env` in `apps/server` with the following variables:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `NEXT_PUBLIC_API_URL`
-   - `SUPABASE_URL`
-   - `SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
+### Installation
 
-4. **Run the development servers:**
-   ```bash
-   # Run frontend (http://localhost:3000)
-   cd apps/client
-   pnpm dev
+```bash
+# Clone the repository
+git clone https://github.com/nivo-technologies/hostelmate.git
+cd hostelmate
 
-   # Run backend (http://localhost:3001)
-   cd ../server
-   pnpm dev
-   ```
+# Install dependencies (monorepo — installs both client and server)
+pnpm install
+```
 
-## API Endpoints Summary
+### Environment Variables
 
-- **`/api/attendance`**: Mark attendance, fetch daily stats, and student history.
-- **`/api/leaves`**: Apply, approve, reject, and fetch leave requests.
-- **`/api/complaints`**: Create and manage status of student complaints.
-- **`/api/mess`**: Update weekly menu and submit/view meal ratings.
-- **`/api/notices`**: Post and fetch announcements based on user role.
-- **`/api/lost-found`**: Report lost/found items and manage claims.
-- **`/api/stats`**: Aggregate dashboard statistics for the warden.
+#### `apps/server/.env`
 
-## Contributing
+| Variable | Description |
+|---|---|
+| `PORT` | Server port (default: 3001) |
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key |
+| `SUPABASE_ANON_KEY` | Supabase anonymous key |
+| `UPSTASH_REDIS_REST_URL` | Upstash Redis REST endpoint |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis auth token |
+| `HOSTEL_LAT` | Hostel latitude for geofencing |
+| `HOSTEL_LNG` | Hostel longitude for geofencing |
+| `NODE_ENV` | `development` or `production` |
 
-Please follow the existing Linear-inspired design system (white backgrounds, minimal borders, no shadows) and strict TypeScript typings when contributing new features.
+#### `apps/client/.env.local`
+
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key |
+| `NEXT_PUBLIC_API_URL` | Backend API URL (default: `http://localhost:3001`) |
+
+### Running Locally
+
+```bash
+# Start backend server
+cd apps/server
+pnpm dev              # → http://localhost:3001
+
+# Start frontend (new terminal)
+cd apps/client
+pnpm dev              # → http://localhost:3000
+
+# Or use Turborepo from root
+pnpm dev              # Starts both concurrently
+```
+
+### Running with Docker
+
+```bash
+# Build and start all services
+docker compose up --build
+
+# Services:
+#   Client  → http://localhost:3000
+#   Server  → http://localhost:3001
+#   Logs    → ./apps/server/logs/ (mounted volume)
+```
+
+---
+
+## 📖 API Documentation
+
+Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
+
+### Health & System
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/health` | ✗ | Health check with Redis status and uptime |
+| `GET` | `/` | ✗ | API info |
+
+### Attendance
+
+| Method | Endpoint | Auth | Role | Description |
+|---|---|---|---|---|
+| `POST` | `/api/attendance/mark` | ✓ | Student | Mark attendance via QR + geofence |
+| `GET` | `/api/attendance/today` | ✓ | Warden | Today's attendance list (cached 2min) |
+| `GET` | `/api/attendance/student/:id` | ✓ | Staff | Student's attendance history |
+| `GET` | `/api/attendance/stats` | ✓ | Warden | Attendance statistics (cached 5min) |
+
+### Leaves
+
+| Method | Endpoint | Auth | Role | Description |
+|---|---|---|---|---|
+| `POST` | `/api/leaves` | ✓ | Student | Submit leave request |
+| `GET` | `/api/leaves/my` | ✓ | Student | View own leave requests |
+| `GET` | `/api/leaves/all` | ✓ | Warden | View all leave requests |
+| `PATCH` | `/api/leaves/:id/approve` | ✓ | Warden | Approve leave request |
+| `PATCH` | `/api/leaves/:id/reject` | ✓ | Warden | Reject leave request |
+
+### Complaints
+
+| Method | Endpoint | Auth | Role | Description |
+|---|---|---|---|---|
+| `POST` | `/api/complaints` | ✓ | Student | File a complaint |
+| `GET` | `/api/complaints/my` | ✓ | Student | View own complaints |
+| `GET` | `/api/complaints/all` | ✓ | Warden | View all complaints |
+| `PATCH` | `/api/complaints/:id/status` | ✓ | Warden | Update complaint status |
+
+### Mess
+
+| Method | Endpoint | Auth | Role | Description |
+|---|---|---|---|---|
+| `GET` | `/api/mess/menu` | ✓ | Any | View mess menu (cached 1hr) |
+| `PUT` | `/api/mess/menu` | ✓ | Warden | Update menu item |
+| `POST` | `/api/mess/review` | ✓ | Student | Submit meal review |
+| `GET` | `/api/mess/reviews` | ✓ | Warden | View all reviews (cached 5min) |
+
+### Notices
+
+| Method | Endpoint | Auth | Role | Description |
+|---|---|---|---|---|
+| `POST` | `/api/notices` | ✓ | Warden | Post announcement |
+| `GET` | `/api/notices` | ✓ | Any | View role-filtered notices (cached 3min) |
+
+### Lost & Found
+
+| Method | Endpoint | Auth | Role | Description |
+|---|---|---|---|---|
+| `POST` | `/api/lost-found` | ✓ | Student | Report lost/found item |
+| `GET` | `/api/lost-found` | ✓ | Any | Browse items |
+| `PATCH` | `/api/lost-found/:id/claim` | ✓ | Any | Claim/resolve item |
+
+### Stats
+
+| Method | Endpoint | Auth | Role | Description |
+|---|---|---|---|---|
+| `GET` | `/api/stats/dashboard` | ✓ | Warden | Aggregated dashboard stats (cached 3min) |
+
+---
+
+## 🔒 Security
+
+| Layer | Implementation | Details |
+|---|---|---|
+| **Authentication** | Supabase Auth + JWT | Every API request verified via `authenticate()` middleware |
+| **Authorization** | RBAC Middleware | `requireStudent()`, `requireWarden()`, `requireStaff()` |
+| **Row Level Security** | Supabase RLS Policies | Database-level access control on all tables |
+| **Rate Limiting** | express-rate-limit | General: 100 req/15min · Auth: 10 req/15min |
+| **Geofencing** | Haversine Formula | 100m radius — prevents remote proxy attendance |
+| **Input Validation** | Zod Schemas | Type-safe validation on every POST/PUT/PATCH |
+| **QR Anti-Fraud** | Rotating Tokens | 60-second rotation prevents screenshot sharing |
+| **Error Handling** | Global Handler | Errors never leak stack traces in production |
+| **Logging** | Winston | Full audit trail with daily rotation, 14-day retention |
+
+---
+
+## 🗺 Roadmap
+
+| Status | Feature | Description |
+|---|---|---|
+| 🔲 | WebSocket Notifications | Real-time push via Socket.io |
+| 🔲 | Face Recognition | Biometric attendance verification |
+| 🔲 | Redis Pub/Sub | Live updates across connected clients |
+| 🔲 | Test Suite | Jest + Supertest with ≥80% coverage |
+| 🔲 | CI/CD Pipeline | GitHub Actions: lint → test → build → deploy |
+| 🔲 | Mobile App | React Native cross-platform app |
+| 🔲 | AI Categorization | Auto-classify complaints with NLP |
+| 🔲 | Predictive Analytics | Maintenance prediction from complaint patterns |
+| 🔲 | Multi-tenancy | Support for multiple hostels under one instance |
+| 🔲 | Payment Integration | Mess fees and hostel charges via Razorpay |
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome. Please follow the standard process:
+
+1. **Fork** the repository
+2. **Create** your feature branch: `git checkout -b feature/amazing-feature`
+3. **Commit** your changes: `git commit -m 'feat: add amazing feature'`
+4. **Push** to the branch: `git push origin feature/amazing-feature`
+5. **Open** a Pull Request
+
+### Commit Convention
+
+This project follows [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+feat:     New feature
+fix:      Bug fix
+docs:     Documentation
+refactor: Code restructuring
+test:     Adding tests
+chore:    Maintenance
+```
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+**Built with ❤️ by [Nivo Technologies](https://github.com/nivo-technologies)**
+
+*Transforming hostel management, one institution at a time.*
+
+</div>
+]]>
