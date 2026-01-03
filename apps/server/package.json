@@ -10,6 +10,7 @@
   },
   "packageManager": "pnpm@10.33.2",
   "dependencies": {
+    "@supabase/supabase-js": "^2.105.3",
     "express-rate-limit": "^8.5.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"

@@ -1,28 +1,13 @@
-export const requireStudent = (req, res, next) => {
-  if (req.profile?.role !== 'student') {
-    return res.status(403).json({ success: false, error: 'Forbidden' })
+export const requireRole = (roles) => {
+  return (req, res, next) => {
+    if (!req.profile || !roles.includes(req.profile.role)) {
+      return res.status(403).json({ success: false, error: 'Forbidden' })
+    }
+    next()
   }
-  next()
 }
 
-export const requireWarden = (req, res, next) => {
-  if (req.profile?.role !== 'warden') {
-    return res.status(403).json({ success: false, error: 'Forbidden' })
-  }
-  next()
-}
-
-export const requireParent = (req, res, next) => {
-  if (req.profile?.role !== 'parent') {
-    return res.status(403).json({ success: false, error: 'Forbidden' })
-  }
-  next()
-}
-
-export const requireStaff = (req, res, next) => {
-  const role = req.profile?.role
-  if (role !== 'warden' && role !== 'admin') {
-    return res.status(403).json({ success: false, error: 'Forbidden' })
-  }
-  next()
-}
+export const requireStudent = requireRole(['student'])
+export const requireWarden = requireRole(['warden'])
+export const requireParent = requireRole(['parent'])
+export const requireStaff = requireRole(['warden', 'admin'])
