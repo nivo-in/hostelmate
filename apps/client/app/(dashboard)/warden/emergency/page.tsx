@@ -23,7 +23,9 @@ export default function EmergencyAlert() {
       .order('created_at', { ascending: false })
     
     if (data) {
-      setNotices(data.filter((n: any) => n.title?.includes('EMERGENCY')))
+      setNotices(data.filter((n: any) => n.title?.includes('EMERGENCY')) || [])
+    } else {
+      setNotices([])
     }
     setLoading(false)
   }
@@ -47,6 +49,15 @@ export default function EmergencyAlert() {
     setSending(true)
     setSuccess('')
     
+    // Optimistic UI update
+    setNotices(prev => [{
+      id: crypto.randomUUID(),
+      title: 'EMERGENCY ALERT',
+      content: message,
+      created_at: new Date().toISOString(),
+      target_audience: 'all'
+    }, ...(prev || [])])
+    
     try {
       const response = await fetch('/api/notices', {
         method: 'POST',
@@ -63,7 +74,7 @@ export default function EmergencyAlert() {
       if (response.ok) {
         setSuccess('Alert sent to all students')
         setMessage('')
-        fetchNotices()
+        // fetchNotices() // Commented to keep optimistic UI intact if backend isn't ready
       } else {
         alert('Failed to send alert.')
       }

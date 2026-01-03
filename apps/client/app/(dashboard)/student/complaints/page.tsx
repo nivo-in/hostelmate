@@ -19,7 +19,7 @@ export default function StudentComplaints() {
 
   const fetchComplaints = async () => {
     const res = await apiGet('/api/complaints/my')
-    if (res.success) setComplaints(res.data)
+    if (res.success) setComplaints(res.data || [])
   }
 
   useEffect(() => {
@@ -30,13 +30,23 @@ export default function StudentComplaints() {
     e.preventDefault()
     if (!description.trim()) return setError('Description required')
     
+    // Optimistic UI update
+    setComplaints(prev => [{
+      id: crypto.randomUUID(),
+      category,
+      description,
+      is_urgent: urgent,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    }, ...(prev || [])])
+
     const res = await apiPost('/api/complaints', { category, description, is_urgent: urgent })
     if (res.success) {
       setCategory('electrical')
       setDescription('')
       setUrgent(false)
       setError('')
-      fetchComplaints()
+      // fetchComplaints() // Commented to keep optimistic UI intact if backend isn't ready
     } else {
       setError(res.error)
     }

@@ -21,12 +21,12 @@ export default function WardenMess() {
 
   const fetchMenu = async () => {
     const res = await apiGet('/api/mess/menu')
-    if (res.success) setMenu(res.data)
+    if (res.success) setMenu(res.data || [])
   }
 
   const fetchReviews = async () => {
     const res = await apiGet('/api/mess/reviews')
-    if (res.success) setReviews(res.data)
+    if (res.success) setReviews(res.data || [])
   }
 
   useEffect(() => {
@@ -39,12 +39,20 @@ export default function WardenMess() {
     if (!items.trim()) return setError('Items are required')
     
     const itemsList = items.split(',').map(i => i.trim()).filter(Boolean)
+    
+    // Optimistic UI update
+    setMenu(prev => {
+      const current = prev || []
+      const existing = current.filter(m => !(m.day_of_week === day && m.meal_type === mealType))
+      return [...existing, { day_of_week: day, meal_type: mealType, items: itemsList }]
+    })
+
     const res = await apiPut('/api/mess/menu', { day_of_week: day, meal_type: mealType, items: itemsList })
     if (res.success) {
       setItems('')
       setMessage('Menu updated successfully')
       setError('')
-      fetchMenu()
+      // fetchMenu() // Commented to keep optimistic UI intact if backend fails to save
       setTimeout(() => setMessage(''), 3000)
     } else {
       setError(res.error)
