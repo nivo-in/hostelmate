@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { supabaseAdmin } from '../config/supabase.js'
 import { authenticate } from '../middleware/auth.js'
-import { requireStudent, requireWarden, requireStaff } from '../middleware/rbac.js'
+import { requireStudent, requireWarden } from '../middleware/rbac.js'
 import { validate } from '../middleware/validate.js'
 import { attendanceSchema } from '../config/validation.js'
 import { isWithinGeofence } from '../config/geofence.js'
@@ -27,6 +27,14 @@ router.post('/mark', authenticate, requireStudent, validate(attendanceSchema), a
       return res.status(400).json({ success: false, error: 'Invalid or expired QR code' })
     }
 
+    
+    if (parsedQr.nonce) {
+      const qrAge = Date.now() - parsedQr.nonce
+      if (qrAge > 30000) {
+        return res.status(400).json({ success: false, error: 'QR code expired. Please scan the latest QR code.' })
+      }
+    }
+
     if (lat !== undefined && lng !== undefined) {
       const hostelLat = parseFloat(process.env.HOSTEL_LAT || '28.6139')
       const hostelLng = parseFloat(process.env.HOSTEL_LNG || '77.2090')
@@ -38,7 +46,7 @@ router.post('/mark', authenticate, requireStudent, validate(attendanceSchema), a
       logger.warn(`Attendance marked without location verification for user ${req.user.id}`)
     }
 
-    const { data: existing, error: checkError } = await supabaseAdmin
+    const { data: existing } = await supabaseAdmin
       .from('attendance')
       .select('id')
       .eq('student_id', req.user.id)
@@ -66,11 +74,9 @@ router.post('/mark', authenticate, requireStudent, validate(attendanceSchema), a
     if (insertError) throw insertError
 
     logger.info(`Attendance marked successfully for user ${req.user.id}`)
-    
     await deleteCache('attendance:stats:today')
     await deleteCache(`attendance:today:${today}`)
-    logger.info('Cache invalidated after attendance mark')
-    
+
     res.json({ success: true, data: record })
   } catch (error) {
     next(error)
@@ -81,14 +87,14 @@ router.get('/today', authenticate, requireWarden, async (req, res, next) => {
   try {
     const today = new Date().toISOString().split('T')[0]
     const cacheKey = `attendance:today:${today}`
-    
+
     const cached = await getCache(cacheKey)
     if (cached) {
       logger.info('Cache hit: attendance today')
       return res.json({ success: true, data: cached })
     }
     logger.info('Cache miss: attendance today')
-    
+
     const { data, error } = await supabaseAdmin
       .from('attendance')
       .select(`*, students!attendance_student_id_fkey(roll_number, profiles!students_id_fkey(full_name))`)
@@ -98,8 +104,8 @@ router.get('/today', authenticate, requireWarden, async (req, res, next) => {
 
     const formattedData = data.map(item => ({
       id: item.id,
-      full_name: item.students?.profiles?.full_name || item.student?.profile?.full_name,
-      roll_number: item.students?.roll_number || item.student?.roll_number,
+      full_name: item.students?.profiles?.full_name,
+      roll_number: item.students?.roll_number,
       status: item.status,
       scan_time: item.scan_time
     }))
@@ -111,10 +117,14 @@ router.get('/today', authenticate, requireWarden, async (req, res, next) => {
   }
 })
 
-router.get('/student/:studentId', authenticate, requireStaff, async (req, res, next) => {
+router.get('/student/:studentId', authenticate, async (req, res, next) => {
   try {
     const { studentId } = req.params
-    const { month } = req.query // format: YYYY-MM
+    const { month } = req.query
+
+    if (req.profile.role === 'student' && req.user.id !== studentId) {
+      return res.status(403).json({ success: false, error: 'Forbidden' })
+    }
 
     let query = supabaseAdmin
       .from('attendance')
@@ -129,7 +139,6 @@ router.get('/student/:studentId', authenticate, requireStaff, async (req, res, n
     }
 
     const { data, error } = await query
-
     if (error) throw error
 
     res.json({ success: true, data })
@@ -142,7 +151,7 @@ router.get('/stats', authenticate, requireWarden, async (req, res, next) => {
   try {
     const today = new Date().toISOString().split('T')[0]
     const cacheKey = 'attendance:stats:today'
-    
+
     const cached = await getCache(cacheKey)
     if (cached) {
       logger.info('Cache hit: attendance stats')
@@ -150,19 +159,15 @@ router.get('/stats', authenticate, requireWarden, async (req, res, next) => {
     }
     logger.info('Cache miss: attendance stats')
 
-    const { count: totalStudents, error: studentsError } = await supabaseAdmin
+    const { count: totalStudents } = await supabaseAdmin
       .from('students')
       .select('*', { count: 'exact', head: true })
 
-    if (studentsError) throw studentsError
-
-    const { count: presentToday, error: attendanceError } = await supabaseAdmin
+    const { count: presentToday } = await supabaseAdmin
       .from('attendance')
       .select('*', { count: 'exact', head: true })
       .eq('date', today)
       .eq('status', 'present')
-
-    if (attendanceError) throw attendanceError
 
     const total = totalStudents || 0
     const present = presentToday || 0
@@ -177,10 +182,7 @@ router.get('/stats', authenticate, requireWarden, async (req, res, next) => {
     }
 
     await setCache(cacheKey, statsData, 300)
-    res.json({
-      success: true,
-      data: statsData
-    })
+    res.json({ success: true, data: statsData })
   } catch (error) {
     next(error)
   }
