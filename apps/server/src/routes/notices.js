@@ -16,7 +16,7 @@ router.post('/', authenticate, requireWarden, validate(noticeSchema), async (req
     const { data: record, error } = await supabaseAdmin
       .from('notices')
       .insert({
-        author_id: req.user.id,
+        posted_by: req.user.id,
         title,
         content,
         target_audience
