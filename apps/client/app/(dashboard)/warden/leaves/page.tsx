@@ -101,8 +101,8 @@ export default function WardenLeaves() {
             ) : (
               filteredLeaves.map(l => (
                 <tr key={l.id} className="border-b border-gray-50">
-                  <td className="px-4 py-3 text-gray-900 font-medium">{l.profiles?.full_name || 'Unknown'}</td>
-                  <td className="px-4 py-3 text-gray-500">{l.profiles?.id?.substring(0, 8) || '-'}</td>
+                  <td className="px-4 py-3 text-gray-900 font-medium">{l.students?.profiles?.full_name || 'Unknown'}</td>
+                  <td className="px-4 py-3 text-gray-500">{l.students?.profiles?.id?.substring(0, 8) || '-'}</td>
                   <td className="px-4 py-3 text-gray-900 whitespace-nowrap">{l.start_date} to {l.end_date}</td>
                   <td className="px-4 py-3 text-gray-600 max-w-[150px] truncate" title={l.reason}>{l.reason}</td>
                   <td className="px-4 py-3">

@@ -43,9 +43,10 @@ export default function WardenNotices() {
       id: crypto.randomUUID(),
       title,
       content,
-      target_audience: audience,
+      posted_by: 'warden',
+      target_audience: audience as 'all' | 'students' | 'parents',
       created_at: new Date().toISOString()
-    }, ...(prev || [])]);
+    } as Notice, ...(prev || [])]);
 
     try {
       const res = await apiPost('/api/notices', { title, content, target_audience: audience });

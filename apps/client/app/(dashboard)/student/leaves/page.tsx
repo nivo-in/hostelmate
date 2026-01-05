@@ -48,7 +48,7 @@ export default function StudentLeaves() {
       reason: reason,
       status: 'pending',
       created_at: new Date().toISOString()
-    }, ...(prev || [])]);
+    } as LeaveRequest, ...(prev || [])]);
 
     try {
       const res = await apiPost('/api/leaves', { start_date: start, end_date: end, reason });

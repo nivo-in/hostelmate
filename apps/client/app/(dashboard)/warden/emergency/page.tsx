@@ -56,8 +56,9 @@ export default function EmergencyAlert() {
       title: 'EMERGENCY ALERT',
       content: message,
       created_at: new Date().toISOString(),
-      target_audience: 'all'
-    }, ...(prev || [])])
+      target_audience: 'all',
+      posted_by: 'warden'
+    } as Notice, ...(prev || [])])
     
     try {
       const response = await fetch('/api/notices', {

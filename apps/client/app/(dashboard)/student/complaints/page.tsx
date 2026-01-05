@@ -45,8 +45,11 @@ export default function StudentComplaints() {
       description,
       is_urgent: urgent,
       status: 'open',
+      student_id: 'pending',
+      resolved_by: '',
+      resolution_date: '',
       created_at: new Date().toISOString()
-    }, ...(prev || [])]);
+    } as Complaint, ...(prev || [])]);
 
     try {
       const res = await apiPost('/api/complaints', { category, description, is_urgent: urgent });

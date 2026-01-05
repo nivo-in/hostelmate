@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { useProfile } from '@/hooks/useProfile';
-import { Student, Attendance } from '@/types'
+import { Profile, Attendance } from '@/types'
 
 export default function ParentTrack() {
   const router = useRouter();
@@ -15,8 +15,8 @@ export default function ParentTrack() {
   const { apiGet } = useApi();
   const { profile, loading: profileLoading } = useProfile();
   
-  const [student, setStudent] = useState<Student | null>(null);
-  const [todayRecord, setTodayRecord] = useState<Student | null>(null);
+  const [student, setStudent] = useState<Profile | null>(null);
+  const [todayRecord, setTodayRecord] = useState<Attendance | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
