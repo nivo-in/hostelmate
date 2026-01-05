@@ -86,7 +86,6 @@ export default function StaffDirectory() {
     }
     
     setFormData({ name: '', phone: '', role: 'Warden', email: '' })
-    // fetchStaff() // Commented to keep optimistic UI intact if backend isn't ready
   }
 
   const handleDelete = async (id: string) => {
