@@ -75,6 +75,12 @@ export default function StudentDashboard() {
           description="Report or find items" 
           href="/student/lost-found" 
         />
+        <Card 
+          emoji="⭐" 
+          title="Staff Feedback" 
+          description="Rate hostel staff" 
+          href="/student/staff-feedback" 
+        />
       </div>
     </div>
   )
