@@ -15,7 +15,7 @@ const staffFeedbackSchema = z.object({
 })
 
 // GET / — requireWarden
-router.get('/', authenticate, requireWarden, async (req, res, next) => {
+router.get('/', authenticate, async (req, res, next) => {
   try {
     const { data: staffMembers, error: staffError } = await supabaseAdmin
       .from('staff_members')

@@ -30,7 +30,16 @@ export default function StaffDirectory() {
   const [activeTab, setActiveTab] = useState<'add' | 'remove' | 'report'>('add')
   const { apiGet } = useApi()
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
-  const [reportData, setReportData] = useState<any[]>([])
+  interface ReportData extends StaffMember {
+  daysPresent: number
+  daysAbsent: number
+  attendancePercent: number
+  average_rating: number
+  total_reviews: number
+  this_month_reviews: number
+  hasData: boolean
+}
+const [reportData, setReportData] = useState<ReportData[]>([])
   const [loadingReport, setLoadingReport] = useState(false)
 
   // ── Add-staff form ───────────────────────────────────────────────────
@@ -115,7 +124,7 @@ export default function StaffDirectory() {
           
           if (res.success && res.data) {
             const allFeedback = res.data.feedback || []
-            const thisMonthReviews = allFeedback.filter((f: any) => f.created_at.startsWith(selectedMonth)).length
+            const thisMonthReviews = allFeedback.filter((f: { created_at: string }) => f.created_at.startsWith(selectedMonth)).length
             feedbackData = {
               average_rating: res.data.average_rating || 0,
               total_reviews: res.data.total_reviews || 0,
