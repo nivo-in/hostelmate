@@ -116,9 +116,11 @@ export default function StudentAttendance() {
     if (profile?.id) fetchHistory();
   }, [profile?.id, fetchHistory]);
 
-  // Check if face is registered
+  // Check if face is registered — runs exactly once when profile.id is ready
+  const hasFaceChecked = useCallback(() => {}, []); // stable identity used as mount guard
   useEffect(() => {
-    if (!profile?.id || view !== 'checking-face') return;
+    if (!profile?.id) return;
+    let cancelled = false;
     const check = async () => {
       try {
         const { data } = await supabase
@@ -126,13 +128,14 @@ export default function StudentAttendance() {
           .select('student_id')
           .eq('student_id', profile.id)
           .single();
-        setView(data ? 'choose-method' : 'face-registration');
+        if (!cancelled) setView(data ? 'choose-method' : 'face-registration');
       } catch {
-        setView('face-registration');
+        if (!cancelled) setView('face-registration');
       }
     };
     check();
-  }, [profile?.id, view]);  // eslint-disable-line react-hooks/exhaustive-deps
+    return () => { cancelled = true; };
+  }, [profile?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const runQrScan = (isFaceVerified: boolean) => {
     setFaceVerified(isFaceVerified);
