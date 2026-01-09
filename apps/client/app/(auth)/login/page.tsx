@@ -78,10 +78,13 @@ export default function LoginPage() {
     setPendingRole(null)
   }
 
-  const handleFaceSkip = () => {
-    // Allow skip — warden gets in without face check
-    setStep('done')
-    window.location.href = '/warden/dashboard'
+  const handleFaceSkip = async () => {
+    // Do NOT allow skipping warden face verification — it's a security gate
+    await supabase.auth.signOut()
+    setError('Face verification is required for warden login. Please register your face first.')
+    setStep('credentials')
+    setPendingUserId(null)
+    setPendingRole(null)
   }
 
   // ── Face Verification Screen ──
