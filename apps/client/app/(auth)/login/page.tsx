@@ -35,15 +35,12 @@ export default function LoginPage() {
         .eq('id', data.user.id)
         .single()
 
-      const routes: Record<string, string> = {
-        student: '/student/dashboard',
-        warden: '/warden/dashboard',
-        parent: '/parent/dashboard'
-      }
-
-      const route = routes[profile?.role || '']
-      if (route) {
-        window.location.href = route
+      if (profile?.role === 'student') {
+        router.push('/student/dashboard')
+      } else if (profile?.role === 'warden') {
+        router.push('/warden/dashboard')
+      } else if (profile?.role === 'parent') {
+        router.push('/parent/dashboard')
       } else {
         setError('No role assigned to this account.')
         setIsLoading(false)

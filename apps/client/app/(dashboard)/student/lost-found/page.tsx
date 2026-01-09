@@ -28,8 +28,8 @@ export default function StudentLostFound() {
     try {
       const res = await apiGet('/api/lost-found');
       if (res.success) setItems(res.data || []);
-    } catch {
-      // Silently fail
+    } catch (e) {
+      console.error(e);
     }
   };
 
