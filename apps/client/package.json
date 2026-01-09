@@ -12,6 +12,7 @@
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.105.3",
     "@tailwindcss/vite": "^4.3.0",
+    "face-api.js": "^0.22.2",
     "html5-qrcode": "^2.3.8",
     "next": "16.2.4",
     "qrcode": "^1.5.4",

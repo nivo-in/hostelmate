@@ -1,14 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Header } from '@/components/ui/Header'
 import { Card } from '@/components/ui/Card'
 
 export default function StudentDashboard() {
   const [firstName, setFirstName] = useState('')
-  const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
@@ -31,7 +29,7 @@ export default function StudentDashboard() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    router.push('/login')
+    window.location.href = '/login'
   }
 
   return (

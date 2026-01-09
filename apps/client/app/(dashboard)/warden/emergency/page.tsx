@@ -38,7 +38,7 @@ export default function EmergencyAlert() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    router.push('/login')
+    window.location.href = '/login'
   }
 
   const sendAlert = async () => {

@@ -59,7 +59,7 @@ export default function ParentTrack() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push('/login');
+    window.location.href = '/login';
   };
 
   if (profileLoading || loading) return <div className="min-h-screen bg-white px-6 py-10"><LoadingSpinner /></div>;

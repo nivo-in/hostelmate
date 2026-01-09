@@ -59,7 +59,7 @@ export default function ParentLeaves() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push('/login');
+    window.location.href = '/login';
   };
 
   const getStatusVariant = (status: string) => {

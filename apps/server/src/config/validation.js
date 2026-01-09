@@ -3,7 +3,8 @@ import { z } from 'zod'
 export const attendanceSchema = z.object({
   qr_data: z.string().min(1),
   lat: z.number().optional(),
-  lng: z.number().optional()
+  lng: z.number().optional(),
+  face_verified: z.boolean().optional().default(false)
 })
 
 export const leaveSchema = z.object({

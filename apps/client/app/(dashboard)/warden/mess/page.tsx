@@ -82,7 +82,7 @@ export default function WardenMess() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push('/login');
+    window.location.href = '/login';
   };
 
   const getAverageRating = (meal: string) => {
