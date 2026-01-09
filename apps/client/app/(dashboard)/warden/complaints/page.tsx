@@ -22,8 +22,8 @@ export default function WardenComplaints() {
     try {
       const res = await apiGet('/api/complaints/all');
       if (res.success) setComplaints(res.data || []);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // Silently fail
     }
   };
 
@@ -39,8 +39,8 @@ export default function WardenComplaints() {
         fetchComplaints();
         setTimeout(() => setMessage(''), 3000);
       }
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // Silently fail
     }
   };
 
