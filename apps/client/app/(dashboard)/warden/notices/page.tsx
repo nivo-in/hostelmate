@@ -25,8 +25,8 @@ export default function WardenNotices() {
     try {
       const res = await apiGet('/api/notices');
       if (res.success) setNotices(res.data || []);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // Silently fail
     }
   };
 
