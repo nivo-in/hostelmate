@@ -6,6 +6,8 @@ import { validate } from '../middleware/validate.js'
 import { noticeSchema } from '../config/validation.js'
 import logger from '../config/logger.js'
 import { getCache, setCache, deleteCache } from '../config/redis.js'
+import { createNotification } from '../config/notify.js'
+import { auditLog } from '../config/audit.js'
 
 const router = Router()
 
@@ -27,6 +29,25 @@ router.post('/', authenticate, requireWarden, validate(noticeSchema), async (req
     if (error) throw error
 
     logger.info(`Notice "${title}" posted by ${req.user.id}`)
+    await auditLog(req.user.id, 'post_notice', 'notice', record.id)
+    
+    let targetRoles = []
+    if (target_audience === 'all') targetRoles = ['student', 'parent']
+    else if (target_audience === 'students') targetRoles = ['student']
+    else if (target_audience === 'parents') targetRoles = ['parent']
+
+    if (targetRoles.length > 0) {
+      const { data: users } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .in('role', targetRoles)
+
+      if (users) {
+        for (const u of users) {
+          await createNotification(u.id, 'New Notice: ' + title, title, 'notice', record.id)
+        }
+      }
+    }
     
     await deleteCache('notices:student')
     await deleteCache('notices:parent')

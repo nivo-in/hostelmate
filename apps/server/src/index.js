@@ -22,6 +22,11 @@ import noticesRoutes from './routes/notices.js'
 import lostFoundRoutes from './routes/lost-found.js'
 import statsRoutes from './routes/stats.js'
 import staffFeedbackRoutes from './routes/staff-feedback.js'
+import curfewRoutes from './routes/curfew.js'
+import notificationsRoutes from './routes/notifications.js'
+import roomsRoutes from './routes/rooms.js'
+import auditRoutes from './routes/audit.js'
+
 const app = express()
 const PORT = process.env.PORT || 3001
 
@@ -84,6 +89,11 @@ app.use('/api/notices', noticesRoutes)
 app.use('/api/lost-found', lostFoundRoutes)
 app.use('/api/stats', statsRoutes)
 app.use('/api/staff-feedback', staffFeedbackRoutes)
+app.use('/api/curfew', curfewRoutes)
+app.use('/api/notifications', notificationsRoutes)
+app.use('/api/rooms', roomsRoutes)
+app.use('/api/audit', auditRoutes)
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ success: false, error: 'Route not found' })

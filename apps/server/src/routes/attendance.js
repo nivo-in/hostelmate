@@ -7,6 +7,7 @@ import { attendanceSchema } from '../config/validation.js'
 import { isWithinGeofence } from '../config/geofence.js'
 import logger from '../config/logger.js'
 import { getCache, setCache, deleteCache } from '../config/redis.js'
+import { auditLog } from '../config/audit.js'
 
 const router = Router()
 
@@ -74,6 +75,7 @@ router.post('/mark', authenticate, requireStudent, validate(attendanceSchema), a
     if (insertError) throw insertError
 
     logger.info(`Attendance marked successfully for user ${req.user.id}`)
+    await auditLog(req.user.id, 'mark_attendance', 'attendance', record.id)
     await deleteCache('attendance:stats:today')
     await deleteCache(`attendance:today:${today}`)
 
