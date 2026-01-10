@@ -525,19 +525,29 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 
 | Status | Feature | Description |
 |---|---|---|
-| ✅ | **Face Recognition** | 5-angle biometric (SsdMobilenetv1) + EAR blink liveness + frame-diff anti-spoofing |
-| ✅ | **Test Suite** | Jest + Supertest — attendance, geofence & Zod validation tests with mocked Supabase/Redis |
-| ✅ | **CI/CD Pipeline** | GitHub Actions: lint → build → security audit → Docker verify on every push to v2/main |
+| ✅ | **GitHub Actions CI/CD** | Lint → build → security audit → Docker verify on every push to v2/main |
+| ✅ | **Redis Caching** | Tiered TTL caching (2–60 min) with smart pattern-based invalidation |
+| ✅ | **Docker** | Multi-service containerisation with `docker-compose` (client + server) |
+| ✅ | **Winston Logging** | Structured logging with daily file rotation and 14-day retention |
+| ✅ | **Zod Validation** | Type-safe request validation schemas on every POST / PUT / PATCH |
+| ✅ | **RBAC Middleware** | `requireStudent` / `requireWarden` / `requireStaff` on every route |
+| ✅ | **Geofencing** | Haversine formula, 100 m radius enforcement with exact distance in error |
+| ✅ | **Rotating QR Codes** | 60-second rotation — screenshot sharing is invalid within 1 minute |
+| ✅ | **Smart Lost & Found** | Jaccard-similarity auto-matching with in-app notification on match |
+| ✅ | **Staff Management** | Directory, attendance tracking, and monthly staff reports |
 | ✅ | **Staff Feedback** | Student rating system (1–5★) per staff member with warden aggregate view |
-| 🔲 | WebSocket Notifications | Real-time push via Socket.io for instant alerts |
-| 🔲 | Redis Pub/Sub | Live cross-client updates without polling |
+| ✅ | **Jest Tests** | Attendance, geofence & Zod validation tests with mocked Supabase / Redis |
+| ✅ | **Emergency Alerts** | Warden broadcasts instant system-wide emergency notice to all students |
+| ✅ | **Face Recognition** | 5-angle biometric (SsdMobilenetv1) + EAR blink liveness + frame-diff anti-spoofing |
+| 🔲 | WebSocket Notifications | Real-time push via Socket.io for instant alerts without polling |
+| 🔲 | Redis Pub/Sub | Live cross-client updates across browser tabs and devices |
 | 🔲 | Test Coverage ≥80% | Expand Jest suite to full route coverage with Supertest |
-| 🔲 | Mobile App | React Native cross-platform app |
-| 🔲 | AI Complaint Classification | Auto-categorize complaints using NLP |
-| 🔲 | Predictive Maintenance | Predict issues from complaint patterns |
+| 🔲 | Mobile App | React Native cross-platform app for students and parents |
+| 🔲 | AI Complaint Classification | Auto-categorise complaints by type and urgency using NLP |
+| 🔲 | Predictive Maintenance | Predict recurring issues from historical complaint patterns |
 | 🔲 | Multi-tenancy | Support multiple hostels under one instance |
 | 🔲 | Payment Integration | Mess fees and hostel charges via Razorpay |
-| 🔲 | Visitor Management | Digital guest check-in / check-out system |
+| 🔲 | Visitor Management | Digital guest check-in / check-out with warden approval |
 | 🔲 | Room Allocation | Room assignment and transfer request workflow |
 | 🔲 | Night Curfew Alerts | Auto-notify parents if student not checked in by 10 PM |
 
