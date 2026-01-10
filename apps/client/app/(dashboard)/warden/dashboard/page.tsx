@@ -163,6 +163,24 @@ export default function WardenDashboard() {
           description="Send emergency alerts" 
           href="/warden/emergency" 
         />
+        <Card 
+          emoji="🏠" 
+          title="Room Allocation" 
+          description="Manage rooms and assignments" 
+          href="/warden/rooms" 
+        />
+        <Card 
+          emoji="🌙" 
+          title="Curfew Management" 
+          description="Track and notify curfew violations" 
+          href="/warden/curfew" 
+        />
+        <Card 
+          emoji="📋" 
+          title="Audit Log" 
+          description="View all system activity" 
+          href="/warden/audit" 
+        />
       </div>
 
       {/* ── FACE SECURITY SECTION ── */}
