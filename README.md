@@ -258,6 +258,7 @@ Gate 3: Face match (threshold 0.52, best-of-5-angles)
 | Mess Reviews | Rate meals (1-5 stars) with comments |
 | Lost & Found | Report or browse lost/found items |
 | Auto-Match Notifications | Instant alert when a matching found item is reported |
+| Staff Feedback | Rate hostel staff (1-5 stars) with optional comments |
 | Notices | View role-filtered announcements |
 
 ### 🏛 Warden
@@ -271,6 +272,7 @@ Gate 3: Face match (threshold 0.52, best-of-5-angles)
 | Mess Menu Management | CRUD menu items by day and meal type |
 | Notices Broadcast | Post to students, parents, or all |
 | Staff Directory | Manage hostel staff records |
+| Staff Feedback Aggregation | View per-staff average ratings from student reviews |
 | Emergency Alerts | System-wide emergency notifications |
 | Auto-Match Alerts | Notified when lost/found items match automatically |
 
@@ -533,11 +535,12 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 
 | Status | Feature | Description |
 |---|---|---|
-| ✅ | **Face Recognition** | **5-angle biometric + EAR blink liveness + frame-diff anti-spoofing** |
+| ✅ | **Face Recognition** | 5-angle biometric (SsdMobilenetv1) + EAR blink liveness + frame-diff anti-spoofing |
+| ✅ | **Test Suite** | Jest + Supertest — attendance, geofence & Zod validation tests with mocked Supabase/Redis |
+| ✅ | **CI/CD Pipeline** | GitHub Actions: lint → build → security audit → Docker verify on every push to v2/main |
+| ✅ | **Staff Feedback** | Student rating system (1-5★) per staff member with warden aggregate view |
 | 🔲 | WebSocket Notifications | Real-time push via Socket.io |
 | 🔲 | Redis Pub/Sub | Live updates across connected clients |
-| 🔲 | Test Suite | Jest + Supertest with ≥80% coverage |
-| ✅ | CI/CD Pipeline | GitHub Actions: lint → test → build → deploy |
 | 🔲 | Mobile App | React Native cross-platform app |
 | 🔲 | AI Categorization | Auto-classify complaints with NLP |
 | 🔲 | Predictive Analytics | Maintenance prediction from complaint patterns |
