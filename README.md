@@ -1,4 +1,4 @@
-<![CDATA[<div align="center">
+<div align="center">
 
 # 🏨 HostelMate
 
@@ -226,23 +226,13 @@ HostelMate uses **client-side biometric verification** powered by `face-api.js` 
 
 **Verification runs three hard gates before accepting a match:**
 
-```
-Gate 1: Blink detection (EAR falling-edge — mandatory, no bypass)
-   Eye Aspect Ratio = (||p2-p6|| + ||p3-p5||) / (2 × ||p1-p4||)
-   EAR < 0.25 on a falling edge → blink confirmed
-   → A photo on a phone screen cannot blink
+| Gate | Check | How it blocks spoofing |
+|---|---|---|
+| **1 — Blink (mandatory)** | Eye Aspect Ratio (EAR) falling-edge detection using 68-point landmarks. EAR = `(‖p2−p6‖ + ‖p3−p5‖) / (2 × ‖p1−p4‖)`. EAR < 0.25 on a falling edge = blink confirmed. | A static photo on a phone screen **cannot blink** — no real eye movement, no EAR drop. |
+| **2 — Frame-diff (hard-block)** | A 32×32 patch of the face region is sampled every tick, compared pixel-by-pixel (grayscale) to the previous frame. Avg diff < 6/255 over 10+ frames = static source. | Catches a photo held still after a fake EAR dip (e.g., tilting the phone). |
+| **3 — Face match** | Euclidean distance vs all 5 stored angle descriptors. Best (minimum) distance must be < 0.52. | Threshold set below face-api's default 0.6 — tight enough to reject strangers, loose enough to match front-facing without head rotation. |
 
-Gate 2: Frame-difference pixel analysis (secondary hard-block)
-   32×32 face patch sampled each frame, grayscale diff vs previous
-   Avg diff < 6/255 over 10 frames → static image → BLOCK
-   → Catches photos held still after a fake EAR dip
-
-Gate 3: Face match (threshold 0.52, best-of-5-angles)
-   Euclidean distance vs all stored angle descriptors → take minimum
-   → Front-facing match works without needing head rotation
-```
-
-**Performance:** Recursive async tick (not `setInterval`) — next detection fires 50ms after previous completes. Blink → verified in ~300ms total. EMA smoothing on confidence bar prevents jitter.
+**Performance:** Recursive async tick instead of `setInterval` — next detection fires 50ms after the previous completes (~3× more detections/sec). Blink → verified in **~300ms total**. EMA smoothing on the confidence bar prevents jitter.
 
 ---
 
@@ -538,14 +528,18 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | ✅ | **Face Recognition** | 5-angle biometric (SsdMobilenetv1) + EAR blink liveness + frame-diff anti-spoofing |
 | ✅ | **Test Suite** | Jest + Supertest — attendance, geofence & Zod validation tests with mocked Supabase/Redis |
 | ✅ | **CI/CD Pipeline** | GitHub Actions: lint → build → security audit → Docker verify on every push to v2/main |
-| ✅ | **Staff Feedback** | Student rating system (1-5★) per staff member with warden aggregate view |
-| 🔲 | WebSocket Notifications | Real-time push via Socket.io |
-| 🔲 | Redis Pub/Sub | Live updates across connected clients |
+| ✅ | **Staff Feedback** | Student rating system (1–5★) per staff member with warden aggregate view |
+| 🔲 | WebSocket Notifications | Real-time push via Socket.io for instant alerts |
+| 🔲 | Redis Pub/Sub | Live cross-client updates without polling |
+| 🔲 | Test Coverage ≥80% | Expand Jest suite to full route coverage with Supertest |
 | 🔲 | Mobile App | React Native cross-platform app |
-| 🔲 | AI Categorization | Auto-classify complaints with NLP |
-| 🔲 | Predictive Analytics | Maintenance prediction from complaint patterns |
-| 🔲 | Multi-tenancy | Support for multiple hostels under one instance |
+| 🔲 | AI Complaint Classification | Auto-categorize complaints using NLP |
+| 🔲 | Predictive Maintenance | Predict issues from complaint patterns |
+| 🔲 | Multi-tenancy | Support multiple hostels under one instance |
 | 🔲 | Payment Integration | Mess fees and hostel charges via Razorpay |
+| 🔲 | Visitor Management | Digital guest check-in / check-out system |
+| 🔲 | Room Allocation | Room assignment and transfer request workflow |
+| 🔲 | Night Curfew Alerts | Auto-notify parents if student not checked in by 10 PM |
 
 ---
 
@@ -587,4 +581,3 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 *Transforming hostel management, one institution at a time.*
 
 </div>
-]]>
