@@ -20,66 +20,35 @@ router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => 
     }
     logger.info('Cache miss: stats dashboard')
 
-    // Attendance stats
-    const { count: totalStudents } = await supabaseAdmin
-      .from('students')
-      .select('*', { count: 'exact', head: true })
-
-    const { count: presentToday } = await supabaseAdmin
-      .from('attendance')
-      .select('*', { count: 'exact', head: true })
-      .eq('date', today)
-      .eq('status', 'present')
+    // Fetch all stats in parallel to avoid sequential network round-trips
+    const [
+      { count: totalStudents },
+      { count: presentToday },
+      { count: pendingLeaves },
+      { count: approvedLeavesMonth },
+      { count: rejectedLeavesMonth },
+      { count: openComplaints },
+      { count: inProgressComplaints },
+      { count: resolvedComplaintsMonth },
+      { count: totalActiveNotices },
+      { data: lostFoundData }
+    ] = await Promise.all([
+      supabaseAdmin.from('students').select('*', { count: 'exact', head: true }),
+      supabaseAdmin.from('attendance').select('*', { count: 'exact', head: true }).eq('date', today).eq('status', 'present'),
+      supabaseAdmin.from('leave_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabaseAdmin.from('leave_requests').select('*', { count: 'exact', head: true }).eq('status', 'approved').gte('created_at', startOfMonth),
+      supabaseAdmin.from('leave_requests').select('*', { count: 'exact', head: true }).eq('status', 'rejected').gte('created_at', startOfMonth),
+      supabaseAdmin.from('complaints').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+      supabaseAdmin.from('complaints').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
+      supabaseAdmin.from('complaints').select('*', { count: 'exact', head: true }).eq('status', 'resolved').gte('resolution_date', startOfMonth),
+      supabaseAdmin.from('notices').select('*', { count: 'exact', head: true }),
+      supabaseAdmin.from('lost_and_found').select('status')
+    ])
 
     const total = totalStudents || 0
     const present = presentToday || 0
     const absent = total - present
     const percentage = total > 0 ? ((present / total) * 100).toFixed(2) : 0
-
-    // Leave stats
-    const { count: pendingLeaves } = await supabaseAdmin
-      .from('leave_requests')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending')
-
-    const { count: approvedLeavesMonth } = await supabaseAdmin
-      .from('leave_requests')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'approved')
-      .gte('created_at', startOfMonth)
-
-    const { count: rejectedLeavesMonth } = await supabaseAdmin
-      .from('leave_requests')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'rejected')
-      .gte('created_at', startOfMonth)
-
-    // Complaints stats
-    const { count: openComplaints } = await supabaseAdmin
-      .from('complaints')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'open')
-
-    const { count: inProgressComplaints } = await supabaseAdmin
-      .from('complaints')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'in_progress')
-
-    const { count: resolvedComplaintsMonth } = await supabaseAdmin
-      .from('complaints')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'resolved')
-      .gte('resolution_date', startOfMonth)
-
-    // Notices stats
-    const { count: totalActiveNotices } = await supabaseAdmin
-      .from('notices')
-      .select('*', { count: 'exact', head: true })
-
-    // Lost and found stats
-    const { data: lostFoundData } = await supabaseAdmin
-      .from('lost_and_found')
-      .select('status')
 
     let totalLost = 0
     let totalFound = 0
