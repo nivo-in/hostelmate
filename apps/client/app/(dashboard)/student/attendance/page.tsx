@@ -110,7 +110,7 @@ export default function StudentAttendance() {
       const res = await apiGet(`/api/attendance/student/${profile.id}`);
       if (res.success) setHistory(res.data.slice(0, 30) || []);
     } catch { /* silently fail */ }
-  }, [profile?.id, apiGet]);
+  }, [profile, apiGet]);
 
   useEffect(() => {
     if (profile?.id) fetchHistory();
