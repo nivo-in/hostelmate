@@ -27,8 +27,7 @@ export default function WardenDashboard() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
+      const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setWardenId(user.id);
         const { data: profile } = await supabase
@@ -52,24 +51,24 @@ export default function WardenDashboard() {
     };
     
     const fetchStats = async () => {
-      try {
-        const res = await apiGet('/api/stats/dashboard')
-        if (res.success && res.data) {
-          setStats({
-            attendanceToday: res.data.attendance?.today_percentage ?? 0,
-            pendingLeaves: res.data.leaves?.pending_count ?? 0,
-            openComplaints: res.data.complaints?.open_count ?? 0,
-            activeNotices: res.data.notices?.total_active ?? 0
-          })
-        }
-      } catch {
-        setStats({ attendanceToday: 0, pendingLeaves: 0, openComplaints: 0, activeNotices: 0 })
-      }
-    };
+  try {
+    const res = await apiGet('/api/stats/dashboard')
+    if (res.success && res.data) {
+      setStats({
+        attendanceToday: res.data.attendance?.today_percentage ?? 0,
+        pendingLeaves: res.data.leaves?.pending_count ?? 0,
+        openComplaints: res.data.complaints?.open_count ?? 0,
+        activeNotices: res.data.notices?.total_active ?? 0
+      })
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
 
     fetchProfile();
     fetchStats();
-  }, []);
+  }, [supabase]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();

@@ -45,8 +45,8 @@ export default function ParentTrack() {
             const today = res.data.find((r: Attendance) => r.date === todayStr);
             setTodayRecord(today || null);
           }
-        } catch {
-          // Silently fail
+        } catch (e) {
+          console.error(e);
         }
       }
       setLoading(false);

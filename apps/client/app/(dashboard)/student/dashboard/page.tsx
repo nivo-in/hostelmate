@@ -11,8 +11,7 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      const user = session?.user
+      const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
@@ -26,7 +25,7 @@ export default function StudentDashboard() {
       }
     }
     fetchProfile()
-  }, [])
+  }, [supabase])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()

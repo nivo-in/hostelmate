@@ -20,10 +20,11 @@ export default function WardenLostFound() {
 
   const fetchItems = async () => {
     try {
+      // The API endpoint can take status as query param or we filter client-side. We filter client side for smooth UI.
       const res = await apiGet('/api/lost-found');
       if (res.success) setItems(res.data || []);
-    } catch {
-      // Silently fail
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -39,8 +40,8 @@ export default function WardenLostFound() {
         fetchItems();
         setTimeout(() => setMessage(''), 3000);
       }
-    } catch {
-      // Silently fail
+    } catch (e) {
+      console.error(e);
     }
   };
 
