@@ -1,4 +1,4 @@
-<div align="center">
+<![CDATA[<div align="center">
 
 # 🏨 HostelMate
 
@@ -134,7 +134,7 @@ HostelMate provides a **role-based platform** where students, wardens, and paren
 
 ### 1. Rotating QR Codes — Eliminating Screenshot Fraud
 
-Students sharing QR screenshots is the #1 proxy attendance method. HostelMate generates QR codes that **rotate every 30 seconds** with embedded timestamps.
+Students sharing QR screenshots is the #1 proxy attendance method. HostelMate generates QR codes that **rotate every 60 seconds** with embedded timestamps.
 
 ```
 QR Payload: {
@@ -220,22 +220,11 @@ Every push to v2 and main triggers automated:
 
 Pipeline completes in ~55 seconds. No broken code reaches main.
 
-### 8. Staff Performance System
-
-HostelMate tracks hostel staff (cleaners, security, admin) with:
-
-- Daily present/absent toggle with persistent storage via `staff_attendance` table
-- Monthly attendance reports — days present, days absent, attendance %
-- Student feedback system — 1-5 star ratings with comments, one review per staff per day
-- Duplicate review prevention — enforced at database level
-- Warden analytics — average rating, total reviews, monthly breakdown per staff member
-
 ---
 
 ## 👥 Features by Role
 
 ### 🎓 Student
-
 | Feature | Description |
 |---|---|
 | QR Attendance | Scan rotating QR code within geofenced zone |
@@ -245,10 +234,8 @@ HostelMate tracks hostel staff (cleaners, security, admin) with:
 | Lost & Found | Report or browse lost/found items |
 | Auto-Match Notifications | Instant alert when a matching found item is reported |
 | Notices | View role-filtered announcements |
-| Staff Feedback | Rate hostel staff (cleaners, security) with 1-5 stars |
 
 ### 🏛 Warden
-
 | Feature | Description |
 |---|---|
 | Analytics Dashboard | Redis-cached stats: attendance, leaves, complaints |
@@ -260,11 +247,8 @@ HostelMate tracks hostel staff (cleaners, security, admin) with:
 | Staff Directory | Manage hostel staff records |
 | Emergency Alerts | System-wide emergency notifications |
 | Auto-Match Alerts | Notified when lost/found items match automatically |
-| Staff Feedback Analytics | View average ratings and monthly reports per staff |
-| Staff Attendance | Track daily present/absent for all hostel staff |
 
 ### 👨‍👩‍👧 Parent
-
 | Feature | Description |
 |---|---|
 | Student Tracking | Real-time attendance and leave status |
@@ -517,31 +501,16 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 
 | Status | Feature | Description |
 |---|---|---|
-| ✅ | GitHub Actions CI/CD | Lint → build → security audit on every push |
-| ✅ | Redis Caching | Tiered TTL caching with smart invalidation |
-| ✅ | Docker | Multi-service containerization with docker-compose |
-| ✅ | Winston Logging | Structured logging with daily file rotation |
-| ✅ | Zod Validation | Type-safe request validation on all routes |
-| ✅ | RBAC Middleware | Role-based access control on every route |
-| ✅ | Geofencing | Haversine formula, 100m radius enforcement |
-| ✅ | Rotating QR Codes | 30-second rotation prevents screenshot sharing |
-| ✅ | Smart Lost & Found | Jaccard similarity auto-matching algorithm |
-| ✅ | Staff Management | Directory, attendance tracking, monthly reports |
-| ✅ | Staff Feedback | Student ratings for hostel staff |
-| ✅ | Jest Tests | 26 tests passing — attendance, validation, geofencing |
-| ✅ | Emergency Alerts | Instant broadcast to all students |
 | 🔲 | WebSocket Notifications | Real-time push via Socket.io |
-| 🔲 | Face Recognition | Biometric attendance — eliminates phone handover proxy |
+| 🔲 | Face Recognition | Biometric attendance verification |
 | 🔲 | Redis Pub/Sub | Live updates across connected clients |
-| 🔲 | Test Coverage ≥80% | Jest + Supertest full coverage |
+| 🔲 | Test Suite | Jest + Supertest with ≥80% coverage |
+| ✅ | CI/CD Pipeline | GitHub Actions: lint → test → build → deploy |
 | 🔲 | Mobile App | React Native cross-platform app |
-| 🔲 | AI Complaint Classification | Auto-categorize complaints using NLP |
-| 🔲 | Predictive Maintenance | Predict issues from complaint patterns |
-| 🔲 | Multi-tenancy | Support multiple hostels under one instance |
+| 🔲 | AI Categorization | Auto-classify complaints with NLP |
+| 🔲 | Predictive Analytics | Maintenance prediction from complaint patterns |
+| 🔲 | Multi-tenancy | Support for multiple hostels under one instance |
 | 🔲 | Payment Integration | Mess fees and hostel charges via Razorpay |
-| 🔲 | Visitor Management | Digital guest check-in system |
-| 🔲 | Room Allocation | Room assignment and transfer request system |
-| 🔲 | Night Curfew Alerts | Auto-notify parents if student not checked in by 10 PM |
 
 ---
 
@@ -583,3 +552,4 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 *Transforming hostel management, one institution at a time.*
 
 </div>
+]]>

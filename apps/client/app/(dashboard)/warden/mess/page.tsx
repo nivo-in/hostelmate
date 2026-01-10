@@ -27,8 +27,8 @@ export default function WardenMess() {
     try {
       const res = await apiGet('/api/mess/menu');
       if (res.success) setMenu(res.data || []);
-    } catch {
-      // Silently fail
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -36,8 +36,8 @@ export default function WardenMess() {
     try {
       const res = await apiGet('/api/mess/reviews');
       if (res.success) setReviews(res.data?.reviews || []);
-    } catch {
-      // Silently fail
+    } catch (e) {
+      console.error(e);
     }
   };
 

@@ -6,8 +6,6 @@ import { validate } from '../middleware/validate.js'
 import { leaveSchema } from '../config/validation.js'
 import logger from '../config/logger.js'
 import { deleteCache } from '../config/redis.js'
-import { createNotification } from '../config/notify.js'
-import { auditLog } from '../config/audit.js'
 
 const router = Router()
 
@@ -100,10 +98,6 @@ router.patch('/:id/approve', authenticate, requireWarden, async (req, res, next)
     if (error) throw error
 
     logger.info(`Leave request ${id} approved by ${req.user.id}`)
-    
-    await createNotification(data.student_id, 'Leave Approved', 'Your leave request has been approved', 'leave', id)
-    await auditLog(req.user.id, 'approve_leave', 'leave_request', id)
-    
     await deleteCache('stats:dashboard')
     res.json({ success: true, data })
   } catch (error) {
@@ -125,10 +119,6 @@ router.patch('/:id/reject', authenticate, requireWarden, async (req, res, next) 
     if (error) throw error
 
     logger.info(`Leave request ${id} rejected by ${req.user.id}`)
-    
-    await createNotification(data.student_id, 'Leave Rejected', 'Your leave request has been rejected', 'leave', id)
-    await auditLog(req.user.id, 'reject_leave', 'leave_request', id)
-    
     await deleteCache('stats:dashboard')
     res.json({ success: true, data })
   } catch (error) {
