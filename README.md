@@ -539,6 +539,10 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | ✅ | **Jest Tests** | Attendance, geofence & Zod validation tests with mocked Supabase / Redis |
 | ✅ | **Emergency Alerts** | Warden broadcasts instant system-wide emergency notice to all students |
 | ✅ | **Face Recognition** | 5-angle biometric (SsdMobilenetv1) + EAR blink liveness + frame-diff anti-spoofing |
+| ✅ | **Room Allocation** | Room assignment, transfer requests, and availability tracking |
+| ✅ | **Night Curfew Alerts** | Auto-notify parents if student not checked in by 10 PM |
+| ✅ | **In-App Notifications** | Per-user notification centre with read/unread state |
+| ✅ | **Audit Logging** | Structured audit trail for all warden actions |
 | 🔲 | WebSocket Notifications | Real-time push via Socket.io for instant alerts without polling |
 | 🔲 | Redis Pub/Sub | Live cross-client updates across browser tabs and devices |
 | 🔲 | Test Coverage ≥80% | Expand Jest suite to full route coverage with Supertest |
@@ -548,8 +552,6 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | 🔲 | Multi-tenancy | Support multiple hostels under one instance |
 | 🔲 | Payment Integration | Mess fees and hostel charges via Razorpay |
 | 🔲 | Visitor Management | Digital guest check-in / check-out with warden approval |
-| 🔲 | Room Allocation | Room assignment and transfer request workflow |
-| 🔲 | Night Curfew Alerts | Auto-notify parents if student not checked in by 10 PM |
 
 ---
 
