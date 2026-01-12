@@ -134,7 +134,7 @@ HostelMate provides a **role-based platform** where students, wardens, and paren
 
 ### 1. Rotating QR Codes — Eliminating Screenshot Fraud
 
-Students sharing QR screenshots is the #1 proxy attendance method. HostelMate generates QR codes that **rotate every 60 seconds** with embedded timestamps.
+Students sharing QR screenshots is the #1 proxy attendance method. HostelMate generates QR codes that **rotate every 30 seconds** with embedded timestamps.
 
 ```
 QR Payload: {
