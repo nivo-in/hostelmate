@@ -135,7 +135,7 @@ export default function StudentAttendance() {
     };
     check();
     return () => { cancelled = true; };
-  }, [profile?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [profile?.id]);
 
   const runQrScan = (isFaceVerified: boolean) => {
     setFaceVerified(isFaceVerified);
