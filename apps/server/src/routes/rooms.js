@@ -50,6 +50,75 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
   }
 })
 
+router.post('/', authenticate, requireWarden, async (req, res, next) => {
+  try {
+    const { room_number, block_name, capacity } = req.body
+
+    // 1. Find or create block
+    let blockId = ''
+    const { data: existingBlocks, error: searchErr } = await supabaseAdmin
+      .from('blocks')
+      .select('id')
+      .eq('name', block_name.trim())
+      .limit(1)
+
+    if (searchErr) throw searchErr
+
+    if (existingBlocks && existingBlocks.length > 0) {
+      blockId = existingBlocks[0].id
+    } else {
+      const { data: newBlock, error: insertBlockErr } = await supabaseAdmin
+        .from('blocks')
+        .insert({ name: block_name.trim() })
+        .select('id')
+        .single()
+        
+      if (insertBlockErr) throw insertBlockErr
+      blockId = newBlock.id
+    }
+
+    // 2. Insert room
+    const { data: newRoom, error: roomErr } = await supabaseAdmin
+      .from('rooms')
+      .insert({
+        room_number: room_number.trim(),
+        block_id: blockId,
+        capacity: parseInt(capacity, 10),
+      })
+      .select()
+      .single()
+
+    if (roomErr) throw roomErr
+
+    await auditLog(req.user.id, 'create_room', 'room', newRoom.id)
+
+    res.json({ success: true, data: newRoom })
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.get('/unassigned', authenticate, requireWarden, async (req, res, next) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('students')
+      .select('id, roll_number, profiles!students_id_fkey(full_name)')
+      .is('room_id', null)
+
+    if (error) throw error
+
+    const unassignedStudents = data.map(d => ({
+      id: d.id,
+      roll_number: d.roll_number,
+      full_name: d.profiles?.full_name ?? 'Unknown',
+    }))
+
+    res.json({ success: true, data: unassignedStudents })
+  } catch (error) {
+    next(error)
+  }
+})
+
 router.post('/assign', authenticate, requireWarden, async (req, res, next) => {
   try {
     const { student_id, room_id } = req.body

@@ -54,6 +54,45 @@ type UnassignedApiItem = {
   profiles: { full_name: string } | null;
 };
 
+// --- Fuzzy Search Helpers ---
+function levenshteinDistance(a: string, b: string): number {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
+  for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
+  for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
+  for (let j = 1; j <= b.length; j++) {
+    for (let i = 1; i <= a.length; i++) {
+      const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
+      matrix[j][i] = Math.min(
+        matrix[j][i - 1] + 1, // deletion
+        matrix[j - 1][i] + 1, // insertion
+        matrix[j - 1][i - 1] + indicator // substitution
+      );
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+function fuzzyMatch(query: string, target: string, maxDistance: number = 2): boolean {
+  const q = query.toLowerCase().trim();
+  const t = target.toLowerCase();
+  
+  if (!q) return true;
+  if (t.includes(q)) return true;
+
+  const words = t.split(/[\s-]+/);
+  for (const word of words) {
+    if (Math.abs(word.length - q.length) <= maxDistance) {
+      if (levenshteinDistance(q, word) <= maxDistance) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+// ----------------------------
+
 const SkeletonCard = () => (
   <div className="border border-gray-100 rounded-xl p-6 animate-pulse">
     <div className="h-4 bg-gray-100 rounded w-1/3 mb-3" />
@@ -172,19 +211,13 @@ export default function WardenRoomsPage() {
     setSearchQuery('');
     setSelectedStudentId('');
 
-    const { data, error: sbErr } = await supabase
-      .from('students')
-      .select('id, roll_number, profiles!students_id_fkey(full_name)')
-      .is('room_id', null);
-
-    if (!sbErr && data) {
-      setUnassignedStudents(
-        (data as unknown as UnassignedApiItem[]).map(d => ({
-          id: d.id,
-          roll_number: d.roll_number,
-          full_name: d.profiles?.full_name ?? 'Unknown',
-        }))
-      );
+    try {
+      const res = await apiGetRef.current('/api/rooms/unassigned');
+      if (res.success && res.data) {
+        setUnassignedStudents(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch unassigned students:', err);
     }
   };
 
@@ -221,12 +254,16 @@ export default function WardenRoomsPage() {
     setAddingRoom(true);
     setAddRoomError('');
     try {
-      const { error: sbErr } = await supabase.from('rooms').insert({
-        room_number: newRoomNumber.trim(),
-        block_name: newBlockName.trim(),
-        capacity: parseInt(newCapacity, 10),
+      const res = await apiPostRef.current('/api/rooms', {
+        room_number: newRoomNumber,
+        block_name: newBlockName,
+        capacity: newCapacity
       });
-      if (sbErr) throw new Error(sbErr.message);
+      
+      if (!res.success) {
+        throw new Error('Failed to create room');
+      }
+
       setNewRoomNumber('');
       setNewBlockName('');
       setNewCapacity('4');
@@ -240,9 +277,7 @@ export default function WardenRoomsPage() {
   };
 
   const filteredStudents = unassignedStudents.filter(
-    s =>
-      s.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.roll_number.toLowerCase().includes(searchQuery.toLowerCase())
+    s => fuzzyMatch(searchQuery, s.full_name) || fuzzyMatch(searchQuery, s.roll_number)
   );
 
   const totalRooms = rooms.length;
@@ -490,7 +525,22 @@ export default function WardenRoomsPage() {
                           type="text"
                           placeholder="Search student..."
                           value={searchQuery}
-                          onChange={e => setSearchQuery(e.target.value)}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setSearchQuery(val);
+                            
+                            // Automatically select the first match when searching
+                            if (val.trim() !== '') {
+                              const matches = unassignedStudents.filter(s =>
+                                fuzzyMatch(val, s.full_name) || fuzzyMatch(val, s.roll_number)
+                              );
+                              if (matches.length > 0) {
+                                setSelectedStudentId(matches[0].id);
+                              } else {
+                                setSelectedStudentId('');
+                              }
+                            }
+                          }}
                           className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-500 w-full mb-2"
                         />
                         <select
