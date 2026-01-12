@@ -80,12 +80,6 @@ export default function StudentDashboard() {
           description="Rate hostel staff" 
           href="/student/staff-feedback" 
         />
-        <Card 
-          emoji="🔄" 
-          title="Room Transfer" 
-          description="Request a room change" 
-          href="/student/room-transfer" 
-        />
       </div>
     </div>
   )
