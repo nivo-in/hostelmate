@@ -8,6 +8,7 @@ import logger from '../config/logger.js'
 import { deleteCache } from '../config/redis.js'
 import { createNotification } from '../config/notify.js'
 import { auditLog } from '../config/audit.js'
+import { emitToUser } from '../config/socket.js'
 
 const router = Router()
 
@@ -115,6 +116,7 @@ router.patch('/:id/status', authenticate, requireWarden, async (req, res, next) 
     if (status === 'resolved') {
       await createNotification(data.student_id, 'Complaint Resolved', 'Your complaint has been resolved', 'complaint', id)
     }
+    emitToUser(data.student_id, 'complaint:updated', { id, status })
     
     await deleteCache('stats:dashboard')
     res.json({ success: true, data })

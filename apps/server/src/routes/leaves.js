@@ -5,9 +5,10 @@ import { requireStudent, requireWarden } from '../middleware/rbac.js'
 import { validate } from '../middleware/validate.js'
 import { leaveSchema } from '../config/validation.js'
 import logger from '../config/logger.js'
-import { deleteCache } from '../config/redis.js'
+import { deleteCache, publishEvent } from '../config/redis.js'
 import { createNotification } from '../config/notify.js'
 import { auditLog } from '../config/audit.js'
+import { emitToUser } from '../config/socket.js'
 
 const router = Router()
 
@@ -103,6 +104,8 @@ router.patch('/:id/approve', authenticate, requireWarden, async (req, res, next)
     
     await createNotification(data.student_id, 'Leave Approved', 'Your leave request has been approved', 'leave', id)
     await auditLog(req.user.id, 'approve_leave', 'leave_request', id)
+    emitToUser(data.student_id, 'leave:updated', { id, status: 'approved' })
+    publishEvent('leaves', { id, status: 'approved', student_id: data.student_id })
     
     await deleteCache('stats:dashboard')
     res.json({ success: true, data })
@@ -128,6 +131,8 @@ router.patch('/:id/reject', authenticate, requireWarden, async (req, res, next) 
     
     await createNotification(data.student_id, 'Leave Rejected', 'Your leave request has been rejected', 'leave', id)
     await auditLog(req.user.id, 'reject_leave', 'leave_request', id)
+    emitToUser(data.student_id, 'leave:updated', { id, status: 'rejected' })
+    publishEvent('leaves', { id, status: 'rejected', student_id: data.student_id })
     
     await deleteCache('stats:dashboard')
     res.json({ success: true, data })

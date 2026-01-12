@@ -1,11 +1,15 @@
 import { z } from 'zod'
 
 export const attendanceSchema = z.object({
-  qr_data: z.string().min(1),
+  qr_data: z.string().optional(),
   lat: z.number().optional(),
   lng: z.number().optional(),
-  face_verified: z.boolean().optional().default(false)
-})
+  face_verified: z.boolean().optional().default(false),
+  face_only: z.boolean().optional().default(false),
+}).refine(
+  (data) => data.face_only === true || (typeof data.qr_data === 'string' && data.qr_data.length > 0),
+  { message: 'qr_data is required when face_only is false', path: ['qr_data'] }
+)
 
 export const leaveSchema = z.object({
   start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),

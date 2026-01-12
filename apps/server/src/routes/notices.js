@@ -8,6 +8,7 @@ import logger from '../config/logger.js'
 import { getCache, setCache, deleteCache } from '../config/redis.js'
 import { createNotification } from '../config/notify.js'
 import { auditLog } from '../config/audit.js'
+import { emitToAll } from '../config/socket.js'
 
 const router = Router()
 
@@ -53,6 +54,8 @@ router.post('/', authenticate, requireWarden, validate(noticeSchema), async (req
     await deleteCache('notices:parent')
     await deleteCache('notices:warden')
     await deleteCache('stats:dashboard')
+
+    emitToAll('notice:new', { title, target_audience })
     
     res.json({ success: true, data: record })
   } catch (error) {

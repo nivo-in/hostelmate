@@ -44,3 +44,16 @@ export async function deleteCachePattern(pattern) {
     logger.error(`Redis del pattern error: ${error.message}`)
   }
 }
+
+/**
+ * Publish an event to a Redis channel (Upstash Pub/Sub).
+ * @param {string} channel
+ * @param {object} data
+ */
+export async function publishEvent(channel, data) {
+  try {
+    await redis.publish(channel, JSON.stringify(data))
+  } catch (err) {
+    logger.warn('Redis publish failed', { error: err.message })
+  }
+}

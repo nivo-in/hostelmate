@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, lazy, Suspense } from 'react';
+import { useEffect, useState, useCallback, useRef, lazy, Suspense } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Badge } from '@/components/ui/Badge';
@@ -8,7 +8,6 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useProfile } from '@/hooks/useProfile';
-import { useRouter } from 'next/navigation';
 
 // Lazy-load face components so face-api.js is not bundled in initial chunk
 const FaceRegistration = lazy(() => import('@/components/face/FaceRegistration'));
@@ -21,22 +20,29 @@ interface AttendanceRecord {
   scan_time: string | null;
 }
 
+type AttendanceMode = 'choose' | 'face' | 'qr' | 'success';
+
 type AttendanceView =
   | 'checking-face'       // checking if face is registered
   | 'face-registration'   // student has no face registered
-  | 'choose-method'       // choose Face+QR or QR Only
-  | 'face-verification'   // running face verification
-  | 'qr-scan'             // QR scanner active
-  | 'main';               // default history view (already marked)
+  | 'main';               // attendance mode selector + history
 
+// SuccessAnimation: uses a ref for onDone so the effect fires ONCE (empty deps)
+// avoids the stale-closure timer-reset bug caused by inline arrow functions
 function SuccessAnimation({ onDone }: { onDone: () => void }) {
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone; // always up-to-date without triggering effect
+
   useEffect(() => {
-    const timer = setTimeout(onDone, 3000);
+    const timer = setTimeout(() => onDoneRef.current(), 2500);
     return () => clearTimeout(timer);
-  }, [onDone]);
+  }, []); // ← empty deps: timer set ONCE, never reset
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm cursor-pointer"
+      onClick={onDone}
+    >
       <div className="flex flex-col items-center gap-4">
         <div className="relative w-24 h-24">
           <svg viewBox="0 0 100 100" className="w-full h-full">
@@ -77,6 +83,7 @@ function SuccessAnimation({ onDone }: { onDone: () => void }) {
             Attendance Marked
           </p>
           <p className="text-sm text-gray-400 text-center mt-1">You&apos;re all set for today</p>
+          <p className="text-xs text-gray-300 text-center mt-4">Click anywhere to continue</p>
         </div>
 
         <style>{`
@@ -91,17 +98,16 @@ function SuccessAnimation({ onDone }: { onDone: () => void }) {
 
 export default function StudentAttendance() {
   const [view, setView] = useState<AttendanceView>('checking-face');
-  const [faceVerified, setFaceVerified] = useState(false);
-  const [scanning, setScanning] = useState(false);
+  const [mode, setMode] = useState<AttendanceMode>('choose');
+  const [faceError, setFaceError] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState('');
   const [history, setHistory] = useState<AttendanceRecord[]>([]);
   const [showReRegister, setShowReRegister] = useState(false);
-  const [warningMsg, setWarningMsg] = useState('');
+  const [markingAttendance, setMarkingAttendance] = useState(false);
 
   const { profile } = useProfile();
   const { apiGet, apiPost } = useApi();
-  const router = useRouter();
   const supabase = createClient();
 
   const fetchHistory = useCallback(async () => {
@@ -117,7 +123,6 @@ export default function StudentAttendance() {
   }, [profile?.id, fetchHistory]);
 
   // Check if face is registered — runs exactly once when profile.id is ready
-  const hasFaceChecked = useCallback(() => {}, []); // stable identity used as mount guard
   useEffect(() => {
     if (!profile?.id) return;
     let cancelled = false;
@@ -128,7 +133,7 @@ export default function StudentAttendance() {
           .select('student_id')
           .eq('student_id', profile.id)
           .single();
-        if (!cancelled) setView(data ? 'choose-method' : 'face-registration');
+        if (!cancelled) setView(data ? 'main' : 'face-registration');
       } catch {
         if (!cancelled) setView('face-registration');
       }
@@ -137,20 +142,45 @@ export default function StudentAttendance() {
     return () => { cancelled = true; };
   }, [profile?.id]);
 
-  const runQrScan = (isFaceVerified: boolean) => {
-    setFaceVerified(isFaceVerified);
-    setView('qr-scan');
+  // ── Face-only attendance ─────────────────────────────────────────────────
+  const markAttendanceDirectly = useCallback(async () => {
+    setMarkingAttendance(true);
+    setError('');
+    try {
+      const res = await apiPost('/api/attendance/mark', {
+        face_only: true,
+        face_verified: true,
+      });
+      if (res.success) {
+        setMode('success');
+        setShowSuccess(true);
+        fetchHistory();
+      } else {
+        setFaceError(res.error || 'Failed to mark attendance');
+        setMode('choose');
+      }
+    } catch (err: unknown) {
+      setFaceError((err as Error).message || 'Failed to mark attendance');
+      setMode('choose');
+    } finally {
+      setMarkingAttendance(false);
+    }
+  }, [apiPost, fetchHistory]);
+
+  // ── QR scan flow ─────────────────────────────────────────────────────────
+  const runQrScan = useCallback(() => {
+    setMode('qr');
     setError('');
     setTimeout(() => {
       const scanner = new Html5QrcodeScanner('qr-reader', { fps: 10, qrbox: 250 }, false);
       scanner.render(async (text) => {
         scanner.clear();
-        setView('main');
         const el = document.getElementById('qr-reader');
         if (el) el.innerHTML = '';
 
         if (!navigator.geolocation) {
           setError('Geolocation not supported by this browser.');
+          setMode('choose');
           return;
         }
 
@@ -161,25 +191,29 @@ export default function StudentAttendance() {
                 qr_data: text,
                 lat: pos.coords.latitude,
                 lng: pos.coords.longitude,
-                face_verified: isFaceVerified,
+                face_verified: false,
               });
               if (res.success) {
+                setMode('success');
                 setShowSuccess(true);
                 fetchHistory();
               } else {
                 setError(res.error || 'Failed to mark attendance');
+                setMode('choose');
               }
             } catch (err: unknown) {
               setError((err as Error).message || 'Failed to mark attendance');
+              setMode('choose');
             }
           },
           (err) => {
             setError('Location access required: ' + err.message);
+            setMode('choose');
           }
         );
       }, () => {});
     }, 100);
-  };
+  }, [apiPost, fetchHistory]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -192,14 +226,23 @@ export default function StudentAttendance() {
     return 'warning';
   };
 
+  // Stable callback — defined ONCE, no deps, so SuccessAnimation timer never resets
+  const handleSuccessDone = useCallback(() => {
+    setShowSuccess(false);
+    setMode('choose');
+    window.location.replace('/student/dashboard');
+  }, []);
+
   return (
     <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
-      {showSuccess && <SuccessAnimation onDone={() => { setShowSuccess(false); setView('main'); }} />}
+      {showSuccess && (
+        <SuccessAnimation onDone={handleSuccessDone} />
+      )}
 
       <PageHeader title="Mark Attendance" showBack onSignOut={handleSignOut} />
 
-      {/* ── FACE REGISTRATION ── */}
-      {(view === 'checking-face') && (
+      {/* ── CHECKING FACE ── */}
+      {view === 'checking-face' && (
         <div className="mb-8 p-6 border border-gray-100 rounded-xl flex items-center justify-center min-h-40">
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <svg className="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24">
@@ -211,184 +254,186 @@ export default function StudentAttendance() {
         </div>
       )}
 
+      {/* ── FACE REGISTRATION ── */}
       {view === 'face-registration' && (
         <div className="mb-8 border border-gray-100 rounded-xl overflow-hidden">
           <Suspense fallback={<div className="p-8 text-center text-sm text-gray-400">Loading...</div>}>
             <FaceRegistration
               studentId={profile?.id ?? ''}
-              onSuccess={() => setView('choose-method')}
-              onSkip={() => setView('choose-method')}
+              onSuccess={() => setView('main')}
+              onSkip={() => setView('main')}
             />
           </Suspense>
         </div>
       )}
 
-      {/* ── METHOD SELECTOR ── */}
-      {view === 'choose-method' && (
-        <div className="mb-8 p-6 border border-gray-100 rounded-xl hover:border-gray-300 transition-colors">
-          <h2 className="text-sm font-medium text-gray-900 mb-4">How would you like to mark attendance?</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Face + QR */}
-            <button
-              id="attendance-face-qr-btn"
-              onClick={() => setView('face-verification')}
-              className="flex flex-col gap-1 p-4 rounded-xl border border-gray-200 text-left hover:border-gray-900 hover:bg-gray-50 transition-all group"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-base">🪪</span>
-                <span className="text-sm font-medium text-gray-900 group-hover:text-gray-900">
-                  Face + QR Attendance
-                </span>
+      {/* ── MAIN VIEW (mode selector + history) ── */}
+      {view === 'main' && !showSuccess && (
+        <>
+          {/* ── CHOOSE MODE ── */}
+          {mode === 'choose' && (
+            <div className="mb-8">
+              <h2 className="text-sm font-medium text-gray-900 mb-4">How would you like to mark attendance?</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                {/* Face Attendance — recommended */}
+                <button
+                  id="attendance-face-btn"
+                  onClick={() => { setFaceError(''); setMode('face'); }}
+                  className="flex flex-col gap-2 p-5 rounded-xl border-2 border-gray-900 text-left hover:bg-gray-50 transition-all"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🔐</span>
+                    <span className="text-sm font-medium text-gray-900">Face Recognition</span>
+                  </div>
+                  <p className="text-xs text-gray-400">Secure • Fast • No QR needed</p>
+                  <span className="mt-1 inline-block bg-gray-900 text-white text-xs font-medium px-3 py-1.5 rounded-lg self-start">
+                    Start Face Scan
+                  </span>
+                </button>
+
+                {/* QR Attendance — fallback */}
+                <button
+                  id="attendance-qr-btn"
+                  onClick={runQrScan}
+                  className="flex flex-col gap-2 p-5 rounded-xl border border-gray-100 text-left hover:border-gray-300 transition-all"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">📱</span>
+                    <span className="text-sm font-medium text-gray-600">QR Code</span>
+                  </div>
+                  <p className="text-xs text-gray-400">Scan warden&apos;s QR code</p>
+                  <span className="mt-1 inline-block border border-gray-200 text-gray-600 text-xs font-medium px-3 py-1.5 rounded-lg self-start">
+                    Scan QR
+                  </span>
+                </button>
               </div>
-              <p className="text-xs text-gray-400 ml-6">Recommended — verified &amp; secure</p>
-            </button>
 
-            {/* QR Only */}
-            <button
-              id="attendance-qr-only-btn"
-              onClick={() => {
-                setWarningMsg('Face verification skipped — this may be flagged.');
-                runQrScan(false);
-              }}
-              className="flex flex-col gap-1 p-4 rounded-xl border border-gray-200 text-left hover:border-gray-400 hover:bg-gray-50 transition-all group"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-base">📷</span>
-                <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900">
-                  QR Only
-                </span>
-              </div>
-              <p className="text-xs text-gray-400 ml-6">No face verification</p>
-            </button>
-          </div>
-
-          {warningMsg && (
-            <p className="mt-3 text-xs text-amber-600 font-medium">{warningMsg}</p>
+              {faceError && (
+                <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+                  {faceError}
+                </div>
+              )}
+            </div>
           )}
-        </div>
-      )}
 
-      {/* ── FACE VERIFICATION ── */}
-      {view === 'face-verification' && (
-        <div className="mb-8 border border-gray-100 rounded-xl overflow-hidden">
-          <Suspense fallback={<div className="p-8 text-center text-sm text-gray-400">Loading...</div>}>
-            <FaceVerification
-              studentId={profile?.id ?? ''}
-              onVerified={() => runQrScan(true)}
-              onFailed={(reason) => {
-                setError(reason);
-                setView('choose-method');
-              }}
-              onSkip={() => runQrScan(false)}
-            />
-          </Suspense>
-        </div>
-      )}
-
-      {/* ── QR SCANNER ── */}
-      {view === 'qr-scan' && (
-        <div className="mb-8 p-6 border border-gray-100 rounded-xl hover:border-gray-300 transition-colors">
-          {faceVerified && (
-            <p className="text-xs text-green-600 font-medium mb-3">✓ Face verified — scan the QR code to complete</p>
+          {/* ── FACE MODE ── */}
+          {mode === 'face' && (
+            <div className="mb-8 border border-gray-100 rounded-xl overflow-hidden">
+              <Suspense fallback={<div className="p-8 text-center text-sm text-gray-400">Loading...</div>}>
+                <FaceVerification
+                  studentId={profile?.id ?? ''}
+                  onVerified={() => markAttendanceDirectly()}
+                  onFailed={(reason) => {
+                    setFaceError(reason);
+                    setMode('choose');
+                  }}
+                  onSkip={() => runQrScan()}
+                />
+              </Suspense>
+              {markingAttendance && (
+                <div className="p-4 flex items-center justify-center gap-2 text-sm text-gray-500 border-t border-gray-100">
+                  <svg className="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                  Marking attendance...
+                </div>
+              )}
+            </div>
           )}
-          <div
-            id="qr-reader"
-            className="w-full max-w-sm mx-auto mb-4 border border-gray-200 rounded-lg overflow-hidden"
-          />
-          <button
-            onClick={() => {
-              setScanning(false);
-              setView('choose-method');
-              const el = document.getElementById('qr-reader');
-              if (el) el.innerHTML = '';
-            }}
-            className="border border-gray-200 text-gray-600 rounded-lg px-4 py-2.5 text-sm hover:border-gray-400 transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
-      )}
 
-      {/* ── DEFAULT MAIN VIEW ── */}
-      {(view === 'main') && !showSuccess && (
-        <div className="mb-8 p-6 border border-gray-100 rounded-xl hover:border-gray-300 transition-colors">
-          <button
-            id="mark-attendance-btn"
-            onClick={() => setView('choose-method')}
-            className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors"
-          >
-            Mark Attendance Again
-          </button>
-        </div>
-      )}
+          {/* ── QR MODE ── */}
+          {mode === 'qr' && (
+            <div className="mb-8 p-6 border border-gray-100 rounded-xl hover:border-gray-300 transition-colors">
+              <p className="text-xs text-gray-500 mb-3">Scan the warden&apos;s QR code to mark attendance</p>
+              <div
+                id="qr-reader"
+                className="w-full max-w-sm mx-auto mb-4 border border-gray-200 rounded-lg overflow-hidden"
+              />
+              <button
+                onClick={() => {
+                  const el = document.getElementById('qr-reader');
+                  if (el) el.innerHTML = '';
+                  setMode('choose');
+                }}
+                className="border border-gray-200 text-gray-600 rounded-lg px-4 py-2.5 text-sm hover:border-gray-400 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
 
-      {error && (
-        <div className="mb-6 p-3 bg-red-50 text-red-700 rounded-lg text-sm font-medium">
-          {error}
-        </div>
+          {error && (
+            <div className="mb-6 p-3 bg-red-50 text-red-700 rounded-lg text-sm font-medium">
+              {error}
+            </div>
+          )}
+        </>
       )}
 
       {/* ── HISTORY TABLE ── */}
-      <div>
-        <table className="w-full text-left text-sm">
-          <thead className="bg-gray-50 border-b border-gray-100">
-            <tr>
-              <th className="px-4 py-3 font-medium text-xs text-gray-500">Date</th>
-              <th className="px-4 py-3 font-medium text-xs text-gray-500">Status</th>
-              <th className="px-4 py-3 font-medium text-xs text-gray-500">Scan Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            {history.length === 0 ? (
+      {view === 'main' && (
+        <div>
+          <table className="w-full text-left text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <td colSpan={3} className="px-4 py-3 text-center border-b border-gray-50">
-                  <EmptyState message="No attendance records yet" />
-                </td>
+                <th className="px-4 py-3 font-medium text-xs text-gray-500">Date</th>
+                <th className="px-4 py-3 font-medium text-xs text-gray-500">Status</th>
+                <th className="px-4 py-3 font-medium text-xs text-gray-500">Scan Time</th>
               </tr>
-            ) : (
-              history.map((item, i) => (
-                <tr key={item.id || i} className="border-b border-gray-50">
-                  <td className="px-4 py-3 text-gray-900">{item.date}</td>
-                  <td className="px-4 py-3">
-                    <Badge variant={getStatusVariant(item.status)}>
-                      {item.status.toUpperCase()}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {item.scan_time ? new Date(item.scan_time).toLocaleTimeString() : '-'}
+            </thead>
+            <tbody>
+              {history.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="px-4 py-3 text-center border-b border-gray-50">
+                    <EmptyState message="No attendance records yet" />
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ) : (
+                history.map((item, i) => (
+                  <tr key={item.id || i} className="border-b border-gray-50">
+                    <td className="px-4 py-3 text-gray-900">{item.date}</td>
+                    <td className="px-4 py-3">
+                      <Badge variant={getStatusVariant(item.status)}>
+                        {item.status.toUpperCase()}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">
+                      {item.scan_time ? new Date(item.scan_time).toLocaleTimeString() : '-'}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* ── RE-REGISTER FACE ── */}
-      <div className="mt-8 pt-6 border-t border-gray-100">
-        {!showReRegister ? (
-          <button
-            id="update-face-btn"
-            onClick={() => setShowReRegister(true)}
-            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            Register / Update Face Data
-          </button>
-        ) : (
-          <div className="border border-gray-100 rounded-xl overflow-hidden">
-            <Suspense fallback={<div className="p-8 text-center text-sm text-gray-400">Loading...</div>}>
-              <FaceRegistration
-                studentId={profile?.id ?? ''}
-                onSuccess={() => { setShowReRegister(false); setView('choose-method'); }}
-                onSkip={() => setShowReRegister(false)}
-              />
-            </Suspense>
-          </div>
-        )}
-      </div>
-
-      {/* suppress unused var warning */}
-      {scanning && null}
+      {view === 'main' && (
+        <div className="mt-8 pt-6 border-t border-gray-100">
+          {!showReRegister ? (
+            <button
+              id="update-face-btn"
+              onClick={() => setShowReRegister(true)}
+              className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              Register / Update Face Data
+            </button>
+          ) : (
+            <div className="border border-gray-100 rounded-xl overflow-hidden">
+              <Suspense fallback={<div className="p-8 text-center text-sm text-gray-400">Loading...</div>}>
+                <FaceRegistration
+                  studentId={profile?.id ?? ''}
+                  onSuccess={() => { setShowReRegister(false); setMode('choose'); }}
+                  onSkip={() => setShowReRegister(false)}
+                />
+              </Suspense>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
