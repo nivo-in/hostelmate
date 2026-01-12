@@ -31,8 +31,10 @@ type AttendanceView =
 // avoids the stale-closure timer-reset bug caused by inline arrow functions
 function SuccessAnimation({ onDone }: { onDone: () => void }) {
   const onDoneRef = useRef(onDone);
-  onDoneRef.current = onDone; // always up-to-date without triggering effect
 
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  }, [onDone]);
   useEffect(() => {
     const timer = setTimeout(() => onDoneRef.current(), 2500);
     return () => clearTimeout(timer);

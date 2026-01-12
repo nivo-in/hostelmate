@@ -8,8 +8,10 @@ type SocketHandlers = Record<string, (data: unknown) => void>
 export function useSocket(handlers: SocketHandlers) {
   // Keep a ref to always have the latest handlers without re-subscribing
   const handlersRef = useRef<SocketHandlers>(handlers)
-  handlersRef.current = handlers
 
+  useEffect(() => {
+    handlersRef.current = handlers
+  }, [handlers])
   useEffect(() => {
     let mounted = true
 
@@ -43,6 +45,5 @@ export function useSocket(handlers: SocketHandlers) {
         socket.off(event, wrapper)
       })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 }
