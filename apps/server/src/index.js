@@ -8,7 +8,7 @@ import morgan from 'morgan'
 import swaggerJsdoc from 'swagger-jsdoc'
 import swaggerUi from 'swagger-ui-express'
 
-import { generalLimiter } from './middleware/rateLimit.js'
+import { generalLimiter, notificationLimiter } from './middleware/rateLimit.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import requestLogger from './middleware/requestLogger.js'
 import logger from './config/logger.js'
@@ -106,7 +106,7 @@ app.use('/api/lost-found', lostFoundRoutes)
 app.use('/api/stats', statsRoutes)
 app.use('/api/staff-feedback', staffFeedbackRoutes)
 app.use('/api/curfew', curfewRoutes)
-app.use('/api/notifications', notificationsRoutes)
+app.use('/api/notifications', notificationLimiter, notificationsRoutes)
 app.use('/api/rooms', roomsRoutes)
 app.use('/api/audit', auditRoutes)
 

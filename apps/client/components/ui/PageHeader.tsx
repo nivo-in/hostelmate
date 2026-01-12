@@ -20,20 +20,24 @@ export function PageHeader({ title, showBack, onSignOut }: PageHeaderProps) {
 
   return (
     <div className="flex justify-between items-center mb-8">
-      <div className="flex flex-col gap-2">
-        {showBack && (
-          <button 
-            onClick={() => router.back()} 
+      <div className="flex flex-col gap-0.5">
+        {showBack ? (
+          // Sub-page: show back button only, "by Nivo" is in fixed bottom-left via layout
+          <button
+            onClick={() => router.back()}
             className="text-xs text-gray-400 hover:text-gray-600 self-start transition-colors"
           >
             ← Back
           </button>
+        ) : (
+          // Home page: show "by Nivo" prominently at top-left
+          <p className="text-xs uppercase text-gray-400 tracking-widest font-medium">by Nivo</p>
         )}
         <h1 className="text-2xl font-medium tracking-tight text-gray-900">{title}</h1>
       </div>
       <div className="flex items-center gap-4">
         <NotificationBell />
-        <button 
+        <button
           onClick={onSignOut}
           className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
         >

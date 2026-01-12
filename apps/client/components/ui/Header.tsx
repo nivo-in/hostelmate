@@ -7,7 +7,7 @@ export function Header({ title, onSignOut }: HeaderProps) {
   return (
     <header className="flex justify-between items-center mb-10">
       <div>
-        <p className="text-xs uppercase text-gray-400 tracking-widest">by Nivo</p>
+        <p className="text-xs uppercase text-gray-400 tracking-widest font-medium">by Nivo</p>
         <h1 className="text-2xl font-medium text-gray-900">{title}</h1>
       </div>
       <button 
