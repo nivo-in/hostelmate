@@ -18,11 +18,16 @@
 
 ---
 
-> *[Dashboard Screenshot — Warden Analytics View]*
+> <img width="728" height="418" alt="2026-05-28_19-17-29" src="https://github.com/user-attachments/assets/286575f9-5675-4091-b20e-3f4a06102559" />
+
+
 >
-> *[Student Mobile View — QR Attendance]*
+> <img width="728" height="418" alt="2026-05-28_19-19-14" src="https://github.com/user-attachments/assets/6eba77e7-ef48-45d5-ba26-6548a70ce419" />
+
 >
-> *[Parent Dashboard — Real-time Tracking]*
+> <img width="728" height="418" alt="image" src="https://github.com/user-attachments/assets/d55c1143-61ad-47cb-999a-2afd2cde33f1" />
+
+
 
 </div>
 
