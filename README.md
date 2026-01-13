@@ -239,6 +239,17 @@ HostelMate uses **client-side biometric verification** powered by `face-api.js` 
 
 **Performance:** Recursive async tick instead of `setInterval` — next detection fires 50ms after the previous completes (~3× more detections/sec). Blink → verified in **~300ms total**. EMA smoothing on the confidence bar prevents jitter.
 
+### 9. AI Complaint Classification & Predictive Maintenance
+
+HostelMate integrates **Groq's blazing-fast inference API** (using `llama-3.1-8b-instant`) to instantly process maintenance requests. 
+
+When a student submits a complaint, the AI automatically:
+1. **Categorizes** the issue (e.g., plumbing, electrical).
+2. **Flags Urgency** based on safety risks (e.g., "sparking fan" = urgent).
+3. **Generates a Warden Summary** with specific resolution steps.
+
+Additionally, a **Predictive Maintenance Dashboard** analyzes the last 30 days of complaints to identify recurring patterns (e.g., "Block A lights flicker frequently") and suggests preventive measures, saving time and money.
+
 ---
 
 ## 👥 Features by Role
@@ -577,8 +588,8 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | ✅ | **Redis Pub/Sub** | Live cross-client updates across browser tabs and devices |
 | 🔲 | Test Coverage ≥80% | Expand Jest suite to full route coverage with Supertest |
 | 🔲 | Mobile App | React Native cross-platform app for students and parents |
-| 🔲 | AI Complaint Classification | Auto-categorise complaints by type and urgency using NLP |
-| 🔲 | Predictive Maintenance | Predict recurring issues from historical complaint patterns |
+| ✅ | **AI Complaint Classification** | Auto-categorise complaints by type and urgency using Groq/Llama 3.1 |
+| ✅ | **Predictive Maintenance** | Predict recurring issues from historical complaint patterns via AI |
 | 🔲 | Multi-tenancy | Support multiple hostels under one instance |
 | 🔲 | Payment Integration | Mess fees and hostel charges via Razorpay |
 | 🔲 | Visitor Management | Digital guest check-in / check-out with warden approval |

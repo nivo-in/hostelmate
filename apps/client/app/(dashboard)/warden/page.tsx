@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 
 export default async function WardenDashboard() {
   const supabase = await createClient()
@@ -32,18 +33,22 @@ export default async function WardenDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[
-          { title: 'Attendance', desc: 'Manage daily attendance' },
-          { title: 'Leave Management', desc: 'Review and approve leaves' },
-          { title: 'Complaints', desc: 'Resolve student complaints' },
-          { title: 'Mess Management', desc: 'Update menu and view feedback' },
-          { title: 'Notices', desc: 'Post and manage announcements' },
-          { title: 'Staff Directory', desc: 'View hostel staff details' },
-          { title: 'Lost & Found', desc: 'Manage reported items' }
+          { emoji: '📋', title: 'Attendance', desc: 'Manage daily attendance', href: '/warden/attendance' },
+          { emoji: '🏖️', title: 'Leave Management', desc: 'Review and approve leaves', href: '/warden/leaves' },
+          { emoji: '🛠️', title: 'Complaints', desc: 'Resolve student complaints', href: '/warden/complaints' },
+          { emoji: '🍲', title: 'Mess Management', desc: 'Update menu and view feedback', href: '/warden/mess' },
+          { emoji: '📢', title: 'Notices', desc: 'Post and manage announcements', href: '/warden/notices' },
+          { emoji: '👥', title: 'Staff Directory', desc: 'View hostel staff details', href: '/warden/staff' },
+          { emoji: '🔍', title: 'Lost & Found', desc: 'Manage reported items', href: '/warden/lost-and-found' },
+          { emoji: '📊', title: 'Complaint Analytics', desc: 'AI-powered maintenance insights', href: '/warden/complaints/analytics' }
         ].map((card) => (
-          <div key={card.title} className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors cursor-pointer group">
-            <h2 className="font-medium text-gray-900 group-hover:text-black">{card.title}</h2>
-            <p className="text-sm text-gray-400 mt-2">{card.desc}</p>
-          </div>
+          <Link href={card.href} key={card.title}>
+            <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors cursor-pointer group h-full">
+              <div className="text-2xl mb-3">{card.emoji}</div>
+              <h2 className="font-medium text-gray-900 group-hover:text-black">{card.title}</h2>
+              <p className="text-sm text-gray-400 mt-2">{card.desc}</p>
+            </div>
+          </Link>
         ))}
       </div>
     </div>
