@@ -6,8 +6,21 @@ import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 
 export default function ComplaintsAnalytics() {
-  const [stats, setStats] = useState<any>(null);
-  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
+  const [stats, setStats] = useState<{
+    by_category: Record<string, number>;
+    by_status: Record<string, number>;
+    by_urgency: Record<string, number>;
+    average_resolution_time_hours: number;
+  } | null>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<{
+    patterns: Array<{
+      issue: string;
+      frequency: string;
+      recommendation: string;
+      priority: 'high' | 'medium' | 'low';
+    }>;
+    summary: string;
+  } | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
   
   const { apiGet } = useApi();
@@ -38,7 +51,7 @@ export default function ComplaintsAnalytics() {
   const categories = ['electrical', 'plumbing', 'furniture', 'cleaning', 'other'];
   const colors = { electrical: 'bg-yellow-500', plumbing: 'bg-blue-500', furniture: 'bg-green-500', cleaning: 'bg-teal-500', other: 'bg-gray-500' };
 
-  const totalComplaints = stats ? Object.values(stats.by_category).reduce((a: any, b: any) => a + b, 0) as number : 0;
+  const totalComplaints = stats ? Object.values(stats.by_category).reduce((a: number, b: number) => a + b, 0) : 0;
 
   return (
     <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
@@ -111,7 +124,12 @@ export default function ComplaintsAnalytics() {
           <div>
             <p className="text-sm text-gray-600 mb-6">{aiAnalysis.summary}</p>
             <div className="space-y-4">
-              {aiAnalysis.patterns.map((pattern: any, idx: number) => (
+              {aiAnalysis.patterns.map((pattern: {
+                issue: string;
+                frequency: string;
+                recommendation: string;
+                priority: 'high' | 'medium' | 'low';
+              }, idx: number) => (
                 <div key={idx} className="p-4 border border-gray-100 rounded-xl bg-gray-50">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-medium text-gray-900 text-sm">{pattern.issue}</h3>
