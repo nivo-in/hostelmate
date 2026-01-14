@@ -15,7 +15,6 @@ import requestLogger from './middleware/requestLogger.js'
 import logger from './config/logger.js'
 import { redis } from './config/redis.js'
 import { initSocket } from './config/socket.js'
-import { startCurfewJob } from './config/curfewJob.js'
 
 import attendanceRoutes from './routes/attendance.js'
 import leavesRoutes from './routes/leaves.js'
@@ -31,7 +30,6 @@ import roomsRoutes from './routes/rooms.js'
 import auditRoutes from './routes/audit.js'
 import studentsRoutes from './routes/students.js'
 import parentRoutes from './routes/parent.js'
-import visitorsRoutes from './routes/visitors.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -121,7 +119,6 @@ app.use('/api/rooms', roomsRoutes)
 app.use('/api/audit', auditRoutes)
 app.use('/api/students', studentsRoutes)
 app.use('/api/parent', parentRoutes)
-app.use('/api/visitors', visitorsRoutes)
 
 // 404 handler
 app.use((req, res) => {
@@ -139,7 +136,6 @@ const server = httpServer.listen(PORT, '0.0.0.0', async () => {
     await redis.ping()
     redisStatus = 'connected'
     logger.info('Redis connected successfully')
-    startCurfewJob()
   } catch (err) {
     redisStatus = 'disconnected'
     logger.warn('Redis connection failed — caching disabled')
