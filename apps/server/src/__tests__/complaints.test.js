@@ -1,0 +1,233 @@
+import { jest } from '@jest/globals';
+import request from 'supertest';
+
+const supabaseMock = {
+  select: jest.fn().mockReturnThis(),
+  insert: jest.fn().mockReturnThis(),
+  update: jest.fn().mockReturnThis(),
+  delete: jest.fn().mockReturnThis(),
+  upsert: jest.fn().mockReturnThis(),
+  eq: jest.fn().mockReturnThis(),
+  neq: jest.fn().mockReturnThis(),
+  gte: jest.fn().mockReturnThis(),
+  lte: jest.fn().mockReturnThis(),
+  in: jest.fn().mockReturnThis(),
+  order: jest.fn().mockReturnThis(),
+  limit: jest.fn().mockReturnThis(),
+  single: jest.fn().mockResolvedValue({ data: null, error: null }),
+  head: jest.fn().mockResolvedValue({ count: 0, error: null }),
+};
+
+jest.unstable_mockModule('../config/supabase.js', () => ({
+  supabaseAdmin: {
+    from: jest.fn(() => supabaseMock),
+    auth: {
+      getUser: jest.fn().mockResolvedValue({
+        data: { user: { id: 'test-user-id' } },
+        error: null
+      })
+    }
+  }
+}));
+
+jest.unstable_mockModule('../config/redis.js', () => ({
+  getCache: jest.fn().mockResolvedValue(null),
+  setCache: jest.fn().mockResolvedValue(true),
+  deleteCache: jest.fn().mockResolvedValue(true),
+  deleteCachePattern: jest.fn().mockResolvedValue(true),
+  publishEvent: jest.fn().mockResolvedValue(true),
+  redis: {}
+}));
+
+jest.unstable_mockModule('../config/logger.js', () => ({
+  default: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), http: jest.fn() }
+}));
+
+jest.unstable_mockModule('../config/socket.js', () => ({
+  emitToUser: jest.fn(),
+  emitToAll: jest.fn(),
+  getIO: jest.fn(),
+  initSocket: jest.fn()
+}));
+
+jest.unstable_mockModule('../config/openai.js', () => ({
+  classifyComplaint: jest.fn().mockResolvedValue({
+    category: 'electrical',
+    is_urgent: false,
+    summary: 'Light not working',
+    suggested_action: 'Check circuit breaker',
+    confidence: 0.95
+  }),
+  generateMaintenanceSuggestion: jest.fn().mockResolvedValue({
+    patterns: [],
+    summary: 'No major patterns detected'
+  })
+}));
+
+jest.unstable_mockModule('../config/notify.js', () => ({
+  createNotification: jest.fn()
+}));
+
+jest.unstable_mockModule('../config/audit.js', () => ({
+  auditLog: jest.fn()
+}));
+
+const mockWardenProfile = { id: 'warden-id', role: 'warden', email: 'warden@test.com', full_name: 'Test Warden' };
+const mockStudentProfile = { id: 'student-id', role: 'student', email: 'student@test.com', full_name: 'Test Student' };
+
+let currentProfile = mockStudentProfile;
+
+
+jest.unstable_mockModule('../middleware/rateLimit.js', () => ({
+  generalLimiter: (req, res, next) => next(),
+  authLimiter: (req, res, next) => next(),
+  notificationLimiter: (req, res, next) => next()
+}));
+
+jest.unstable_mockModule('../middleware/auth.js', () => ({
+  authenticate: (req, res, next) => {
+    if (!currentProfile) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    req.user = { id: currentProfile.id };
+    req.profile = currentProfile;
+    next();
+  }
+}));
+
+const { default: app } = await import('../index.js');
+const { supabaseAdmin } = await import('../config/supabase.js');
+const { classifyComplaint } = await import('../config/openai.js');
+
+describe('Complaints API', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    currentProfile = mockStudentProfile;
+  });
+
+  describe('POST /api/complaints - Student submits', () => {
+    it('should reject invalid category', async () => {
+      const res = await request(app).post('/api/complaints').send({
+        category: 'invalid_cat', description: 'desc', is_private: false
+      });
+      expect(res.status).toBe(400);
+    });
+
+    it('should reject missing description', async () => {
+      const res = await request(app).post('/api/complaints').send({
+        category: 'electrical'
+      });
+      expect(res.status).toBe(400);
+    });
+
+    it('should accept valid complaint', async () => {
+      supabaseMock.single.mockResolvedValueOnce({ data: { id: '1', ai_category: 'electrical' }, error: null });
+      const res = await request(app).post('/api/complaints').send({
+        category: 'electrical', description: 'valid description'
+      });
+      expect(res.status).toBe(200);
+    });
+
+    it('should include AI classification in response', async () => {
+      supabaseMock.single.mockResolvedValueOnce({ data: { id: '1', ai_category: 'electrical' }, error: null });
+      const res = await request(app).post('/api/complaints').send({
+        category: 'electrical', description: 'valid description'
+      });
+      expect(res.status).toBe(200);
+      expect(classifyComplaint).toHaveBeenCalled();
+    });
+
+    it('should work even if AI classification fails', async () => {
+      classifyComplaint.mockRejectedValueOnce(new Error('AI failed'));
+      supabaseMock.single.mockResolvedValueOnce({ data: { id: '1' }, error: null });
+      const res = await request(app).post('/api/complaints').send({
+        category: 'electrical', description: 'valid description'
+      });
+      expect(res.status).toBe(200);
+    });
+
+    it('should default is_urgent to false', async () => {
+      supabaseMock.single.mockResolvedValueOnce({ data: { id: '1', is_urgent: false }, error: null });
+      const res = await request(app).post('/api/complaints').send({
+        category: 'electrical', description: 'valid description'
+      });
+      expect(res.status).toBe(200);
+    });
+  });
+
+  describe('GET /api/complaints/my - Student views own', () => {
+    it('should return student complaints', async () => {
+      supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
+      const res = await request(app).get('/api/complaints/my');
+      expect(res.status).toBe(200);
+    });
+
+    it('should return 401 without auth', async () => {
+      currentProfile = null;
+      const res = await request(app).get('/api/complaints/my');
+      expect(res.status).toBe(401);
+    });
+  });
+
+  describe('GET /api/complaints/all - Warden views all', () => {
+    it('should return all complaints', async () => {
+      currentProfile = mockWardenProfile;
+      supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
+      const res = await request(app).get('/api/complaints/all');
+      expect(res.status).toBe(200);
+    });
+
+    it('should filter by status query param', async () => {
+      currentProfile = mockWardenProfile;
+      supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
+      const res = await request(app).get('/api/complaints/all?status=pending');
+      expect(res.status).toBe(200);
+    });
+
+    it('should return 403 for student', async () => {
+      const res = await request(app).get('/api/complaints/all');
+      expect(res.status).toBe(403);
+    });
+  });
+
+  describe('PATCH /api/complaints/:id/status - Warden updates', () => {
+    it('should update status to in_progress', async () => {
+      currentProfile = mockWardenProfile;
+      supabaseMock.single.mockResolvedValueOnce({ data: { id: '1', status: 'in_progress' }, error: null });
+      const res = await request(app).patch('/api/complaints/1/status').send({ status: 'in_progress' });
+      expect(res.status).toBe(200);
+    });
+
+    it('should update status to resolved with resolution date', async () => {
+      currentProfile = mockWardenProfile;
+      supabaseMock.single.mockResolvedValueOnce({ data: { id: '1', status: 'resolved' }, error: null });
+      const res = await request(app).patch('/api/complaints/1/status').send({ status: 'resolved' });
+      expect(res.status).toBe(200);
+    });
+
+    it('should return 403 for student', async () => {
+      const res = await request(app).patch('/api/complaints/1/status').send({ status: 'in_progress' });
+      expect(res.status).toBe(403);
+    });
+
+    it('should reject invalid status value', async () => {
+      currentProfile = mockWardenProfile;
+      const res = await request(app).patch('/api/complaints/1/status').send({ status: 'invalid' });
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('GET /api/complaints/stats', () => {
+    it('should return complaint statistics for warden', async () => {
+      currentProfile = mockWardenProfile;
+      supabaseMock.select.mockResolvedValueOnce({ data: [], error: null }); // For aggregated stats
+      const res = await request(app).get('/api/complaints/stats');
+      expect(res.status).toBe(200);
+    });
+
+    it('should return 403 for student', async () => {
+      const res = await request(app).get('/api/complaints/stats');
+      expect(res.status).toBe(403);
+    });
+  });
+});

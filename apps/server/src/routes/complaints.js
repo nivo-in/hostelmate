@@ -107,13 +107,12 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
       )
     )
   `)
-  .order('created_at', { ascending: false })
 
     if (status) {
       query = query.eq('status', status)
     }
 
-    const { data, error } = await query
+    const { data, error } = await query.order('created_at', { ascending: false })
 
     if (error) throw error
 
@@ -128,8 +127,8 @@ router.patch('/:id/status', authenticate, requireWarden, async (req, res, next) 
     const { id } = req.params
     const { status } = req.body
 
-    if (!status) {
-      return res.status(400).json({ success: false, error: 'status is required' })
+    if (!status || !['open', 'in_progress', 'resolved'].includes(status)) {
+      return res.status(400).json({ success: false, error: 'Invalid status' })
     }
 
     const updates = { status }
