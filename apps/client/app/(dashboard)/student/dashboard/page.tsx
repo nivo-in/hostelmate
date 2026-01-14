@@ -64,6 +64,7 @@ export default function StudentDashboard() {
           <Card emoji="🔍" title="Lost & Found" description="Report or find items" href="/student/lost-found" />
           <Card emoji="⭐" title="Staff Feedback" description="Rate hostel staff" href="/student/staff-feedback" />
           <Card emoji="🔄" title="Room Transfer" description="Request a room change" href="/student/room-transfer" />
+          <Card emoji="👥" title="Visitors" description="Request visitor passes" href="/student/visitors" />
         </div>
       )}
     </div>
