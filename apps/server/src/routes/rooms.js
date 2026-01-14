@@ -12,7 +12,6 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
   try {
     const { data: student, error } = await supabaseAdmin
       .from('students')
-      .eq('id', req.user.id)
       .select(`
         room_id,
         rooms!students_room_id_fkey(
@@ -21,6 +20,7 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
           blocks!rooms_block_id_fkey(name)
         )
       `)
+      .eq('id', req.user.id)
       .single()
 
     if (error) throw error
@@ -29,9 +29,9 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
     if (student?.room_id) {
       const { data: rmData } = await supabaseAdmin
         .from('students')
+        .select('id, profiles!students_id_fkey(full_name)')
         .eq('room_id', student.room_id)
         .neq('id', req.user.id)
-        .select('id, profiles!students_id_fkey(full_name)')
       
       roommates = rmData?.map(r => r.profiles?.full_name) || []
     }
@@ -60,8 +60,8 @@ router.get('/available', authenticate, requireStudent, async (req, res, next) =>
 
     const { data: studentsData, error: studentsError } = await supabaseAdmin
       .from('students')
-      .not('room_id', 'is', null)
       .select('room_id')
+      .not('room_id', 'is', null)
 
     if (studentsError) throw studentsError
 
@@ -97,8 +97,8 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
 
     const { data: studentsData, error: studentsError } = await supabaseAdmin
       .from('students')
-      .not('room_id', 'is', null)
       .select('id, roll_number, room_id, profiles!students_id_fkey(full_name)')
+      .not('room_id', 'is', null)
 
     if (studentsError) throw studentsError
 
@@ -132,9 +132,9 @@ router.post('/', authenticate, requireWarden, async (req, res, next) => {
     let blockId = ''
     const { data: existingBlocks, error: searchErr } = await supabaseAdmin
       .from('blocks')
+      .select('id')
       .eq('name', block_name.trim())
       .limit(1)
-      .select('id')
 
     if (searchErr) throw searchErr
 
@@ -176,8 +176,8 @@ router.get('/unassigned', authenticate, requireWarden, async (req, res, next) =>
   try {
     const { data, error } = await supabaseAdmin
       .from('students')
-      .is('room_id', null)
       .select('id, roll_number, profiles!students_id_fkey(full_name)')
+      .is('room_id', null)
 
     if (error) throw error
 
@@ -199,16 +199,16 @@ router.post('/assign', authenticate, requireWarden, async (req, res, next) => {
 
     const { data: room, error: roomError } = await supabaseAdmin
       .from('rooms')
-      .eq('id', room_id)
       .select('capacity, room_number, blocks!rooms_block_id_fkey(name)')
+      .eq('id', room_id)
       .single()
 
     if (roomError) throw roomError
 
     const { count, error: countError } = await supabaseAdmin
       .from('students')
-      .eq('room_id', room_id)
       .select('*', { count: 'exact', head: true })
+      .eq('room_id', room_id)
 
     if (countError) throw countError
 
@@ -247,8 +247,8 @@ router.post('/transfer-request', authenticate, requireStudent, async (req, res, 
 
     const { data: student, error: studentError } = await supabaseAdmin
       .from('students')
-      .eq('id', req.user.id)
       .select('room_id')
+      .eq('id', req.user.id)
       .single()
 
     if (studentError) throw studentError
@@ -276,7 +276,6 @@ router.get('/transfer-requests', authenticate, requireWarden, async (req, res, n
   try {
     const { data, error } = await supabaseAdmin
       .from('room_transfer_requests')
-      .eq('status', 'pending')
       .select(`
         *,
         students!room_transfer_requests_student_id_fkey(
@@ -286,6 +285,7 @@ router.get('/transfer-requests', authenticate, requireWarden, async (req, res, n
         current_room:rooms!room_transfer_requests_current_room_id_fkey(room_number),
         requested_room:rooms!room_transfer_requests_requested_room_id_fkey(room_number)
       `)
+      .eq('status', 'pending')
 
     if (error) throw error
 
@@ -301,8 +301,8 @@ router.patch('/transfer-requests/:id/approve', authenticate, requireWarden, asyn
 
     const { data: request, error: requestError } = await supabaseAdmin
       .from('room_transfer_requests')
-      .eq('id', id)
       .select('*')
+      .eq('id', id)
       .single()
 
     if (requestError) throw requestError
