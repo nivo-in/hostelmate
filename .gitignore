@@ -11,3 +11,8 @@ dist
 .DS_Store
 apps/server/logs/
 apps/server/coverage/
+# TypeScript build cache
+*.tsbuildinfo
+
+# Winston audit logs
+apps/server/logs/
