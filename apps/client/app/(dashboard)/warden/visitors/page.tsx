@@ -6,8 +6,24 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 
+interface Visitor {
+  id: string;
+  visitor_name: string;
+  relationship: string;
+  purpose: string;
+  expected_visit_date: string;
+  status: string;
+  warden_notes?: string;
+  created_at: string;
+  students?: {
+    profiles?: {
+      full_name?: string;
+    };
+  };
+}
+
 export default function WardenVisitors() {
-  const [visitors, setVisitors] = useState<Record<string, unknown>[]>([]);
+  const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [filter, setFilter] = useState('All');
   const [actionId, setActionId] = useState<string | null>(null);
   const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
