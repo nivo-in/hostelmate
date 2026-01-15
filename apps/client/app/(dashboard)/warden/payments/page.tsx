@@ -238,7 +238,7 @@ export default function WardenPaymentsPage() {
     setGenResult(null);
     setError('');
     try {
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         fee_structure_id: selectedStructureId,
         period_label: periodLabel,
         due_date: dueDate,

@@ -66,7 +66,7 @@ export default function WardenCurfewPage() {
       }
       if (violationsRes.success && violationsRes.data) {
         setViolations(violationsRes.data);
-        const alreadyNotifiedIds = violationsRes.data.filter((v: any) => v.parent_notified).map((v: any) => v.student_id);
+        const alreadyNotifiedIds = violationsRes.data.filter((v: { parent_notified: boolean, student_id: string }) => v.parent_notified).map((v: { parent_notified: boolean, student_id: string }) => v.student_id);
         setNotifiedIds(alreadyNotifiedIds);
       }
     } catch (err) {

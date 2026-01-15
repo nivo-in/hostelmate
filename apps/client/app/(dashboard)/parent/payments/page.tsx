@@ -9,7 +9,7 @@ import { useApi } from '@/hooks/useApi';
 
 interface RazorpayInstance { 
   open(): void; 
-  on(event: string, handler: Function): void; 
+  on(event: string, handler: (...args: unknown[]) => void): void; 
 }
 interface RazorpayConstructor { new (options: Record<string, unknown>): RazorpayInstance; }
 type RazorpayWindow = Window & typeof globalThis & { Razorpay: RazorpayConstructor };
@@ -155,7 +155,7 @@ export default function ParentPaymentsPage() {
         },
       };
       const rzp = new (window as RazorpayWindow).Razorpay(options);
-      rzp.on('payment.failed', async (response: any) => {
+      rzp.on('payment.failed', async (response: { error: { description: string } }) => {
         setError(`Payment failed: ${response.error.description}`);
         try {
           await apiPost('/api/payments/cancel', { fee_payment_id: payment.id });
