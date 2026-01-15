@@ -1,11 +1,14 @@
 import { createClient } from '@/lib/supabase/client'
 
-export function useApi() {
-  const baseUrl = typeof window !== 'undefined' 
+// Compute once at module load time — avoids window.location access on every hook call
+const BASE_URL =
+  typeof window !== 'undefined'
     ? `${window.location.protocol}//${window.location.hostname}:3001`
     : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
+export function useApi() {
   const getToken = async () => {
+    // Uses the module-level singleton — no new client created per call
     const supabase = createClient()
     const { data: { session } } = await supabase.auth.getSession()
 
@@ -36,7 +39,7 @@ export function useApi() {
 
   const apiGet = async (path: string) => {
     const token = await getToken()
-    const res = await fetch(`${baseUrl}${path}`, {
+    const res = await fetch(`${BASE_URL}${path}`, {
       headers: {
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
       }
@@ -46,7 +49,7 @@ export function useApi() {
 
   const apiPost = async (path: string, body: unknown) => {
     const token = await getToken()
-    const res = await fetch(`${baseUrl}${path}`, {
+    const res = await fetch(`${BASE_URL}${path}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -59,7 +62,7 @@ export function useApi() {
 
   const apiPatch = async (path: string, body: unknown) => {
     const token = await getToken()
-    const res = await fetch(`${baseUrl}${path}`, {
+    const res = await fetch(`${BASE_URL}${path}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -72,7 +75,7 @@ export function useApi() {
 
   const apiDelete = async (path: string) => {
     const token = await getToken()
-    const res = await fetch(`${baseUrl}${path}`, {
+    const res = await fetch(`${BASE_URL}${path}`, {
       method: 'DELETE',
       headers: {
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
@@ -83,7 +86,7 @@ export function useApi() {
 
   const apiPut = async (path: string, body: unknown) => {
     const token = await getToken()
-    const res = await fetch(`${baseUrl}${path}`, {
+    const res = await fetch(`${BASE_URL}${path}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -96,3 +99,4 @@ export function useApi() {
 
   return { apiGet, apiPost, apiPatch, apiPut, apiDelete }
 }
+
