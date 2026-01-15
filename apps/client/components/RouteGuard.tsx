@@ -8,33 +8,40 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
   const [authorized, setAuthorized] = useState<boolean | null>(null);
   const router = useRouter();
   const pathname = usePathname();
-  const supabase = createClient();
 
   useEffect(() => {
     const checkAuth = async () => {
+      const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         router.push('/login');
         return;
       }
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
+      // Fast path: role is already embedded in the JWT claims (app_metadata or
+      // user_metadata) — no extra DB round-trip needed.
+      const user = session.user;
+      let role: string | undefined =
+        user.app_metadata?.role ?? user.user_metadata?.role;
 
-      const role = profile?.role;
-      
+      // Slow path: if the role wasn't stored in JWT claims, fall back to DB.
+      if (!role) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        role = profile?.role;
+      }
+
       // Determine required role from path
-      let requiredRole = null;
+      let requiredRole: string | null = null;
       if (pathname.startsWith('/warden')) requiredRole = 'warden';
       if (pathname.startsWith('/student')) requiredRole = 'student';
       if (pathname.startsWith('/parent')) requiredRole = 'parent';
 
       if (requiredRole && role !== requiredRole) {
-        // User is trying to access a route they don't have permission for
         router.push(`/${role}/dashboard`);
       } else {
         setAuthorized(true);
@@ -42,7 +49,8 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
     };
 
     checkAuth();
-  }, [pathname, router, supabase]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   if (authorized === null) {
     return (
