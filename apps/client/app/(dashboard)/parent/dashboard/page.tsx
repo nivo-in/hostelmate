@@ -60,6 +60,7 @@ export default function ParentDashboard() {
           <Card emoji="🏖️" title="Leave Status" description="Check leave approvals" href="/parent/leaves" />
           <Card emoji="📞" title="Contact Warden" description="Get warden details" href="/parent/contact" />
           <Card emoji="📢" title="Notices" description="Read hostel announcements" href="/parent/notices" />
+          <Card emoji="💳" title="Fee Payments" description="Pay ward's hostel fees" href="/parent/payments" />
         </div>
       )}
     </div>

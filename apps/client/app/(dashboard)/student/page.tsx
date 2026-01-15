@@ -33,32 +33,31 @@ export default async function StudentDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[
-          { title: 'Attendance', desc: 'View your attendance records' },
-          { title: 'Leave Requests', desc: 'Apply and track leave requests' },
-          { title: 'Complaints', desc: 'Register and track complaints' },
-          { title: 'Mess Menu', desc: 'Weekly menu and reviews' },
-          { title: 'Notices', desc: 'Important announcements' },
-          { title: 'Lost & Found', desc: 'Report or find items' },
-          { emoji: '👥', title: 'Visitors', desc: 'Request visitor passes', href: '/student/visitors' }
-        ].map((card) => {
-          const cardContent = (
+          { title: 'Attendance', desc: 'View your attendance records', href: null, emoji: null },
+          { title: 'Leave Requests', desc: 'Apply and track leave requests', href: null, emoji: null },
+          { title: 'Complaints', desc: 'Register and track complaints', href: null, emoji: null },
+          { title: 'Mess Menu', desc: 'Weekly menu and reviews', href: null, emoji: null },
+          { title: 'Notices', desc: 'Important announcements', href: null, emoji: null },
+          { title: 'Lost & Found', desc: 'Report or find items', href: null, emoji: null },
+          { emoji: '👥', title: 'Visitors', desc: 'Request visitor passes', href: '/student/visitors' },
+          { emoji: '💳', title: 'Fee Payments', desc: 'Pay hostel and mess fees online', href: '/student/payments' }
+        ].map((card) =>
+          card.href ? (
+            <Link href={card.href} key={card.title}>
+              <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors cursor-pointer group h-full">
+                {card.emoji && <div className="text-2xl mb-3">{card.emoji}</div>}
+                <h2 className="font-medium text-gray-900 group-hover:text-black">{card.title}</h2>
+                <p className="text-sm text-gray-400 mt-2">{card.desc}</p>
+              </div>
+            </Link>
+          ) : (
             <div key={card.title} className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors cursor-pointer group h-full">
               {card.emoji && <div className="text-2xl mb-3">{card.emoji}</div>}
               <h2 className="font-medium text-gray-900 group-hover:text-black">{card.title}</h2>
               <p className="text-sm text-gray-400 mt-2">{card.desc}</p>
             </div>
           )
-
-          if (card.href) {
-            return (
-              <Link href={card.href} key={card.title}>
-                {cardContent}
-              </Link>
-            )
-          }
-          
-          return cardContent
-        })}
+        )}
       </div>
     </div>
   )

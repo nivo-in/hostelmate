@@ -41,7 +41,8 @@ export default async function WardenDashboard() {
           { emoji: '👥', title: 'Staff Directory', desc: 'View hostel staff details', href: '/warden/staff' },
           { emoji: '🔍', title: 'Lost & Found', desc: 'Manage reported items', href: '/warden/lost-and-found' },
           { emoji: '📊', title: 'Complaint Analytics', desc: 'AI-powered maintenance insights', href: '/warden/complaints/analytics' },
-          { emoji: '🚪', title: 'Visitor Management', desc: 'Manage guest check-ins', href: '/warden/visitors' }
+          { emoji: '🚪', title: 'Visitor Management', desc: 'Manage guest check-ins', href: '/warden/visitors' },
+          { emoji: '💰', title: 'Fee Management', desc: 'Collect and track hostel fees', href: '/warden/payments' }
         ].map((card) => (
           <Link href={card.href} key={card.title}>
             <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors cursor-pointer group h-full">

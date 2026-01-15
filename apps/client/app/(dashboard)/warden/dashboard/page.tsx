@@ -162,6 +162,7 @@ export default function WardenDashboard() {
           <Card emoji="🌙" title="Curfew Management" description="Track and notify curfew violations" href="/warden/curfew" />
           <Card emoji="📋" title="Audit Log" description="View all system activity" href="/warden/audit" />
           <Card emoji="🚪" title="Visitor Management" description="Manage guest check-ins" href="/warden/visitors" />
+          <Card emoji="💰" title="Fee Management" description="Collect and track hostel fees" href="/warden/payments" />
         </div>
       )}
 
