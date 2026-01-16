@@ -20,13 +20,14 @@ export default function LoginPage() {
   const [pendingUserId, setPendingUserId] = useState<string | null>(null)
   const [pendingRole, setPendingRole] = useState<string | null>(null)
 
-  const supabase = createClient()
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
 
+    const supabase = createClient()
     const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -71,7 +72,7 @@ export default function LoginPage() {
 
   const handleFaceFailed = async (reason: string) => {
     // Sign out the warden since face verification failed
-    await supabase.auth.signOut()
+    await createClient().auth.signOut()
     setError(`Security check failed: ${reason}`)
     setStep('credentials')
     setPendingUserId(null)
@@ -80,7 +81,7 @@ export default function LoginPage() {
 
   const handleFaceSkip = async () => {
     // Do NOT allow skipping warden face verification — it's a security gate
-    await supabase.auth.signOut()
+    await createClient().auth.signOut()
     setError('Face verification is required for warden login. Please register your face first.')
     setStep('credentials')
     setPendingUserId(null)
