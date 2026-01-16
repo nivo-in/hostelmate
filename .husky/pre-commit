@@ -1,0 +1,22 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🐶 Husky: Running fast checks before commit..."
+
+# Run linting for the client
+echo "Running client linting..."
+cd apps/client && pnpm lint
+if [ $? -ne 0 ]; then
+  echo "❌ Client Linting failed. Fix warnings/errors before committing."
+  exit 1
+fi
+
+# Run backend unit/integration tests
+echo "Running backend unit tests..."
+cd ../server && pnpm test
+if [ $? -ne 0 ]; then
+  echo "❌ Backend tests failed. Fix them before committing."
+  exit 1
+fi
+
+echo "✅ All fast checks passed!"
