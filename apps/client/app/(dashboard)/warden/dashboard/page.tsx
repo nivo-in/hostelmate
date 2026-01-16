@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
@@ -57,12 +56,12 @@ export default function WardenDashboard() {
     activeNotices: 0,
   });
 
-  const router = useRouter();
-  const supabase = createClient();
+
   const { apiGet } = useApi();
 
   useEffect(() => {
     const init = async () => {
+      const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       const user = session?.user;
       if (!user) return;
@@ -94,10 +93,11 @@ export default function WardenDashboard() {
     };
 
     init();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await createClient().auth.signOut();
     window.location.href = '/login';
   };
 
