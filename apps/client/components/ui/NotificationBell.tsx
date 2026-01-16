@@ -50,6 +50,8 @@ export function NotificationBell() {
   const [loading, setLoading] = useState(true)
 
   const { apiGet, apiPatch, apiDelete } = useApi()
+  // Ref to track pending debounce timer for socket-triggered fetches
+  const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchNotifications = useCallback(async () => {
@@ -64,7 +66,16 @@ export function NotificationBell() {
     } finally {
       setLoading(false)
     }
-  }, [apiGet])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Debounced version for socket events — prevents rapid-fire fetches
+  const debouncedFetch = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      fetchNotifications()
+    }, 2000) // 2s debounce: bursts of socket events → single fetch
+  }, [fetchNotifications])
 
   useEffect(() => {
     // Fetch immediately on mount
@@ -75,15 +86,18 @@ export function NotificationBell() {
       fetchNotifications()
     }, 300000)
 
-    return () => clearInterval(intervalId)
+    return () => {
+      clearInterval(intervalId)
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
   }, [fetchNotifications])
 
-  // WebSocket: refresh on any real-time event
+  // WebSocket: refresh on any real-time event (debounced to avoid rapid API calls)
   useSocket({
-    'notice:new': () => fetchNotifications(),
-    'leave:updated': () => fetchNotifications(),
-    'complaint:updated': () => fetchNotifications(),
-    'attendance:marked': () => fetchNotifications(),
+    'notice:new': debouncedFetch,
+    'leave:updated': debouncedFetch,
+    'complaint:updated': debouncedFetch,
+    'attendance:marked': debouncedFetch,
   })
 
 
