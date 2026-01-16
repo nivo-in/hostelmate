@@ -34,13 +34,13 @@ router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => 
       { data: lostFoundData }
     ] = await Promise.all([
       supabaseAdmin.from('students').select('*', { count: 'exact', head: true }),
-      supabaseAdmin.from('attendance').eq('date', today).eq('status', 'present').select('*', { count: 'exact', head: true }),
-      supabaseAdmin.from('leave_requests').eq('status', 'pending').select('*', { count: 'exact', head: true }),
-      supabaseAdmin.from('leave_requests').eq('status', 'approved').gte('created_at', startOfMonth).select('*', { count: 'exact', head: true }),
-      supabaseAdmin.from('leave_requests').eq('status', 'rejected').gte('created_at', startOfMonth).select('*', { count: 'exact', head: true }),
-      supabaseAdmin.from('complaints').eq('status', 'open').select('*', { count: 'exact', head: true }),
-      supabaseAdmin.from('complaints').eq('status', 'in_progress').select('*', { count: 'exact', head: true }),
-      supabaseAdmin.from('complaints').eq('status', 'resolved').gte('resolution_date', startOfMonth).select('*', { count: 'exact', head: true }),
+      supabaseAdmin.from('attendance').select('*', { count: 'exact', head: true }).eq('date', today).eq('status', 'present'),
+      supabaseAdmin.from('leave_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabaseAdmin.from('leave_requests').select('*', { count: 'exact', head: true }).eq('status', 'approved').gte('created_at', startOfMonth),
+      supabaseAdmin.from('leave_requests').select('*', { count: 'exact', head: true }).eq('status', 'rejected').gte('created_at', startOfMonth),
+      supabaseAdmin.from('complaints').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+      supabaseAdmin.from('complaints').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
+      supabaseAdmin.from('complaints').select('*', { count: 'exact', head: true }).eq('status', 'resolved').gte('resolution_date', startOfMonth),
       supabaseAdmin.from('notices').select('*', { count: 'exact', head: true }),
       supabaseAdmin.from('lost_and_found').select('status')
     ])
