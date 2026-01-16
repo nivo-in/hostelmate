@@ -134,22 +134,25 @@ app.use((req, res) => {
 app.use(errorHandler)
 
 // Start server
-const server = httpServer.listen(PORT, '0.0.0.0', async () => {
-  logger.info(`HostelMate server running on port ${PORT}`)
-  
-  try {
-    await redis.ping()
-    redisStatus = 'connected'
-    logger.info('Redis connected successfully')
-    startCurfewJob()
-  } catch (err) {
-    redisStatus = 'disconnected'
-    logger.warn('Redis connection failed — caching disabled')
-  }
-})
+let server;
+if (process.env.NODE_ENV !== 'test') {
+  server = httpServer.listen(PORT, '0.0.0.0', async () => {
+    logger.info(`HostelMate server running on port ${PORT}`)
+    
+    try {
+      await redis.ping()
+      redisStatus = 'connected'
+      logger.info('Redis connected successfully')
+      startCurfewJob()
+    } catch (err) {
+      redisStatus = 'disconnected'
+      logger.warn('Redis connection failed — caching disabled')
+    }
+  })
 
-server.on('error', (err) => {
-  logger.error('Server error:', err)
-})
+  server.on('error', (err) => {
+    logger.error('Server error:', err)
+  })
+}
 
 export default app
