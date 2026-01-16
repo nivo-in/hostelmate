@@ -51,14 +51,13 @@ export default function StudentRoomTransferPage() {
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
   const { apiGet, apiPost } = useApi();
-  const supabase = createClient();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await createClient().auth.signOut();
     window.location.href = '/login';
   };
 
@@ -66,6 +65,7 @@ export default function StudentRoomTransferPage() {
     setLoading(true);
     setError(null);
     try {
+      const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         setError('Session expired — please refresh');
@@ -127,7 +127,8 @@ export default function StudentRoomTransferPage() {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     fetchData();
