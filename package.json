@@ -4,7 +4,7 @@
   "description": "Hostel management platform by Nivo",
   "private": true,
   "scripts": {
-    "predev": "npx --yes kill-port 3000 3001",
+    "predev": "pnpm dlx kill-port 3000 3001",
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
