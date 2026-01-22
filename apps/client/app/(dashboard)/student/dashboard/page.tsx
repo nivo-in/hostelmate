@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Card } from '@/components/ui/Card'
+import { useRouter } from 'next/navigation'
 
 const SkeletonCard = () => (
   <div className="border border-gray-100 rounded-xl p-6 animate-pulse">
@@ -13,6 +14,7 @@ const SkeletonCard = () => (
 )
 
 export default function StudentDashboard() {
+  const router = useRouter()
   const [firstName, setFirstName] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -45,7 +47,7 @@ export default function StudentDashboard() {
 
   const handleSignOut = async () => {
     await createClient().auth.signOut()
-    window.location.href = '/login'
+    router.push('/login')
   }
 
 

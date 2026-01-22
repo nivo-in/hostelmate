@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
+import { useRouter } from 'next/navigation'
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -105,6 +106,7 @@ function fuzzyMatch(query: string, target: string, maxDistance: number = 2): boo
 // ─── Main Component ───────────────────────────────────────
 
 export default function WardenPaymentsPage() {
+  const router = useRouter()
   const [tab, setTab] = useState<'overview' | 'generate' | 'structures'>('overview');
 
   // Overview state
@@ -196,7 +198,7 @@ export default function WardenPaymentsPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   // ── Mark paid ──

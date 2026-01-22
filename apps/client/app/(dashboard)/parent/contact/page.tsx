@@ -37,7 +37,7 @@ export default function ParentContact() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   if (loading) return <div className="min-h-screen bg-white px-6 py-10"><LoadingSpinner /></div>;

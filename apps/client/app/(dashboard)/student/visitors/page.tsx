@@ -19,6 +19,7 @@ interface Visitor {
 }
 
 export default function StudentVisitors() {
+  const router = useRouter()
   const [visitorName, setVisitorName] = useState('');
   const [visitorPhone, setVisitorPhone] = useState('');
   const [relationship, setRelationship] = useState('parent');
@@ -80,7 +81,7 @@ export default function StudentVisitors() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   const getStatusBadge = (status: string) => {

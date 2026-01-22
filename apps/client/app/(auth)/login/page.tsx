@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, lazy, Suspense } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 const WardenFaceVerification = lazy(() => import('@/components/face/WardenFaceVerification'))
@@ -11,6 +12,7 @@ type LoginStep =
   | 'done'             // redirecting
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -55,9 +57,9 @@ export default function LoginPage() {
         setStep('face-verify')
         setIsLoading(false)
       } else if (role === 'student') {
-        window.location.href = '/student/dashboard'
+        router.push('/student/dashboard')
       } else if (role === 'parent') {
-        window.location.href = '/parent/dashboard'
+        router.push('/parent/dashboard')
       } else {
         setError('No role assigned to this account.')
         setIsLoading(false)
@@ -67,7 +69,7 @@ export default function LoginPage() {
 
   const handleFaceVerified = () => {
     setStep('done')
-    window.location.href = '/warden/dashboard'
+    router.push('/warden/dashboard')
   }
 
   const handleFaceFailed = async (reason: string) => {

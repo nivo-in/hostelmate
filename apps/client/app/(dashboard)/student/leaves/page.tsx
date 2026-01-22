@@ -69,7 +69,7 @@ export default function StudentLeaves() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   const getStatusVariant = (status: string) => {

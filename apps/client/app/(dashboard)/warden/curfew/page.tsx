@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useApi } from '@/hooks/useApi';
 import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation'
 
 type Violation = {
   student_id: string;
@@ -25,6 +26,7 @@ const SkeletonCard = () => (
 );
 
 export default function WardenCurfewPage() {
+  const router = useRouter()
   const [settings, setSettings] = useState<CurfewSettings>({ enabled: true, curfew_time: '22:00' });
   const [violations, setViolations] = useState<Violation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +52,7 @@ export default function WardenCurfewPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   // fetchData has stable [] deps — uses ref so it never causes re-render loop

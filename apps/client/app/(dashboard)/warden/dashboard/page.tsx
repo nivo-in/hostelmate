@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { useApi } from '@/hooks/useApi';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation'
 
 const WardenFaceRegistration = dynamic(
   () => import('@/components/face/WardenFaceRegistration'),
@@ -44,6 +45,7 @@ interface StatsApiResponse {
 }
 
 export default function WardenDashboard() {
+  const router = useRouter()
   const [firstName, setFirstName] = useState('');
   const [wardenId, setWardenId] = useState('');
   const [showFaceRegister, setShowFaceRegister] = useState(false);
@@ -98,7 +100,7 @@ export default function WardenDashboard() {
 
   const handleSignOut = async () => {
     await createClient().auth.signOut();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   return (

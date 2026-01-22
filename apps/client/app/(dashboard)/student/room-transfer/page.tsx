@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useApi } from '@/hooks/useApi';
 import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation'
 
 type Room = {
   id: string;
@@ -36,6 +37,7 @@ const SkeletonCard = () => (
 );
 
 export default function StudentRoomTransferPage() {
+  const router = useRouter()
   const [currentRoom, setCurrentRoom] = useState<CurrentRoomInfo | null>(null);
   const [noRoomAssigned, setNoRoomAssigned] = useState(false);
   const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
@@ -58,7 +60,7 @@ export default function StudentRoomTransferPage() {
 
   const handleSignOut = async () => {
     await createClient().auth.signOut();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   const fetchData = useCallback(async () => {

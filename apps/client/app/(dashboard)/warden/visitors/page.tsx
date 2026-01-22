@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
+import { useRouter } from 'next/navigation'
 
 interface Visitor {
   id: string;
@@ -23,6 +24,7 @@ interface Visitor {
 }
 
 export default function WardenVisitors() {
+  const router = useRouter()
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [filter, setFilter] = useState('All');
   const [actionId, setActionId] = useState<string | null>(null);
@@ -62,7 +64,7 @@ export default function WardenVisitors() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   const todayStr = new Date().toISOString().split('T')[0];
