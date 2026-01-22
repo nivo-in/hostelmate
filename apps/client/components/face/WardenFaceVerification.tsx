@@ -15,7 +15,7 @@ import { createClient } from '@/lib/supabase/client';
 interface WardenFaceVerificationProps {
   wardenId: string;
   onVerified: () => void;
-  onFaceFailed: (_failureReason: string) => void;
+  onFailed: (_failureReason: string) => void;
   onSkip: () => void;
 }
 
@@ -62,7 +62,7 @@ export default function WardenFaceVerification({
   // Liveness
   const blinkDetectedRef = useRef(false);
   const lastEARRef = useRef<number>(1.0);
-  const _facePositionHistoryRef = useRef<{x: number, y: number, time: number}[]>([]);
+
   const prevFrameDataRef = useRef<Uint8ClampedArray | null>(null);
   const frameDiffScoresRef = useRef<number[]>([]);
 

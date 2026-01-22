@@ -328,8 +328,8 @@ export default function StudentAttendance() {
                 <FaceVerification
                   studentId={profile?.id ?? ''}
                   onVerified={() => markAttendanceDirectly()}
-                  onFailed={(reason) => {
-                    setFaceError(reason);
+                  onFailed={(_reason: string) => {
+                    setFaceError(_reason);
                     setMode('choose');
                   }}
                   onSkip={() => runQrScan()}

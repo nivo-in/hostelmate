@@ -34,7 +34,7 @@ export function useSocket(handlers: SocketHandlers) {
         wrappers[event] = wrapper
         socket.on(event, wrapper)
       })
-      socket.on('connect', (_data: unknown) => {     })
+      socket.on('connect', () => {     })
     }
 
     init()
