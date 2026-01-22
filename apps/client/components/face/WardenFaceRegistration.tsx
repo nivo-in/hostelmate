@@ -5,11 +5,46 @@ import { loadModels, getFaceDescriptor, computeMeanDescriptor } from '@/lib/face
 import { createClient } from '@/lib/supabase/client';
 
 const PHASES = [
-  { id: 'center', label: 'Look straight', hint: 'Face the camera directly',          icon: '●', arrow: null,    frames: 6 },
-  { id: 'left',   label: 'Turn left',     hint: 'Slowly rotate your head left',      icon: '←', arrow: 'left',  frames: 5 },
-  { id: 'right',  label: 'Turn right',    hint: 'Slowly rotate your head right',     icon: '→', arrow: 'right', frames: 5 },
-  { id: 'up',     label: 'Tilt up',       hint: 'Tilt your chin up slightly',        icon: '↑', arrow: 'up',    frames: 4 },
-  { id: 'down',   label: 'Tilt down',     hint: 'Tilt your chin down slightly',      icon: '↓', arrow: 'down',  frames: 4 },
+  {
+    id: 'center',
+    label: 'Look straight',
+    hint: 'Face the camera directly',
+    icon: '●',
+    arrow: null,
+    frames: 6,
+  },
+  {
+    id: 'left',
+    label: 'Turn left',
+    hint: 'Slowly rotate your head left',
+    icon: '←',
+    arrow: 'left',
+    frames: 5,
+  },
+  {
+    id: 'right',
+    label: 'Turn right',
+    hint: 'Slowly rotate your head right',
+    icon: '→',
+    arrow: 'right',
+    frames: 5,
+  },
+  {
+    id: 'up',
+    label: 'Tilt up',
+    hint: 'Tilt your chin up slightly',
+    icon: '↑',
+    arrow: 'up',
+    frames: 4,
+  },
+  {
+    id: 'down',
+    label: 'Tilt down',
+    hint: 'Tilt your chin down slightly',
+    icon: '↓',
+    arrow: 'down',
+    frames: 4,
+  },
 ] as const;
 
 type PhaseId = (typeof PHASES)[number]['id'];
@@ -86,12 +121,12 @@ export default function WardenFaceRegistration({
       const { error } = await supabase.from('warden_face_descriptors').upsert(
         {
           warden_id: wardenId,
-          descriptor: descs,                       // backward compat
+          descriptor: descs, // backward compat
           descriptor_straight: descs[0] ?? null,
-          descriptor_left:     descs[1] ?? null,
-          descriptor_right:    descs[2] ?? null,
-          descriptor_up:       descs[3] ?? null,
-          descriptor_down:     descs[4] ?? null,
+          descriptor_left: descs[1] ?? null,
+          descriptor_right: descs[2] ?? null,
+          descriptor_up: descs[3] ?? null,
+          descriptor_down: descs[4] ?? null,
         },
         { onConflict: 'warden_id' }
       );
@@ -140,9 +175,7 @@ export default function WardenFaceRegistration({
 
         setPhases((prev) =>
           prev.map((p) =>
-            p.id === currentPhase.id
-              ? { ...p, collected: Math.min(buf.length, p.required) }
-              : p
+            p.id === currentPhase.id ? { ...p, collected: Math.min(buf.length, p.required) } : p
           )
         );
 
@@ -209,7 +242,13 @@ export default function WardenFaceRegistration({
   }, [startCaptureLoop, stopCamera]);
 
   const isLoading = status === 'loading-models' || status === 'requesting-camera';
-  const showVideo = !['loading-models', 'camera-denied', 'error', 'registered', 'processing'].includes(status);
+  const showVideo = ![
+    'loading-models',
+    'camera-denied',
+    'error',
+    'registered',
+    'processing',
+  ].includes(status);
   const currentPhase = PHASES[phaseIndex];
   const currentPhaseState = phases[phaseIndex];
   const totalRequired = PHASES.reduce((s, p) => s + p.frames, 0);
@@ -219,10 +258,10 @@ export default function WardenFaceRegistration({
   const arrowStyle = (arrow: string | null): React.CSSProperties => {
     if (!arrow) return {};
     const map: Record<string, React.CSSProperties> = {
-      left:  { transform: 'translateX(-8px)' },
+      left: { transform: 'translateX(-8px)' },
       right: { transform: 'translateX(8px)' },
-      up:    { transform: 'translateY(-8px)' },
-      down:  { transform: 'translateY(8px)' },
+      up: { transform: 'translateY(-8px)' },
+      down: { transform: 'translateY(8px)' },
     };
     return map[arrow] ?? {};
   };
@@ -232,8 +271,18 @@ export default function WardenFaceRegistration({
       {/* Header */}
       <div className="text-center">
         <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center mx-auto mb-3">
-          <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+          <svg
+            className="w-5 h-5 text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
+            />
           </svg>
         </div>
         <h2 className="text-lg font-semibold text-gray-900">Warden Face ID Setup</h2>
@@ -245,7 +294,14 @@ export default function WardenFaceRegistration({
       {isLoading && (
         <div className="flex items-center gap-2 text-sm text-gray-500 py-8">
           <svg className="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
           </svg>
           {status === 'loading-models' ? 'Loading face recognition...' : 'Starting camera...'}
@@ -275,11 +331,23 @@ export default function WardenFaceRegistration({
             >
               <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 136" fill="none">
                 <ellipse
-                  cx="50" cy="68" rx="48" ry="66"
-                  stroke={status === 'no-face' ? '#ef4444' : phases[phaseIndex]?.done ? '#16a34a' : '#ffffff'}
+                  cx="50"
+                  cy="68"
+                  rx="48"
+                  ry="66"
+                  stroke={
+                    status === 'no-face'
+                      ? '#ef4444'
+                      : phases[phaseIndex]?.done
+                        ? '#16a34a'
+                        : '#ffffff'
+                  }
                   strokeWidth="3"
                   strokeDasharray={status === 'no-face' ? '8 4' : 'none'}
-                  style={{ filter: 'drop-shadow(0 0 6px rgba(0,0,0,0.5))', transition: 'stroke 0.3s ease' }}
+                  style={{
+                    filter: 'drop-shadow(0 0 6px rgba(0,0,0,0.5))',
+                    transition: 'stroke 0.3s ease',
+                  }}
                 />
               </svg>
             </div>
@@ -322,7 +390,12 @@ export default function WardenFaceRegistration({
             >
               {p.done ? (
                 <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none">
-                  <polyline points="2 6 5 9 10 3" stroke="#15803d" strokeWidth="1.8" strokeLinecap="round" />
+                  <polyline
+                    points="2 6 5 9 10 3"
+                    stroke="#15803d"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
                 </svg>
               ) : (
                 <span>{PHASES[i].icon}</span>
@@ -345,13 +418,15 @@ export default function WardenFaceRegistration({
               className="h-full rounded-full transition-all duration-500"
               style={{
                 width: `${overallProgress}%`,
-                background: overallProgress === 100 ? '#16a34a' : 'linear-gradient(90deg, #1d4ed8, #6366f1)',
+                background:
+                  overallProgress === 100 ? '#16a34a' : 'linear-gradient(90deg, #1d4ed8, #6366f1)',
               }}
             />
           </div>
           {currentPhaseState && !currentPhaseState.done && (
             <p className="text-xs text-gray-400 mt-1 text-center">
-              {currentPhaseState.collected}/{currentPhaseState.required} frames captured for this angle
+              {currentPhaseState.collected}/{currentPhaseState.required} frames captured for this
+              angle
             </p>
           )}
         </div>
@@ -360,7 +435,14 @@ export default function WardenFaceRegistration({
       {status === 'processing' && (
         <div className="flex flex-col items-center gap-3 py-6">
           <svg className="animate-spin w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
           </svg>
           <p className="text-sm text-gray-500">Saving face data...</p>
@@ -370,7 +452,13 @@ export default function WardenFaceRegistration({
       {status === 'registered' && (
         <div className="flex flex-col items-center gap-3 py-6">
           <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
-            <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <svg
+              className="w-8 h-8 text-green-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
@@ -380,7 +468,8 @@ export default function WardenFaceRegistration({
 
       {status === 'camera-denied' && (
         <p className="text-xs text-gray-500 text-center max-w-xs py-4">
-          Camera access was denied. Enable camera permissions in your browser settings, then refresh.
+          Camera access was denied. Enable camera permissions in your browser settings, then
+          refresh.
         </p>
       )}
 

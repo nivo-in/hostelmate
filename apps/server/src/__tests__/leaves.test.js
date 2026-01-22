@@ -24,10 +24,10 @@ jest.unstable_mockModule('../config/supabase.js', () => ({
     auth: {
       getUser: jest.fn().mockResolvedValue({
         data: { user: { id: 'test-user-id' } },
-        error: null
-      })
-    }
-  }
+        error: null,
+      }),
+    },
+  },
 }));
 
 jest.unstable_mockModule('../config/redis.js', () => ({
@@ -36,30 +36,39 @@ jest.unstable_mockModule('../config/redis.js', () => ({
   deleteCache: jest.fn().mockResolvedValue(true),
   deleteCachePattern: jest.fn().mockResolvedValue(true),
   publishEvent: jest.fn().mockResolvedValue(true),
-  redis: {}
+  redis: {},
 }));
 
 jest.unstable_mockModule('../config/logger.js', () => ({
-  default: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), http: jest.fn() }
+  default: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), http: jest.fn() },
 }));
 
 jest.unstable_mockModule('../config/socket.js', () => ({
   emitToUser: jest.fn(),
   emitToAll: jest.fn(),
   getIO: jest.fn(),
-  initSocket: jest.fn()
+  initSocket: jest.fn(),
 }));
 
-const mockWardenProfile = { id: 'warden-id', role: 'warden', email: 'warden@test.com', full_name: 'Test Warden' };
-const mockStudentProfile = { id: 'student-id', role: 'student', email: 'student@test.com', full_name: 'Test Student' };
+const mockWardenProfile = {
+  id: 'warden-id',
+  role: 'warden',
+  email: 'warden@test.com',
+  full_name: 'Test Warden',
+};
+const mockStudentProfile = {
+  id: 'student-id',
+  role: 'student',
+  email: 'student@test.com',
+  full_name: 'Test Student',
+};
 
 let currentProfile = mockStudentProfile;
-
 
 jest.unstable_mockModule('../middleware/rateLimit.js', () => ({
   generalLimiter: (req, res, next) => next(),
   authLimiter: (req, res, next) => next(),
-  notificationLimiter: (req, res, next) => next()
+  notificationLimiter: (req, res, next) => next(),
 }));
 
 jest.unstable_mockModule('../middleware/auth.js', () => ({
@@ -70,7 +79,7 @@ jest.unstable_mockModule('../middleware/auth.js', () => ({
     req.user = { id: currentProfile.id };
     req.profile = currentProfile;
     next();
-  }
+  },
 }));
 
 const { default: app } = await import('../index.js');
@@ -94,7 +103,9 @@ describe('Leaves API', () => {
       const pastDate = new Date(Date.now() - 86400000).toISOString().split('T')[0];
       const futureDate = new Date(Date.now() + 86400000).toISOString().split('T')[0];
       const res = await request(app).post('/api/leaves').send({
-        start_date: pastDate, end_date: futureDate, reason: 'Valid reason of 20 chars......'
+        start_date: pastDate,
+        end_date: futureDate,
+        reason: 'Valid reason of 20 chars......',
       });
       expect(res.status).toBe(400);
     });
@@ -103,7 +114,9 @@ describe('Leaves API', () => {
       const futureDate1 = new Date(Date.now() + 86400000).toISOString().split('T')[0];
       const futureDate2 = new Date(Date.now() + 172800000).toISOString().split('T')[0];
       const res = await request(app).post('/api/leaves').send({
-        start_date: futureDate2, end_date: futureDate1, reason: 'Valid reason of 20 chars......'
+        start_date: futureDate2,
+        end_date: futureDate1,
+        reason: 'Valid reason of 20 chars......',
       });
       expect(res.status).toBe(400);
     });
@@ -112,7 +125,9 @@ describe('Leaves API', () => {
       const futureDate1 = new Date(Date.now() + 86400000).toISOString().split('T')[0];
       const futureDate2 = new Date(Date.now() + 172800000).toISOString().split('T')[0];
       const res = await request(app).post('/api/leaves').send({
-        start_date: futureDate1, end_date: futureDate2, reason: 'short'
+        start_date: futureDate1,
+        end_date: futureDate2,
+        reason: 'short',
       });
       expect(res.status).toBe(400);
     });
@@ -120,11 +135,13 @@ describe('Leaves API', () => {
     it('should accept valid leave request', async () => {
       const futureDate1 = new Date(Date.now() + 86400000).toISOString().split('T')[0];
       const futureDate2 = new Date(Date.now() + 172800000).toISOString().split('T')[0];
-      
+
       supabaseMock.single.mockResolvedValueOnce({ data: { id: 'leave-new' }, error: null });
-      
+
       const res = await request(app).post('/api/leaves').send({
-        start_date: futureDate1, end_date: futureDate2, reason: 'Valid reason of 20 chars......'
+        start_date: futureDate1,
+        end_date: futureDate2,
+        reason: 'Valid reason of 20 chars......',
       });
       expect(res.status).toBe(200);
     });

@@ -1,55 +1,57 @@
-import { useEffect, useState, useCallback } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useEffect, useState, useCallback } from 'react';
+import { createClient } from '@/lib/supabase/client';
 
 // Assuming Profile type based on requirements, adjust imports if needed
 export type Profile = {
-  id: string
-  full_name?: string
-  email?: string
-  role?: string
-  phone?: string
-}
+  id: string;
+  full_name?: string;
+  email?: string;
+  role?: string;
+  phone?: string;
+};
 
 export function useProfile() {
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchProfile = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     // Uses the singleton — no new client per refetch
-    const supabase = createClient()
-    
+    const supabase = createClient();
+
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      
-      if (sessionError) throw sessionError
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) throw sessionError;
       if (!session?.user) {
-        setProfile(null)
-        return
+        setProfile(null);
+        return;
       }
 
       const { data, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
-        .single()
+        .single();
 
-      if (profileError) throw profileError
-      setProfile(data as Profile)
+      if (profileError) throw profileError;
+      setProfile(data as Profile);
     } catch (err: unknown) {
-      setError((err as Error).message)
-      setProfile(null)
+      setError((err as Error).message);
+      setProfile(null);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    fetchProfile()
-  }, [fetchProfile])
+    fetchProfile();
+  }, [fetchProfile]);
 
-  return { profile, loading, error, refetch: fetchProfile }
+  return { profile, loading, error, refetch: fetchProfile };
 }
-

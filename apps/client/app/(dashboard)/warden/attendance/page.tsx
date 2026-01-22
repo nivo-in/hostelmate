@@ -11,9 +11,16 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 interface AttendanceStats {
-  present?: number; absent?: number; total?: number; percentage?: number;
-  today_present?: number; today_absent?: number; total_students?: number; today_percentage?: number;
-  present_today?: number; absent_today?: number;
+  present?: number;
+  absent?: number;
+  total?: number;
+  percentage?: number;
+  today_present?: number;
+  today_absent?: number;
+  total_students?: number;
+  today_percentage?: number;
+  present_today?: number;
+  absent_today?: number;
   data?: AttendanceStats;
 }
 
@@ -80,7 +87,9 @@ export default function WardenAttendance() {
       ]);
       if (statsRes.success) setStats(statsRes.data);
       if (recordsRes.success) setRecords(recordsRes.data || []);
-    } catch { /* silently fail */ }
+    } catch {
+      /* silently fail */
+    }
   }, [date, apiGet]);
 
   useEffect(() => {
@@ -108,7 +117,13 @@ export default function WardenAttendance() {
         <div className="border border-gray-100 rounded-xl p-6 flex flex-col items-center hover:border-gray-300 transition-colors">
           <h2 className="text-sm font-medium text-gray-900 mb-4 self-start">Daily QR Code</h2>
           {qrCodeDataUrl ? (
-            <Image src={qrCodeDataUrl} alt="Attendance QR Code" width={192} height={192} className="mb-4 border border-gray-100 rounded-lg" />
+            <Image
+              src={qrCodeDataUrl}
+              alt="Attendance QR Code"
+              width={192}
+              height={192}
+              className="mb-4 border border-gray-100 rounded-lg"
+            />
           ) : (
             <div className="w-48 h-48 mb-4 bg-gray-50 flex items-center justify-center text-sm text-gray-400 rounded-lg">
               Generating...
@@ -185,9 +200,7 @@ export default function WardenAttendance() {
                   </td>
                   <td className="px-4 py-3 text-gray-500">{r.roll_number || '-'}</td>
                   <td className="px-4 py-3">
-                    <Badge variant={getStatusVariant(r.status)}>
-                      {r.status.toUpperCase()}
-                    </Badge>
+                    <Badge variant={getStatusVariant(r.status)}>{r.status.toUpperCase()}</Badge>
                   </td>
                   <td className="px-4 py-3">
                     {r.face_verified ? (

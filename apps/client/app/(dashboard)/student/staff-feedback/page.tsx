@@ -83,7 +83,10 @@ export default function StaffFeedbackPage() {
 
       <div className="space-y-4">
         {staffList.map((staff) => (
-          <div key={staff.id} className="border border-gray-100 rounded-xl p-4 hover:border-gray-300">
+          <div
+            key={staff.id}
+            className="border border-gray-100 rounded-xl p-4 hover:border-gray-300"
+          >
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
@@ -112,7 +115,10 @@ export default function StaffFeedbackPage() {
               <div className="mt-4 border-t border-gray-100 pt-4">
                 <div className="flex justify-between items-center mb-2">
                   <h4 className="text-sm font-medium text-gray-900">Your Rating</h4>
-                  <button onClick={() => setSelectedStaff(null)} className="text-gray-400 hover:text-gray-600 text-sm">
+                  <button
+                    onClick={() => setSelectedStaff(null)}
+                    className="text-gray-400 hover:text-gray-600 text-sm"
+                  >
                     ✕
                   </button>
                 </div>

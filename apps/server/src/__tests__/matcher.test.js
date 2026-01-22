@@ -17,7 +17,7 @@ describe('Lost & Found Matcher', () => {
 
     it('should deduplicate keywords', () => {
       const res = extractKeywords('wallet wallet key');
-      expect(res.filter(k => k === 'wallet').length).toBe(1);
+      expect(res.filter((k) => k === 'wallet').length).toBe(1);
     });
 
     it('should handle empty string', () => {
@@ -48,7 +48,7 @@ describe('Lost & Found Matcher', () => {
     const candidates = [
       { id: 1, status: 'found', item_name: 'iPhone 13', description: 'black cover found in mess' },
       { id: 2, status: 'found', item_name: 'wallet', description: 'leather' },
-      { id: 3, status: 'lost', item_name: 'iPhone 13', description: 'black cover' } // same type
+      { id: 3, status: 'lost', item_name: 'iPhone 13', description: 'black cover' }, // same type
     ];
 
     it('should find matching lost/found items above threshold', () => {
@@ -59,18 +59,22 @@ describe('Lost & Found Matcher', () => {
 
     it('should not match items with same status', () => {
       const matches = findMatches(newItem, candidates, 0.1);
-      expect(matches.some(m => m.item.id === 3)).toBe(false);
+      expect(matches.some((m) => m.item.id === 3)).toBe(false);
     });
 
     it('should return empty array if no matches', () => {
-      const matches = findMatches({ status: 'lost', item_name: 'watch', description: 'gold' }, candidates, 0.5);
+      const matches = findMatches(
+        { status: 'lost', item_name: 'watch', description: 'gold' },
+        candidates,
+        0.5
+      );
       expect(matches.length).toBe(0);
     });
 
     it('should sort by score descending', () => {
       const moreCandidates = [
         ...candidates,
-        { id: 4, status: 'found', item_name: 'iPhone', description: 'phone' }
+        { id: 4, status: 'found', item_name: 'iPhone', description: 'phone' },
       ];
       const matches = findMatches(newItem, moreCandidates, 0.1);
       if (matches.length > 1) {

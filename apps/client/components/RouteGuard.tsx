@@ -12,7 +12,9 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (!session) {
         router.push('/login');
@@ -22,8 +24,7 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
       // Fast path: role is already embedded in the JWT claims (app_metadata or
       // user_metadata) — no extra DB round-trip needed.
       const user = session.user;
-      let role: string | undefined =
-        user.app_metadata?.role ?? user.user_metadata?.role;
+      let role: string | undefined = user.app_metadata?.role ?? user.user_metadata?.role;
 
       // Slow path: if the role wasn't stored in JWT claims, fall back to DB.
       if (!role) {
@@ -49,7 +50,7 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
     };
 
     checkAuth();
-    }, [pathname]);
+  }, [pathname]);
 
   if (authorized === null) {
     return (

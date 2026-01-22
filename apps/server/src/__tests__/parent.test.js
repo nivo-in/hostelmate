@@ -19,7 +19,9 @@ const supabaseMock = {
   not: jest.fn().mockReturnThis(),
   is: jest.fn().mockReturnThis(),
   head: jest.fn().mockReturnThis(),
-  then: jest.fn(function(resolve) { resolve(queryResults.shift()); })
+  then: jest.fn(function (resolve) {
+    resolve(queryResults.shift());
+  }),
 };
 
 jest.unstable_mockModule('../config/supabase.js', () => ({
@@ -28,21 +30,31 @@ jest.unstable_mockModule('../config/supabase.js', () => ({
     auth: {
       getUser: jest.fn().mockResolvedValue({
         data: { user: { id: 'test-user-id' } },
-        error: null
-      })
-    }
-  }
+        error: null,
+      }),
+    },
+  },
 }));
 
-const mockParentProfile = { id: 'parent-id', role: 'parent', email: 'parent@test.com', full_name: 'Test Parent' };
-const mockStudentProfile = { id: 'student-id', role: 'student', email: 'student@test.com', full_name: 'Test Student' };
+const mockParentProfile = {
+  id: 'parent-id',
+  role: 'parent',
+  email: 'parent@test.com',
+  full_name: 'Test Parent',
+};
+const mockStudentProfile = {
+  id: 'student-id',
+  role: 'student',
+  email: 'student@test.com',
+  full_name: 'Test Student',
+};
 
 let currentProfile = mockParentProfile;
 
 jest.unstable_mockModule('../middleware/rateLimit.js', () => ({
   generalLimiter: (req, res, next) => next(),
   authLimiter: (req, res, next) => next(),
-  notificationLimiter: (req, res, next) => next()
+  notificationLimiter: (req, res, next) => next(),
 }));
 
 jest.unstable_mockModule('../middleware/auth.js', () => ({
@@ -53,7 +65,7 @@ jest.unstable_mockModule('../middleware/auth.js', () => ({
     req.user = { id: currentProfile.id };
     req.profile = currentProfile;
     next();
-  }
+  },
 }));
 
 const { default: app } = await import('../index.js');
@@ -72,9 +84,9 @@ describe('Parent API Integration', () => {
         { data: { id: 'student-id', full_name: 'Student Name' }, error: null }, // profile lookup
         { data: { roll_number: '123' }, error: null }, // student lookup
         { data: { id: 1, status: 'present' }, error: null }, // today's attendance
-        { data: [{ id: 1, status: 'present' }], error: null } // month's attendance
+        { data: [{ id: 1, status: 'present' }], error: null }, // month's attendance
       ];
-      
+
       const res = await request(app).get('/api/parent/my-student');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
@@ -84,10 +96,8 @@ describe('Parent API Integration', () => {
     });
 
     it('should return 404 if no linked student', async () => {
-      queryResults = [
-        { data: null, error: new Error('No rows') }
-      ];
-      
+      queryResults = [{ data: null, error: new Error('No rows') }];
+
       const res = await request(app).get('/api/parent/my-student');
       expect(res.status).toBe(404);
     });

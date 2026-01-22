@@ -6,12 +6,11 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { useApi } from '@/hooks/useApi';
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
 
-const WardenFaceRegistration = dynamic(
-  () => import('@/components/face/WardenFaceRegistration'),
-  { ssr: false }
-);
+const WardenFaceRegistration = dynamic(() => import('@/components/face/WardenFaceRegistration'), {
+  ssr: false,
+});
 
 const SkeletonCard = () => (
   <div className="border border-gray-100 rounded-xl p-6 animate-pulse">
@@ -45,7 +44,7 @@ interface StatsApiResponse {
 }
 
 export default function WardenDashboard() {
-  const router = useRouter()
+  const router = useRouter();
   const [firstName, setFirstName] = useState('');
   const [wardenId, setWardenId] = useState('');
   const [showFaceRegister, setShowFaceRegister] = useState(false);
@@ -58,13 +57,14 @@ export default function WardenDashboard() {
     activeNotices: 0,
   });
 
-
   const { apiGet } = useApi();
 
   useEffect(() => {
     const init = async () => {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const user = session?.user;
       if (!user) return;
 
@@ -74,7 +74,11 @@ export default function WardenDashboard() {
       const [profileResult, statsResult, faceResult] = await Promise.all([
         supabase.from('profiles').select('full_name').eq('id', user.id).single(),
         (apiGet('/api/stats/dashboard') as Promise<StatsApiResponse>).catch(() => null),
-        supabase.from('warden_face_descriptors').select('warden_id').eq('warden_id', user.id).single(),
+        supabase
+          .from('warden_face_descriptors')
+          .select('warden_id')
+          .eq('warden_id', user.id)
+          .single(),
       ]);
 
       if (profileResult.data?.full_name) {
@@ -95,7 +99,7 @@ export default function WardenDashboard() {
     };
 
     init();
-    }, []);
+  }, []);
 
   const handleSignOut = async () => {
     await createClient().auth.signOut();
@@ -104,7 +108,10 @@ export default function WardenDashboard() {
 
   return (
     <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
-      <PageHeader title={loading ? 'Hello 👋' : `Hello ${firstName} 👋`} onSignOut={handleSignOut} />
+      <PageHeader
+        title={loading ? 'Hello 👋' : `Hello ${firstName} 👋`}
+        onSignOut={handleSignOut}
+      />
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -147,23 +154,90 @@ export default function WardenDashboard() {
       {/* Cards Grid */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Card emoji="📋" title="Attendance" description="View and manage attendance" href="/warden/attendance" />
-          <Card emoji="✅" title="Leave Management" description="Approve or reject leaves" href="/warden/leaves" />
-          <Card emoji="🔧" title="Complaints" description="Track and resolve issues" href="/warden/complaints" />
-          <Card emoji="🍽️" title="Mess Management" description="Update weekly menu" href="/warden/mess" />
-          <Card emoji="📢" title="Notices" description="Post announcements" href="/warden/notices" />
-          <Card emoji="👥" title="Staff Directory" description="Manage staff contacts" href="/warden/staff" />
-          <Card emoji="🔍" title="Lost & Found" description="Oversee item directory" href="/warden/lost-found" />
-          <Card emoji="🚨" title="Emergency" description="Send emergency alerts" href="/warden/emergency" />
-          <Card emoji="🏠" title="Room Allocation" description="Manage rooms and assignments" href="/warden/rooms" />
-          <Card emoji="🌙" title="Curfew Management" description="Track and notify curfew violations" href="/warden/curfew" />
-          <Card emoji="📋" title="Audit Log" description="View all system activity" href="/warden/audit" />
-          <Card emoji="🚪" title="Visitor Management" description="Manage guest check-ins" href="/warden/visitors" />
-          <Card emoji="💰" title="Fee Management" description="Collect and track hostel fees" href="/warden/payments" />
+          <Card
+            emoji="📋"
+            title="Attendance"
+            description="View and manage attendance"
+            href="/warden/attendance"
+          />
+          <Card
+            emoji="✅"
+            title="Leave Management"
+            description="Approve or reject leaves"
+            href="/warden/leaves"
+          />
+          <Card
+            emoji="🔧"
+            title="Complaints"
+            description="Track and resolve issues"
+            href="/warden/complaints"
+          />
+          <Card
+            emoji="🍽️"
+            title="Mess Management"
+            description="Update weekly menu"
+            href="/warden/mess"
+          />
+          <Card
+            emoji="📢"
+            title="Notices"
+            description="Post announcements"
+            href="/warden/notices"
+          />
+          <Card
+            emoji="👥"
+            title="Staff Directory"
+            description="Manage staff contacts"
+            href="/warden/staff"
+          />
+          <Card
+            emoji="🔍"
+            title="Lost & Found"
+            description="Oversee item directory"
+            href="/warden/lost-found"
+          />
+          <Card
+            emoji="🚨"
+            title="Emergency"
+            description="Send emergency alerts"
+            href="/warden/emergency"
+          />
+          <Card
+            emoji="🏠"
+            title="Room Allocation"
+            description="Manage rooms and assignments"
+            href="/warden/rooms"
+          />
+          <Card
+            emoji="🌙"
+            title="Curfew Management"
+            description="Track and notify curfew violations"
+            href="/warden/curfew"
+          />
+          <Card
+            emoji="📋"
+            title="Audit Log"
+            description="View all system activity"
+            href="/warden/audit"
+          />
+          <Card
+            emoji="🚪"
+            title="Visitor Management"
+            description="Manage guest check-ins"
+            href="/warden/visitors"
+          />
+          <Card
+            emoji="💰"
+            title="Fee Management"
+            description="Collect and track hostel fees"
+            href="/warden/payments"
+          />
         </div>
       )}
 
@@ -182,7 +256,13 @@ export default function WardenDashboard() {
             <div className="flex items-center gap-2">
               {faceRegistered && (
                 <span className="inline-flex items-center gap-1 text-xs text-green-600 font-medium">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                   Active

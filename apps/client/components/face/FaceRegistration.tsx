@@ -64,9 +64,9 @@ interface PhaseState {
 type Status =
   | 'loading-models'
   | 'requesting-camera'
-  | 'guiding'      // actively collecting per-phase
-  | 'no-face'      // face lost during a phase
-  | 'processing'   // saving to DB
+  | 'guiding' // actively collecting per-phase
+  | 'no-face' // face lost during a phase
+  | 'processing' // saving to DB
   | 'registered'
   | 'camera-denied'
   | 'error';
@@ -77,11 +77,7 @@ interface FaceRegistrationProps {
   onSkip: () => void;
 }
 
-export default function FaceRegistration({
-  studentId,
-  onSuccess,
-  onSkip,
-}: FaceRegistrationProps) {
+export default function FaceRegistration({ studentId, onSuccess, onSkip }: FaceRegistrationProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -134,10 +130,10 @@ export default function FaceRegistration({
           student_id: studentId,
           descriptor: descs,
           descriptor_straight: descs[0] ?? null,
-          descriptor_left:     descs[1] ?? null,
-          descriptor_right:    descs[2] ?? null,
-          descriptor_up:       descs[3] ?? null,
-          descriptor_down:     descs[4] ?? null,
+          descriptor_left: descs[1] ?? null,
+          descriptor_right: descs[2] ?? null,
+          descriptor_up: descs[3] ?? null,
+          descriptor_down: descs[4] ?? null,
         },
         { onConflict: 'student_id' }
       );
@@ -192,19 +188,14 @@ export default function FaceRegistration({
         // Update UI counter for this phase
         setPhases((prev) =>
           prev.map((p) =>
-            p.id === currentPhase.id
-              ? { ...p, collected: Math.min(buf.length, p.required) }
-              : p
+            p.id === currentPhase.id ? { ...p, collected: Math.min(buf.length, p.required) } : p
           )
         );
 
         // Phase complete?
         if (buf.length >= currentPhase.frames) {
           const meanDesc = computeMeanDescriptor(buf);
-          collectedDescriptorsRef.current = [
-            ...collectedDescriptorsRef.current,
-            meanDesc,
-          ];
+          collectedDescriptorsRef.current = [...collectedDescriptorsRef.current, meanDesc];
           // Mark done
           setPhases((prev) =>
             prev.map((p) => (p.id === currentPhase.id ? { ...p, done: true } : p))
@@ -267,7 +258,13 @@ export default function FaceRegistration({
 
   // ── Derived state ────────────────────────────────────────────────────────────
   const isLoading = status === 'loading-models' || status === 'requesting-camera';
-  const showVideo = !['loading-models', 'camera-denied', 'error', 'registered', 'processing'].includes(status);
+  const showVideo = ![
+    'loading-models',
+    'camera-denied',
+    'error',
+    'registered',
+    'processing',
+  ].includes(status);
   const currentPhase = PHASES[phaseIndex];
   const currentPhaseState = phases[phaseIndex];
   const totalRequired = PHASES.reduce((s, p) => s + p.frames, 0);
@@ -277,10 +274,10 @@ export default function FaceRegistration({
   const arrowStyle = (arrow: string | null): React.CSSProperties => {
     if (!arrow) return {};
     const map: Record<string, React.CSSProperties> = {
-      left:  { transform: 'translateX(-8px)' },
+      left: { transform: 'translateX(-8px)' },
       right: { transform: 'translateX(8px)' },
-      up:    { transform: 'translateY(-8px)' },
-      down:  { transform: 'translateY(8px)' },
+      up: { transform: 'translateY(-8px)' },
+      down: { transform: 'translateY(8px)' },
     };
     return map[arrow] ?? {};
   };
@@ -299,7 +296,14 @@ export default function FaceRegistration({
       {isLoading && (
         <div className="flex items-center gap-2 text-sm text-gray-500 py-8">
           <svg className="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
           </svg>
           {status === 'loading-models' ? 'Loading face recognition...' : 'Starting camera...'}
@@ -328,17 +332,19 @@ export default function FaceRegistration({
                 transition: 'transform 0.4s ease',
               }}
             >
-              <svg
-                className="absolute inset-0 w-full h-full"
-                viewBox="0 0 100 136"
-                fill="none"
-              >
+              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 136" fill="none">
                 <ellipse
                   cx="50"
                   cy="68"
                   rx="48"
                   ry="66"
-                  stroke={status === 'no-face' ? '#ef4444' : phases[phaseIndex]?.done ? '#16a34a' : '#ffffff'}
+                  stroke={
+                    status === 'no-face'
+                      ? '#ef4444'
+                      : phases[phaseIndex]?.done
+                        ? '#16a34a'
+                        : '#ffffff'
+                  }
                   strokeWidth="3"
                   strokeDasharray={status === 'no-face' ? '8 4' : 'none'}
                   style={{
@@ -382,18 +388,19 @@ export default function FaceRegistration({
               key={p.id}
               className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-300"
               style={{
-                background: p.done
-                  ? '#dcfce7'
-                  : i === phaseIndex
-                  ? '#f0f9ff'
-                  : '#f9fafb',
+                background: p.done ? '#dcfce7' : i === phaseIndex ? '#f0f9ff' : '#f9fafb',
                 color: p.done ? '#15803d' : i === phaseIndex ? '#0369a1' : '#9ca3af',
                 border: `1.5px solid ${p.done ? '#86efac' : i === phaseIndex ? '#7dd3fc' : '#e5e7eb'}`,
               }}
             >
               {p.done ? (
                 <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none">
-                  <polyline points="2 6 5 9 10 3" stroke="#15803d" strokeWidth="1.8" strokeLinecap="round" />
+                  <polyline
+                    points="2 6 5 9 10 3"
+                    stroke="#15803d"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
                 </svg>
               ) : (
                 <span>{PHASES[i].icon}</span>
@@ -416,13 +423,15 @@ export default function FaceRegistration({
               className="h-full rounded-full transition-all duration-500"
               style={{
                 width: `${overallProgress}%`,
-                background: overallProgress === 100 ? '#16a34a' : 'linear-gradient(90deg, #3b82f6, #6366f1)',
+                background:
+                  overallProgress === 100 ? '#16a34a' : 'linear-gradient(90deg, #3b82f6, #6366f1)',
               }}
             />
           </div>
           {currentPhaseState && !currentPhaseState.done && (
             <p className="text-xs text-gray-400 mt-1 text-center">
-              {currentPhaseState.collected}/{currentPhaseState.required} frames captured for this angle
+              {currentPhaseState.collected}/{currentPhaseState.required} frames captured for this
+              angle
             </p>
           )}
         </div>
@@ -432,7 +441,14 @@ export default function FaceRegistration({
       {status === 'processing' && (
         <div className="flex flex-col items-center gap-3 py-6">
           <svg className="animate-spin w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
           </svg>
           <p className="text-sm text-gray-500">Saving your face data...</p>
@@ -443,7 +459,13 @@ export default function FaceRegistration({
       {status === 'registered' && (
         <div className="flex flex-col items-center gap-3 py-6">
           <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
-            <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <svg
+              className="w-8 h-8 text-green-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
@@ -454,7 +476,8 @@ export default function FaceRegistration({
       {/* Camera denied */}
       {status === 'camera-denied' && (
         <p className="text-xs text-gray-500 text-center max-w-xs py-4">
-          Camera access was denied. Enable camera permissions in your browser settings, then refresh.
+          Camera access was denied. Enable camera permissions in your browser settings, then
+          refresh.
         </p>
       )}
 

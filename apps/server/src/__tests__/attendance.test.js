@@ -23,7 +23,9 @@ const supabaseMock = {
   not: jest.fn().mockReturnThis(),
   is: jest.fn().mockReturnThis(),
   head: jest.fn().mockReturnThis(),
-  then: jest.fn(function(resolve) { resolve(queryResults.shift()); })
+  then: jest.fn(function (resolve) {
+    resolve(queryResults.shift());
+  }),
 };
 
 jest.unstable_mockModule('../config/supabase.js', () => ({
@@ -32,10 +34,10 @@ jest.unstable_mockModule('../config/supabase.js', () => ({
     auth: {
       getUser: jest.fn().mockResolvedValue({
         data: { user: { id: 'test-user-id' } },
-        error: null
-      })
-    }
-  }
+        error: null,
+      }),
+    },
+  },
 }));
 
 const mockRedisGet = jest.fn().mockResolvedValue(null);
@@ -49,30 +51,40 @@ jest.unstable_mockModule('../config/redis.js', () => ({
   publishEvent: jest.fn().mockResolvedValue(true),
   redis: {
     get: mockRedisGet,
-    set: mockRedisSet
-  }
+    set: mockRedisSet,
+  },
 }));
 
 jest.unstable_mockModule('../config/socket.js', () => ({
   emitToAll: jest.fn(),
   emitToUser: jest.fn(),
   getIO: jest.fn(),
-  initSocket: jest.fn()
+  initSocket: jest.fn(),
 }));
 
 jest.unstable_mockModule('../config/geofence.js', () => ({
-  isWithinGeofence: jest.fn(() => ({ allowed: true, distance: 0 }))
+  isWithinGeofence: jest.fn(() => ({ allowed: true, distance: 0 })),
 }));
 
-const mockWardenProfile = { id: 'warden-id', role: 'warden', email: 'warden@test.com', full_name: 'Test Warden' };
-const mockStudentProfile = { id: 'student-id', role: 'student', email: 'student@test.com', full_name: 'Test Student' };
+const mockWardenProfile = {
+  id: 'warden-id',
+  role: 'warden',
+  email: 'warden@test.com',
+  full_name: 'Test Warden',
+};
+const mockStudentProfile = {
+  id: 'student-id',
+  role: 'student',
+  email: 'student@test.com',
+  full_name: 'Test Student',
+};
 
 let currentProfile = mockStudentProfile;
 
 jest.unstable_mockModule('../middleware/rateLimit.js', () => ({
   generalLimiter: (req, res, next) => next(),
   authLimiter: (req, res, next) => next(),
-  notificationLimiter: (req, res, next) => next()
+  notificationLimiter: (req, res, next) => next(),
 }));
 
 jest.unstable_mockModule('../middleware/auth.js', () => ({
@@ -83,7 +95,7 @@ jest.unstable_mockModule('../middleware/auth.js', () => ({
     req.user = { id: currentProfile.id };
     req.profile = currentProfile;
     next();
-  }
+  },
 }));
 
 const { default: app } = await import('../index.js');
@@ -104,11 +116,11 @@ describe('Attendance API Integration', () => {
         { data: { id: 1, scan_time: '2026-05-31T00:00:00Z' }, error: null }, // insert record
         { data: { parent_id: 'parent1', profiles: { full_name: 'Student 1' } }, error: null }, // parent lookup
         { error: null }, // notify student
-        { error: null } // notify parent
+        { error: null }, // notify parent
       ];
-      
+
       const res = await request(app).post('/api/attendance/mark').send({
-        face_only: true
+        face_only: true,
       });
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
@@ -119,7 +131,7 @@ describe('Attendance API Integration', () => {
         { data: null, error: null }, // existing check
         { data: { id: 2, scan_time: '2026-05-31T00:00:00Z' }, error: null }, // insert record
         { data: null, error: null }, // parent lookup (no parent)
-        { error: null } // notify student
+        { error: null }, // notify student
       ];
 
       const today = new Date().toISOString().split('T')[0];
@@ -127,20 +139,22 @@ describe('Attendance API Integration', () => {
         hostel: 'hostelmate',
         date: today,
         token: `${today}-secret123`,
-        nonce: Date.now()
+        nonce: Date.now(),
       };
-      
-      const res = await request(app).post('/api/attendance/mark').send({
-        qr_data: JSON.stringify(validQR),
-        lat: 28.6139,
-        lng: 77.2090
-      });
+
+      const res = await request(app)
+        .post('/api/attendance/mark')
+        .send({
+          qr_data: JSON.stringify(validQR),
+          lat: 28.6139,
+          lng: 77.209,
+        });
       expect(res.status).toBe(200);
     });
 
     it('should reject if already marked', async () => {
       queryResults = [
-        { data: { id: 1 }, error: null } // existing check
+        { data: { id: 1 }, error: null }, // existing check
       ];
       const res = await request(app).post('/api/attendance/mark').send({ face_only: true });
       expect(res.status).toBe(400);
@@ -148,9 +162,11 @@ describe('Attendance API Integration', () => {
 
     it('should reject invalid QR data format', async () => {
       queryResults = [
-        { data: null, error: null } // existing check
+        { data: null, error: null }, // existing check
       ];
-      const res = await request(app).post('/api/attendance/mark').send({ qr_data: "invalid json {" });
+      const res = await request(app)
+        .post('/api/attendance/mark')
+        .send({ qr_data: 'invalid json {' });
       expect(res.status).toBe(400);
     });
   });
@@ -158,9 +174,7 @@ describe('Attendance API Integration', () => {
   describe('GET /api/attendance/today', () => {
     it('should return attendance for today for warden', async () => {
       currentProfile = mockWardenProfile;
-      queryResults = [
-        { data: [{ id: 1, status: 'present' }], error: null }
-      ];
+      queryResults = [{ data: [{ id: 1, status: 'present' }], error: null }];
       const res = await request(app).get('/api/attendance/today');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(1);
@@ -177,9 +191,7 @@ describe('Attendance API Integration', () => {
 
   describe('GET /api/attendance/student/:studentId', () => {
     it('should return attendance for specific student', async () => {
-      queryResults = [
-        { data: [{ id: 1, date: '2026-05-31' }], error: null }
-      ];
+      queryResults = [{ data: [{ id: 1, date: '2026-05-31' }], error: null }];
       const res = await request(app).get('/api/attendance/student/student-id');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(1);
@@ -196,7 +208,7 @@ describe('Attendance API Integration', () => {
       currentProfile = mockWardenProfile;
       queryResults = [
         { count: 100, error: null }, // total students
-        { count: 80, error: null } // present today
+        { count: 80, error: null }, // present today
       ];
       const res = await request(app).get('/api/attendance/stats');
       expect(res.status).toBe(200);

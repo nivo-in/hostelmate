@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
-import { MessMenu } from '@/types'
+import { MessMenu } from '@/types';
 
 export default function StudentMess() {
   const [activeDay, setActiveDay] = useState('monday');
@@ -41,16 +41,16 @@ export default function StudentMess() {
   };
 
   const handleRatingChange = (meal: string, rating: number) => {
-    setRatings(prev => ({
+    setRatings((prev) => ({
       ...prev,
-      [meal]: { ...prev[meal], rating, comment: prev[meal]?.comment || '' }
+      [meal]: { ...prev[meal], rating, comment: prev[meal]?.comment || '' },
     }));
   };
 
   const handleCommentChange = (meal: string, comment: string) => {
-    setRatings(prev => ({
+    setRatings((prev) => ({
       ...prev,
-      [meal]: { ...prev[meal], rating: prev[meal]?.rating || 0, comment }
+      [meal]: { ...prev[meal], rating: prev[meal]?.rating || 0, comment },
     }));
   };
 
@@ -65,7 +65,7 @@ export default function StudentMess() {
             meal_type,
             rating: data.rating,
             comments: data.comment,
-            date: new Date().toISOString().split('T')[0]
+            date: new Date().toISOString().split('T')[0],
           })
         )
       );
@@ -75,7 +75,7 @@ export default function StudentMess() {
     } catch {}
   };
 
-  const activeMenu = menu.filter(m => m.day_of_week === activeDay);
+  const activeMenu = menu.filter((m) => m.day_of_week === activeDay);
 
   return (
     <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
@@ -83,12 +83,14 @@ export default function StudentMess() {
 
       <div className="mb-8">
         <div className="flex overflow-x-auto border-b border-gray-100 mb-6 pb-2">
-          {days.map(d => (
+          {days.map((d) => (
             <button
               key={d}
               onClick={() => setActiveDay(d)}
               className={`px-4 py-2 text-sm font-medium capitalize whitespace-nowrap transition-colors ${
-                activeDay === d ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-400 hover:text-gray-600'
+                activeDay === d
+                  ? 'text-gray-900 border-b-2 border-gray-900'
+                  : 'text-gray-400 hover:text-gray-600'
               }`}
             >
               {d.substring(0, 3)}
@@ -97,10 +99,13 @@ export default function StudentMess() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {meals.map(meal => {
-            const item = activeMenu.find(m => m.meal_type === meal);
+          {meals.map((meal) => {
+            const item = activeMenu.find((m) => m.meal_type === meal);
             return (
-              <div key={meal} className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
+              <div
+                key={meal}
+                className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors"
+              >
                 <h3 className="text-sm font-medium text-gray-900 capitalize mb-2">{meal}</h3>
                 <p className="text-sm text-gray-600">
                   {item?.items?.length ? item.items.join(', ') : 'Menu not set'}
@@ -112,23 +117,27 @@ export default function StudentMess() {
       </div>
 
       <div className="border border-gray-100 rounded-xl p-6 mb-8">
-        <h2 className="text-xl font-medium tracking-tight text-gray-900 mb-1">Rate Today&apos;s Meals</h2>
+        <h2 className="text-xl font-medium tracking-tight text-gray-900 mb-1">
+          Rate Today&apos;s Meals
+        </h2>
         {today && <p className="text-xs text-gray-400 mb-6">{today}</p>}
 
         <div className="space-y-6">
-          {meals.map(meal => (
+          {meals.map((meal) => (
             <div
               key={meal}
               className="flex flex-col sm:flex-row sm:items-center gap-4 border-b border-gray-50 pb-4 last:border-0 last:pb-0"
             >
               <span className="w-24 text-sm font-medium text-gray-900 capitalize">{meal}</span>
               <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map(star => (
+                {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
                     onClick={() => handleRatingChange(meal, star)}
                     className={`text-xl focus:outline-none transition-colors ${
-                      (ratings[meal]?.rating ?? 0) >= star ? 'text-yellow-400' : 'text-gray-200 hover:text-gray-300'
+                      (ratings[meal]?.rating ?? 0) >= star
+                        ? 'text-yellow-400'
+                        : 'text-gray-200 hover:text-gray-300'
                     }`}
                   >
                     ★
@@ -139,7 +148,7 @@ export default function StudentMess() {
                 type="text"
                 placeholder="Optional comment..."
                 value={ratings[meal]?.comment || ''}
-                onChange={e => handleCommentChange(meal, e.target.value)}
+                onChange={(e) => handleCommentChange(meal, e.target.value)}
                 className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-500 transition-colors"
               />
             </div>

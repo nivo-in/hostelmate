@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useProfile } from '@/hooks/useProfile';
 import { useSocket } from '@/hooks/useSocket';
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
 
 interface StudentInfo {
   id: string;
@@ -34,7 +34,7 @@ interface ParentStudentData {
 }
 
 export default function ParentTrack() {
-  const router = useRouter()
+  const router = useRouter();
   const supabase = createClient();
   const { apiGet } = useApi();
   const { profile, loading: profileLoading } = useProfile();
@@ -99,7 +99,9 @@ export default function ParentTrack() {
         <PageHeader title="Track Student" showBack onSignOut={handleSignOut} />
         <div className="mt-8 p-6 border border-red-100 bg-red-50 rounded-xl text-center">
           <p className="text-red-600 text-sm font-medium">{error}</p>
-          <p className="text-gray-400 text-xs mt-1">No student is linked to this parent account yet.</p>
+          <p className="text-gray-400 text-xs mt-1">
+            No student is linked to this parent account yet.
+          </p>
         </div>
       </div>
     );
@@ -117,7 +119,9 @@ export default function ParentTrack() {
             <span className="text-3xl text-gray-400">?</span>
           </div>
           <h2 className="text-lg font-medium text-gray-900">Not marked yet</h2>
-          <p className="text-sm text-gray-400 mt-1">Attendance hasn&apos;t been recorded for today</p>
+          <p className="text-sm text-gray-400 mt-1">
+            Attendance hasn&apos;t been recorded for today
+          </p>
         </div>
       );
     }
@@ -171,7 +175,7 @@ export default function ParentTrack() {
     const todayDate = today.getDate();
 
     const attendanceMap = new Map<string, string>();
-    month_attendance.forEach(r => {
+    month_attendance.forEach((r) => {
       attendanceMap.set(r.date, r.status);
     });
 
@@ -195,10 +199,14 @@ export default function ParentTrack() {
         </h3>
         <div className="grid grid-cols-7 gap-1">
           {dayHeaders.map((d, i) => (
-            <div key={i} className="text-center text-xs text-gray-400 font-medium pb-2">{d}</div>
+            <div key={i} className="text-center text-xs text-gray-400 font-medium pb-2">
+              {d}
+            </div>
           ))}
-          {blanks.map((_, i) => <div key={`b-${i}`} />)}
-          {days.map(day => (
+          {blanks.map((_, i) => (
+            <div key={`b-${i}`} />
+          ))}
+          {days.map((day) => (
             <div
               key={day}
               className={`aspect-square flex items-center justify-center text-xs rounded-md font-medium ${getColor(day)} ${day === todayDate ? 'ring-2 ring-gray-900' : ''}`}
@@ -208,9 +216,15 @@ export default function ParentTrack() {
           ))}
         </div>
         <div className="flex items-center gap-4 mt-4 text-xs text-gray-500">
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-green-100 inline-block" /> Present</span>
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-red-100 inline-block" /> Absent</span>
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-yellow-100 inline-block" /> Leave</span>
+          <span className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-sm bg-green-100 inline-block" /> Present
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-sm bg-red-100 inline-block" /> Absent
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-sm bg-yellow-100 inline-block" /> Leave
+          </span>
         </div>
       </div>
     );
@@ -230,7 +244,12 @@ export default function ParentTrack() {
             <h2 className="text-base font-medium text-gray-900">{student.full_name}</h2>
             <p className="text-xs text-gray-400">
               {student.roll_number && <span className="mr-2">{student.roll_number}</span>}
-              {student.room_number && <span>Room {student.room_number}{student.block_name ? ` · ${student.block_name}` : ''}</span>}
+              {student.room_number && (
+                <span>
+                  Room {student.room_number}
+                  {student.block_name ? ` · ${student.block_name}` : ''}
+                </span>
+              )}
             </p>
           </div>
         </div>

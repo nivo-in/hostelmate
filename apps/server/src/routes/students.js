@@ -1,9 +1,9 @@
-import { Router } from 'express'
-import { supabaseAdmin } from '../config/supabase.js'
-import { authenticate } from '../middleware/auth.js'
-import { requireWarden } from '../middleware/rbac.js'
+import { Router } from 'express';
+import { supabaseAdmin } from '../config/supabase.js';
+import { authenticate } from '../middleware/auth.js';
+import { requireWarden } from '../middleware/rbac.js';
 
-const router = Router()
+const router = Router();
 
 /**
  * GET /api/students
@@ -14,7 +14,8 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
   try {
     const { data, error } = await supabaseAdmin
       .from('students')
-      .select(`
+      .select(
+        `
         id,
         roll_number,
         room_id,
@@ -22,12 +23,13 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
         created_at,
         profiles!students_id_fkey(full_name, email, phone, avatar_url),
         rooms!students_room_id_fkey(room_number, blocks!rooms_block_id_fkey(name))
-      `)
-      .order('created_at', { ascending: true })
+      `
+      )
+      .order('created_at', { ascending: true });
 
-    if (error) throw error
+    if (error) throw error;
 
-    const students = (data || []).map(s => ({
+    const students = (data || []).map((s) => ({
       id: s.id,
       roll_number: s.roll_number,
       full_name: s.profiles?.full_name ?? null,
@@ -39,12 +41,12 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
       room_id: s.room_id,
       parent_id: s.parent_id,
       created_at: s.created_at,
-    }))
+    }));
 
-    res.json({ success: true, data: { students, total: students.length } })
+    res.json({ success: true, data: { students, total: students.length } });
   } catch (error) {
-    next(error)
+    next(error);
   }
-})
+});
 
-export default router
+export default router;

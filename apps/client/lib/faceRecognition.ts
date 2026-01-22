@@ -28,10 +28,7 @@ export async function getFaceDescriptor(
   const faceapi = await import('face-api.js');
 
   const detections = await faceapi
-    .detectAllFaces(
-      videoElement,
-      new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 })
-    )
+    .detectAllFaces(videoElement, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
     .withFaceLandmarks()
     .withFaceDescriptors();
 
@@ -54,10 +51,7 @@ export async function getFaceDetection(videoElement: HTMLVideoElement): Promise<
   const faceapi = await import('face-api.js');
 
   const detections = await faceapi
-    .detectAllFaces(
-      videoElement,
-      new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 })
-    )
+    .detectAllFaces(videoElement, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
     .withFaceLandmarks()
     .withFaceDescriptors();
 
@@ -149,9 +143,7 @@ export function computeMeanDescriptor(descriptors: Float32Array[]): number[] {
  *
  * We average both eyes for a single value.
  */
-export function calculateEAR(
-  landmarks: import('face-api.js').FaceLandmarks68
-): number {
+export function calculateEAR(landmarks: import('face-api.js').FaceLandmarks68): number {
   const pts = landmarks.positions;
 
   const eyeEAR = (
@@ -168,13 +160,9 @@ export function calculateEAR(
   };
 
   // Left eye: 36, 37, 38, 39, 40, 41
-  const leftEAR = eyeEAR(
-    pts[36], pts[37], pts[38], pts[39], pts[40], pts[41]
-  );
+  const leftEAR = eyeEAR(pts[36], pts[37], pts[38], pts[39], pts[40], pts[41]);
   // Right eye: 42, 43, 44, 45, 46, 47
-  const rightEAR = eyeEAR(
-    pts[42], pts[43], pts[44], pts[45], pts[46], pts[47]
-  );
+  const rightEAR = eyeEAR(pts[42], pts[43], pts[44], pts[45], pts[46], pts[47]);
 
   return (leftEAR + rightEAR) / 2;
 }

@@ -19,7 +19,9 @@ const supabaseMock = {
   not: jest.fn().mockReturnThis(),
   is: jest.fn().mockReturnThis(),
   head: jest.fn().mockReturnThis(),
-  then: jest.fn(function(resolve) { resolve(queryResults.shift()); })
+  then: jest.fn(function (resolve) {
+    resolve(queryResults.shift());
+  }),
 };
 
 jest.unstable_mockModule('../config/supabase.js', () => ({
@@ -28,21 +30,31 @@ jest.unstable_mockModule('../config/supabase.js', () => ({
     auth: {
       getUser: jest.fn().mockResolvedValue({
         data: { user: { id: 'test-user-id' } },
-        error: null
-      })
-    }
-  }
+        error: null,
+      }),
+    },
+  },
 }));
 
-const mockWardenProfile = { id: 'warden-id', role: 'warden', email: 'warden@test.com', full_name: 'Test Warden' };
-const mockStudentProfile = { id: 'student-id', role: 'student', email: 'student@test.com', full_name: 'Test Student' };
+const mockWardenProfile = {
+  id: 'warden-id',
+  role: 'warden',
+  email: 'warden@test.com',
+  full_name: 'Test Warden',
+};
+const mockStudentProfile = {
+  id: 'student-id',
+  role: 'student',
+  email: 'student@test.com',
+  full_name: 'Test Student',
+};
 
 let currentProfile = mockWardenProfile;
 
 jest.unstable_mockModule('../middleware/rateLimit.js', () => ({
   generalLimiter: (req, res, next) => next(),
   authLimiter: (req, res, next) => next(),
-  notificationLimiter: (req, res, next) => next()
+  notificationLimiter: (req, res, next) => next(),
 }));
 
 jest.unstable_mockModule('../middleware/auth.js', () => ({
@@ -53,7 +65,7 @@ jest.unstable_mockModule('../middleware/auth.js', () => ({
     req.user = { id: currentProfile.id };
     req.profile = currentProfile;
     next();
-  }
+  },
 }));
 
 const { default: app } = await import('../index.js');
@@ -69,16 +81,18 @@ describe('Students API', () => {
     it('should return all students formatted correctly', async () => {
       queryResults = [
         {
-          data: [{
-            id: 's1',
-            roll_number: '123',
-            profiles: { full_name: 'Student 1', email: 's1@test.com' },
-            rooms: { room_number: '101', blocks: { name: 'A' } }
-          }],
-          error: null
-        }
+          data: [
+            {
+              id: 's1',
+              roll_number: '123',
+              profiles: { full_name: 'Student 1', email: 's1@test.com' },
+              rooms: { room_number: '101', blocks: { name: 'A' } },
+            },
+          ],
+          error: null,
+        },
       ];
-      
+
       const res = await request(app).get('/api/students');
       expect(res.status).toBe(200);
       expect(res.body.data.students).toHaveLength(1);
