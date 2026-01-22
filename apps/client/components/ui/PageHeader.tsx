@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
 const NotificationBell = dynamic(() => import('./NotificationBell').then(m => ({ default: m.NotificationBell })), {
@@ -19,15 +19,25 @@ type PageHeaderProps = {
 
 export function PageHeader({ title, showBack, backHref, onSignOut }: PageHeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Infer the dashboard href if backHref isn't provided (e.g. /warden/complaints -> /warden/dashboard)
+  let finalBackHref = backHref;
+  if (showBack && !finalBackHref && pathname) {
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments.length > 0) {
+      finalBackHref = `/${segments[0]}/dashboard`;
+    }
+  }
 
   return (
     <div className="flex justify-between items-center mb-8">
       <div className="flex flex-col gap-0.5">
         {showBack ? (
           // Sub-page: show back button only, "by Nivo" is in fixed bottom-left via layout
-          backHref ? (
+          finalBackHref ? (
             <Link
-              href={backHref}
+              href={finalBackHref}
               prefetch={true}
               className="text-xs text-gray-400 hover:text-gray-600 self-start transition-colors"
             >
