@@ -162,7 +162,8 @@ export default function WardenPaymentsPage() {
         setPayments(res.data.payments);
         setSummary(res.data.summary);
       }
-    } catch (e) { console.error(e); }
+    } catch (e) { // eslint-disable-next-line no-console
+console.error(e); }
   }, [apiGet, filterStatus, filterFeeType, filterBilling, filterPeriod]);
 
   const fetchStructures = useCallback(async () => {
@@ -176,14 +177,16 @@ export default function WardenPaymentsPage() {
         ];
         setFeeStructures(all);
       }
-    } catch (e) { console.error(e); }
+    } catch (e) { // eslint-disable-next-line no-console
+console.error(e); }
   }, [apiGet]);
 
   const fetchStudentsList = useCallback(async () => {
     try {
       const res = await apiGet('/api/payments/students-list');
       if (res.success) setAllStudents(res.data);
-    } catch (e) { console.error(e); }
+    } catch (e) { // eslint-disable-next-line no-console
+console.error(e); }
   }, [apiGet]);
 
   useEffect(() => { fetchPayments(); }, [filterStatus, filterFeeType, filterBilling, filterPeriod]);

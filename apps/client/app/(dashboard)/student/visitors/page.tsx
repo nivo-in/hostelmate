@@ -38,6 +38,7 @@ export default function StudentVisitors() {
       const res = await apiGet('/api/visitors/my');
       if (res.success) setVisitors(res.data || []);
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error(e);
     }
   };

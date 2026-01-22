@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { connectSocket, getSocket } from '@/lib/socket'
 
-type SocketHandlers = Record<string, (data: unknown) => void>
+type SocketHandlers = Record<string, (_data: unknown) => void>
 
 export function useSocket(handlers: SocketHandlers) {
   // Keep a ref to always have the latest handlers without re-subscribing
@@ -16,7 +16,7 @@ export function useSocket(handlers: SocketHandlers) {
     let mounted = true
 
     // Stable wrapper functions stored per event so we can remove them later
-    const wrappers: Record<string, (data: unknown) => void> = {}
+    const wrappers: Record<string, (_data: unknown) => void> = {}
 
     const init = async () => {
       const supabase = createClient()
@@ -27,13 +27,14 @@ export function useSocket(handlers: SocketHandlers) {
       const socket = getSocket()
 
       Object.keys(handlersRef.current).forEach((event) => {
-        const wrapper = (data: unknown) => {
+        const wrapper = (_data: unknown) => {
           // Always call the latest handler via ref — no stale closures
-          handlersRef.current[event]?.(data)
+          handlersRef.current[event]?.(_data)
         }
         wrappers[event] = wrapper
         socket.on(event, wrapper)
       })
+      socket.on('connect', (_data: unknown) => {     })
     }
 
     init()

@@ -20,7 +20,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState<LoginStep>('credentials')
   const [pendingUserId, setPendingUserId] = useState<string | null>(null)
-  const [pendingRole, setPendingRole] = useState<string | null>(null)
+  const [_pendingRole, setPendingRole] = useState<string | null>(null)
 
 
 

@@ -15,7 +15,7 @@ import { createClient } from '@/lib/supabase/client';
 interface FaceVerificationProps {
   studentId: string;
   onVerified: () => void;
-  onFailed: (reason: string) => void;
+  onFaceFailed: (_failureReason: string) => void;
   onSkip: () => void;
 }
 
@@ -71,7 +71,7 @@ export default function FaceVerification({
   // Liveness tracking
   const blinkDetectedRef = useRef(false);
   const lastEARRef = useRef<number>(1.0);
-  const scanStartTimeRef = useRef<number>(0);
+  const _scanStartTimeRef = useRef<number>(0);
   const facePositionHistoryRef = useRef<FacePosition[]>([]);
   // Frame-diff: store previous frame pixel data for comparison
   const prevFrameDataRef = useRef<Uint8ClampedArray | null>(null);
@@ -86,6 +86,7 @@ export default function FaceVerification({
     onFailedRef.current = onFailed;
     onSkipRef.current = onSkip;
   });
+
 
   const [status, setStatus] = useState<Status>('loading-models');
   const [errorMsg, setErrorMsg] = useState('');
@@ -347,7 +348,7 @@ export default function FaceVerification({
 
   // ── Derived UI ───────────────────────────────────────────────────────────────
   const isVerified = status === 'verified';
-  const isFailed = status === 'failed' || status === 'liveness-failed' || status === 'max-attempts';
+  // const isFailed = status === 'failed' || status === 'liveness-failed' || status === 'max-attempts';
   const isLoading = ['loading-models', 'requesting-camera', 'fetching-descriptor'].includes(status);
   const showVideo = !['loading-models', 'fetching-descriptor', 'camera-denied', 'error', 'verified', 'failed', 'liveness-failed', 'max-attempts', 'no-face-data'].includes(status);
 

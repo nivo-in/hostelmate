@@ -14,10 +14,21 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
   {
+    languageOptions: {
+      globals: {
+        React: true
+      }
+    },
     rules: {
       "react-hooks/set-state-in-effect": "off",
       "react-hooks/exhaustive-deps": "off",
-      "@typescript-eslint/no-unused-vars": "off"
+      "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_" }],
+      "no-console": "warn",
+      "no-undef": "error",
+      "prefer-const": "error",
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_" }],
+      "no-duplicate-imports": "error"
     }
   }
 ]);

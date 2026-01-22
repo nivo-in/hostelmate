@@ -5,7 +5,7 @@ import { getCache, setCache, deleteCache } from '../config/redis.js'
 
 const router = Router()
 
-router.get('/', authenticate, async (req, res, next) => {
+router.get('/', authenticate, async (req, res) => {
   try {
     // Short cache per user — real-time updates come via WebSocket anyway.
     // 30 seconds is safe: new notifications push via socket, not polling.
@@ -37,7 +37,7 @@ router.get('/', authenticate, async (req, res, next) => {
   }
 })
 
-router.patch('/read-all', authenticate, async (req, res, next) => {
+router.patch('/read-all', authenticate, async (req, res) => {
   try {
     const { error } = await supabaseAdmin
       .from('notifications')
@@ -58,7 +58,7 @@ router.patch('/read-all', authenticate, async (req, res, next) => {
   }
 })
 
-router.patch('/:id/read', authenticate, async (req, res, next) => {
+router.patch('/:id/read', authenticate, async (req, res) => {
   try {
     const { id } = req.params
 

@@ -15,7 +15,7 @@ import { createClient } from '@/lib/supabase/client';
 interface WardenFaceVerificationProps {
   wardenId: string;
   onVerified: () => void;
-  onFailed: (reason: string) => void;
+  onFaceFailed: (_failureReason: string) => void;
   onSkip: () => void;
 }
 
@@ -33,7 +33,7 @@ type Status =
   | 'max-attempts'
   | 'error';
 
-interface FacePosition { x: number; y: number; }
+// interface FacePosition { x: number; y: number; }
 
 const MAX_ATTEMPTS = 5;
 // Frame-diff: avg pixel change < this over MANY frames = photo spoof
@@ -62,7 +62,7 @@ export default function WardenFaceVerification({
   // Liveness
   const blinkDetectedRef = useRef(false);
   const lastEARRef = useRef<number>(1.0);
-  const facePositionHistoryRef = useRef<FacePosition[]>([]);
+  const _facePositionHistoryRef = useRef<{x: number, y: number, time: number}[]>([]);
   const prevFrameDataRef = useRef<Uint8ClampedArray | null>(null);
   const frameDiffScoresRef = useRef<number[]>([]);
 
@@ -74,6 +74,7 @@ export default function WardenFaceVerification({
     onFailedRef.current = onFailed;
     onSkipRef.current = onSkip;
   });
+
 
   const [status, setStatus] = useState<Status>('loading-models');
   const [errorMsg, setErrorMsg] = useState('');
@@ -300,7 +301,7 @@ export default function WardenFaceVerification({
 
   // ── Derived UI ─────────────────────────────────────────────────────────────
   const isVerified = status === 'verified';
-  const isFailed = ['failed', 'liveness-failed', 'max-attempts'].includes(status);
+  // const isFailed = ['failed', 'liveness-failed', 'max-attempts'].includes(status);
   const isLoading = ['loading-models', 'requesting-camera', 'fetching-descriptor'].includes(status);
   const showVideo = !['loading-models', 'fetching-descriptor', 'camera-denied', 'error', 'verified', 'failed', 'liveness-failed', 'max-attempts', 'no-face-data'].includes(status);
 

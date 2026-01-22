@@ -124,13 +124,13 @@ export default function StudentRoomTransferPage() {
         );
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Room transfer fetch error:', err);
       setError('Failed to load room data. Please try again.');
     } finally {
       setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    }, []);
 
   useEffect(() => {
     fetchData();
@@ -159,6 +159,7 @@ export default function StudentRoomTransferPage() {
         setMessageType('error');
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Submit error:', err);
       setMessage('Failed to submit request. Please try again.');
       setMessageType('error');

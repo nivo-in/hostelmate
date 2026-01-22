@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { supabaseAdmin } from '../config/supabase.js'
 import { authenticate } from '../middleware/auth.js'
-import { requireStudent, requireWarden } from '../middleware/rbac.js'
+import { requireWarden } from '../middleware/rbac.js'
 import { validate } from '../middleware/validate.js'
 import { createOrder, verifyPaymentSignature, generateReceiptId } from '../config/razorpay.js'
 import { createNotification } from '../config/notify.js'
@@ -495,7 +495,7 @@ router.get('/students-list', authenticate, requireWarden, async (req, res, next)
   try {
     const { search } = req.query
 
-    let query = supabaseAdmin
+    const query = supabaseAdmin
       .from('students')
       .select('id, roll_number, profiles!students_id_fkey(full_name, email)')
       .order('roll_number')
@@ -527,7 +527,6 @@ router.post('/send-reminders', authenticate, requireWarden, async (req, res, nex
     const threeDaysFromNow = new Date()
     threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3)
     const cutoff = threeDaysFromNow.toISOString().split('T')[0]
-    const today = new Date().toISOString().split('T')[0]
 
     const { data: pendingPayments, error } = await supabaseAdmin
       .from('fee_payments')
