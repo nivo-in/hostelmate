@@ -106,13 +106,13 @@ describe('Notifications API Integration', () => {
   describe('GET /api/notifications', () => {
     it('should return notifications for authenticated user', async () => {
       queryResults = [{ data: [], error: null }];
-      const res = await request(app).get('/api/notifications');
+      const res = await request(app).get('/api/v1/notifications');
       expect(res.status).toBe(200);
     });
 
     it('should return unread_count', async () => {
       queryResults = [{ data: [{ is_read: false }], error: null }];
-      const res = await request(app).get('/api/notifications');
+      const res = await request(app).get('/api/v1/notifications');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveProperty('unread_count');
       expect(res.body.data.unread_count).toBe(1);
@@ -120,14 +120,14 @@ describe('Notifications API Integration', () => {
 
     it('should handle supabase error safely', async () => {
       queryResults = [{ data: null, error: new Error('DB Error') }];
-      const res = await request(app).get('/api/notifications');
+      const res = await request(app).get('/api/v1/notifications');
       expect(res.status).toBe(200);
       expect(res.body.data.notifications).toHaveLength(0);
     });
 
     it('should catch exceptions safely', async () => {
       queryResults = [{ throwMsg: 'Network Error' }];
-      const res = await request(app).get('/api/notifications');
+      const res = await request(app).get('/api/v1/notifications');
       expect(res.status).toBe(200);
       expect(res.body.data.notifications).toHaveLength(0);
     });
@@ -136,19 +136,19 @@ describe('Notifications API Integration', () => {
   describe('PATCH /api/notifications/read-all', () => {
     it('should mark all as read', async () => {
       queryResults = [{ error: null }];
-      const res = await request(app).patch('/api/notifications/read-all');
+      const res = await request(app).patch('/api/v1/notifications/read-all');
       expect(res.status).toBe(200);
     });
 
     it('should handle errors gracefully', async () => {
       queryResults = [{ error: new Error('DB Error') }];
-      const res = await request(app).patch('/api/notifications/read-all');
+      const res = await request(app).patch('/api/v1/notifications/read-all');
       expect(res.status).toBe(200);
     });
 
     it('should catch exceptions safely', async () => {
       queryResults = [{ throwMsg: 'Network Error' }];
-      const res = await request(app).patch('/api/notifications/read-all');
+      const res = await request(app).patch('/api/v1/notifications/read-all');
       expect(res.status).toBe(200);
     });
   });
@@ -156,19 +156,19 @@ describe('Notifications API Integration', () => {
   describe('PATCH /api/notifications/:id/read', () => {
     it('should mark single notification as read', async () => {
       queryResults = [{ error: null }];
-      const res = await request(app).patch('/api/notifications/1/read');
+      const res = await request(app).patch('/api/v1/notifications/1/read');
       expect(res.status).toBe(200);
     });
 
     it('should handle errors gracefully', async () => {
       queryResults = [{ error: new Error('DB Error') }];
-      const res = await request(app).patch('/api/notifications/1/read');
+      const res = await request(app).patch('/api/v1/notifications/1/read');
       expect(res.status).toBe(200);
     });
 
     it('should catch exceptions safely', async () => {
       queryResults = [{ throwMsg: 'Network Error' }];
-      const res = await request(app).patch('/api/notifications/1/read');
+      const res = await request(app).patch('/api/v1/notifications/1/read');
       expect(res.status).toBe(200);
     });
   });
@@ -176,19 +176,19 @@ describe('Notifications API Integration', () => {
   describe('DELETE /api/notifications/:id', () => {
     it('should delete notification', async () => {
       queryResults = [{ error: null }];
-      const res = await request(app).delete('/api/notifications/1');
+      const res = await request(app).delete('/api/v1/notifications/1');
       expect(res.status).toBe(200);
     });
 
     it('should handle errors gracefully', async () => {
       queryResults = [{ error: new Error('DB Error') }];
-      const res = await request(app).delete('/api/notifications/1');
+      const res = await request(app).delete('/api/v1/notifications/1');
       expect(res.status).toBe(200);
     });
 
     it('should catch exceptions safely', async () => {
       queryResults = [{ throwMsg: 'Network Error' }];
-      const res = await request(app).delete('/api/notifications/1');
+      const res = await request(app).delete('/api/v1/notifications/1');
       expect(res.status).toBe(200);
     });
   });

@@ -93,7 +93,7 @@ describe('Notices API', () => {
 
   describe('POST /api/notices - Warden posts', () => {
     it('should reject notice with short title', async () => {
-      const res = await request(app).post('/api/notices').send({
+      const res = await request(app).post('/api/v1/notices').send({
         title: 'ab',
         content: 'valid content 20 chars......',
         target_audience: 'all',
@@ -102,7 +102,7 @@ describe('Notices API', () => {
     });
 
     it('should reject invalid target_audience', async () => {
-      const res = await request(app).post('/api/notices').send({
+      const res = await request(app).post('/api/v1/notices').send({
         title: 'valid title',
         content: 'valid content 20 chars......',
         target_audience: 'invalid',
@@ -112,7 +112,7 @@ describe('Notices API', () => {
 
     it('should accept valid notice', async () => {
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '1' }, error: null });
-      const res = await request(app).post('/api/notices').send({
+      const res = await request(app).post('/api/v1/notices').send({
         title: 'valid title',
         content: 'valid content 20 chars......',
         target_audience: 'all',
@@ -123,7 +123,7 @@ describe('Notices API', () => {
 
     it('should return 403 for student', async () => {
       currentProfile = mockStudentProfile;
-      const res = await request(app).post('/api/notices').send({
+      const res = await request(app).post('/api/v1/notices').send({
         title: 'valid title',
         content: 'valid content 20 chars......',
         target_audience: 'all',
@@ -136,26 +136,26 @@ describe('Notices API', () => {
     it('should return notices for student (filtered)', async () => {
       currentProfile = mockStudentProfile;
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
-      const res = await request(app).get('/api/notices');
+      const res = await request(app).get('/api/v1/notices');
       expect(res.status).toBe(200);
     });
 
     it('should return all notices for warden', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
-      const res = await request(app).get('/api/notices');
+      const res = await request(app).get('/api/v1/notices');
       expect(res.status).toBe(200);
     });
 
     it('should return notices for parent (filtered)', async () => {
       currentProfile = { id: 'parent-id', role: 'parent', email: 'parent@test.com' };
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
-      const res = await request(app).get('/api/notices');
+      const res = await request(app).get('/api/v1/notices');
       expect(res.status).toBe(200);
     });
 
     it('should return 401 without auth', async () => {
       currentProfile = null;
-      const res = await request(app).get('/api/notices');
+      const res = await request(app).get('/api/v1/notices');
       expect(res.status).toBe(401);
     });
   });

@@ -116,7 +116,7 @@ describe('Curfew API', () => {
         { data: [{ student_id: 's2' }], error: null }, // attendance query
       ];
 
-      const res = await request(app).get('/api/curfew/violations');
+      const res = await request(app).get('/api/v1/curfew/violations');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(1);
       expect(res.body.data[0].student_id).toBe('s1');
@@ -125,7 +125,7 @@ describe('Curfew API', () => {
     it('should return empty if before curfew time', async () => {
       mockRedisGet.mockResolvedValueOnce(JSON.stringify({ curfew_time: '23:59', enabled: true }));
 
-      const res = await request(app).get('/api/curfew/violations');
+      const res = await request(app).get('/api/v1/curfew/violations');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(0);
     });
@@ -139,7 +139,7 @@ describe('Curfew API', () => {
       ];
 
       const res = await request(app)
-        .post('/api/curfew/notify')
+        .post('/api/v1/curfew/notify')
         .send({ student_ids: ['s1'] });
       expect(res.status).toBe(200);
       expect(res.body.notified_count).toBe(1);
@@ -147,7 +147,7 @@ describe('Curfew API', () => {
 
     it('should reject invalid payload', async () => {
       const res = await request(app)
-        .post('/api/curfew/notify')
+        .post('/api/v1/curfew/notify')
         .send({ student_ids: 'not-an-array' });
       expect(res.status).toBe(400);
     });
@@ -155,14 +155,14 @@ describe('Curfew API', () => {
 
   describe('GET /api/curfew/settings', () => {
     it('should return default settings if no cache', async () => {
-      const res = await request(app).get('/api/curfew/settings');
+      const res = await request(app).get('/api/v1/curfew/settings');
       expect(res.status).toBe(200);
       expect(res.body.data.curfew_time).toBe('22:00');
     });
 
     it('should return cached settings', async () => {
       mockRedisGet.mockResolvedValueOnce(JSON.stringify({ curfew_time: '23:00', enabled: false }));
-      const res = await request(app).get('/api/curfew/settings');
+      const res = await request(app).get('/api/v1/curfew/settings');
       expect(res.status).toBe(200);
       expect(res.body.data.curfew_time).toBe('23:00');
       expect(res.body.data.enabled).toBe(false);
@@ -172,7 +172,7 @@ describe('Curfew API', () => {
   describe('PATCH /api/curfew/settings', () => {
     it('should update curfew settings', async () => {
       const res = await request(app)
-        .patch('/api/curfew/settings')
+        .patch('/api/v1/curfew/settings')
         .send({ curfew_time: '21:00', enabled: true });
       expect(res.status).toBe(200);
       expect(res.body.data.curfew_time).toBe('21:00');

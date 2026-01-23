@@ -94,20 +94,20 @@ describe('Mess API', () => {
   describe('GET /api/mess/menu', () => {
     it('should return menu for any authenticated user', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
-      const res = await request(app).get('/api/mess/menu');
+      const res = await request(app).get('/api/v1/mess/menu');
       expect(res.status).toBe(200);
     });
 
     it('should return 401 without auth', async () => {
       currentProfile = null;
-      const res = await request(app).get('/api/mess/menu');
+      const res = await request(app).get('/api/v1/mess/menu');
       expect(res.status).toBe(401);
     });
 
     it('should return cached menu on second request', async () => {
       const { getCache } = await import('../config/redis.js');
       getCache.mockResolvedValueOnce([{ day: 'Monday' }]);
-      const res = await request(app).get('/api/mess/menu');
+      const res = await request(app).get('/api/v1/mess/menu');
       expect(res.body.data).toEqual([{ day: 'Monday' }]);
     });
   });
@@ -117,7 +117,7 @@ describe('Mess API', () => {
       currentProfile = mockWardenProfile;
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '1' }, error: null });
       const res = await request(app)
-        .put('/api/mess/menu')
+        .put('/api/v1/mess/menu')
         .send({
           day_of_week: 'monday',
           meal_type: 'lunch',
@@ -129,7 +129,7 @@ describe('Mess API', () => {
     it('should reject invalid day_of_week', async () => {
       currentProfile = mockWardenProfile;
       const res = await request(app)
-        .put('/api/mess/menu')
+        .put('/api/v1/mess/menu')
         .send({
           day_of_week: 'invalid',
           meal_type: 'lunch',
@@ -141,7 +141,7 @@ describe('Mess API', () => {
     it('should reject invalid meal_type', async () => {
       currentProfile = mockWardenProfile;
       const res = await request(app)
-        .put('/api/mess/menu')
+        .put('/api/v1/mess/menu')
         .send({
           day_of_week: 'monday',
           meal_type: 'invalid',
@@ -152,7 +152,7 @@ describe('Mess API', () => {
 
     it('should return 403 for student', async () => {
       const res = await request(app)
-        .put('/api/mess/menu')
+        .put('/api/v1/mess/menu')
         .send({
           day_of_week: 'monday',
           meal_type: 'lunch',
@@ -165,7 +165,7 @@ describe('Mess API', () => {
   describe('POST /api/mess/review - Student rates', () => {
     it('should accept valid review', async () => {
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '1' }, error: null });
-      const res = await request(app).post('/api/mess/review').send({
+      const res = await request(app).post('/api/v1/mess/review').send({
         rating: 4,
         meal_type: 'lunch',
         comments: 'good',
@@ -175,7 +175,7 @@ describe('Mess API', () => {
     });
 
     it('should reject rating below 1', async () => {
-      const res = await request(app).post('/api/mess/review').send({
+      const res = await request(app).post('/api/v1/mess/review').send({
         rating: 0,
         meal_type: 'lunch',
         date: '2023-10-10',
@@ -184,7 +184,7 @@ describe('Mess API', () => {
     });
 
     it('should reject rating above 5', async () => {
-      const res = await request(app).post('/api/mess/review').send({
+      const res = await request(app).post('/api/v1/mess/review').send({
         rating: 6,
         meal_type: 'lunch',
         date: '2023-10-10',
@@ -194,7 +194,7 @@ describe('Mess API', () => {
 
     it('should return 403 for warden', async () => {
       currentProfile = mockWardenProfile;
-      const res = await request(app).post('/api/mess/review').send({
+      const res = await request(app).post('/api/v1/mess/review').send({
         rating: 4,
         meal_type: 'lunch',
         date: '2023-10-10',
@@ -207,12 +207,12 @@ describe('Mess API', () => {
     it('should return reviews with averages', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
-      const res = await request(app).get('/api/mess/reviews');
+      const res = await request(app).get('/api/v1/mess/reviews');
       expect(res.status).toBe(200);
     });
 
     it('should return 403 for student', async () => {
-      const res = await request(app).get('/api/mess/reviews');
+      const res = await request(app).get('/api/v1/mess/reviews');
       expect(res.status).toBe(403);
     });
   });

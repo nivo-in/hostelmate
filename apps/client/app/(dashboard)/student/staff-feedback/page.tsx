@@ -27,7 +27,7 @@ export default function StaffFeedbackPage() {
 
   const fetchStaff = async () => {
     try {
-      const res = await apiGet('/api/staff-feedback');
+      const res = await apiGet('/api/v1/staff-feedback');
       if (res.success) setStaffList(res.data);
     } catch {
       // Silently fail
@@ -52,7 +52,7 @@ export default function StaffFeedbackPage() {
     }
 
     try {
-      const res = await apiPost('/api/staff-feedback', { staff_id, rating, comment });
+      const res = await apiPost('/api/v1/staff-feedback', { staff_id, rating, comment });
       if (res.success) {
         setSuccessMsg('Feedback submitted ✓');
         setSelectedStaff(null);

@@ -35,7 +35,7 @@ export default function StudentVisitors() {
 
   const fetchVisitors = async () => {
     try {
-      const res = await apiGet('/api/visitors/my');
+      const res = await apiGet('/api/v1/visitors/my');
       if (res.success) setVisitors(res.data || []);
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -54,7 +54,7 @@ export default function StudentVisitors() {
     }
 
     try {
-      const res = await apiPost('/api/visitors', {
+      const res = await apiPost('/api/v1/visitors', {
         visitor_name: visitorName,
         visitor_phone: visitorPhone,
         purpose,

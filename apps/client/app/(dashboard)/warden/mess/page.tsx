@@ -25,7 +25,7 @@ export default function WardenMess() {
 
   const fetchMenu = async () => {
     try {
-      const res = await apiGet('/api/mess/menu');
+      const res = await apiGet('/api/v1/mess/menu');
       if (res.success) setMenu(res.data || []);
     } catch {
       // Silently fail
@@ -34,7 +34,7 @@ export default function WardenMess() {
 
   const fetchReviews = async () => {
     try {
-      const res = await apiGet('/api/mess/reviews');
+      const res = await apiGet('/api/v1/mess/reviews');
       if (res.success) setReviews(res.data?.reviews || []);
     } catch {
       // Silently fail
@@ -72,7 +72,7 @@ export default function WardenMess() {
     });
 
     try {
-      const res = await apiPut('/api/mess/menu', {
+      const res = await apiPut('/api/v1/mess/menu', {
         day_of_week: day,
         meal_type: mealType,
         items: itemsList,

@@ -78,8 +78,8 @@ export default function StudentRoomTransferPage() {
 
       // Run API calls and Supabase query in parallel
       const [myRoomRes, availableRoomsRes, requestsResult] = await Promise.all([
-        apiGet('/api/rooms/my'),
-        apiGet('/api/rooms/available'),
+        apiGet('/api/v1/rooms/my'),
+        apiGet('/api/v1/rooms/available'),
         supabase
           .from('room_transfer_requests')
           .select('id, rooms!requested_room_id(room_number), reason, status, created_at')
@@ -145,7 +145,7 @@ export default function StudentRoomTransferPage() {
     setSubmitting(true);
     setMessage('');
     try {
-      const res = await apiPost('/api/rooms/transfer-request', {
+      const res = await apiPost('/api/v1/rooms/transfer-request', {
         requested_room_id: selectedRoomId,
         reason,
       });

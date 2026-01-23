@@ -73,7 +73,7 @@ export default function WardenDashboard() {
       // All fetches run in parallel
       const [profileResult, statsResult, faceResult] = await Promise.all([
         supabase.from('profiles').select('full_name').eq('id', user.id).single(),
-        (apiGet('/api/stats/dashboard') as Promise<StatsApiResponse>).catch(() => null),
+        (apiGet('/api/v1/stats/dashboard') as Promise<StatsApiResponse>).catch(() => null),
         supabase
           .from('warden_face_descriptors')
           .select('warden_id')

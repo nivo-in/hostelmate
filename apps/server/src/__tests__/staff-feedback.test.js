@@ -89,7 +89,7 @@ describe('Staff Feedback API Integration', () => {
         }, // feedback
       ];
 
-      const res = await request(app).get('/api/staff-feedback');
+      const res = await request(app).get('/api/v1/staff-feedback');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data).toHaveLength(1);
@@ -102,7 +102,7 @@ describe('Staff Feedback API Integration', () => {
     it('should return feedback for specific staff member', async () => {
       queryResults = [{ data: [{ id: 'fb-1', rating: 4 }], error: null }];
 
-      const res = await request(app).get('/api/staff-feedback/staff-1');
+      const res = await request(app).get('/api/v1/staff-feedback/staff-1');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.average_rating).toBe(4);
@@ -124,7 +124,7 @@ describe('Staff Feedback API Integration', () => {
         }, // insert
       ];
 
-      const res = await request(app).post('/api/staff-feedback').send({
+      const res = await request(app).post('/api/v1/staff-feedback').send({
         staff_id: '123e4567-e89b-12d3-a456-426614174000',
         rating: 5,
         comment: 'Great job!',
@@ -139,7 +139,7 @@ describe('Staff Feedback API Integration', () => {
         { data: [{ id: 'fb-old' }], error: null }, // check existing feedback
       ];
 
-      const res = await request(app).post('/api/staff-feedback').send({
+      const res = await request(app).post('/api/v1/staff-feedback').send({
         staff_id: '123e4567-e89b-12d3-a456-426614174000',
         rating: 5,
       });
@@ -148,7 +148,7 @@ describe('Staff Feedback API Integration', () => {
     });
 
     it('should reject invalid payload', async () => {
-      const res = await request(app).post('/api/staff-feedback').send({
+      const res = await request(app).post('/api/v1/staff-feedback').send({
         staff_id: 'not-a-uuid',
         rating: 6, // invalid rating
       });

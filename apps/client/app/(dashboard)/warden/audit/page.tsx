@@ -54,7 +54,7 @@ export default function WardenAuditPage() {
     setLoading(true);
     setError(null);
     try {
-      let query = `/api/audit?limit=50`;
+      let query = `/api/v1/audit?limit=50`;
       if (resourceFilter !== 'all') {
         query += `&resource=${resourceFilter}`;
       }

@@ -28,7 +28,7 @@ export default function StudentMess() {
 
     const fetchMenu = async () => {
       try {
-        const res = await apiGet('/api/mess/menu');
+        const res = await apiGet('/api/v1/mess/menu');
         if (res.success) setMenu(res.data || []);
       } catch {}
     };
@@ -61,7 +61,7 @@ export default function StudentMess() {
     try {
       await Promise.all(
         entries.map(([meal_type, data]) =>
-          apiPost('/api/mess/review', {
+          apiPost('/api/v1/mess/review', {
             meal_type,
             rating: data.rating,
             comments: data.comment,

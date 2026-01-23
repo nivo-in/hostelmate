@@ -82,8 +82,8 @@ export default function WardenAttendance() {
   const fetchData = useCallback(async () => {
     try {
       const [statsRes, recordsRes] = await Promise.all([
-        apiGet('/api/attendance/stats'),
-        apiGet(`/api/attendance/today?date=${date}`),
+        apiGet('/api/v1/attendance/stats'),
+        apiGet(`/api/v1/attendance/today?date=${date}`),
       ]);
       if (statsRes.success) setStats(statsRes.data);
       if (recordsRes.success) setRecords(recordsRes.data || []);

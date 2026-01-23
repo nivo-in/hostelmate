@@ -23,7 +23,7 @@ export default function WardenNotices() {
 
   const fetchNotices = async () => {
     try {
-      const res = await apiGet('/api/notices');
+      const res = await apiGet('/api/v1/notices');
       if (res.success) setNotices(res.data || []);
     } catch {
       // Silently fail
@@ -52,7 +52,7 @@ export default function WardenNotices() {
     ]);
 
     try {
-      const res = await apiPost('/api/notices', { title, content, target_audience: audience });
+      const res = await apiPost('/api/v1/notices', { title, content, target_audience: audience });
       if (res.success) {
         setTitle('');
         setContent('');

@@ -115,7 +115,7 @@ describe('Visitors API', () => {
 
   describe('POST /api/visitors — Student submits', () => {
     it('should reject missing visitor_name', async () => {
-      const res = await request(app).post('/api/visitors').send({
+      const res = await request(app).post('/api/v1/visitors').send({
         visitor_phone: '1234567890',
         purpose: 'Meeting for project discussion',
         relationship: 'friend',
@@ -125,7 +125,7 @@ describe('Visitors API', () => {
     });
 
     it('should reject phone shorter than 10 digits', async () => {
-      const res = await request(app).post('/api/visitors').send({
+      const res = await request(app).post('/api/v1/visitors').send({
         visitor_name: 'John Doe',
         visitor_phone: '12345',
         purpose: 'Meeting for project discussion',
@@ -136,7 +136,7 @@ describe('Visitors API', () => {
     });
 
     it('should reject purpose shorter than 10 chars', async () => {
-      const res = await request(app).post('/api/visitors').send({
+      const res = await request(app).post('/api/v1/visitors').send({
         visitor_name: 'John Doe',
         visitor_phone: '1234567890',
         purpose: 'short',
@@ -147,7 +147,7 @@ describe('Visitors API', () => {
     });
 
     it('should reject invalid relationship', async () => {
-      const res = await request(app).post('/api/visitors').send({
+      const res = await request(app).post('/api/v1/visitors').send({
         visitor_name: 'John Doe',
         visitor_phone: '1234567890',
         purpose: 'Meeting for project discussion',
@@ -159,7 +159,7 @@ describe('Visitors API', () => {
 
     it('should reject past expected_visit_date', async () => {
       const res = await request(app)
-        .post('/api/visitors')
+        .post('/api/v1/visitors')
         .send({
           visitor_name: 'John Doe',
           visitor_phone: '1234567890',
@@ -177,7 +177,7 @@ describe('Visitors API', () => {
         { data: [{ id: 'warden-id' }], error: null },
       ];
 
-      const res = await request(app).post('/api/visitors').send({
+      const res = await request(app).post('/api/v1/visitors').send({
         visitor_name: 'John Doe',
         visitor_phone: '1234567890',
         purpose: 'Meeting for project discussion',
@@ -191,7 +191,7 @@ describe('Visitors API', () => {
 
     it('should return 403 for warden role', async () => {
       currentProfile = mockWardenProfile;
-      const res = await request(app).post('/api/visitors').send({
+      const res = await request(app).post('/api/v1/visitors').send({
         visitor_name: 'John Doe',
         visitor_phone: '1234567890',
         purpose: 'Meeting for project discussion',
@@ -203,7 +203,7 @@ describe('Visitors API', () => {
 
     it('should return 401 without auth', async () => {
       authEnabled = false;
-      const res = await request(app).post('/api/visitors').send({
+      const res = await request(app).post('/api/v1/visitors').send({
         visitor_name: 'John Doe',
         visitor_phone: '1234567890',
         purpose: 'Meeting for project discussion',
@@ -217,21 +217,21 @@ describe('Visitors API', () => {
   describe('GET /api/visitors/my — Student views own', () => {
     it('should return student own visitor requests', async () => {
       queryResults = [{ data: [{ id: 'visitor-1', visitor_name: 'John Doe' }], error: null }];
-      const res = await request(app).get('/api/visitors/my');
+      const res = await request(app).get('/api/v1/visitors/my');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(1);
     });
 
     it('should return empty array if none', async () => {
       queryResults = [{ data: [], error: null }];
-      const res = await request(app).get('/api/visitors/my');
+      const res = await request(app).get('/api/v1/visitors/my');
       expect(res.status).toBe(200);
       expect(res.body.data).toEqual([]);
     });
 
     it('should return 401 without auth', async () => {
       authEnabled = false;
-      const res = await request(app).get('/api/visitors/my');
+      const res = await request(app).get('/api/v1/visitors/my');
       expect(res.status).toBe(401);
     });
   });
@@ -240,7 +240,7 @@ describe('Visitors API', () => {
     it('should return all visitor requests', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: [{ id: 'visitor-1' }, { id: 'visitor-2' }], error: null }];
-      const res = await request(app).get('/api/visitors');
+      const res = await request(app).get('/api/v1/visitors');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(2);
     });
@@ -248,20 +248,20 @@ describe('Visitors API', () => {
     it('should filter by status query param', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: [{ id: 'visitor-1', status: 'pending' }], error: null }];
-      const res = await request(app).get('/api/visitors?status=pending');
+      const res = await request(app).get('/api/v1/visitors?status=pending');
       expect(res.status).toBe(200);
     });
 
     it('should filter by date query param', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: [{ id: 'visitor-1' }], error: null }];
-      const res = await request(app).get('/api/visitors?date=2026-06-05');
+      const res = await request(app).get('/api/v1/visitors?date=2026-06-05');
       expect(res.status).toBe(200);
     });
 
     it('should return 403 for student', async () => {
       currentProfile = mockStudentProfile;
-      const res = await request(app).get('/api/visitors');
+      const res = await request(app).get('/api/v1/visitors');
       expect(res.status).toBe(403);
     });
   });
@@ -272,7 +272,7 @@ describe('Visitors API', () => {
       queryResults = [
         { data: { id: 'visitor-1', student_id: 'student-id' }, error: null }, // The select to get visitor details maybe? or update returns it
       ];
-      const res = await request(app).patch('/api/visitors/visitor-1/approve').send({});
+      const res = await request(app).patch('/api/v1/visitors/visitor-1/approve').send({});
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
     });
@@ -280,7 +280,7 @@ describe('Visitors API', () => {
     it('should accept optional warden_notes', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: { id: 'visitor-1', student_id: 'student-id' }, error: null }];
-      const res = await request(app).patch('/api/visitors/visitor-1/approve').send({
+      const res = await request(app).patch('/api/v1/visitors/visitor-1/approve').send({
         warden_notes: 'All good',
       });
       expect(res.status).toBe(200);
@@ -289,7 +289,7 @@ describe('Visitors API', () => {
 
     it('should return 403 for student', async () => {
       currentProfile = mockStudentProfile;
-      const res = await request(app).patch('/api/visitors/visitor-1/approve');
+      const res = await request(app).patch('/api/v1/visitors/visitor-1/approve');
       expect(res.status).toBe(403);
     });
   });
@@ -298,14 +298,14 @@ describe('Visitors API', () => {
     it('should reject visitor request', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: { id: 'visitor-1', student_id: 'student-id' }, error: null }];
-      const res = await request(app).patch('/api/visitors/visitor-1/reject').send({});
+      const res = await request(app).patch('/api/v1/visitors/visitor-1/reject').send({});
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
     });
 
     it('should return 403 for student', async () => {
       currentProfile = mockStudentProfile;
-      const res = await request(app).patch('/api/visitors/visitor-1/reject');
+      const res = await request(app).patch('/api/v1/visitors/visitor-1/reject');
       expect(res.status).toBe(403);
     });
   });
@@ -314,14 +314,14 @@ describe('Visitors API', () => {
     it('should set status to checked_in with check_in_time', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: { id: 'visitor-1', student_id: 'student-id' }, error: null }];
-      const res = await request(app).patch('/api/visitors/visitor-1/checkin');
+      const res = await request(app).patch('/api/v1/visitors/visitor-1/checkin');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
     });
 
     it('should return 403 for student', async () => {
       currentProfile = mockStudentProfile;
-      const res = await request(app).patch('/api/visitors/visitor-1/checkin');
+      const res = await request(app).patch('/api/v1/visitors/visitor-1/checkin');
       expect(res.status).toBe(403);
     });
   });
@@ -330,14 +330,14 @@ describe('Visitors API', () => {
     it('should set status to checked_out with check_out_time', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: { id: 'visitor-1', student_id: 'student-id' }, error: null }];
-      const res = await request(app).patch('/api/visitors/visitor-1/checkout');
+      const res = await request(app).patch('/api/v1/visitors/visitor-1/checkout');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
     });
 
     it('should return 403 for student', async () => {
       currentProfile = mockStudentProfile;
-      const res = await request(app).patch('/api/visitors/visitor-1/checkout');
+      const res = await request(app).patch('/api/v1/visitors/visitor-1/checkout');
       expect(res.status).toBe(403);
     });
   });

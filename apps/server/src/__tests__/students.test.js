@@ -93,7 +93,7 @@ describe('Students API', () => {
         },
       ];
 
-      const res = await request(app).get('/api/students');
+      const res = await request(app).get('/api/v1/students');
       expect(res.status).toBe(200);
       expect(res.body.data.students).toHaveLength(1);
       expect(res.body.data.students[0].full_name).toBe('Student 1');
@@ -103,7 +103,7 @@ describe('Students API', () => {
 
     it('should reject non-warden access', async () => {
       currentProfile = mockStudentProfile;
-      const res = await request(app).get('/api/students');
+      const res = await request(app).get('/api/v1/students');
       expect(res.status).toBe(403);
     });
   });

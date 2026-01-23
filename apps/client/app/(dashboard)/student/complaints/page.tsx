@@ -31,7 +31,7 @@ export default function StudentComplaints() {
 
   const fetchComplaints = async () => {
     try {
-      const res = await apiGet('/api/complaints/my');
+      const res = await apiGet('/api/v1/complaints/my');
       if (res.success) setComplaints(res.data || []);
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -48,7 +48,7 @@ export default function StudentComplaints() {
     if (!description.trim()) return setError('Description required');
 
     try {
-      const res = await apiPost('/api/complaints', {
+      const res = await apiPost('/api/v1/complaints', {
         category: 'other',
         description,
         is_urgent: urgent,
