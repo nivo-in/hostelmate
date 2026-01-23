@@ -35,7 +35,7 @@ router.get('/', authenticate, async (req, res) => {
     }
 
     const safeNotifications = notifications || [];
-    
+
     // Get total unread count (not just this page)
     const { count: unreadCount } = await supabaseAdmin
       .from('notifications')
@@ -45,17 +45,17 @@ router.get('/', authenticate, async (req, res) => {
 
     const totalPages = Math.ceil(count / limit);
 
-    const payload = { 
-      notifications: safeNotifications, 
-      unread_count: unreadCount || 0 
+    const payload = {
+      notifications: safeNotifications,
+      unread_count: unreadCount || 0,
     };
 
     if (page === 1) {
       await setCache(`notifications:${req.user.id}:p1`, payload, 30); // 30s cache
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       data: payload,
       pagination: {
         page,
@@ -63,8 +63,8 @@ router.get('/', authenticate, async (req, res) => {
         total: count,
         totalPages,
         hasNext: page < totalPages,
-        hasPrev: page > 1
-      }
+        hasPrev: page > 1,
+      },
     });
   } catch {
     res.json({ success: true, data: { notifications: [], unread_count: 0 } });

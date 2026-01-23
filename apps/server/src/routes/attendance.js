@@ -130,12 +130,10 @@ router.post(
         const hostelLng = parseFloat(process.env.HOSTEL_LNG || '77.2090');
         const { allowed, distance } = isWithinGeofence(lat, lng, hostelLat, hostelLng);
         if (!allowed) {
-          return res
-            .status(403)
-            .json({
-              success: false,
-              error: `You are ${Math.round(distance)}m away from hostel. Must be within 100m to mark attendance.`,
-            });
+          return res.status(403).json({
+            success: false,
+            error: `You are ${Math.round(distance)}m away from hostel. Must be within 100m to mark attendance.`,
+          });
         }
       } else {
         logger.warn(`Attendance marked without location verification for user ${req.user.id}`);

@@ -27,7 +27,7 @@ export default function WardenLeaves() {
         if (currentPage === 1) {
           setLeaves(res.data || []);
         } else {
-          setLeaves(prev => [...prev, ...(res.data || [])]);
+          setLeaves((prev) => [...prev, ...(res.data || [])]);
         }
         setHasNext(res.pagination?.hasNext || false);
       }

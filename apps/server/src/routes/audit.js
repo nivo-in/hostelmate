@@ -19,7 +19,8 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
         `
         *,
         profiles!audit_logs_user_id_fkey(full_name)
-      `, { count: 'exact' }
+      `,
+        { count: 'exact' }
       )
       .order('created_at', { ascending: false });
 
@@ -48,8 +49,8 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
         total: count,
         totalPages,
         hasNext: page < totalPages,
-        hasPrev: page > 1
-      }
+        hasPrev: page > 1,
+      },
     });
   } catch (error) {
     next(error);

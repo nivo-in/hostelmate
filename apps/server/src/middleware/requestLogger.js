@@ -11,7 +11,9 @@ const requestLogger = (req, res, next) => {
   res.on('finish', () => {
     const duration = Date.now() - start;
     const reqId = req.requestId ? ` [${req.requestId}]` : '';
-    logger.http(`[HTTP]${reqId} ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms - ${ip}`);
+    logger.http(
+      `[HTTP]${reqId} ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms - ${ip}`
+    );
   });
 
   next();

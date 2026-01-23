@@ -235,7 +235,9 @@ describe('Complaints API', () => {
         data: { id: '1', status: 'resolved' },
         error: null,
       });
-      const res = await request(app).patch('/api/v1/complaints/1/status').send({ status: 'resolved' });
+      const res = await request(app)
+        .patch('/api/v1/complaints/1/status')
+        .send({ status: 'resolved' });
       expect(res.status).toBe(200);
     });
 
@@ -248,7 +250,9 @@ describe('Complaints API', () => {
 
     it('should reject invalid status value', async () => {
       currentProfile = mockWardenProfile;
-      const res = await request(app).patch('/api/v1/complaints/1/status').send({ status: 'invalid' });
+      const res = await request(app)
+        .patch('/api/v1/complaints/1/status')
+        .send({ status: 'invalid' });
       expect(res.status).toBe(400);
     });
   });

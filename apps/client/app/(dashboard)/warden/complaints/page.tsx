@@ -27,7 +27,7 @@ export default function WardenComplaints() {
         if (currentPage === 1) {
           setComplaints(res.data || []);
         } else {
-          setComplaints(prev => [...prev, ...(res.data || [])]);
+          setComplaints((prev) => [...prev, ...(res.data || [])]);
         }
         setHasNext(res.pagination?.hasNext || false);
       }

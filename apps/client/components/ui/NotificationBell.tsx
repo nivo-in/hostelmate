@@ -64,10 +64,10 @@ export function NotificationBell() {
         if (currentPage === 1) {
           setNotifications(res.data.notifications);
         } else {
-          setNotifications(prev => {
+          setNotifications((prev) => {
             // Deduplicate if any overlapping updates
             const newNotifs = res.data.notifications.filter(
-              (n: Notification) => !prev.some(p => p.id === n.id)
+              (n: Notification) => !prev.some((p) => p.id === n.id)
             );
             return [...prev, ...newNotifs];
           });
@@ -113,7 +113,9 @@ export function NotificationBell() {
     },
     'leave:updated': (data: any) => {
       debouncedFetch();
-      toast('Leave Request Updated', { description: data?.message || 'Your leave request status changed.' });
+      toast('Leave Request Updated', {
+        description: data?.message || 'Your leave request status changed.',
+      });
     },
     'complaint:updated': (data: any) => {
       debouncedFetch();
@@ -125,8 +127,10 @@ export function NotificationBell() {
     },
     'notification:new': (data: any) => {
       debouncedFetch();
-      toast(data?.title || 'New Notification', { description: data?.message || 'You have a new notification.' });
-    }
+      toast(data?.title || 'New Notification', {
+        description: data?.message || 'You have a new notification.',
+      });
+    },
   });
 
   // ── Panel open / close side-effects ───────────────────────────────────────
@@ -360,7 +364,7 @@ export function NotificationBell() {
               </div>
             ))
           )}
-          
+
           {hasNext && !loading && (
             <div className="p-4 flex justify-center border-t border-gray-50">
               <button

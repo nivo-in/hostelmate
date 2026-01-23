@@ -106,7 +106,10 @@ describe('Notifications API Integration', () => {
 
   describe('GET /api/notifications', () => {
     it('should return notifications for authenticated user', async () => {
-      queryResults = [{ data: [], count: 0, error: null }, { count: 0, error: null }];
+      queryResults = [
+        { data: [], count: 0, error: null },
+        { count: 0, error: null },
+      ];
       const res = await request(app).get('/api/v1/notifications');
       expect(res.status).toBe(200);
     });
@@ -114,7 +117,7 @@ describe('Notifications API Integration', () => {
     it('should return unread_count', async () => {
       queryResults = [
         { data: [{ is_read: false }], count: 1, error: null },
-        { count: 1, error: null }
+        { count: 1, error: null },
       ];
       const res = await request(app).get('/api/v1/notifications');
       expect(res.status).toBe(200);

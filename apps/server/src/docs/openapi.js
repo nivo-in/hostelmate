@@ -25,7 +25,7 @@
  *       required: false
  *       schema:
  *         type: string
- * 
+ *
  *   responses:
  *     PaginatedResponse:
  *       description: A successful paginated response

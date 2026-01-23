@@ -109,7 +109,8 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
-    let query = supabaseAdmin.from('complaints').select(`
+    let query = supabaseAdmin.from('complaints').select(
+      `
     *,
     students!complaints_student_id_fkey (
       roll_number,
@@ -117,7 +118,9 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
         full_name
       )
     )
-  `, { count: 'exact' });
+  `,
+      { count: 'exact' }
+    );
 
     if (status) {
       query = query.eq('status', status);
@@ -139,8 +142,8 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
         total: count,
         totalPages,
         hasNext: page < totalPages,
-        hasPrev: page > 1
-      }
+        hasPrev: page > 1,
+      },
     });
   } catch (error) {
     next(error);

@@ -25,15 +25,15 @@ router.get('/', async (req, res) => {
   const responseTime = Date.now() - start;
 
   res.json({
-    status: (dbStatus === 'ok' && redisStatus === 'ok') ? 'ok' : 'degraded',
+    status: dbStatus === 'ok' && redisStatus === 'ok' ? 'ok' : 'degraded',
     timestamp: new Date().toISOString(),
     version: '1.0.0',
     services: {
       database: dbStatus,
-      redis: redisStatus
+      redis: redisStatus,
     },
     uptime: process.uptime(),
-    responseTime: `${responseTime}ms`
+    responseTime: `${responseTime}ms`,
   });
 });
 

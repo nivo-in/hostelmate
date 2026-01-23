@@ -108,8 +108,8 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
         total: count,
         totalPages,
         hasNext: page < totalPages,
-        hasPrev: page > 1
-      }
+        hasPrev: page > 1,
+      },
     });
   } catch (error) {
     next(error);

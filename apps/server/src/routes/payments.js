@@ -152,7 +152,8 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
-    let query = supabaseAdmin.from('fee_payments').select(`
+    let query = supabaseAdmin.from('fee_payments').select(
+      `
         *,
         fee_structures (
           id, name, fee_type, billing_period, includes_hostel, includes_mess
@@ -163,7 +164,9 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
             full_name
           )
         )
-      `, { count: 'exact' });
+      `,
+      { count: 'exact' }
+    );
 
     if (status) query = query.eq('status', status);
     if (billing_period) query = query.eq('billing_period', billing_period);
@@ -209,7 +212,7 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
       success: true,
       data: {
         payments,
-        summary
+        summary,
       },
       pagination: {
         page,
@@ -217,8 +220,8 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
         total: count,
         totalPages,
         hasNext: page < totalPages,
-        hasPrev: page > 1
-      }
+        hasPrev: page > 1,
+      },
     });
   } catch (error) {
     next(error);

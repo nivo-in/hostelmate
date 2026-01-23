@@ -286,7 +286,9 @@ export default function WardenRoomsPage() {
   };
 
   const filteredStudents = unassignedStudents.filter(
-    (s) => fuzzyMatch(debouncedSearchQuery, s.full_name) || fuzzyMatch(debouncedSearchQuery, s.roll_number)
+    (s) =>
+      fuzzyMatch(debouncedSearchQuery, s.full_name) ||
+      fuzzyMatch(debouncedSearchQuery, s.roll_number)
   );
 
   const totalRooms = rooms.length;

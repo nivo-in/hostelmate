@@ -161,30 +161,33 @@ export default function WardenPaymentsPage() {
 
   // ── Fetch ──
 
-  const fetchPayments = useCallback(async (currentPage = 1) => {
-    try {
-      const params = new URLSearchParams();
-      if (filterStatus) params.set('status', filterStatus);
-      if (filterFeeType) params.set('fee_type', filterFeeType);
-      if (filterBilling) params.set('billing_period', filterBilling);
-      if (filterPeriod) params.set('period_label', filterPeriod);
-      params.set('page', currentPage.toString());
-      params.set('limit', '20');
-      const res = await apiGet(`/api/v1/payments/all?${params.toString()}`);
-      if (res.success) {
-        if (currentPage === 1) {
-          setPayments(res.data.payments);
-        } else {
-          setPayments(prev => [...prev, ...res.data.payments]);
+  const fetchPayments = useCallback(
+    async (currentPage = 1) => {
+      try {
+        const params = new URLSearchParams();
+        if (filterStatus) params.set('status', filterStatus);
+        if (filterFeeType) params.set('fee_type', filterFeeType);
+        if (filterBilling) params.set('billing_period', filterBilling);
+        if (filterPeriod) params.set('period_label', filterPeriod);
+        params.set('page', currentPage.toString());
+        params.set('limit', '20');
+        const res = await apiGet(`/api/v1/payments/all?${params.toString()}`);
+        if (res.success) {
+          if (currentPage === 1) {
+            setPayments(res.data.payments);
+          } else {
+            setPayments((prev) => [...prev, ...res.data.payments]);
+          }
+          setSummary(res.data.summary);
+          setHasNext(res.pagination?.hasNext || false);
         }
-        setSummary(res.data.summary);
-        setHasNext(res.pagination?.hasNext || false);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e);
       }
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e);
-    }
-  }, [apiGet, filterStatus, filterFeeType, filterBilling, filterPeriod]);
+    },
+    [apiGet, filterStatus, filterFeeType, filterBilling, filterPeriod]
+  );
 
   const fetchStructures = useCallback(async () => {
     try {

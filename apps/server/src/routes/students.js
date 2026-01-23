@@ -13,7 +13,7 @@ const router = Router();
 router.get('/', authenticate, requireWarden, async (req, res, next) => {
   try {
     const { search } = req.query;
-    
+
     const { data, error } = await supabaseAdmin
       .from('students')
       .select(
@@ -47,10 +47,11 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
 
     if (search) {
       const q = search.toLowerCase();
-      students = students.filter(s => 
-        (s.full_name && s.full_name.toLowerCase().includes(q)) ||
-        (s.roll_number && s.roll_number.toLowerCase().includes(q)) ||
-        (s.email && s.email.toLowerCase().includes(q))
+      students = students.filter(
+        (s) =>
+          (s.full_name && s.full_name.toLowerCase().includes(q)) ||
+          (s.roll_number && s.roll_number.toLowerCase().includes(q)) ||
+          (s.email && s.email.toLowerCase().includes(q))
       );
     }
 
