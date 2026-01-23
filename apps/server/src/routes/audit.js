@@ -28,7 +28,7 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
     }
 
     if (action) {
-      query = query.eq('action', action);
+      query = query.ilike('action', `%${action}%`);
     }
 
     query = query.range(from, to);

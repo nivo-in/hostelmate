@@ -12,6 +12,8 @@ const router = Router();
  */
 router.get('/', authenticate, requireWarden, async (req, res, next) => {
   try {
+    const { search } = req.query;
+    
     const { data, error } = await supabaseAdmin
       .from('students')
       .select(
@@ -29,7 +31,7 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
 
     if (error) throw error;
 
-    const students = (data || []).map((s) => ({
+    let students = (data || []).map((s) => ({
       id: s.id,
       roll_number: s.roll_number,
       full_name: s.profiles?.full_name ?? null,
@@ -42,6 +44,15 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
       parent_id: s.parent_id,
       created_at: s.created_at,
     }));
+
+    if (search) {
+      const q = search.toLowerCase();
+      students = students.filter(s => 
+        (s.full_name && s.full_name.toLowerCase().includes(q)) ||
+        (s.roll_number && s.roll_number.toLowerCase().includes(q)) ||
+        (s.email && s.email.toLowerCase().includes(q))
+      );
+    }
 
     res.json({ success: true, data: { students, total: students.length } });
   } catch (error) {

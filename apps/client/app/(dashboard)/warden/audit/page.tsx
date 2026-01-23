@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { useApi } from '@/hooks/useApi';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { useDebounce } from '@/hooks/useDebounce';
 
 type AuditLog = {
   id: string;
@@ -28,6 +29,7 @@ export default function WardenAuditPage() {
   // Filters
   const [resourceFilter, setResourceFilter] = useState('all');
   const [searchAction, setSearchAction] = useState('');
+  const debouncedSearchAction = useDebounce(searchAction, 300);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
@@ -55,10 +57,12 @@ export default function WardenAuditPage() {
   const fetchLogs = useCallback(async (currentPage = 1) => {
     setLoading(true);
     setError(null);
-    try {
       let query = `/api/v1/audit?page=${currentPage}&limit=50`;
       if (resourceFilter !== 'all') {
         query += `&resource=${resourceFilter}`;
+      }
+      if (debouncedSearchAction) {
+        query += `&action=${encodeURIComponent(debouncedSearchAction)}`;
       }
       const res = await apiGetRef.current(query);
       if (res.success && res.data) {
@@ -81,12 +85,11 @@ export default function WardenAuditPage() {
   }, [resourceFilter]); // resourceFilter is a primitive — safe dep
 
   useEffect(() => {
+    setPage(1);
     fetchLogs(1);
-  }, [fetchLogs]);
+  }, [fetchLogs, debouncedSearchAction]);
 
   const filteredLogs = logs.filter((log) => {
-    const matchAction = log.action.toLowerCase().includes(searchAction.toLowerCase());
-
     let matchDate = true;
     if (dateFrom || dateTo) {
       const logDate = new Date(log.created_at);
@@ -100,7 +103,7 @@ export default function WardenAuditPage() {
       }
     }
 
-    return matchAction && matchDate;
+    return matchDate;
   });
 
   const getActionBadge = (action: string) => {

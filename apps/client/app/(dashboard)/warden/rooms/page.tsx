@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useApi } from '@/hooks/useApi';
 import { createClient } from '@/lib/supabase/client';
+import { useDebounce } from '@/hooks/useDebounce';
 
 type Room = {
   id: string;
@@ -107,6 +108,7 @@ export default function WardenRoomsPage() {
   // Assign student inline form
   const [assignRoomId, setAssignRoomId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [unassignedStudents, setUnassignedStudents] = useState<UnassignedStudent[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [assigning, setAssigning] = useState(false);
@@ -284,7 +286,7 @@ export default function WardenRoomsPage() {
   };
 
   const filteredStudents = unassignedStudents.filter(
-    (s) => fuzzyMatch(searchQuery, s.full_name) || fuzzyMatch(searchQuery, s.roll_number)
+    (s) => fuzzyMatch(debouncedSearchQuery, s.full_name) || fuzzyMatch(debouncedSearchQuery, s.roll_number)
   );
 
   const totalRooms = rooms.length;
