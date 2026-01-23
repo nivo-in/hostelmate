@@ -33,6 +33,7 @@ import studentsRoutes from './routes/students.js';
 import parentRoutes from './routes/parent.js';
 import visitorsRoutes from './routes/visitors.js';
 import paymentsRoutes from './routes/payments.js';
+import healthRoutes from './routes/health.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -89,16 +90,7 @@ app.use(generalLimiter);
 app.use(requestLogger);
 
 // Health check
-let redisStatus = 'disconnected';
-
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    uptime: process.uptime(),
-    timestamp: new Date(),
-    redis: redisStatus,
-  });
-});
+app.use('/health', healthRoutes);
 
 app.get('/', (req, res) => {
   res.json({
