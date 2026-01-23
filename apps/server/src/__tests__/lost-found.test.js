@@ -14,6 +14,7 @@ const supabaseMock = {
   in: jest.fn().mockReturnThis(),
   order: jest.fn().mockReturnThis(),
   limit: jest.fn().mockReturnThis(),
+  range: jest.fn().mockReturnThis(),
   single: jest.fn().mockResolvedValue({ data: null, error: null }),
   head: jest.fn().mockResolvedValue({ count: 0, error: null }),
 };
@@ -184,13 +185,13 @@ describe('Lost and Found API', () => {
 
   describe('GET /api/lost-found', () => {
     it('should return all items', async () => {
-      supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
+      supabaseMock.range.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/lost-found');
       expect(res.status).toBe(200);
     });
 
     it('should filter by status', async () => {
-      supabaseMock.eq.mockResolvedValueOnce({ data: [], error: null });
+      supabaseMock.range.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/lost-found?status=claimed');
       if (res.status === 500) console.error('GET STATUS ERROR:', res.body);
       expect(res.status).toBe(200);

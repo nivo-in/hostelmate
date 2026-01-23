@@ -14,6 +14,7 @@ const supabaseMock = {
   in: jest.fn().mockReturnThis(),
   order: jest.fn().mockReturnThis(),
   limit: jest.fn().mockReturnThis(),
+  range: jest.fn().mockReturnThis(),
   single: jest.fn().mockResolvedValue({ data: null, error: null }),
   head: jest.fn().mockResolvedValue({ count: 0, error: null }),
 };
@@ -178,7 +179,7 @@ describe('Leaves API', () => {
   describe('GET /api/leaves/all - Warden views all leaves', () => {
     it('should return all leave requests for warden', async () => {
       currentProfile = mockWardenProfile;
-      supabaseMock.order.mockResolvedValueOnce({ data: [{ id: '1' }], error: null });
+      supabaseMock.range.mockResolvedValueOnce({ data: [{ id: '1' }], error: null });
       const res = await request(app).get('/api/v1/leaves/all');
       expect(res.status).toBe(200);
     });

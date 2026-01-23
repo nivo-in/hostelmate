@@ -48,18 +48,31 @@ export function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
 
   const { apiGet, apiPatch, apiDelete } = useApi();
   // Ref to track pending debounce timer for socket-triggered fetches
   const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
-  const fetchNotifications = useCallback(async () => {
+  const fetchNotifications = useCallback(async (currentPage = 1) => {
     try {
-      const res = await apiGet('/api/v1/notifications');
+      const res = await apiGet(`/api/v1/notifications?page=${currentPage}&limit=20`);
       if (res.success) {
-        setNotifications(res.data.notifications);
+        if (currentPage === 1) {
+          setNotifications(res.data.notifications);
+        } else {
+          setNotifications(prev => {
+            // Deduplicate if any overlapping updates
+            const newNotifs = res.data.notifications.filter(
+              (n: Notification) => !prev.some(p => p.id === n.id)
+            );
+            return [...prev, ...newNotifs];
+          });
+        }
         setUnreadCount(res.data.unread_count);
+        setHasNext(res.pagination?.hasNext || false);
       }
     } catch {
       // Silently fail — never surface polling errors to UI
@@ -78,11 +91,11 @@ export function NotificationBell() {
 
   useEffect(() => {
     // Fetch immediately on mount
-    fetchNotifications();
+    fetchNotifications(1);
 
     // Fallback poll every 5 minutes (WebSocket handles real-time updates)
     const intervalId = setInterval(() => {
-      fetchNotifications();
+      fetchNotifications(1);
     }, 300000);
 
     return () => {
@@ -329,6 +342,21 @@ export function NotificationBell() {
                 </p>
               </div>
             ))
+          )}
+          
+          {hasNext && !loading && (
+            <div className="p-4 flex justify-center border-t border-gray-50">
+              <button
+                onClick={() => {
+                  const nextPage = page + 1;
+                  setPage(nextPage);
+                  fetchNotifications(nextPage);
+                }}
+                className="text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
+              >
+                Load older
+              </button>
+            </div>
           )}
         </div>
       </div>

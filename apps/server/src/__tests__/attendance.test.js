@@ -19,6 +19,7 @@ const supabaseMock = {
   in: jest.fn().mockReturnThis(),
   order: jest.fn().mockReturnThis(),
   limit: jest.fn().mockReturnThis(),
+  range: jest.fn().mockReturnThis(),
   single: jest.fn().mockReturnThis(),
   not: jest.fn().mockReturnThis(),
   is: jest.fn().mockReturnThis(),

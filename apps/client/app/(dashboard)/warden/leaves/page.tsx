@@ -13,22 +13,31 @@ export default function WardenLeaves() {
   const [activeTab, setActiveTab] = useState('All');
   const [leaves, setLeaves] = useState<LeaveWithStudent[]>([]);
   const [message, setMessage] = useState('');
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
 
   const { apiGet, apiPatch } = useApi();
   const router = useRouter();
   const supabase = createClient();
 
-  const fetchLeaves = async () => {
+  const fetchLeaves = async (currentPage = 1) => {
     try {
-      const res = await apiGet('/api/v1/leaves/all');
-      if (res.success) setLeaves(res.data || []);
+      const res = await apiGet(`/api/v1/leaves/all?page=${currentPage}&limit=20`);
+      if (res.success) {
+        if (currentPage === 1) {
+          setLeaves(res.data || []);
+        } else {
+          setLeaves(prev => [...prev, ...(res.data || [])]);
+        }
+        setHasNext(res.pagination?.hasNext || false);
+      }
     } catch {
       // Silently fail
     }
   };
 
   useEffect(() => {
-    fetchLeaves();
+    fetchLeaves(1);
   }, []);
 
   const handleAction = async (id: string, action: 'approve' | 'reject') => {
@@ -149,6 +158,21 @@ export default function WardenLeaves() {
           </tbody>
         </table>
       </div>
+
+      {hasNext && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => {
+              const nextPage = page + 1;
+              setPage(nextPage);
+              fetchLeaves(nextPage);
+            }}
+            className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Load more
+          </button>
+        </div>
+      )}
     </div>
   );
 }

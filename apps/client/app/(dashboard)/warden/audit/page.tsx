@@ -22,6 +22,8 @@ export default function WardenAuditPage() {
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [now, setNow] = useState<number>(0);
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
 
   // Filters
   const [resourceFilter, setResourceFilter] = useState('all');
@@ -50,18 +52,23 @@ export default function WardenAuditPage() {
     router.push('/login');
   };
 
-  const fetchLogs = useCallback(async () => {
+  const fetchLogs = useCallback(async (currentPage = 1) => {
     setLoading(true);
     setError(null);
     try {
-      let query = `/api/v1/audit?limit=50`;
+      let query = `/api/v1/audit?page=${currentPage}&limit=50`;
       if (resourceFilter !== 'all') {
         query += `&resource=${resourceFilter}`;
       }
       const res = await apiGetRef.current(query);
       if (res.success && res.data) {
-        setLogs(res.data as AuditLog[]);
-      } else {
+        if (currentPage === 1) {
+          setLogs(res.data as AuditLog[]);
+        } else {
+          setLogs(prev => [...prev, ...(res.data as AuditLog[])]);
+        }
+        setHasNext(res.pagination?.hasNext || false);
+      } else if (currentPage === 1) {
         setLogs([]);
       }
     } catch (err) {
@@ -74,7 +81,7 @@ export default function WardenAuditPage() {
   }, [resourceFilter]); // resourceFilter is a primitive — safe dep
 
   useEffect(() => {
-    fetchLogs();
+    fetchLogs(1);
   }, [fetchLogs]);
 
   const filteredLogs = logs.filter((log) => {
@@ -156,7 +163,7 @@ export default function WardenAuditPage() {
       {error && (
         <div className="border border-red-100 rounded-xl p-4 bg-red-50 mb-6 flex items-center justify-between">
           <span className="text-sm text-red-600">{error}</span>
-          <button onClick={fetchLogs} className="text-xs text-red-600 underline hover:text-red-800">
+          <button onClick={() => fetchLogs(1)} className="text-xs text-red-600 underline hover:text-red-800">
             Retry
           </button>
         </div>
@@ -296,6 +303,21 @@ export default function WardenAuditPage() {
           </table>
         </div>
       </div>
+
+      {hasNext && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => {
+              const nextPage = page + 1;
+              setPage(nextPage);
+              fetchLogs(nextPage);
+            }}
+            className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Load more
+          </button>
+        </div>
+      )}
     </div>
   );
 }

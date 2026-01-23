@@ -15,6 +15,7 @@ const supabaseMock = {
   in: jest.fn().mockReturnThis(),
   order: jest.fn().mockReturnThis(),
   limit: jest.fn().mockReturnThis(),
+  range: jest.fn().mockReturnThis(),
   single: jest.fn().mockReturnThis(),
   not: jest.fn().mockReturnThis(),
   is: jest.fn().mockReturnThis(),
@@ -105,13 +106,16 @@ describe('Notifications API Integration', () => {
 
   describe('GET /api/notifications', () => {
     it('should return notifications for authenticated user', async () => {
-      queryResults = [{ data: [], error: null }];
+      queryResults = [{ data: [], count: 0, error: null }, { count: 0, error: null }];
       const res = await request(app).get('/api/v1/notifications');
       expect(res.status).toBe(200);
     });
 
     it('should return unread_count', async () => {
-      queryResults = [{ data: [{ is_read: false }], error: null }];
+      queryResults = [
+        { data: [{ is_read: false }], count: 1, error: null },
+        { count: 1, error: null }
+      ];
       const res = await request(app).get('/api/v1/notifications');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveProperty('unread_count');

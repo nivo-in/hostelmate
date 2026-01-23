@@ -7,7 +7,11 @@ const router = Router();
 
 router.get('/', authenticate, requireWarden, async (req, res, next) => {
   try {
-    const { resource, action, limit = 50 } = req.query;
+    const { resource, action } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
 
     let query = supabaseAdmin
       .from('audit_logs')
@@ -15,10 +19,9 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
         `
         *,
         profiles!audit_logs_user_id_fkey(full_name)
-      `
+      `, { count: 'exact' }
       )
-      .order('created_at', { ascending: false })
-      .limit(Number(limit));
+      .order('created_at', { ascending: false });
 
     if (resource) {
       query = query.eq('resource', resource);
@@ -28,11 +31,26 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
       query = query.eq('action', action);
     }
 
-    const { data, error } = await query;
+    query = query.range(from, to);
+
+    const { data, count, error } = await query;
 
     if (error) throw error;
 
-    res.json({ success: true, data });
+    const totalPages = Math.ceil(count / limit);
+
+    res.json({
+      success: true,
+      data,
+      pagination: {
+        page,
+        limit,
+        total: count,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      }
+    });
   } catch (error) {
     next(error);
   }

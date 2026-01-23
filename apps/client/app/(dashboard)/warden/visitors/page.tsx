@@ -30,14 +30,23 @@ export default function WardenVisitors() {
   const [actionId, setActionId] = useState<string | null>(null);
   const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
   const [notes, setNotes] = useState('');
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
 
   const { apiGet, apiPatch } = useApi();
   const supabase = createClient();
 
-  const fetchVisitors = async () => {
+  const fetchVisitors = async (currentPage = 1) => {
     try {
-      const res = await apiGet('/api/v1/visitors');
-      if (res.success) setVisitors(res.data || []);
+      const res = await apiGet(`/api/v1/visitors?page=${currentPage}&limit=20`);
+      if (res.success) {
+        if (currentPage === 1) {
+          setVisitors(res.data || []);
+        } else {
+          setVisitors(prev => [...prev, ...(res.data || [])]);
+        }
+        setHasNext(res.pagination?.hasNext || false);
+      }
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error(e);
@@ -45,7 +54,7 @@ export default function WardenVisitors() {
   };
 
   useEffect(() => {
-    fetchVisitors();
+    fetchVisitors(1);
   }, []);
 
   const handleAction = async (id: string, action: string, notesParam?: string) => {
@@ -56,7 +65,7 @@ export default function WardenVisitors() {
         setActionId(null);
         setActionType(null);
         setNotes('');
-        fetchVisitors();
+        fetchVisitors(1);
       }
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -261,6 +270,21 @@ export default function WardenVisitors() {
           ))
         )}
       </div>
+
+      {hasNext && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => {
+              const nextPage = page + 1;
+              setPage(nextPage);
+              fetchVisitors(nextPage);
+            }}
+            className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Load more
+          </button>
+        </div>
+      )}
     </div>
   );
 }
