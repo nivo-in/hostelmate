@@ -569,6 +569,10 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 
 | Status | Feature | Description |
 |---|---|---|
+| ✅ | **Prettier Setup** | Enforces consistent formatting across all codebase files |
+| ✅ | **TypeScript Strict Mode** | `strict: true` config eliminating `any` and unhandled edge cases |
+| ✅ | **Zero-Warning ESLint** | Production-ready linting blocking unused variables and invalid imports |
+| ✅ | **Husky Git Hooks** | Pre-commit validation preventing broken code from entering version control |
 | ✅ | **GitHub Actions CI/CD** | Lint → build → security audit → Docker verify on every push to v2/main |
 | ✅ | **Redis Caching** | Tiered TTL caching (2–60 min) with smart pattern-based invalidation |
 | ✅ | **Docker** | Multi-service containerisation with `docker-compose` (client + server) |
