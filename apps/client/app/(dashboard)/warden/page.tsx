@@ -46,10 +46,10 @@ export default async function WardenDashboard() {
   let availableRooms = 0;
   if (roomsData) {
     const occupancy: Record<string, number> = {};
-    studentsData?.forEach((s: any) => {
+    studentsData?.forEach((s: { room_id: string | null }) => {
       if (s.room_id) occupancy[s.room_id] = (occupancy[s.room_id] || 0) + 1;
     });
-    roomsData.forEach((r: any) => {
+    roomsData.forEach((r: { id: string; capacity: number }) => {
       const current = occupancy[r.id] || 0;
       if (current < r.capacity) availableRooms++;
     });
