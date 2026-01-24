@@ -107,27 +107,32 @@ export function NotificationBell() {
 
   // WebSocket: refresh on any real-time event (debounced to avoid rapid API calls)
   useSocket({
-    'notice:new': (data: { message?: string }) => {
+    'notice:new': (_data: unknown) => {
+      const data = _data as { message?: string };
       debouncedFetch();
       toast('New Notice', { description: data?.message || 'A new notice was posted.' });
     },
-    'leave:updated': (data: { message?: string }) => {
+    'leave:updated': (_data: unknown) => {
+      const data = _data as { message?: string };
       debouncedFetch();
       toast('Leave Request Updated', {
         description: data?.message || 'Your leave request status changed.',
       });
     },
-    'complaint:updated': (data: { message?: string }) => {
+    'complaint:updated': (_data: unknown) => {
+      const data = _data as { message?: string };
       debouncedFetch();
       toast('Complaint Updated', { description: data?.message || 'A complaint was updated.' });
     },
-    'attendance:marked': (data: { message?: string }) => {
+    'attendance:marked': (_data: unknown) => {
+      const data = _data as { message?: string };
       debouncedFetch();
       toast('Attendance Marked', {
         description: data?.message || 'Attendance has been recorded.',
       });
     },
-    'notification:new': (data: { title?: string; message?: string }) => {
+    'notification:new': (_data: unknown) => {
+      const data = _data as { title?: string; message?: string };
       debouncedFetch();
       toast(data?.title || 'New Notification', {
         description: data?.message || 'You have a new notification.',
