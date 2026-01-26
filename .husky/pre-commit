@@ -1,21 +1,21 @@
-
+#!/bin/sh
 
 echo "🐶 Husky: Running fast checks before commit..."
 
-# Run linting for the client
-echo "Running client linting..."
+# Run ESLint on the client
+echo "▶ Linting client..."
 cd apps/client && pnpm lint
 if [ $? -ne 0 ]; then
-  echo "❌ Client Linting failed. Fix warnings/errors before committing."
+  echo "❌ Client linting failed. Fix ESLint errors before committing."
   exit 1
 fi
 
-# Run backend unit/integration tests
-echo "Running backend unit tests..."
+# Run backend Jest integration tests
+echo "▶ Running backend tests..."
 cd ../server && pnpm test
 if [ $? -ne 0 ]; then
   echo "❌ Backend tests failed. Fix them before committing."
   exit 1
 fi
 
-echo "✅ All fast checks passed!"
+echo "✅ All checks passed — committing."
