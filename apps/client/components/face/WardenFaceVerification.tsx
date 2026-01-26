@@ -378,7 +378,7 @@ export default function WardenFaceVerification({
       {/* Loading */}
       {isLoading && (
         <div className="flex items-center gap-3 text-sm text-gray-500">
-          <svg className="animate-spin transform-gpu w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24">
+          <svg className="animate-spin w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24">
             <circle
               className="opacity-20"
               cx="12"
