@@ -606,7 +606,7 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | 🔲 | Multi-tenancy | Support multiple hostels under one instance |
 | ✅ | Payment Integration | Mess fees and hostel charges via Razorpay |
 | ✅ | Visitor Management | Digital guest check-in / check-out with warden approval |
-| 🔲 | Test Coverage ≥80% | Expand Jest suite to full route coverage with Supertest |
+| ✅ | **Test Coverage ≥80%** | Expanded Jest suite to 200 passing tests with Supertest achieving global >80% coverage |
 | 🔲 | Mobile App | React Native cross-platform app for students and parents |
 
 ---
