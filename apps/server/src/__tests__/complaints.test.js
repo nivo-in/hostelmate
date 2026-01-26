@@ -270,4 +270,21 @@ describe('Complaints API', () => {
       expect(res.status).toBe(403);
     });
   });
+  describe('GET /api/complaints/analytics', () => {
+    it('should return analytics for warden', async () => {
+      currentProfile = mockWardenProfile;
+      supabaseMock.gte.mockResolvedValueOnce({ data: [{ category: 'electrical', created_at: new Date() }], error: null });
+      const res = await request(app).get('/api/v1/complaints/analytics');
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+    });
+  });
+
+  describe('DELETE /api/complaints/:id', () => {
+    it('should soft delete for student', async () => {
+      supabaseMock.single.mockResolvedValueOnce({ data: null, error: null });
+      const res = await request(app).delete('/api/v1/complaints/1');
+      expect(res.status).toBe(200);
+    });
+  });
 });

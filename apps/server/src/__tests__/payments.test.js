@@ -8,7 +8,9 @@ const supabaseMock = {
   update: jest.fn().mockReturnThis(),
   eq: jest.fn().mockReturnThis(),
   in: jest.fn().mockReturnThis(),
+  lte: jest.fn().mockReturnThis(),
   order: jest.fn().mockReturnThis(),
+  range: jest.fn().mockReturnThis(),
   single: jest.fn().mockReturnThis(),
   then: jest.fn(function (resolve) {
     resolve(queryResults.shift() || { data: null, error: null });
@@ -143,5 +145,112 @@ describe('Payments API', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
+  });
+
+  it('GET /api/v1/payments/all should return all payments for warden', async () => {
+    currentProfile = { id: 'warden-id', role: 'warden' };
+    queryResults = [
+      { data: [{ id: 'payment-1', status: 'paid', amount: 500 }], count: 1, error: null },
+    ];
+
+    const res = await request(app).get('/api/v1/payments/all');
+    expect(res.status).toBe(200);
+    expect(res.body.data.payments).toHaveLength(1);
+    expect(res.body.data.summary.total_collected).toBe(500);
+  });
+
+  it('POST /api/v1/payments/generate-bills should generate bills for warden', async () => {
+    currentProfile = { id: 'warden-id', role: 'warden' };
+    queryResults = [
+      { data: { id: 'fs-1', amount: 2000 }, error: null },
+      { data: [{ id: 'student-1' }], error: null },
+      { data: null, error: null },
+    ];
+
+    const res = await request(app).post('/api/v1/payments/generate-bills').send({
+      fee_structure_id: '123e4567-e89b-12d3-a456-426614174000',
+      period_label: 'June 2026',
+      due_date: '2026-06-30',
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.generated).toBe(1);
+  });
+
+  it('POST /api/v1/payments/cancel should cancel payment for student', async () => {
+    queryResults = [
+      { data: null, error: null },
+    ];
+    const res = await request(app).post('/api/v1/payments/cancel').send({
+      fee_payment_id: '123e4567-e89b-12d3-a456-426614174000',
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
+
+  it('GET /api/v1/payments/students-list should return students', async () => {
+    currentProfile = { id: 'warden-id', role: 'warden' };
+    queryResults = [{ data: [{ id: 's1', roll_number: '123' }], error: null }];
+
+    const res = await request(app).get('/api/v1/payments/students-list');
+    expect(res.status).toBe(200);
+    expect(res.body.data).toHaveLength(1);
+  });
+
+  it('POST /api/v1/payments/send-reminders should notify and update cache', async () => {
+    currentProfile = { id: 'warden-id', role: 'warden' };
+    queryResults = [
+      { data: [{ id: 'p1', amount: 5000, student_id: 'student-id' }], error: null },
+      { data: null, error: null }, // parent check
+    ];
+
+    const res = await request(app).post('/api/v1/payments/send-reminders');
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.reminders_sent).toBe(1);
+  });
+
+  it('PATCH /api/v1/payments/:id/mark-paid should mark as paid offline', async () => {
+    currentProfile = { id: 'warden-id', role: 'warden' };
+    queryResults = [
+      { data: { id: 'p1', amount: 5000, student_id: 'student-id' }, error: null },
+    ];
+
+    const res = await request(app).patch('/api/v1/payments/p1/mark-paid').send({ payment_method: 'cash' });
+    expect(res.status).toBe(200);
+    expect(res.body.data.id).toBe('p1');
+  });
+
+  it('GET /api/v1/payments/receipt/:id should return receipt details', async () => {
+    currentProfile = { id: 'warden-id', role: 'warden' };
+    queryResults = [
+      { data: { id: 'p1', amount: 5000, student_id: 'student-id' }, error: null },
+    ];
+
+    const res = await request(app).get('/api/v1/payments/receipt/p1');
+    expect(res.status).toBe(200);
+    expect(res.body.data.id).toBe('p1');
+  });
+
+  it('GET /api/v1/payments/receipt/:id should return receipt for parent', async () => {
+    currentProfile = { id: 'parent-id', role: 'parent' };
+    queryResults = [
+      { data: { id: 'p1', amount: 5000, student_id: 'student-id' }, error: null },
+      { data: { student_id: 'student-id' }, error: null },
+    ];
+
+    const res = await request(app).get('/api/v1/payments/receipt/p1');
+    expect(res.status).toBe(200);
+    expect(res.body.data.id).toBe('p1');
+  });
+
+  it('GET /api/v1/payments/last-reminder should return last reminder for warden', async () => {
+    currentProfile = { id: 'warden-id', role: 'warden' };
+    const { getCache } = await import('../config/redis.js');
+    getCache.mockResolvedValueOnce('2023-01-01');
+
+    const res = await request(app).get('/api/v1/payments/last-reminder');
+    expect(res.status).toBe(200);
+    expect(res.body.last_reminder).toBe('2023-01-01');
   });
 });
