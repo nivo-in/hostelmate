@@ -24,20 +24,17 @@ export function PageHeader({ title, showBack, backHref, onSignOut: _onSignOut }:
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const executeSignOut = async () => {
+  const executeSignOut = () => {
     if (isSigningOut) return;
     setIsSigningOut(true);
-    try {
-      const { createClient } = await import('@/lib/supabase/client');
-      await Promise.race([
-        createClient().auth.signOut(),
-        new Promise((resolve) => setTimeout(resolve, 500))
-      ]);
-    } catch (error) {
-      console.error('Sign out error:', error);
-    } finally {
-      window.location.href = '/login';
-    }
+    
+    // Fire-and-forget sign out without awaiting
+    import('@/lib/supabase/client')
+      .then(({ createClient }) => createClient().auth.signOut())
+      .catch((error) => console.error('Sign out error:', error));
+      
+    // Instant zero-latency redirect
+    window.location.href = '/login';
   };
 
   // Infer the dashboard href if backHref isn't provided (e.g. /warden/complaints -> /warden/dashboard)
