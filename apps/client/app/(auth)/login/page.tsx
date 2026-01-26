@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, lazy, Suspense } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-
-const WardenFaceVerification = lazy(() => import('@/components/face/WardenFaceVerification'));
+import WardenFaceVerification from '@/components/face/WardenFaceVerification';
 
 type LoginStep =
   | 'credentials' // default — show email/password form
@@ -93,33 +92,12 @@ export default function LoginPage() {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-sm border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-          <Suspense
-            fallback={
-              <div className="p-8 text-center">
-                <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
-                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                  </svg>
-                  Loading face recognition...
-                </div>
-              </div>
-            }
-          >
             <WardenFaceVerification
               wardenId={pendingUserId}
               onVerified={handleFaceVerified}
               onFailed={handleFaceFailed}
               onSkip={handleFaceSkip}
             />
-          </Suspense>
         </div>
       </div>
     );
@@ -129,17 +107,17 @@ export default function LoginPage() {
   if (step === 'done') {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="flex items-center gap-2 text-sm text-gray-400">
-          <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+        <div className="flex flex-col items-center gap-3 text-sm text-gray-400">
+          <svg className="animate-spin transform-gpu w-5 h-5 text-gray-900" fill="none" viewBox="0 0 24 24">
             <circle
-              className="opacity-25"
+              className="opacity-20"
               cx="12"
               cy="12"
               r="10"
               stroke="currentColor"
-              strokeWidth="4"
+              strokeWidth="3"
             />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+            <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
           </svg>
           Redirecting...
         </div>
