@@ -33,7 +33,7 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getSession();
   const path = request.nextUrl.pathname;
 
-  const publicPaths = ['/login'];
+  const publicPaths = ['/', '/login'];
   const isPublicPath = publicPaths.includes(path);
 
   // No session → redirect to login
