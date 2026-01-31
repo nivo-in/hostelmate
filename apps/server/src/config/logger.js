@@ -21,6 +21,11 @@ const consoleTransport = new winston.transports.Console({
   format: combine(colorize(), timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), logFormat),
 });
 
+const transports = [consoleTransport];
+if (process.env.NODE_ENV !== 'test') {
+  transports.push(fileTransport);
+}
+
 const logger = winston.createLogger({
   levels: {
     error: 0,
@@ -30,7 +35,7 @@ const logger = winston.createLogger({
     debug: 4,
   },
   format: combine(timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), logFormat),
-  transports: [consoleTransport, fileTransport],
+  transports,
 });
 
 export default logger;

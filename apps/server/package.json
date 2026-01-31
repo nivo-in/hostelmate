@@ -7,9 +7,9 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "test": "GROQ_API_KEY=test_key RAZORPAY_KEY_ID=test RAZORPAY_KEY_SECRET=test node --experimental-vm-modules node_modules/jest/bin/jest.js --forceExit",
+    "test": "GROQ_API_KEY=test_key RAZORPAY_KEY_ID=test RAZORPAY_KEY_SECRET=test node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "GROQ_API_KEY=test_key RAZORPAY_KEY_ID=test RAZORPAY_KEY_SECRET=test node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-    "test:coverage": "GROQ_API_KEY=test_key RAZORPAY_KEY_ID=test RAZORPAY_KEY_SECRET=test node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage --forceExit",
+    "test:coverage": "GROQ_API_KEY=test_key RAZORPAY_KEY_ID=test RAZORPAY_KEY_SECRET=test node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "lint": "eslint src/ --ext .js"
   },
   "packageManager": "pnpm@10.33.2",
