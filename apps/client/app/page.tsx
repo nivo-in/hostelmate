@@ -1,7 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { useRef, useCallback, useEffect } from 'react'
+import { useRef, useCallback, useEffect, useState } from 'react'
+import useEmblaCarousel from 'embla-carousel-react'
+import Autoplay from 'embla-carousel-autoplay'
 import styles from './landing.module.css'
 
 const PROXIMITY = 48 // px — how close to a floating card triggers it
@@ -30,6 +32,105 @@ function resetCard(el: HTMLDivElement, translate: string) {
 }
 
 export default function Home() {
+  const features = [
+    {
+      tag: 'Biometric',
+      title: 'Face recognition attendance',
+      desc: '5-angle scan with blink liveness detection. The most secure hostel attendance system available.',
+      stroke: '#4ade80',
+      bg: 'rgba(74,222,128,0.1)',
+      path: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z',
+      details: ['5-angle facial scan', 'Blink liveness detection', 'Anti-spoofing protection', 'Works offline with cached data']
+    },
+    {
+      tag: 'Real-time',
+      title: 'Live parent tracking',
+      desc: 'Parents see attendance the moment it is marked via WebSocket. Zero delay, full transparency.',
+      stroke: '#a78bfa',
+      bg: 'rgba(167,139,250,0.1)',
+      path: 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 8v4l3 3',
+      details: ['WebSocket real-time updates', 'Curfew violation alerts', 'Leave status notifications', 'Emergency broadcast to parents']
+    },
+    {
+      tag: 'GPT-4o mini',
+      title: 'AI complaint analysis',
+      desc: 'Auto-categorises urgency using NLP. Suggests resolution steps so wardens act faster.',
+      stroke: '#fbbf24',
+      bg: 'rgba(251,191,36,0.1)',
+      path: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z',
+      details: ['Auto-category detection', 'Urgency flagging', 'AI-suggested resolution', 'Predictive maintenance patterns']
+    },
+    {
+      tag: 'Razorpay',
+      title: 'Online fee collection',
+      desc: 'Hostel and mess fees online. Monthly or yearly billing. Parents can pay directly from their portal.',
+      stroke: '#60a5fa',
+      bg: 'rgba(96,165,250,0.1)',
+      path: 'M2 7a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V7zM2 10h20',
+      details: ['Razorpay payment gateway', 'Monthly and yearly billing', 'Parent portal payments', 'Automatic due reminders']
+    },
+    {
+      tag: 'Instant',
+      title: 'Emergency broadcast',
+      desc: 'One tap alerts all students, wardens, and parents simultaneously. Night curfew auto-alerts built in.',
+      stroke: '#f87171',
+      bg: 'rgba(248,113,113,0.1)',
+      path: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
+      details: ['Instant broadcast to all', 'Night curfew auto-detection', 'Violation parent alerts', 'Emergency contact system']
+    },
+    {
+      tag: 'Analytics',
+      title: 'Maintenance analytics',
+      desc: 'Pattern detection from 30-day complaint history. Prevents recurring issues before they escalate.',
+      stroke: '#34d399',
+      bg: 'rgba(52,211,153,0.1)',
+      path: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+      details: ['30-day pattern analysis', 'Block-wise comparisons', 'Staff performance scoring', 'Warden KPI dashboard']
+    },
+    {
+      tag: 'Management',
+      title: 'Room allocation',
+      desc: 'Assign rooms, handle transfer requests, track occupancy. Complete hostel room management.',
+      stroke: '#fb923c',
+      bg: 'rgba(251,146,60,0.1)',
+      path: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
+      details: ['Room assignment dashboard', 'Transfer request system', 'Block and room management', 'Occupancy tracking']
+    },
+    {
+      tag: 'Digital',
+      title: 'Visitor management',
+      desc: 'Digital guest check-in with warden approval. Complete visitor log with check-in and check-out times.',
+      stroke: '#e879f9',
+      bg: 'rgba(232,121,249,0.1)',
+      path: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z',
+      details: ['Warden approval flow', 'Check-in and check-out log', 'Parent visitor notifications', 'Relationship verification']
+    },
+    {
+      tag: 'Staff',
+      title: 'Staff performance',
+      desc: 'Daily attendance tracking and student feedback ratings for cleaners, security, and admin staff.',
+      stroke: '#38bdf8',
+      bg: 'rgba(56,189,248,0.1)',
+      path: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+      details: ['Daily present/absent toggle', 'Student star ratings', 'Monthly performance report', 'Attendance percentage tracking']
+    },
+  ]
+
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, align: 'center', skipSnaps: false },
+    [Autoplay({ delay: 3500, stopOnInteraction: true })]
+  )
+  const [selectedIndex, setSelectedIndex] = useState(0)
+
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
+
+  useEffect(() => {
+    if (!emblaApi) return
+    const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap())
+    emblaApi.on('select', onSelect)
+    return () => { emblaApi.off('select', onSelect) }
+  }, [emblaApi])
   const cardRef = useRef<HTMLDivElement>(null)
   const fc1Ref = useRef<HTMLDivElement>(null)
   const fc2Ref = useRef<HTMLDivElement>(null)
@@ -219,26 +320,59 @@ export default function Home() {
       </section>
 
       <section id="features" className={styles.features}>
-        <div className={styles.featuresLabel}>What&apos;s inside</div>
-        <div className={styles.featuresGrid}>
-          {[
-            { icon: '#4ade80', stroke: '#4ade80', tag: 'Anti-spoofing', title: 'Face recognition attendance', desc: '5-angle scan with blink detection. No phone handover proxy possible.', path: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z' },
-            { icon: '#a78bfa', stroke: '#a78bfa', tag: 'Real-time', title: 'Live parent tracking', desc: "Parents see attendance the moment it's marked via WebSocket.", path: 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 8v4l3 3' },
-            { icon: '#fbbf24', stroke: '#fbbf24', tag: 'GPT-4o mini', title: 'AI complaint analysis', desc: 'Auto-categorises and flags urgent issues. Suggests resolution steps.', path: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z' },
-            { icon: '#60a5fa', stroke: '#60a5fa', tag: 'Razorpay', title: 'Online fee collection', desc: 'Mess + hostel fees. Monthly or yearly. Parents can pay directly.', path: 'M2 7a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V7zM2 10h20' },
-            { icon: '#f87171', stroke: '#f87171', tag: 'Instant', title: 'Emergency broadcast', desc: 'One click to notify all students and staff simultaneously.', path: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
-            { icon: '#34d399', stroke: '#34d399', tag: 'Predictive', title: 'Maintenance analytics', desc: 'Pattern detection from complaint history. Prevents recurring issues.', path: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
-          ].map((f, i) => (
-            <div key={i} className={styles.featureCell}>
-              <div className={styles.featureIconRow}>
-                <div className={styles.featureIcon} style={{ background: `rgba(${f.icon === '#4ade80' ? '74,222,128' : f.icon === '#a78bfa' ? '167,139,250' : f.icon === '#fbbf24' ? '251,191,36' : f.icon === '#60a5fa' ? '96,165,250' : f.icon === '#f87171' ? '248,113,113' : '52,211,153'},0.1)` }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={f.stroke} strokeWidth="1.5"><path d={f.path} /></svg>
+        <div className={styles.featuresHeader}>
+          <div className={styles.featuresLabel}>What&apos;s inside</div>
+          <div className={styles.carouselNav}>
+            <button className={styles.carouselBtn} onClick={scrollPrev} aria-label="Previous">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <span className={styles.carouselCount}>{selectedIndex + 1} / {features.length}</span>
+            <button className={styles.carouselBtn} onClick={scrollNext} aria-label="Next">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.emblaViewport} ref={emblaRef}>
+          <div className={styles.emblaContainer}>
+            {features.map((f, i) => (
+              <div key={i} className={`${styles.emblaSlide} ${i === selectedIndex ? styles.emblaSlideActive : ''}`}>
+                <div className={styles.featureCard3d}>
+                  <div className={styles.featureCardInner}>
+                    <div className={styles.featureIconRow}>
+                      <div className={styles.featureIcon} style={{background: f.bg}}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={f.stroke} strokeWidth="1.5">
+                          <path d={f.path}/>
+                        </svg>
+                      </div>
+                      <span className={styles.featureTag}>{f.tag}</span>
+                    </div>
+                    <div className={styles.featureTitle}>{f.title}</div>
+                    <div className={styles.featureDesc}>{f.desc}</div>
+                    <div className={styles.featureDetails}>
+                      {f.details.map((d, j) => (
+                        <div key={j} className={styles.featureDetailItem}>
+                          <div className={styles.featureDetailDot} style={{background: f.stroke}} />
+                          <span>{d}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className={styles.featureCardGlow} style={{background: `radial-gradient(ellipse at 30% 50%, ${f.stroke}18 0%, transparent 60%)`}} />
                 </div>
-                <span className={styles.featureTag}>{f.tag}</span>
               </div>
-              <div className={styles.featureTitle}>{f.title}</div>
-              <div className={styles.featureDesc}>{f.desc}</div>
-            </div>
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.emblaDotsRow}>
+          {features.map((_, i) => (
+            <button
+              key={i}
+              className={`${styles.emblaDot} ${i === selectedIndex ? styles.emblaDotActive : ''}`}
+              onClick={() => emblaApi?.scrollTo(i)}
+              aria-label={`Go to slide ${i + 1}`}
+            />
           ))}
         </div>
       </section>
