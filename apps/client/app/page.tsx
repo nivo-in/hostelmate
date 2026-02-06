@@ -1,9 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRef, useCallback, useEffect, useState } from 'react'
-import useEmblaCarousel from 'embla-carousel-react'
-import Autoplay from 'embla-carousel-autoplay'
+import { useRef, useCallback, useEffect } from 'react'
 import styles from './landing.module.css'
 
 const PROXIMITY = 48 // px — how close to a floating card triggers it
@@ -116,27 +114,209 @@ export default function Home() {
     },
   ]
 
-  const [emblaRef, emblaApi] = useEmblaCarousel(
-    { loop: true, align: 'center', skipSnaps: false },
-    [Autoplay({ delay: 3500, stopOnInteraction: true })]
-  )
-  const [selectedIndex, setSelectedIndex] = useState(0)
+  const cylinderRef = useRef<HTMLDivElement>(null)
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([])
+  const scrollWrapperRef = useRef<HTMLDivElement>(null)
+  
+  const currentRot = useRef(0)
+  const targetRot = useRef(0)
+  const wheelAnimRef = useRef<number | null>(null)
 
-  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
-  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
+  const tickWheel = useCallback(function tickWheelFn() {
+    if (window.innerWidth <= 768) {
+      if (cylinderRef.current) cylinderRef.current.style.transform = ''
+      cardsRef.current.forEach(card => {
+        if (!card) return
+        card.style.transform = ''
+        card.style.opacity = ''
+        card.style.pointerEvents = ''
+        card.style.filter = ''
+      })
+      wheelAnimRef.current = requestAnimationFrame(tickWheelFn)
+      return
+    }
+
+    currentRot.current += (targetRot.current - currentRot.current) * 0.025
+    const RADIUS = window.innerWidth > 1024 ? 430 : 320
+
+    if (cylinderRef.current) {
+      cylinderRef.current.style.transform = `rotateY(${currentRot.current}deg)`
+    }
+
+    cardsRef.current.forEach((card, i) => {
+      if (!card) return
+      const cardAngle = i * 40
+      
+      let absRot = (cardAngle + currentRot.current) % 360
+      if (absRot < 0) absRot += 360
+      if (absRot > 180) absRot = 360 - absRot
+
+      let opacity = 1
+      let scale = 1
+      let pointerEvents = 'auto'
+
+      if (absRot < 40) {
+        const progress = absRot / 40
+        opacity = 1 - (1 - 0.45) * progress
+        scale = 1 - (1 - 0.9) * progress
+      } else if (absRot < 80) {
+        const progress = (absRot - 40) / 40
+        opacity = 0.45 - (0.45 - 0.15) * progress
+        scale = 0.9 - (0.9 - 0.8) * progress
+      } else {
+        opacity = 0.15 - (0.15 - 0.05) * Math.min(1, (absRot - 80) / 100)
+        scale = 0.8
+        pointerEvents = 'none'
+      }
+
+      let blur = 0
+      if (absRot > 40) {
+        blur = Math.min((absRot - 40) * 0.1, 4)
+      }
+
+      card.style.opacity = opacity.toString()
+      card.style.filter = `blur(${blur}px)`
+      card.style.transform = `rotateY(${cardAngle}deg) translateZ(${RADIUS}px) scale(${scale})`
+      card.style.pointerEvents = pointerEvents as "auto" | "none"
+    })
+
+    if (Math.abs(targetRot.current - currentRot.current) > 0.01) {
+      wheelAnimRef.current = requestAnimationFrame(tickWheelFn)
+    } else {
+      currentRot.current = targetRot.current
+      wheelAnimRef.current = null
+    }
+  }, [])
 
   useEffect(() => {
-    if (!emblaApi) return
-    const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap())
-    emblaApi.on('select', onSelect)
-    return () => { emblaApi.off('select', onSelect) }
-  }, [emblaApi])
+    const handleScroll = () => {
+      if (window.innerWidth <= 768) return
+      if (!scrollWrapperRef.current) return
+      
+      const rect = scrollWrapperRef.current.getBoundingClientRect()
+      // Leave 100vh buffer at the end of the rotation to absorb scroll momentum
+      const scrollSpace = rect.height - window.innerHeight * 2
+      let progress = 0
+      
+      if (scrollSpace > 0) {
+        progress = Math.max(0, Math.min(1, -rect.top / scrollSpace))
+      }
+
+      // Parallax for Hero
+      if (heroTextRef.current) {
+        const y = window.scrollY
+        if (y < window.innerHeight) {
+          // Slide upwards and fade out
+          heroTextRef.current.style.transform = `translateY(${-y * 0.4}px)`
+          heroTextRef.current.style.opacity = `${1 - y / (window.innerHeight * 0.4)}`
+        }
+      }
+
+      // Slide in/out for carousel and "What's inside" text
+      if (whatsInsideRef.current && cylinderSceneRef.current) {
+        let entryProgress = 1
+        if (rect.top > 0) {
+          entryProgress = Math.max(0, 1 - (rect.top / window.innerHeight))
+        }
+
+        let bufferProgress = 0
+        if (-rect.top > scrollSpace) {
+          bufferProgress = Math.min(1, (-rect.top - scrollSpace) / window.innerHeight)
+        }
+
+        let opacityH = 1
+        let opacityC = 1
+        let yH = 0
+        let yC = 0
+        let scaleC = 1
+
+        const easeOutQuart = (t: number) => 1 - Math.pow(1 - t, 4)
+
+        if (entryProgress < 1) {
+          // Let IntersectionObserver CSS handle text entry
+          whatsInsideRef.current.style.opacity = ''
+          whatsInsideRef.current.style.transform = ''
+          
+          // Cylinder still fades in via scroll physics
+          const cylinderP = Math.max(0, Math.min(1, (entryProgress - 0.2) * 1.5))
+          const easeC = easeOutQuart(cylinderP)
+
+          opacityC = easeC
+          yC = (1 - easeC) * 150
+          scaleC = 0.95 + easeC * 0.05
+        } else if (bufferProgress > 0) {
+          // Slide out to top during momentum buffer
+          const easeProgress = easeOutQuart(bufferProgress)
+          opacityH = Math.max(0, 1 - easeProgress)
+          opacityC = opacityH
+          yH = -easeProgress * 150
+          yC = yH
+          scaleC = Math.max(0.9, 1 - easeProgress * 0.05)
+        }
+
+        if (entryProgress >= 1 || bufferProgress > 0) {
+          whatsInsideRef.current.style.opacity = `${opacityH}`
+          whatsInsideRef.current.style.transform = `translateY(${yH}px)`
+        }
+
+        cylinderSceneRef.current.style.opacity = `${opacityC}`
+        cylinderSceneRef.current.style.transform = `translateY(${yC}px) scale(${scaleC})`
+      }
+
+
+      
+      targetRot.current = progress * -360
+      
+      if (!wheelAnimRef.current) wheelAnimRef.current = requestAnimationFrame(tickWheel)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+    
+    if (!wheelAnimRef.current) wheelAnimRef.current = requestAnimationFrame(tickWheel)
+
+    const onResize = () => {
+      handleScroll()
+    }
+    window.addEventListener('resize', onResize)
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', onResize)
+      if (wheelAnimRef.current) cancelAnimationFrame(wheelAnimRef.current)
+    }
+  }, [tickWheel])
   const cardRef = useRef<HTMLDivElement>(null)
   const fc1Ref = useRef<HTMLDivElement>(null)
   const fc2Ref = useRef<HTMLDivElement>(null)
+  const footerRef = useRef<HTMLElement>(null)
+  const loginLeftRef = useRef<HTMLDivElement>(null)
+  const loginRightRef = useRef<HTMLDivElement>(null)
+  const heroTextRef = useRef<HTMLDivElement>(null)
+  const whatsInsideRef = useRef<HTMLDivElement>(null)
+  const cylinderSceneRef = useRef<HTMLDivElement>(null)
+  const loginWrapperRef = useRef<HTMLDivElement>(null)
   const animRef = useRef<number | null>(null)
   const target = useRef({ x: 4, y: -8 })
   const current = useRef({ x: 4, y: -8 })
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add(styles.revealVisible)
+        } else {
+          entry.target.classList.remove(styles.revealVisible)
+        }
+      })
+    }, { threshold: 0.01 })
+    
+    if (footerRef.current) observer.observe(footerRef.current)
+    if (whatsInsideRef.current) observer.observe(whatsInsideRef.current)
+    if (loginLeftRef.current) observer.observe(loginLeftRef.current)
+    if (loginRightRef.current) observer.observe(loginRightRef.current)
+    return () => observer.disconnect()
+  }, [])
   const activeStates = useRef({ fc1: false, fc2: false })
   const timers = useRef<{ fc1: number | null, fc2: number | null }>({ fc1: null, fc2: null })
 
@@ -145,8 +325,8 @@ export default function Home() {
   const tick = useCallback(function tickFn() {
     const el = cardRef.current
     if (!el) return
-    current.current.x = lerp(current.current.x, target.current.x, 0.07)
-    current.current.y = lerp(current.current.y, target.current.y, 0.07)
+    current.current.x = lerp(current.current.x, target.current.x, 0.05)
+    current.current.y = lerp(current.current.y, target.current.y, 0.05)
     el.style.transform = `rotateY(${current.current.y}deg) rotateX(${current.current.x}deg)`
     if (Math.abs(current.current.x - target.current.x) > 0.005 || Math.abs(current.current.y - target.current.y) > 0.005) {
       animRef.current = requestAnimationFrame(tickFn)
@@ -264,7 +444,7 @@ export default function Home() {
       </nav>
 
       <section className={styles.hero}>
-        <div>
+        <div ref={heroTextRef}>
           <h1 className={styles.heroTitle}>
             Run your hostel.<br />
             <span className={styles.heroTitleDim}>Not paperwork.</span>
@@ -359,105 +539,96 @@ export default function Home() {
             </div>
           </div>
         </div>
+        <div className={styles.heroScrollHint}>
+          <span className={styles.heroScrollHintText}>Scroll to explore</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M12 5v14M19 12l-7 7-7-7"/>
+          </svg>
+        </div>
       </section>
 
-      <section id="features" className={styles.features}>
-        <div className={styles.featuresHeader}>
-          <div className={styles.featuresLabel}>What&apos;s inside</div>
-          <div className={styles.carouselNav}>
-            <button className={styles.carouselBtn} onClick={scrollPrev} aria-label="Previous">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <span className={styles.carouselCount}>{selectedIndex + 1} / {features.length}</span>
-            <button className={styles.carouselBtn} onClick={scrollNext} aria-label="Next">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18l6-6-6-6"/></svg>
-            </button>
+      <div className={styles.featuresScrollWrapper} ref={scrollWrapperRef}>
+        <section id="features" className={styles.features}>
+          <div ref={whatsInsideRef} className={`${styles.featuresHeader} ${styles.revealUp}`}>
+            <div className={styles.featuresLabel}>What&apos;s inside</div>
           </div>
-        </div>
 
-        <div className={styles.emblaViewport} ref={emblaRef}>
-          <div className={styles.emblaContainer}>
-            {features.map((f, i) => (
-              <div key={i} className={`${styles.emblaSlide} ${i === selectedIndex ? styles.emblaSlideActive : ''}`}>
-                <div className={styles.featureCard3d}>
-                  <div className={styles.featureCardInner}>
-                    <div className={styles.featureIconRow}>
-                      <div className={styles.featureIcon} style={{background: f.bg}}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={f.stroke} strokeWidth="1.5">
-                          <path d={f.path}/>
-                        </svg>
-                      </div>
-                      <span className={styles.featureTag}>{f.tag}</span>
+          <div ref={cylinderSceneRef} className={styles.cylinderScene}>
+            <div ref={cylinderRef} className={styles.cylinder}>
+              {features.map((f, i) => (
+                <div 
+                  key={i} 
+                  className={styles.cylinderCard}
+                  ref={(el) => {
+                    cardsRef.current[i] = el;
+                  }}
+                >
+                  <div className={styles.featureIconRow}>
+                    <div className={styles.featureIcon}>
+                      <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.5">
+                        <path d={f.path}/>
+                      </svg>
                     </div>
-                    <div className={styles.featureTitle}>{f.title}</div>
-                    <div className={styles.featureDesc}>{f.desc}</div>
-                    <div className={styles.featureDetails}>
-                      {f.details.map((d, j) => (
-                        <div key={j} className={styles.featureDetailItem}>
-                          <div className={styles.featureDetailDot} style={{background: f.stroke}} />
-                          <span>{d}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <span className={styles.featureTag}>{f.tag}</span>
                   </div>
-                  <div className={styles.featureCardGlow} style={{background: `radial-gradient(ellipse at 30% 50%, ${f.stroke}18 0%, transparent 60%)`}} />
+                  <div className={styles.featureTitle}>{f.title}</div>
+                  <div className={styles.featureDesc}>{f.desc}</div>
+                  <div className={styles.featureDetails}>
+                    {f.details.map((d, j) => (
+                      <div key={j} className={styles.featureDetailItem}>
+                        <div className={styles.featureDetailDot} />
+                        <span>{d}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div ref={loginWrapperRef} className={styles.loginScrollWrapper}>
+        <section className={styles.loginPreview}>
+          <div className={styles.sectionEyebrow}>Sign in experience</div>
+          <div className={styles.loginLayout}>
+            <div ref={loginLeftRef} className={`${styles.revealUp} ${styles.stagger1}`}>
+              <h2 className={styles.loginLeftH2}>Three roles.<br />One clean login.</h2>
+              <p className={styles.loginLeftP}>Students, wardens, and parents each get a tailored dashboard. The 3D cursor-reactive background activates on the login screen — subtle motion that makes it feel alive without distracting.</p>
+              <div className={styles.loginTags}>
+                <span className={styles.loginTag}>cursor parallax</span>
+                <span className={styles.loginTag}>magnetic buttons</span>
+                <span className={styles.loginTag}>3D card tilt</span>
+                <span className={styles.loginTag}>smooth transitions</span>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className={styles.emblaDotsRow}>
-          {features.map((_, i) => (
-            <button
-              key={i}
-              className={`${styles.emblaDot} ${i === selectedIndex ? styles.emblaDotActive : ''}`}
-              onClick={() => emblaApi?.scrollTo(i)}
-              aria-label={`Go to slide ${i + 1}`}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.loginPreview}>
-        <div className={styles.sectionEyebrow}>Sign in experience</div>
-        <div className={styles.loginLayout}>
-          <div>
-            <h2 className={styles.loginLeftH2}>Three roles.<br />One clean login.</h2>
-            <p className={styles.loginLeftP}>Students, wardens, and parents each get a tailored dashboard. The 3D cursor-reactive background activates on the login screen — subtle motion that makes it feel alive without distracting.</p>
-            <div className={styles.loginTags}>
-              <span className={styles.loginTag}>cursor parallax</span>
-              <span className={styles.loginTag}>magnetic buttons</span>
-              <span className={styles.loginTag}>3D card tilt</span>
-              <span className={styles.loginTag}>smooth transitions</span>
+            </div>
+            <div ref={loginRightRef} className={`${styles.loginCard} ${styles.revealUp} ${styles.stagger2}`}>
+              <div className={styles.loginLogo}>HostelMate</div>
+              <div className={styles.loginBy}>by Nivo Technologies</div>
+              <div className={styles.roleTabs}>
+                <div className={`${styles.roleTab} ${styles.roleTabActive}`}>Student</div>
+                <div className={styles.roleTab}>Warden</div>
+                <div className={styles.roleTab}>Parent</div>
+              </div>
+              <div className={styles.loginField}>
+                <div className={styles.loginLabel}>Email address</div>
+                <div className={styles.loginInput}>student@college.edu</div>
+              </div>
+              <div className={styles.loginField}>
+                <div className={styles.loginLabel}>Password</div>
+                <div className={styles.loginInput}>••••••••••</div>
+              </div>
+              <button className={styles.loginBtn}>Sign in</button>
+              <div className={styles.loginHint}>
+                <div className={styles.loginHintDot} />
+                <div className={styles.loginHintText}>Move your cursor on the login page — a 3D depth field responds to your mouse position using Three.js particles</div>
+              </div>
             </div>
           </div>
-          <div className={styles.loginCard}>
-            <div className={styles.loginLogo}>HostelMate</div>
-            <div className={styles.loginBy}>by Nivo Technologies</div>
-            <div className={styles.roleTabs}>
-              <div className={`${styles.roleTab} ${styles.roleTabActive}`}>Student</div>
-              <div className={styles.roleTab}>Warden</div>
-              <div className={styles.roleTab}>Parent</div>
-            </div>
-            <div className={styles.loginField}>
-              <div className={styles.loginLabel}>Email address</div>
-              <div className={styles.loginInput}>student@college.edu</div>
-            </div>
-            <div className={styles.loginField}>
-              <div className={styles.loginLabel}>Password</div>
-              <div className={styles.loginInput}>••••••••••</div>
-            </div>
-            <button className={styles.loginBtn}>Sign in</button>
-            <div className={styles.loginHint}>
-              <div className={styles.loginHintDot} />
-              <div className={styles.loginHintText}>Move your cursor on the login page — a 3D depth field responds to your mouse position using Three.js particles</div>
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      <footer className={styles.footer}>
+      <footer ref={footerRef} className={`${styles.footer} ${styles.revealUp} ${styles.stagger3}`}>
         <div className={styles.footerLeft}>HostelMate — Nivo Technologies</div>
         <div className={styles.footerRight}>Private · Not for distribution</div>
       </footer>
