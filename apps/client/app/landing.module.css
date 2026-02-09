@@ -516,38 +516,44 @@
 .featureIconRow {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 0;
 }
 
 .featureIcon {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(255,255,255,0.06);
+  border: 0.5px solid rgba(255,255,255,0.1);
   flex-shrink: 0;
 }
 
 .featureTag {
   font-size: 10px;
-  color: rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.28);
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 1.2px;
+  font-weight: 500;
 }
 
 .featureTitle {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 500;
-  color: rgba(255,255,255,0.82);
-  margin-bottom: 8px;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 10px;
+  margin-top: 16px;
+  letter-spacing: -0.3px;
+  line-height: 1.3;
 }
 
 .featureDesc {
-  font-size: 12px;
-  color: rgba(255,255,255,0.32);
-  line-height: 1.65;
+  font-size: 13px;
+  color: rgba(255,255,255,0.38);
+  line-height: 1.7;
 }
 
 .loginScrollWrapper {
@@ -790,52 +796,57 @@
   left: 0;
   width: 320px;
   height: 380px;
-  background: #0b101e;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 30px;
+  background: rgba(10, 14, 28, 0.92);
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 32px 28px;
   will-change: transform, opacity, filter;
   display: flex;
   flex-direction: column;
+  gap: 0;
+  backdrop-filter: blur(12px);
 }
 
 .featureIcon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.06);
+  border: 0.5px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
 }
 
 .featureIcon svg {
-  stroke: #8892b0;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
 }
 
 .featureDetails {
   margin-top: auto;
+  padding-top: 20px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  border-top: 0.5px solid rgba(255,255,255,0.07);
 }
 
 .featureDetailItem {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #64748b;
+  gap: 10px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 0.1px;
 }
 
 .featureDetailDot {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: #334155;
+  background: rgba(255,255,255,0.25);
   flex-shrink: 0;
 }
 
