@@ -563,7 +563,7 @@ export default function Home() {
                     cardsRef.current[i] = el;
                   }}
                   style={{
-                    background: `radial-gradient(ellipse at 50% 40%, ${f.bg} 0%, transparent 68%), rgba(10, 14, 28, 0.92)`,
+                    background: `radial-gradient(ellipse at 50% 40%, ${f.bg} 0%, transparent 50%), rgba(10, 14, 28, 0.92)`,
                   }}
                 >
                   <div className={styles.featureIconRow}>
