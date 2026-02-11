@@ -305,9 +305,26 @@ export default function Home() {
   const whatsInsideRef = useRef<HTMLDivElement>(null)
   const cylinderSceneRef = useRef<HTMLDivElement>(null)
   const loginWrapperRef = useRef<HTMLDivElement>(null)
+  const navBubbleRef = useRef<HTMLSpanElement>(null)
+  const navCenterRef = useRef<HTMLDivElement>(null)
   const animRef = useRef<number | null>(null)
   const target = useRef({ x: 4, y: -8 })
   const current = useRef({ x: 4, y: -8 })
+
+  const handleNavLinkEnter = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    const bubble = navBubbleRef.current
+    const center = navCenterRef.current
+    if (!bubble || !center) return
+    const cr = center.getBoundingClientRect()
+    const lr = e.currentTarget.getBoundingClientRect()
+    bubble.style.left = `${lr.left - cr.left}px`
+    bubble.style.width = `${lr.width}px`
+    bubble.style.opacity = '1'
+  }, [])
+
+  const handleNavCenterLeave = useCallback(() => {
+    if (navBubbleRef.current) navBubbleRef.current.style.opacity = '0'
+  }, [])
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -440,11 +457,16 @@ export default function Home() {
           HostelMate
           <span className={styles.logoSub}>by Nivo</span>
         </div>
-        <div className={styles.navCenter}>
-          <a href="#features" className={styles.navLink}>Features</a>
-          <a href="#howitworks" className={styles.navLink}>How it works</a>
-          <a href="#pricing" className={styles.navLink}>Pricing</a>
-          <a href="#faq" className={styles.navLink}>FAQ</a>
+        <div
+          ref={navCenterRef}
+          className={styles.navCenter}
+          onMouseLeave={handleNavCenterLeave}
+        >
+          <span ref={navBubbleRef} className={styles.navBubble} />
+          <a href="#features" className={styles.navLink} onMouseEnter={handleNavLinkEnter}>Features</a>
+          <a href="#howitworks" className={styles.navLink} onMouseEnter={handleNavLinkEnter}>How it works</a>
+          <a href="#pricing" className={styles.navLink} onMouseEnter={handleNavLinkEnter}>Pricing</a>
+          <a href="#faq" className={styles.navLink} onMouseEnter={handleNavLinkEnter}>FAQ</a>
         </div>
         <div className={styles.navRight}>
           <Link href="/login" className={styles.navSignin}>Sign in</Link>
