@@ -34,7 +34,7 @@ export default function Home() {
     {
       tag: 'Biometric',
       title: 'Face recognition attendance',
-      desc: '5-angle scan with blink liveness detection. The most secure hostel attendance system available.',
+      desc: 'Multi-angle facial recognition with real-time blink liveness detection. Marks attendance in under 2 seconds — works offline with cached data when connectivity drops.',
       stroke: '#4ade80',
       bg: 'rgba(74,222,128,0.1)',
       glowPos: '44% 42%',
@@ -44,7 +44,7 @@ export default function Home() {
     {
       tag: 'Real-time',
       title: 'Live parent tracking',
-      desc: 'Parents see attendance the moment it is marked via WebSocket. Zero delay, full transparency.',
+      desc: 'Attendance updates reach parents the instant it is marked via WebSocket, not polling. Curfew violations and leave status changes are pushed in real time — zero delay.',
       stroke: '#a78bfa',
       bg: 'rgba(167,139,250,0.1)',
       glowPos: '58% 58%',
@@ -54,7 +54,7 @@ export default function Home() {
     {
       tag: 'GPT-4o mini',
       title: 'AI complaint analysis',
-      desc: 'Auto-categorises urgency using NLP. Suggests resolution steps so wardens act faster.',
+      desc: 'GPT-4o mini reads every complaint and assigns urgency in seconds. It suggests resolution steps and flags recurring patterns so wardens resolve issues before they escalate.',
       stroke: '#fbbf24',
       bg: 'rgba(251,191,36,0.1)',
       glowPos: '56% 42%',
@@ -64,7 +64,7 @@ export default function Home() {
     {
       tag: 'Razorpay',
       title: 'Online fee collection',
-      desc: 'Hostel and mess fees online. Monthly or yearly billing. Parents can pay directly from their portal.',
+      desc: 'Razorpay-powered collection for hostel and mess charges. Parents pay directly from their portal with monthly or yearly billing cycles and automatic overdue reminders.',
       stroke: '#60a5fa',
       bg: 'rgba(96,165,250,0.1)',
       glowPos: '42% 56%',
@@ -74,7 +74,7 @@ export default function Home() {
     {
       tag: 'Instant',
       title: 'Emergency broadcast',
-      desc: 'One tap alerts all students, wardens, and parents simultaneously. Night curfew auto-alerts built in.',
+      desc: 'One tap broadcasts alerts to every student, warden, and parent simultaneously. Night curfew violations trigger automatic notifications without any manual intervention.',
       stroke: '#f87171',
       bg: 'rgba(248,113,113,0.1)',
       glowPos: '50% 60%',
@@ -84,7 +84,7 @@ export default function Home() {
     {
       tag: 'Analytics',
       title: 'Maintenance analytics',
-      desc: 'Pattern detection from 30-day complaint history. Prevents recurring issues before they escalate.',
+      desc: 'Analyses 30 days of complaint history to surface recurring maintenance patterns. Block-wise comparisons and staff scoring help prevent issues before they escalate again.',
       stroke: '#34d399',
       bg: 'rgba(52,211,153,0.1)',
       glowPos: '50% 40%',
@@ -94,7 +94,7 @@ export default function Home() {
     {
       tag: 'Management',
       title: 'Room allocation',
-      desc: 'Assign rooms, handle transfer requests, track occupancy. Complete hostel room management.',
+      desc: 'Assign rooms, process transfer requests, and monitor block occupancy from a single dashboard. Full room lifecycle management with real-time availability tracking.',
       stroke: '#fb923c',
       bg: 'rgba(251,146,60,0.1)',
       glowPos: '40% 55%',
@@ -104,7 +104,7 @@ export default function Home() {
     {
       tag: 'Digital',
       title: 'Visitor management',
-      desc: 'Digital guest check-in with warden approval. Complete visitor log with check-in and check-out times.',
+      desc: 'Digitises the entire guest check-in flow with mandatory warden approval. Every visit is logged with timestamps, relationship type, and contact details for full traceability.',
       stroke: '#e879f9',
       bg: 'rgba(232,121,249,0.1)',
       glowPos: '60% 44%',
@@ -114,7 +114,7 @@ export default function Home() {
     {
       tag: 'Staff',
       title: 'Staff performance',
-      desc: 'Daily attendance tracking and student feedback ratings for cleaners, security, and admin staff.',
+      desc: 'Daily attendance for cleaners, security, and admin staff tracked alongside student star ratings. Monthly performance reports and KPI scores keep the entire team accountable.',
       stroke: '#38bdf8',
       bg: 'rgba(56,189,248,0.1)',
       glowPos: '58% 50%',
