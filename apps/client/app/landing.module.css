@@ -53,21 +53,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 48px;
+  padding: 24px 48px;
   position: sticky;
   top: 0;
   z-index: 100;
-
-  /* framer style glass finish */
-  background: rgba(6, 8, 16, 0.88);
-  backdrop-filter: blur(24px) saturate(150%);
-  -webkit-backdrop-filter: blur(24px) saturate(150%);
-
-  /* subtle border + inner highlight */
-  border-bottom: 0.5px solid rgba(255,255,255,0.08);
-  box-shadow:
-    0 1px 0 rgba(255,255,255,0.07) inset,
-    0 8px 24px rgba(0,0,0,0.22);
+  background: transparent;
 }
 
 .navLogo {
@@ -98,52 +88,47 @@
 .navCenter {
   display: flex;
   align-items: center;
-  gap: 2px;
-  background: rgba(255,255,255,0.05);
-  border: 0.5px solid rgba(255,255,255,0.09);
+  gap: 4px;
+  background: rgba(12, 14, 24, 0.4);
+  border: 0.5px solid rgba(255, 255, 255, 0.05);
   border-radius: 100px;
-  padding: 4px 5px;
+  padding: 6px;
   position: relative;
+  backdrop-filter: blur(20px) saturate(120%);
+  -webkit-backdrop-filter: blur(20px) saturate(120%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .navBubble {
   position: absolute;
-  top: 3px;
-  height: calc(100% - 6px);
+  top: 6px;
+  height: calc(100% - 12px);
   border-radius: 100px;
   pointer-events: none;
   opacity: 0;
   transition:
-    left 0.28s cubic-bezier(0.34, 1.4, 0.64, 1),
-    width 0.28s cubic-bezier(0.34, 1.4, 0.64, 1),
-    opacity 0.15s ease;
-  /* glass bubble */
-  background: linear-gradient(
-    135deg,
-    rgba(255,255,255,0.14) 0%,
-    rgba(255,255,255,0.06) 100%
-  );
-  border: 0.5px solid rgba(255,255,255,0.18);
-  box-shadow:
-    0 1px 0 rgba(255,255,255,0.18) inset,
-    0 0 10px rgba(255,255,255,0.04);
-  backdrop-filter: blur(8px);
+    left 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.2s ease;
+  background: rgba(255, 255, 255, 0.03);
+  border: 0.5px solid rgba(255, 255, 255, 0.03);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset;
 }
 
 .navLink {
-  font-size: 12px;
-  color: rgba(255,255,255,0.5);
-  padding: 5px 16px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 6px 20px;
   border-radius: 100px;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color 0.3s ease;
   text-decoration: none;
   position: relative;
   z-index: 1;
 }
 
 .navLink:hover {
-  color: rgba(255,255,255,0.9);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .navRight {
@@ -165,23 +150,28 @@
 }
 
 .navBtn {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.9);
   color: #080810;
   border: none;
   border-radius: 100px;
-  padding: 9px 20px;
+  padding: 10px 24px;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 5px;
-  transition: opacity 0.2s;
+  gap: 6px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.1);
 }
 
 .navBtn:hover {
-  opacity: 0.88;
+  background: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
 }
+
+
 
 .hero {
   padding: 40px 48px 140px;
