@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRef, useCallback, useEffect } from 'react'
+import { useRef, useCallback, useEffect, useState } from 'react'
 import styles from './landing.module.css'
 
 const PROXIMITY = 48 // px — how close to a floating card triggers it
@@ -30,6 +30,26 @@ function resetCard(el: HTMLDivElement, translate: string) {
 }
 
 export default function Home() {
+  const [hoveredNavIdx, setHoveredNavIdx] = useState<number | null>(null)
+  const [isNavPressed, setIsNavPressed] = useState(false)
+  const [navPillStyle, setNavPillStyle] = useState({ left: 0, width: 0, opacity: 0, scale: 1 })
+  const navItemsRef = useRef<(HTMLAnchorElement | null)[]>([])
+
+  useEffect(() => {
+    if (hoveredNavIdx !== null && navItemsRef.current[hoveredNavIdx]) {
+      const el = navItemsRef.current[hoveredNavIdx]
+      if (el) {
+        setNavPillStyle({
+          left: el.offsetLeft,
+          width: el.offsetWidth,
+          opacity: 1,
+          scale: isNavPressed ? 1.05 : 1
+        })
+      }
+    } else {
+      setNavPillStyle(prev => ({ ...prev, opacity: 0, scale: 1 }))
+    }
+  }, [hoveredNavIdx, isNavPressed])
   const features = [
     {
       tag: 'Biometric',
@@ -305,26 +325,9 @@ export default function Home() {
   const whatsInsideRef = useRef<HTMLDivElement>(null)
   const cylinderSceneRef = useRef<HTMLDivElement>(null)
   const loginWrapperRef = useRef<HTMLDivElement>(null)
-  const navBubbleRef = useRef<HTMLSpanElement>(null)
-  const navCenterRef = useRef<HTMLDivElement>(null)
   const animRef = useRef<number | null>(null)
   const target = useRef({ x: 4, y: -8 })
   const current = useRef({ x: 4, y: -8 })
-
-  const handleNavLinkEnter = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
-    const bubble = navBubbleRef.current
-    const center = navCenterRef.current
-    if (!bubble || !center) return
-    const cr = center.getBoundingClientRect()
-    const lr = e.currentTarget.getBoundingClientRect()
-    bubble.style.left = `${lr.left - cr.left}px`
-    bubble.style.width = `${lr.width}px`
-    bubble.style.opacity = '1'
-  }, [])
-
-  const handleNavCenterLeave = useCallback(() => {
-    if (navBubbleRef.current) navBubbleRef.current.style.opacity = '0'
-  }, [])
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -457,16 +460,33 @@ export default function Home() {
           HostelMate
           <span className={styles.logoSub}>by Nivo</span>
         </div>
-        <div
-          ref={navCenterRef}
+        <div 
           className={styles.navCenter}
-          onMouseLeave={handleNavCenterLeave}
+          onMouseLeave={() => { setHoveredNavIdx(null); setIsNavPressed(false); }}
+          onMouseUp={() => setIsNavPressed(false)}
+          onPointerCancel={() => setIsNavPressed(false)}
         >
-          <span ref={navBubbleRef} className={styles.navBubble} />
-          <a href="#features" className={styles.navLink} onMouseEnter={handleNavLinkEnter}>Features</a>
-          <a href="#howitworks" className={styles.navLink} onMouseEnter={handleNavLinkEnter}>How it works</a>
-          <a href="#pricing" className={styles.navLink} onMouseEnter={handleNavLinkEnter}>Pricing</a>
-          <a href="#faq" className={styles.navLink} onMouseEnter={handleNavLinkEnter}>FAQ</a>
+          <div 
+            className={styles.navPill}
+            style={{
+              left: navPillStyle.left,
+              width: navPillStyle.width,
+              opacity: navPillStyle.opacity,
+              transform: `scale(${navPillStyle.scale})`
+            }}
+          />
+          {['Features', 'How it works', 'Pricing', 'FAQ'].map((label, i) => (
+            <a
+              key={label}
+              href={`#${label.toLowerCase().replace(/\s+/g, '')}`}
+              className={styles.navLink}
+              ref={(el) => { navItemsRef.current[i] = el }}
+              onMouseEnter={() => setHoveredNavIdx(i)}
+              onMouseDown={() => setIsNavPressed(true)}
+            >
+              {label}
+            </a>
+          ))}
         </div>
         <div className={styles.navRight}>
           <Link href="/login" className={styles.navSignin}>Sign in</Link>
