@@ -480,6 +480,7 @@ export default function Home() {
               key={label}
               href={`#${label.toLowerCase().replace(/\s+/g, '')}`}
               className={styles.navLink}
+              draggable={false}
               ref={(el) => { navItemsRef.current[i] = el }}
               onMouseEnter={() => setHoveredNavIdx(i)}
               onMouseDown={() => setIsNavPressed(true)}
