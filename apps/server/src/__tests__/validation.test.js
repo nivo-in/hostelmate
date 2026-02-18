@@ -4,6 +4,9 @@ import {
   leaveSchema,
   complaintSchema,
   noticeSchema,
+  messMenuSchema,
+  messReviewSchema,
+  lostFoundSchema,
 } from '../config/validation.js';
 
 describe('Zod Validation Schemas', () => {
@@ -116,6 +119,73 @@ describe('Zod Validation Schemas', () => {
         qr_data: '',
       });
       expect(result.success).toBe(false);
+    });
+  });
+
+  describe('Mess Menu Schema', () => {
+    it('should accept valid mess menu', () => {
+      const result = messMenuSchema.safeParse({ day_of_week: 'monday', meal_type: 'breakfast', items: ['Poha', 'Tea'] });
+      expect(result.success).toBe(true);
+    });
+    
+    it('should reject missing items', () => {
+      const result = messMenuSchema.safeParse({ day_of_week: 'monday', meal_type: 'breakfast', items: [] });
+      expect(result.success).toBe(false);
+    });
+    
+    it('should reject invalid day', () => {
+      const result = messMenuSchema.safeParse({ day_of_week: 'funday', meal_type: 'breakfast', items: ['Poha'] });
+      expect(result.success).toBe(false);
+    });
+    
+    it('should accept all valid days', () => {
+      ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].forEach(day => {
+        expect(messMenuSchema.safeParse({ day_of_week: day, meal_type: 'lunch', items: ['Rice'] }).success).toBe(true);
+      });
+    });
+    
+    it('should reject invalid meal type', () => {
+      expect(messMenuSchema.safeParse({ day_of_week: 'monday', meal_type: 'brunch', items: ['Food'] }).success).toBe(false);
+    });
+  });
+
+  describe('Mess Review Schema', () => {
+    it('should accept valid review', () => {
+      expect(messReviewSchema.safeParse({ meal_type: 'dinner', date: '2026-05-10', rating: 4, comments: 'Good' }).success).toBe(true);
+    });
+    
+    it('should reject rating > 5', () => {
+      expect(messReviewSchema.safeParse({ meal_type: 'dinner', date: '2026-05-10', rating: 6 }).success).toBe(false);
+    });
+    
+    it('should reject rating < 1', () => {
+      expect(messReviewSchema.safeParse({ meal_type: 'dinner', date: '2026-05-10', rating: 0 }).success).toBe(false);
+    });
+    
+    it('should accept review without comments', () => {
+      expect(messReviewSchema.safeParse({ meal_type: 'dinner', date: '2026-05-10', rating: 3 }).success).toBe(true);
+    });
+    
+    it('should reject invalid date format', () => {
+      expect(messReviewSchema.safeParse({ meal_type: 'dinner', date: '26-05-10', rating: 3 }).success).toBe(false);
+    });
+  });
+
+  describe('Lost Found Schema', () => {
+    it('should accept valid lost item', () => {
+      expect(lostFoundSchema.safeParse({ item_name: 'Keys', status: 'lost' }).success).toBe(true);
+    });
+    
+    it('should accept valid found item with location', () => {
+      expect(lostFoundSchema.safeParse({ item_name: 'Wallet', status: 'found', location_found: 'Library' }).success).toBe(true);
+    });
+    
+    it('should reject short item name', () => {
+      expect(lostFoundSchema.safeParse({ item_name: 'K', status: 'lost' }).success).toBe(false);
+    });
+    
+    it('should reject invalid status', () => {
+      expect(lostFoundSchema.safeParse({ item_name: 'Keys', status: 'missing' }).success).toBe(false);
     });
   });
 });
