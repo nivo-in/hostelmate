@@ -790,13 +790,13 @@ export default function Home() {
               <button className={styles.loginBtn}>Sign in</button>
             </div>
           </div>
+          
+          <footer ref={footerRef} className={`${styles.footer} ${styles.revealUp} ${styles.stagger3}`}>
+            <div className={styles.footerLeft}>HostelMate — Nivo Technologies</div>
+            <div className={styles.footerRight}>Private · Not for distribution</div>
+          </footer>
         </section>
       </div>
-
-      <footer ref={footerRef} className={`${styles.footer} ${styles.revealUp} ${styles.stagger3}`}>
-        <div className={styles.footerLeft}>HostelMate — Nivo Technologies</div>
-        <div className={styles.footerRight}>Private · Not for distribution</div>
-      </footer>
     </div>
   )
 }

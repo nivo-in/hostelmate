@@ -578,7 +578,7 @@
 }
 
 .loginScrollWrapper {
-  height: 120vh;
+  height: 100vh;
   position: relative;
   margin-top: -100vh;
   z-index: 10;
@@ -756,8 +756,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  position: relative;
-  z-index: 1;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
 }
 
 .revealUp {
