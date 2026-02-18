@@ -80,31 +80,31 @@ HostelMate provides a **role-based platform** where students, wardens, and paren
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        CLIENT (Next.js 16)                      │
-│              TypeScript · App Router · Tailwind CSS              │
-│         Role-based dashboards: Student / Warden / Parent         │
+│              TypeScript · App Router · Tailwind CSS             │
+│         Role-based dashboards: Student / Warden / Parent        │
 └───────────────────────────┬─────────────────────────────────────┘
                             │ HTTPS (REST)
                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      API SERVER (Express.js)                     │
-│                                                                  │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────────┐  │
-│  │   Auth   │ │   RBAC   │ │  Zod     │ │  Rate Limiter      │  │
-│  │Middleware│ │Middleware │ │Validate  │ │  100 req/15min     │  │
-│  └──────────┘ └──────────┘ └──────────┘ └────────────────────┘  │
-│                                                                  │
-│  Routes: /attendance /leaves /complaints /notices /payments /visitors │
-└──────┬─────────────────────────────┬────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                      API SERVER (Express.js)                        │
+│                                                                     │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────────┐      │
+│  │   Auth   │ │   RBAC   │ │  Zod     │ │  Rate Limiter      │      │
+│  │Middleware│ │Middleware│ │Validate  │ │  100 req/15min     │      │ 
+│  └──────────┘ └──────────┘ └──────────┘ └────────────────────┘      │
+│                                                                     │
+│Routes: /attendance /leaves /complaints /notices /payments /visitors │
+└──────┬─────────────────────────────┬────────────────────────────────┘
        │                             │
        ▼                             ▼
-┌──────────────┐            ┌──────────────────┐
+┌──────────────┐            ┌───────────────────┐
 │   Supabase   │            │   Redis (Upstash) │
 │  PostgreSQL  │            │   Cache Layer     │
 │              │            │                   │
 │  • RLS       │            │  • TTL: 2-60 min  │
 │  • Auth      │            │  • Smart invalidn │
 │  • Realtime  │            │  • Pattern delete │
-└──────────────┘            └──────────────────┘
+└──────────────┘            └───────────────────┘
        │
        ▼
 ┌──────────────┐
