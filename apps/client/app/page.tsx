@@ -305,6 +305,7 @@ export default function Home() {
 
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll()
+    currentRot.current = targetRot.current
     
     if (!wheelAnimRef.current) wheelAnimRef.current = requestAnimationFrame(tickWheel)
 
@@ -446,15 +447,14 @@ export default function Home() {
       }
     }
 
+    const scrollToLogin = () => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' })
+      currentRot.current = targetRot.current
+    }
+
     try {
       if (sessionStorage.getItem('fromLoginTransition') === 'true') {
         sessionStorage.removeItem('fromLoginTransition')
-        
-        const scrollToLogin = () => {
-          if (loginWrapperRef.current) {
-            loginWrapperRef.current.scrollIntoView({ behavior: 'instant', block: 'end' })
-          }
-        }
         
         scrollToLogin()
         requestAnimationFrame(scrollToLogin)
@@ -469,6 +469,9 @@ export default function Home() {
     const handlePageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
         try { sessionStorage.removeItem('fromLoginTransition') } catch { /* ignore */ }
+        scrollToLogin()
+        requestAnimationFrame(scrollToLogin)
+        setTimeout(scrollToLogin, 50)
         doReverseTransition()
       }
     }
