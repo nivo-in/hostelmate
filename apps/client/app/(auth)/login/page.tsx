@@ -79,6 +79,12 @@ export default function LoginPage() {
     }
   }
 
+  const roleColors = {
+    student: '#4ade80',
+    warden: '#a78bfa',
+    parent: '#60a5fa'
+  }
+
   return (
     <div className={styles.site} style={{ 
       display: 'flex', 
@@ -87,7 +93,18 @@ export default function LoginPage() {
       padding: '48px',
       overflow: 'hidden',
     }}>
-      <div className={styles.glow} />
+      <div style={{
+        position: 'fixed',
+        top: '-15%',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '900px',
+        height: '600px',
+        background: `radial-gradient(ellipse at center, ${roleColors[role]}24 0%, ${roleColors[role]}14 35%, ${roleColors[role]}08 60%, transparent 75%)`,
+        transition: 'background 1.2s ease',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }} />
       <div className={styles.noise} />
 
       <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '522px' }}>
