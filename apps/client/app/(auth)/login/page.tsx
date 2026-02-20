@@ -96,9 +96,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (role === bgRole) return
-    setBgRole(role)
     setBgDimmed(true)
     const timer = setTimeout(() => {
+      setBgRole(role)
       setBgDimmed(false)
     }, 400)
     return () => clearTimeout(timer)
@@ -121,7 +121,7 @@ export default function LoginPage() {
         height: '600px',
         opacity: bgDimmed ? 0.5 : 1,
         background: `radial-gradient(ellipse at center, ${roleColors[bgRole]}24 0%, ${roleColors[bgRole]}14 35%, ${roleColors[bgRole]}08 60%, transparent 75%)`,
-        transition: 'top 2.0s cubic-bezier(0.16, 1, 0.3, 1), left 2.0s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s ease-in-out, opacity 0.4s ease-in-out, background 0.8s ease',
+        transition: 'top 2.0s cubic-bezier(0.16, 1, 0.3, 1), left 2.0s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s ease-in-out, opacity 0.4s ease-in-out, background 0.4s ease',
         pointerEvents: 'none',
         zIndex: 0,
       }} />
@@ -134,7 +134,7 @@ export default function LoginPage() {
         height: '400px',
         opacity: bgDimmed ? 0.5 : 1,
         background: `radial-gradient(ellipse at center, ${roleColors[bgRole]}0D 0%, transparent 65%)`,
-        transition: 'bottom 2.0s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s ease-in-out, opacity 0.4s ease-in-out, background 0.8s ease',
+        transition: 'bottom 2.0s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s ease-in-out, opacity 0.4s ease-in-out, background 0.4s ease',
         pointerEvents: 'none',
         zIndex: 0,
       }} />
