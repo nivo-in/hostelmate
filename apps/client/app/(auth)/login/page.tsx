@@ -116,7 +116,7 @@ export default function LoginPage() {
         position: 'fixed',
         top: mounted ? '-5%' : '-15%',
         left: mounted ? '65%' : '50%',
-        transform: mounted ? `translate(-50%, -50%) scale(${bgScale})` : `translateX(-50%) scale(${bgScale})`,
+        transform: `translateX(-50%) scale(${bgScale})`,
         width: '900px',
         height: '600px',
         opacity: bgScale === 0 ? 0 : 1,
