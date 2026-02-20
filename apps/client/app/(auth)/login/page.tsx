@@ -86,11 +86,23 @@ export default function LoginPage() {
   }
 
   const [mounted, setMounted] = useState(false)
+  const [bgRole, setBgRole] = useState(role)
+  const [bgScale, setBgScale] = useState(1)
 
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 50)
     return () => clearTimeout(timer)
   }, [])
+
+  useEffect(() => {
+    if (role === bgRole) return
+    setBgScale(0)
+    const timer = setTimeout(() => {
+      setBgRole(role)
+      setBgScale(1)
+    }, 600)
+    return () => clearTimeout(timer)
+  }, [role, bgRole])
 
   return (
     <div className={styles.site} style={{ 
@@ -104,11 +116,12 @@ export default function LoginPage() {
         position: 'fixed',
         top: mounted ? '-5%' : '-15%',
         left: mounted ? '65%' : '50%',
-        transform: 'translateX(-50%)',
+        transform: mounted ? `translate(-50%, -50%) scale(${bgScale})` : `translateX(-50%) scale(${bgScale})`,
         width: '900px',
         height: '600px',
-        background: `radial-gradient(ellipse at center, ${roleColors[role]}24 0%, ${roleColors[role]}14 35%, ${roleColors[role]}08 60%, transparent 75%)`,
-        transition: 'top 2.0s cubic-bezier(0.16, 1, 0.3, 1), left 2.0s cubic-bezier(0.16, 1, 0.3, 1), background 1.2s ease',
+        opacity: bgScale === 0 ? 0 : 1,
+        background: `radial-gradient(ellipse at center, ${roleColors[bgRole]}24 0%, ${roleColors[bgRole]}14 35%, ${roleColors[bgRole]}08 60%, transparent 75%)`,
+        transition: 'top 2.0s cubic-bezier(0.16, 1, 0.3, 1), left 2.0s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease',
         pointerEvents: 'none',
         zIndex: 0,
       }} />
@@ -116,10 +129,12 @@ export default function LoginPage() {
         position: 'fixed',
         bottom: mounted ? '-25%' : '5%',
         left: '-8%',
+        transform: `scale(${bgScale})`,
         width: '500px',
         height: '400px',
-        background: `radial-gradient(ellipse at center, ${roleColors[role]}0D 0%, transparent 65%)`,
-        transition: 'bottom 2.0s cubic-bezier(0.16, 1, 0.3, 1), background 1.2s ease',
+        opacity: bgScale === 0 ? 0 : 1,
+        background: `radial-gradient(ellipse at center, ${roleColors[bgRole]}0D 0%, transparent 65%)`,
+        transition: 'bottom 2.0s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease',
         pointerEvents: 'none',
         zIndex: 0,
       }} />
