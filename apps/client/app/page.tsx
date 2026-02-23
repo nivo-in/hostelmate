@@ -476,24 +476,34 @@ export default function Home() {
         if (stored !== null) targetScrollY = parseInt(stored, 10)
       } catch { }
 
-      if (!isNaN(targetScrollY) && targetScrollY >= 0) {
-        window.scrollTo({ top: targetScrollY, behavior: 'instant' })
-        
-        // Synchronize layout bounds synchronously
-        if (scrollWrapperRef.current) {
-          const rect = scrollWrapperRef.current.getBoundingClientRect()
-          const scrollSpace = rect.height - window.innerHeight * 2
-          let progress = 0
-          if (-rect.top > 0) {
-            progress = Math.min(1, -rect.top / scrollSpace)
+      const applyScroll = () => {
+        if (!isNaN(targetScrollY) && targetScrollY >= 0) {
+          window.scrollTo({ top: targetScrollY, behavior: 'instant' })
+          
+          // Synchronize layout bounds synchronously
+          if (scrollWrapperRef.current) {
+            const rect = scrollWrapperRef.current.getBoundingClientRect()
+            const scrollSpace = Math.max(1, rect.height - window.innerHeight * 2)
+            let progress = 0
+            if (-rect.top > 0) {
+              progress = Math.min(1, -rect.top / scrollSpace)
+            }
+            targetRot.current = progress * -360
+            currentRot.current = targetRot.current
           }
-          targetRot.current = progress * -360
-          currentRot.current = targetRot.current
+          window.dispatchEvent(new Event('scroll'))
+        } else {
+          window.scrollTo({ top: 0, behavior: 'instant' })
         }
-        window.dispatchEvent(new Event('scroll'))
-      } else {
-        window.scrollTo({ top: 0, behavior: 'instant' })
       }
+
+      // Remeasure and reapply to guarantee the page height has fully rendered
+      applyScroll()
+      requestAnimationFrame(() => {
+        applyScroll()
+        setTimeout(applyScroll, 150)
+        setTimeout(applyScroll, 400)
+      })
     }
 
     const handleReturnFromLogin = () => {
@@ -530,16 +540,28 @@ export default function Home() {
     return () => window.removeEventListener('pageshow', handlePageShow)
   }, [])
 
-  // Bulletproof scroll position tracking on exit
+  // Bulletproof scroll position tracking constantly and on exit
   useEffect(() => {
+    let ticking = false
     const saveScroll = () => {
       try {
         sessionStorage.setItem('loginScrollY', window.scrollY.toString())
       } catch {}
+      ticking = false
     }
+
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(saveScroll)
+        ticking = true
+      }
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('beforeunload', saveScroll)
     window.addEventListener('pagehide', saveScroll)
     return () => {
+      window.removeEventListener('scroll', onScroll)
       window.removeEventListener('beforeunload', saveScroll)
       window.removeEventListener('pagehide', saveScroll)
     }
