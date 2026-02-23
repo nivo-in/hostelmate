@@ -40,6 +40,21 @@ export default function Home() {
   const navItemsRef = useRef<(HTMLAnchorElement | null)[]>([])
 
   useEffect(() => {
+    // Prevent browser scroll restoration which causes random carousel position
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual'
+    }
+    // Always start from top
+    window.scrollTo(0, 0)
+    
+    return () => {
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'auto'
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     if (hoveredNavIdx !== null && navItemsRef.current[hoveredNavIdx]) {
       const el = navItemsRef.current[hoveredNavIdx]
       if (el) {
@@ -227,6 +242,12 @@ export default function Home() {
       if (!scrollWrapperRef.current) return
       
       const rect = scrollWrapperRef.current.getBoundingClientRect()
+      
+      const isInFeaturesZone = rect.top <= 0 && rect.bottom >= window.innerHeight
+      if (!isInFeaturesZone && cylinderSceneRef.current) {
+        cylinderSceneRef.current.style.opacity = '0'
+      }
+
       // Leave 100vh buffer at the end of the rotation to absorb scroll momentum
       const scrollSpace = rect.height - window.innerHeight * 2
       let progress = 0
@@ -298,7 +319,13 @@ export default function Home() {
 
 
       
-      targetRot.current = progress * -360
+      if (progress <= 0) {
+        targetRot.current = 0
+      } else if (progress >= 1) {
+        targetRot.current = -360
+      } else {
+        targetRot.current = progress * -360
+      }
       
       if (!wheelAnimRef.current) wheelAnimRef.current = requestAnimationFrame(tickWheel)
     }
