@@ -386,8 +386,8 @@ export default function Home() {
   const tick = useCallback(function tickFn() {
     const el = cardRef.current
     if (!el) return
-    current.current.x = lerp(current.current.x, target.current.x, 0.05)
-    current.current.y = lerp(current.current.y, target.current.y, 0.05)
+    current.current.x = lerp(current.current.x, target.current.x, 0.025)
+    current.current.y = lerp(current.current.y, target.current.y, 0.025)
     el.style.transform = `rotateY(${current.current.y}deg) rotateX(${current.current.x}deg)`
     if (Math.abs(current.current.x - target.current.x) > 0.005 || Math.abs(current.current.y - target.current.y) > 0.005) {
       animRef.current = requestAnimationFrame(tickFn)
@@ -427,18 +427,19 @@ export default function Home() {
     const translateX = viewportCX - cardCX
     const translateY = viewportCY - cardCY
 
-    card.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease'
+    card.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease'
     card.style.transform = `translate(${translateX}px, ${translateY}px) scale(1.04)`
     card.style.boxShadow = '0 40px 80px rgba(0,0,0,0.6)'
     card.style.zIndex = '999'
 
     if (overlayRef.current) {
+      overlayRef.current.style.transition = 'opacity 0.25s ease'
       overlayRef.current.style.opacity = '1'
     }
 
     setTimeout(() => {
       window.location.href = '/login'
-    }, 400)
+    }, 250)
   }, [transitioning])
 
   const handleNavSigninClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -455,12 +456,13 @@ export default function Home() {
     }
 
     if (overlayRef.current) {
+      overlayRef.current.style.transition = 'opacity 0.25s ease'
       overlayRef.current.style.opacity = '1'
     }
 
     setTimeout(() => {
       window.location.href = '/login'
-    }, 400)
+    }, 250)
   }, [transitioning])
 
   useEffect(() => {
@@ -481,6 +483,8 @@ export default function Home() {
         if (overlayRef.current.style.opacity !== '1') {
           overlayRef.current.style.transition = 'none'
           overlayRef.current.style.opacity = '1'
+          // Force layout reflow
+          void overlayRef.current.offsetHeight
         }
 
         requestAnimationFrame(() => {
@@ -629,7 +633,7 @@ export default function Home() {
             activeStates.current.fc1 = true
             timers.current.fc1 = null
             activateCard(fc1, '0px, 0px')
-          }, 400)
+          }, 650)
         }
       } else {
         if (timers.current.fc1) {
@@ -649,7 +653,7 @@ export default function Home() {
             activeStates.current.fc2 = true
             timers.current.fc2 = null
             activateCard(fc2, '0px, 0px')
-          }, 400)
+          }, 650)
         }
       } else {
         if (timers.current.fc2) {
