@@ -379,7 +379,6 @@ export default function Home() {
 
     try {
       sessionStorage.setItem('fromLoginTransition', 'true')
-      sessionStorage.setItem('loginScrollY', window.scrollY.toString())
     } catch {
       // Ignore
     }
@@ -449,31 +448,8 @@ export default function Home() {
     }
 
     const scrollToLogin = () => {
-      let targetScrollY = -1;
-      try {
-        const stored = sessionStorage.getItem('loginScrollY')
-        if (stored) {
-          targetScrollY = parseInt(stored, 10)
-        }
-      } catch { }
-
-      if (targetScrollY >= 0) {
-        window.scrollTo({ top: targetScrollY, behavior: 'instant' })
-      } else if (loginWrapperRef.current) {
-        const top = loginWrapperRef.current.getBoundingClientRect().top + window.scrollY;
-        window.scrollTo({ top, behavior: 'instant' })
-      }
-      
-      // Update targetRot synchronously so the wheel doesn't spin
-      if (scrollWrapperRef.current) {
-        const rect = scrollWrapperRef.current.getBoundingClientRect()
-        const scrollSpace = rect.height - window.innerHeight * 2
-        let progress = 0
-        if (-rect.top > 0) {
-          progress = Math.min(1, -rect.top / scrollSpace)
-        }
-        targetRot.current = progress * -360
-        currentRot.current = targetRot.current
+      if (loginWrapperRef.current) {
+        loginWrapperRef.current.scrollIntoView({ behavior: 'instant', block: 'end' })
       }
     }
 
@@ -493,15 +469,8 @@ export default function Home() {
 
     const handlePageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
-        try {
-          if (sessionStorage.getItem('fromLoginTransition') === 'true') {
-            sessionStorage.removeItem('fromLoginTransition')
-            scrollToLogin()
-            requestAnimationFrame(scrollToLogin)
-            setTimeout(scrollToLogin, 50)
-            doReverseTransition()
-          }
-        } catch { /* ignore */ }
+        try { sessionStorage.removeItem('fromLoginTransition') } catch { /* ignore */ }
+        doReverseTransition()
       }
     }
 
