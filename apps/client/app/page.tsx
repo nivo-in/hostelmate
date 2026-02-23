@@ -503,6 +503,7 @@ export default function Home() {
 
     try {
       if (sessionStorage.getItem('navigatingBackFromLogin') === 'true') {
+        sessionStorage.setItem('loginScrollY', window.scrollY.toString())
         sessionStorage.removeItem('navigatingBackFromLogin')
         sessionStorage.setItem('playReverseTransition', 'true')
         window.location.reload()
@@ -517,6 +518,7 @@ export default function Home() {
     const handlePageShow = () => {
       try {
         if (sessionStorage.getItem('navigatingBackFromLogin') === 'true') {
+          sessionStorage.setItem('loginScrollY', window.scrollY.toString())
           sessionStorage.removeItem('navigatingBackFromLogin')
           sessionStorage.setItem('playReverseTransition', 'true')
           window.location.reload()
@@ -526,6 +528,21 @@ export default function Home() {
 
     window.addEventListener('pageshow', handlePageShow)
     return () => window.removeEventListener('pageshow', handlePageShow)
+  }, [])
+
+  // Bulletproof scroll position tracking on exit
+  useEffect(() => {
+    const saveScroll = () => {
+      try {
+        sessionStorage.setItem('loginScrollY', window.scrollY.toString())
+      } catch {}
+    }
+    window.addEventListener('beforeunload', saveScroll)
+    window.addEventListener('pagehide', saveScroll)
+    return () => {
+      window.removeEventListener('beforeunload', saveScroll)
+      window.removeEventListener('pagehide', saveScroll)
+    }
   }, [])
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
