@@ -25,7 +25,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [role, setRole] = useState<'student' | 'warden' | 'parent'>('student')
   const [autoDetected, setAutoDetected] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
