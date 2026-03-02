@@ -67,6 +67,23 @@ function SingleEye({ eyeRef, isHidden }: {
           }}
         />
       </div>
+      <div
+        style={{
+          position: 'absolute',
+          top: isHidden ? '9px' : '-3px',
+          left: '-1px',
+          right: '-1px',
+          height: '10px',
+          background: 'rgba(10, 9, 22, 0.0)',
+          borderBottom: '2.5px solid rgba(255,255,255,0.55)',
+          borderRadius: '0 0 50% 50%',
+          transition: isHidden
+            ? 'top 0.28s cubic-bezier(0.55, 0, 0.45, 1), opacity 0.28s ease'
+            : 'top 0.32s cubic-bezier(0.2, 0.9, 0.4, 1), opacity 0.32s ease',
+          opacity: isHidden ? 0.85 : 0.55,
+          pointerEvents: 'none',
+        }}
+      />
     </div>
   )
 }
