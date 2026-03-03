@@ -139,6 +139,39 @@ function resetCard(el: HTMLDivElement, translate: string) {
   el.style.boxShadow = ''
 }
 
+function HowItWorksCard({
+  item, index, cardRef, staggerClass, cardRevealClass,
+}: {
+  item: { step: string; color: string; title: string; desc: string }
+  index: number
+  cardRef: (_el: HTMLDivElement | null) => void
+  staggerClass: string
+  cardRevealClass: string
+}) {
+  const [hovered, setHovered] = useState(false)
+  const col = index % 3
+  return (
+    <div
+      ref={cardRef}
+      className={`${cardRevealClass} ${staggerClass}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: hovered ? 'rgba(255,255,255,0.055)' : '#080810',
+        padding: '32px 28px',
+        borderLeft: col > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+        borderTop: index >= 3 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+        transition: 'background 0.22s ease',
+        cursor: 'default',
+      }}
+    >
+      <div style={{ fontSize: '11px', color: item.color, letterSpacing: '2px', marginBottom: '20px', fontWeight: 500 }}>{item.step}</div>
+      <div style={{ fontSize: '15px', fontWeight: 500, color: hovered ? 'rgba(255,255,255,0.96)' : 'rgba(255,255,255,0.88)', marginBottom: '10px', letterSpacing: '-0.2px', transition: 'color 0.22s ease' }}>{item.title}</div>
+      <div style={{ fontSize: '13px', color: hovered ? 'rgba(255,255,255,0.48)' : 'rgba(255,255,255,0.35)', lineHeight: 1.7, transition: 'color 0.22s ease' }}>{item.desc}</div>
+    </div>
+  )
+}
+
 export default function Home() {
   const [transitioning, setTransitioning] = useState(false)
   const loginCardRef = useRef<HTMLDivElement>(null)
@@ -1135,25 +1168,54 @@ export default function Home() {
         className={styles.sectionReveal}
         style={{ padding: '100px 48px', maxWidth: '1200px', margin: '0 auto', borderTop: '0.5px solid rgba(255,255,255,0.06)', position: 'relative', zIndex: 1 }}
       >
-        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '48px' }}>
+        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>
           How it works
         </div>
+        <h2 style={{ fontSize: '32px', fontWeight: 500, letterSpacing: '-0.8px', color: '#fff', marginBottom: '48px', lineHeight: 1.15 }}>
+          Live in 15 minutes.<br />
+          <span style={{ color: 'rgba(255,255,255,0.28)' }}>Zero learning curve.</span>
+        </h2>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px', background: 'rgba(255,255,255,0.06)', borderRadius: '16px', overflow: 'hidden' }}>
           {[
-            { step: '01', title: 'Set up your hostel', desc: 'Warden creates the hostel, adds rooms, blocks, and staff. Takes 15 minutes to go live.', color: '#4ade80' },
-            { step: '02', title: 'Students register', desc: 'Students sign up, register their face for biometric attendance, and link to their parents.', color: '#a78bfa' },
-            { step: '03', title: 'Everything runs itself', desc: 'Attendance auto-tracks. AI classifies complaints. Fees remind themselves. Parents stay updated.', color: '#60a5fa' },
+            {
+              step: '01', color: '#4ade80',
+              title: 'Create your hostel',
+              desc: 'Sign up as warden. Name your hostel, set your institution, add blocks and room numbers. The whole skeleton is live in under 15 minutes.',
+            },
+            {
+              step: '02', color: '#a78bfa',
+              title: 'Add students & staff',
+              desc: 'Import students via CSV or invite individually. Each student scans their face once — that\'s their lifetime biometric pass. Staff get their own login.',
+            },
+            {
+              step: '03', color: '#60a5fa',
+              title: 'Connect parents',
+              desc: 'Students link a parent email. Parents get a read-only portal: live attendance, leave status, fee dues, and emergency alerts — no app install needed.',
+            },
+            {
+              step: '04', color: '#fbbf24',
+              title: 'Attendance marks itself',
+              desc: 'Students scan at entry. Face is matched in the browser in under 2 seconds. QR fallback available. Warden sees live attendance without lifting a finger.',
+            },
+            {
+              step: '05', color: '#f87171',
+              title: 'Complaints get triaged by AI',
+              desc: 'Student submits a complaint. GPT-4o mini reads it, assigns urgency, and suggests a fix. Warden reviews — not hunts through a pile. Patterns surface automatically.',
+            },
+            {
+              step: '06', color: '#34d399',
+              title: 'Fees collect themselves',
+              desc: 'Razorpay reminders go out on your billing cycle. Parents pay from their portal. Overdue flags appear on the warden dashboard without you chasing anyone.',
+            },
           ].map((item, i) => (
-            <div
+            <HowItWorksCard
               key={i}
-              ref={el => { howItWorksCardsRef.current[i] = el }}
-              className={`${styles.cardReveal} ${[styles.stagger5, styles.stagger6, styles.stagger7][i]}`}
-              style={{ background: '#080810', padding: '32px 28px', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}
-            >
-              <div style={{ fontSize: '11px', color: item.color, letterSpacing: '2px', marginBottom: '20px', fontWeight: 500 }}>{item.step}</div>
-              <div style={{ fontSize: '15px', fontWeight: 500, color: 'rgba(255,255,255,0.88)', marginBottom: '10px', letterSpacing: '-0.2px' }}>{item.title}</div>
-              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.7 }}>{item.desc}</div>
-            </div>
+              item={item}
+              index={i}
+              cardRef={el => { howItWorksCardsRef.current[i] = el }}
+              staggerClass={[styles.stagger5, styles.stagger6, styles.stagger7, styles.stagger8, styles.stagger9, styles.stagger10][i]}
+              cardRevealClass={styles.cardReveal}
+            />
           ))}
         </div>
       </section>
