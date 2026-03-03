@@ -1059,3 +1059,128 @@
 /* 1 */
 /* 2 */
 /* Finalize frontend */
+
+/* ── Section reveal (used on How it Works / Pricing / FAQ) ── */
+.sectionReveal {
+  opacity: 0;
+  transform: translateY(44px);
+  transition:
+    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.sectionReveal.revealVisible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Card-level staggered reveal inside sections */
+.cardReveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.cardReveal.revealVisible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger delays for cards (extends existing stagger1-4) */
+.stagger5  { transition-delay: 0.05s; }
+.stagger6  { transition-delay: 0.12s; }
+.stagger7  { transition-delay: 0.19s; }
+.stagger8  { transition-delay: 0.26s; }
+.stagger9  { transition-delay: 0.33s; }
+.stagger10 { transition-delay: 0.40s; }
+.stagger11 { transition-delay: 0.47s; }
+.stagger12 { transition-delay: 0.54s; }
+
+/* FAQ ask-a-question box */
+.faqAskBox {
+  margin-top: 48px;
+  padding: 32px 28px;
+  background: rgba(124,92,252,0.05);
+  border: 0.5px solid rgba(124,92,252,0.18);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.faqAskLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.72);
+  letter-spacing: -0.1px;
+}
+
+.faqAskSub {
+  font-size: 12px;
+  color: rgba(255,255,255,0.28);
+  margin-top: -10px;
+}
+
+.faqAskRow {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.faqAskInput {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 0.5px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 13px;
+  color: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.faqAskInput::placeholder {
+  color: rgba(255,255,255,0.2);
+}
+
+.faqAskInput:focus {
+  border-color: rgba(124,92,252,0.5);
+}
+
+.faqAskBtn {
+  background: rgba(124,92,252,0.18);
+  color: rgba(255,255,255,0.75);
+  border: 0.5px solid rgba(124,92,252,0.3);
+  border-radius: 10px;
+  padding: 11px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  font-family: inherit;
+}
+
+.faqAskBtn:hover {
+  background: rgba(124,92,252,0.32);
+  color: #fff;
+  border-color: rgba(124,92,252,0.5);
+}
+
+.faqAskSent {
+  font-size: 13px;
+  color: #a78bfa;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Smooth scroll for the whole page */
+html {
+  scroll-behavior: smooth;
+}

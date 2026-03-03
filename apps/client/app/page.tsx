@@ -1,7 +1,7 @@
 'use client'
 
+import React, { useRef, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRef, useCallback, useEffect, useState } from 'react'
 import styles from './landing.module.css'
 
 function PreviewSingleEye({ eyeRef }: {
@@ -148,6 +148,19 @@ export default function Home() {
   const [isNavPressed, setIsNavPressed] = useState(false)
   const [navPillStyle, setNavPillStyle] = useState({ left: 0, width: 0, opacity: 0, scale: 1 })
   const navItemsRef = useRef<(HTMLAnchorElement | null)[]>([])
+
+  // FAQ ask-a-question
+  const [faqQuestion, setFaqQuestion] = useState('')
+  const [faqSent, setFaqSent] = useState(false)
+
+  // Section reveal refs
+  const howItWorksRef = useRef<HTMLElement>(null)
+  const howItWorksCardsRef = useRef<(HTMLDivElement | null)[]>([])
+  const pricingRef = useRef<HTMLElement>(null)
+  const pricingCardsRef = useRef<(HTMLDivElement | null)[]>([])
+  const faqRef = useRef<HTMLElement>(null)
+  const faqCardsRef = useRef<(HTMLDivElement | null)[]>([])
+  const faqAskRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -500,13 +513,33 @@ export default function Home() {
           entry.target.classList.remove(styles.revealVisible)
         }
       })
-    }, { threshold: 0.01 })
-    
+    }, { threshold: 0.08 })
+
+    const cardObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add(styles.revealVisible)
+        }
+        // cards only animate in once — no remove on exit
+      })
+    }, { threshold: 0.12 })
+
     if (footerRef.current) observer.observe(footerRef.current)
     if (whatsInsideRef.current) observer.observe(whatsInsideRef.current)
     if (loginLeftRef.current) observer.observe(loginLeftRef.current)
     if (loginRightRef.current) observer.observe(loginRightRef.current)
-    return () => observer.disconnect()
+
+    // New sections
+    if (howItWorksRef.current) observer.observe(howItWorksRef.current)
+    if (pricingRef.current) observer.observe(pricingRef.current)
+    if (faqRef.current) observer.observe(faqRef.current)
+    if (faqAskRef.current) cardObserver.observe(faqAskRef.current)
+
+    howItWorksCardsRef.current.forEach(el => { if (el) cardObserver.observe(el) })
+    pricingCardsRef.current.forEach(el => { if (el) cardObserver.observe(el) })
+    faqCardsRef.current.forEach(el => { if (el) cardObserver.observe(el) })
+
+    return () => { observer.disconnect(); cardObserver.disconnect() }
   }, [])
   const activeStates = useRef({ fc1: false, fc2: false })
   const timers = useRef<{ fc1: number | null, fc2: number | null }>({ fc1: null, fc2: null })
@@ -1097,23 +1130,16 @@ export default function Home() {
               <button className={styles.loginBtn}>Sign in</button>
             </div>
           </div>
-          
-          <footer ref={footerRef} className={`${styles.footer} ${styles.revealUp} ${styles.stagger3}`}>
-            <div className={styles.footerLeft}>HostelMate — Nivo Technologies</div>
-            <div className={styles.footerRight}>Private · Not for distribution</div>
-          </footer>
         </section>
       </div>
 
       {/* HOW IT WORKS */}
-      <section id="howitworks" style={{
-        padding: '100px 48px',
-        maxWidth: '1200px',
-        margin: '0 auto',
-        borderTop: '0.5px solid rgba(255,255,255,0.06)',
-        position: 'relative',
-        zIndex: 1,
-      }}>
+      <section
+        id="howitworks"
+        ref={howItWorksRef as React.RefObject<HTMLElement>}
+        className={styles.sectionReveal}
+        style={{ padding: '100px 48px', maxWidth: '1200px', margin: '0 auto', borderTop: '0.5px solid rgba(255,255,255,0.06)', position: 'relative', zIndex: 1 }}
+      >
         <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '48px' }}>
           How it works
         </div>
@@ -1123,71 +1149,45 @@ export default function Home() {
             { step: '02', title: 'Students register', desc: 'Students sign up, register their face for biometric attendance, and link to their parents.', color: '#a78bfa' },
             { step: '03', title: 'Everything runs itself', desc: 'Attendance auto-tracks. AI classifies complaints. Fees remind themselves. Parents stay updated.', color: '#60a5fa' },
           ].map((item, i) => (
-            <div key={i} style={{ background: '#080810', padding: '32px 28px', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
-              <div style={{ fontSize: '11px', color: item.color, letterSpacing: '2px', marginBottom: '20px', fontWeight: 500 }}>
-                {item.step}
-              </div>
-              <div style={{ fontSize: '15px', fontWeight: 500, color: 'rgba(255,255,255,0.88)', marginBottom: '10px', letterSpacing: '-0.2px' }}>
-                {item.title}
-              </div>
-              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.7 }}>
-                {item.desc}
-              </div>
+            <div
+              key={i}
+              ref={el => { howItWorksCardsRef.current[i] = el }}
+              className={`${styles.cardReveal} ${[styles.stagger5, styles.stagger6, styles.stagger7][i]}`}
+              style={{ background: '#080810', padding: '32px 28px', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}
+            >
+              <div style={{ fontSize: '11px', color: item.color, letterSpacing: '2px', marginBottom: '20px', fontWeight: 500 }}>{item.step}</div>
+              <div style={{ fontSize: '15px', fontWeight: 500, color: 'rgba(255,255,255,0.88)', marginBottom: '10px', letterSpacing: '-0.2px' }}>{item.title}</div>
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.7 }}>{item.desc}</div>
             </div>
           ))}
         </div>
       </section>
 
       {/* PRICING */}
-      <section id="pricing" style={{
-        padding: '100px 48px',
-        maxWidth: '1200px',
-        margin: '0 auto',
-        borderTop: '0.5px solid rgba(255,255,255,0.06)',
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px' }}>
-          Pricing
-        </div>
+      <section
+        id="pricing"
+        ref={pricingRef as React.RefObject<HTMLElement>}
+        className={styles.sectionReveal}
+        style={{ padding: '100px 48px', maxWidth: '1200px', margin: '0 auto', borderTop: '0.5px solid rgba(255,255,255,0.06)', position: 'relative', zIndex: 1 }}
+      >
+        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px' }}>Pricing</div>
         <h2 style={{ fontSize: '36px', fontWeight: 500, letterSpacing: '-1px', color: '#fff', marginBottom: '12px', lineHeight: 1.1 }}>
-          Simple pricing.<br />
-          <span style={{ color: 'rgba(255,255,255,0.28)' }}>No surprises.</span>
+          Simple pricing.<br /><span style={{ color: 'rgba(255,255,255,0.28)' }}>No surprises.</span>
         </h2>
         <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.38)', marginBottom: '48px', maxWidth: '400px', lineHeight: 1.7 }}>
           First 10 hostels get 3 months free. No credit card required.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', maxWidth: '800px' }}>
           {[
-            {
-              name: 'Starter',
-              price: 'Free',
-              sub: 'First 3 months',
-              color: 'rgba(255,255,255,0.08)',
-              border: 'rgba(255,255,255,0.1)',
-              features: ['Up to 200 students', 'All core features', 'Face recognition', 'Email support'],
-              cta: 'Get started free',
-              ctaBg: 'rgba(255,255,255,0.08)',
-              ctaColor: 'rgba(255,255,255,0.7)',
-            },
-            {
-              name: 'Pro',
-              price: '₹4,999',
-              sub: 'per month',
-              color: 'rgba(124,92,252,0.08)',
-              border: 'rgba(124,92,252,0.3)',
-              features: ['Unlimited students', 'AI complaint analysis', 'Razorpay integration', 'Priority support'],
-              cta: 'Request demo',
-              ctaBg: '#7c5cfc',
-              ctaColor: '#fff',
-            },
+            { name: 'Starter', price: 'Free', sub: 'First 3 months', color: 'rgba(255,255,255,0.08)', border: 'rgba(255,255,255,0.1)', features: ['Up to 200 students', 'All core features', 'Face recognition', 'Email support'], cta: 'Get started free', ctaBg: 'rgba(255,255,255,0.08)', ctaColor: 'rgba(255,255,255,0.7)' },
+            { name: 'Pro', price: '₹4,999', sub: 'per month', color: 'rgba(124,92,252,0.08)', border: 'rgba(124,92,252,0.3)', features: ['Unlimited students', 'AI complaint analysis', 'Razorpay integration', 'Priority support'], cta: 'Request demo', ctaBg: '#7c5cfc', ctaColor: '#fff' },
           ].map((plan, i) => (
-            <div key={i} style={{
-              background: plan.color,
-              border: `0.5px solid ${plan.border}`,
-              borderRadius: '16px',
-              padding: '32px 28px',
-            }}>
+            <div
+              key={i}
+              ref={el => { pricingCardsRef.current[i] = el }}
+              className={`${styles.cardReveal} ${[styles.stagger5, styles.stagger7][i]}`}
+              style={{ background: plan.color, border: `0.5px solid ${plan.border}`, borderRadius: '16px', padding: '32px 28px' }}
+            >
               <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '16px' }}>{plan.name}</div>
               <div style={{ fontSize: '36px', fontWeight: 500, color: '#fff', letterSpacing: '-1px', marginBottom: '4px' }}>{plan.price}</div>
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', marginBottom: '28px' }}>{plan.sub}</div>
@@ -1199,11 +1199,7 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <button style={{
-                width: '100%', background: plan.ctaBg, color: plan.ctaColor,
-                border: 'none', borderRadius: '10px', padding: '12px',
-                fontSize: '13px', fontWeight: 500, cursor: 'pointer',
-              }}>
+              <button style={{ width: '100%', background: plan.ctaBg, color: plan.ctaColor, border: 'none', borderRadius: '10px', padding: '12px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
                 {plan.cta}
               </button>
             </div>
@@ -1212,17 +1208,13 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" style={{
-        padding: '100px 48px',
-        maxWidth: '1200px',
-        margin: '0 auto',
-        borderTop: '0.5px solid rgba(255,255,255,0.06)',
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '48px' }}>
-          FAQ
-        </div>
+      <section
+        id="faq"
+        ref={faqRef as React.RefObject<HTMLElement>}
+        className={styles.sectionReveal}
+        style={{ padding: '100px 48px', maxWidth: '1200px', margin: '0 auto', borderTop: '0.5px solid rgba(255,255,255,0.06)', position: 'relative', zIndex: 1 }}
+      >
+        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '48px' }}>FAQ</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(255,255,255,0.06)', borderRadius: '16px', overflow: 'hidden' }}>
           {[
             { q: 'How long does setup take?', a: 'Under 30 minutes. Add your hostel details, create student accounts, and you\'re live.' },
@@ -1232,17 +1224,60 @@ export default function Home() {
             { q: 'What happens if a student loses their phone?', a: 'QR attendance is always available as fallback. Wardens can also mark manually.' },
             { q: 'Can we host it ourselves?', a: 'Not yet. Cloud-hosted SaaS only for now. Self-host option coming with multi-tenancy.' },
           ].map((item, i) => (
-            <div key={i} style={{ background: '#080810', padding: '28px 24px' }}>
-              <div style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.82)', marginBottom: '10px' }}>
-                {item.q}
-              </div>
-              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.7 }}>
-                {item.a}
-              </div>
+            <div
+              key={i}
+              ref={el => { faqCardsRef.current[i] = el }}
+              className={`${styles.cardReveal} ${[styles.stagger5, styles.stagger6, styles.stagger7, styles.stagger8, styles.stagger9, styles.stagger10][i]}`}
+              style={{ background: '#080810', padding: '28px 24px' }}
+            >
+              <div style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.82)', marginBottom: '10px' }}>{item.q}</div>
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.7 }}>{item.a}</div>
             </div>
           ))}
         </div>
+
+        {/* Ask a question */}
+        <div
+          ref={faqAskRef}
+          className={`${styles.faqAskBox} ${styles.cardReveal} ${styles.stagger8}`}
+        >
+          <div className={styles.faqAskLabel}>Still have a question?</div>
+          <div className={styles.faqAskSub}>We usually reply within a few hours.</div>
+          {faqSent ? (
+            <div className={styles.faqAskSent}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5"/></svg>
+              Got it — we&apos;ll be in touch soon.
+            </div>
+          ) : (
+            <div className={styles.faqAskRow}>
+              <input
+                className={styles.faqAskInput}
+                type="text"
+                placeholder="Type your question…"
+                value={faqQuestion}
+                onChange={e => setFaqQuestion(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && faqQuestion.trim()) setFaqSent(true) }}
+              />
+              <button
+                className={styles.faqAskBtn}
+                onClick={() => { if (faqQuestion.trim()) setFaqSent(true) }}
+              >
+                Send
+              </button>
+            </div>
+          )}
+        </div>
       </section>
+
+      {/* FOOTER */}
+      <footer
+        ref={footerRef}
+        className={`${styles.footer} ${styles.revealUp} ${styles.stagger3}`}
+        style={{ position: 'relative', bottom: 'auto', left: 'auto', width: 'auto', maxWidth: '1200px', margin: '0 auto' }}
+      >
+        <div className={styles.footerLeft}>HostelMate — Nivo Technologies</div>
+        <div className={styles.footerRight}>Private · Not for distribution</div>
+      </footer>
     </div>
   )
 }
