@@ -5,6 +5,7 @@
   font-family: system-ui, -apple-system, sans-serif;
   position: relative;
   overflow-x: clip;
+  scroll-snap-type: y proximity;
 }
 
 .glow {
@@ -1061,10 +1062,10 @@
 /* Finalize frontend */
 
 /* ── Section reveal (used on How it Works / Pricing / FAQ) ── */
+/* opacity is 1 by default now — sections live inside sticky wrappers so
+   they're always visible when the wrapper is in the scroll zone */
 .sectionReveal {
-  opacity: 0;
-  transition: opacity 0.35s ease;
-  will-change: opacity;
+  opacity: 1;
 }
 
 .sectionReveal.revealVisible {
@@ -1174,6 +1175,23 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* ── Sticky section wrapper (matches loginScrollWrapper pattern) ── */
+.sectionStickyWrapper {
+  height: 200vh;
+  position: relative;
+  scroll-snap-align: start;
+}
+
+.stickyPageSection {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Smooth scroll for the whole page */
