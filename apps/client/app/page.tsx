@@ -203,18 +203,53 @@ export default function Home() {
       history.scrollRestoration = 'manual'
     }
 
-    // Always start from top on mount
-    window.scrollTo(0, 0)
+    // Check if we just came back from login
+    const wasFromLogin = sessionStorage.getItem('navigatingBackFromLogin') === 'true'
+    
+    if (wasFromLogin) {
+      sessionStorage.removeItem('navigatingBackFromLogin')
+      
+      // Instead of forcing top, let's instantly jump to the login card position
+      // so the transition looks seamless
+      const loginCardTop = document.getElementById('login-section')?.offsetTop || window.innerHeight * 9
+      
+      // Force immediate scroll without animation
+      document.documentElement.style.scrollBehavior = 'auto'
+      window.scrollTo(0, loginCardTop)
+      
+      // Small delay to ensure browser doesn't override us, then reset scroll behavior
+      requestAnimationFrame(() => {
+        window.scrollTo(0, loginCardTop)
+        document.documentElement.style.scrollBehavior = 'smooth'
+        
+        // We also need to hide the cylinder immediately to prevent visual glitches
+        if (cylinderSceneRef.current) {
+          cylinderSceneRef.current.style.visibility = 'hidden'
+          cylinderSceneRef.current.style.opacity = '0'
+        }
+      })
+    } else {
+      // Normal visit - always start at top
+      window.scrollTo(0, 0)
+    }
 
     // Also handle page show event (back/forward cache)
     const handlePageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
-        // Page was restored from bfcache
-        window.scrollTo(0, 0)
-        // Reset cylinder rotation
-        if (cylinderSceneRef.current) {
-          cylinderSceneRef.current.style.visibility = 'hidden'
-          cylinderSceneRef.current.style.opacity = '0'
+        const fromLogin = sessionStorage.getItem('navigatingBackFromLogin') === 'true'
+        if (fromLogin) {
+          sessionStorage.removeItem('navigatingBackFromLogin')
+          const loginTop = document.getElementById('login-section')?.offsetTop || window.innerHeight * 9
+          document.documentElement.style.scrollBehavior = 'auto'
+          window.scrollTo(0, loginTop)
+        } else {
+          // Page was restored from bfcache
+          window.scrollTo(0, 0)
+          // Reset cylinder rotation
+          if (cylinderSceneRef.current) {
+            cylinderSceneRef.current.style.visibility = 'hidden'
+            cylinderSceneRef.current.style.opacity = '0'
+          }
         }
       }
     }
@@ -1093,7 +1128,7 @@ export default function Home() {
         </section>
       </div>
 
-      <div ref={loginWrapperRef} className={styles.loginScrollWrapper}>
+      <div id="login-section" ref={loginWrapperRef} className={styles.loginScrollWrapper}>
         <section className={styles.loginPreview}>
           <div className={styles.sectionEyebrow}>Sign in experience</div>
           <div className={styles.loginLayout}>
