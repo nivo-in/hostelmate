@@ -383,12 +383,12 @@ export default function Home() {
   const tickWheel = useCallback(function tickWheelFn() {
     if (window.innerWidth <= 768) {
       if (cylinderRef.current) cylinderRef.current.style.transform = ''
-      cardsRef.current.forEach(card => {
+      const cards = cylinderRef.current ? Array.from(cylinderRef.current.children) as HTMLElement[] : []
+      cards.forEach(card => {
         if (!card) return
         card.style.transform = ''
         card.style.opacity = ''
         card.style.pointerEvents = ''
-        card.style.filter = ''
       })
       wheelAnimRef.current = requestAnimationFrame(tickWheelFn)
       return
@@ -401,7 +401,8 @@ export default function Home() {
       cylinderRef.current.style.transform = `rotateY(${currentRot.current}deg)`
     }
 
-    cardsRef.current.forEach((card, i) => {
+    const cards = cylinderRef.current ? Array.from(cylinderRef.current.children) as HTMLElement[] : []
+    cards.forEach((card, i) => {
       if (!card) return
       const cardAngle = i * 40
       
@@ -427,23 +428,15 @@ export default function Home() {
         pointerEvents = 'none'
       }
 
-      let blur = 0
-      if (absRot > 40) {
-        blur = Math.min((absRot - 40) * 0.1, 4)
-      }
-
       card.style.opacity = opacity.toString()
-      card.style.filter = `blur(${blur}px)`
       card.style.transform = `rotateY(${cardAngle}deg) translateZ(${RADIUS}px) scale(${scale})`
       card.style.pointerEvents = pointerEvents as "auto" | "none"
     })
 
-    if (Math.abs(targetRot.current - currentRot.current) > 0.01) {
-      wheelAnimRef.current = requestAnimationFrame(tickWheelFn)
-    } else {
+    if (Math.abs(targetRot.current - currentRot.current) < 0.01) {
       currentRot.current = targetRot.current
-      wheelAnimRef.current = null
     }
+    wheelAnimRef.current = requestAnimationFrame(tickWheelFn)
   }, [])
 
   useEffect(() => {
@@ -525,6 +518,9 @@ export default function Home() {
         }
 
         cylinderSceneRef.current.style.opacity = `${opacityC}`
+        if (opacityC > 0) {
+          cylinderSceneRef.current.style.visibility = 'visible'
+        }
         cylinderSceneRef.current.style.transform = `translateY(${yC}px) scale(${scaleC})`
       }
 
@@ -1201,15 +1197,16 @@ export default function Home() {
         <div className={styles.stickyPageSection}>
           <section
             id="howitworks"
-            ref={howItWorksRef as React.RefObject<HTMLElement>}
             style={{ width: '100%', maxWidth: '1200px', padding: '0 48px' }}
           >
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>
-              How it works
+            <div ref={howItWorksRef as React.RefObject<HTMLDivElement>} className={`${styles.revealUp} ${styles.stagger1}`}>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>
+                How it works
+              </div>
+              <h2 style={{ fontSize: '28px', fontWeight: 500, letterSpacing: '-0.6px', color: '#fff', marginBottom: '28px', lineHeight: 1.15 }}>
+                Live in 15 minutes. <span style={{ color: 'rgba(255,255,255,0.28)' }}>Zero learning curve.</span>
+              </h2>
             </div>
-            <h2 style={{ fontSize: '28px', fontWeight: 500, letterSpacing: '-0.6px', color: '#fff', marginBottom: '28px', lineHeight: 1.15 }}>
-              Live in 15 minutes. <span style={{ color: 'rgba(255,255,255,0.28)' }}>Zero learning curve.</span>
-            </h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px', background: 'rgba(255,255,255,0.06)', borderRadius: '16px', overflow: 'hidden' }}>
               {[
                 { step: '01', color: '#4ade80', title: 'Create your hostel', desc: 'Name it, add blocks and rooms. Skeleton is live in 15 min.' },
@@ -1238,16 +1235,17 @@ export default function Home() {
         <div className={styles.stickyPageSection}>
           <section
             id="pricing"
-            ref={pricingRef as React.RefObject<HTMLElement>}
             style={{ width: '100%', maxWidth: '1200px', padding: '0 48px' }}
           >
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>Pricing</div>
-            <h2 style={{ fontSize: '28px', fontWeight: 500, letterSpacing: '-0.6px', color: '#fff', marginBottom: '6px', lineHeight: 1.1 }}>
-              Simple pricing. <span style={{ color: 'rgba(255,255,255,0.28)' }}>No surprises.</span>
-            </h2>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginBottom: '28px', lineHeight: 1.6 }}>
-              First 10 hostels get 3 months free. No credit card required.
-            </p>
+            <div ref={pricingRef as React.RefObject<HTMLDivElement>} className={`${styles.revealUp} ${styles.stagger1}`}>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>Pricing</div>
+              <h2 style={{ fontSize: '28px', fontWeight: 500, letterSpacing: '-0.6px', color: '#fff', marginBottom: '6px', lineHeight: 1.1 }}>
+                Simple pricing. <span style={{ color: 'rgba(255,255,255,0.28)' }}>No surprises.</span>
+              </h2>
+              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginBottom: '28px', lineHeight: 1.6 }}>
+                First 10 hostels get 3 months free. No credit card required.
+              </p>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
               {[
                 {
@@ -1276,9 +1274,12 @@ export default function Home() {
                   key={i}
                   ref={el => { pricingCardsRef.current[i] = el }}
                   className={`${styles.cardReveal} ${[styles.stagger5, styles.stagger6, styles.stagger7][i]}`}
-                  style={{ background: plan.color, border: `0.5px solid ${plan.border}`, borderRadius: '16px', padding: '26px 24px' }}
                 >
-                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginBottom: '12px' }}>{plan.name}</div>
+                  <div
+                    className={styles.pricingCard}
+                    style={{ background: plan.color, border: `0.5px solid ${plan.border}`, borderRadius: '16px', padding: '26px 24px', height: '100%' }}
+                  >
+                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginBottom: '12px' }}>{plan.name}</div>
                   <div style={{ fontSize: '30px', fontWeight: 500, color: '#fff', letterSpacing: '-1px', marginBottom: '3px' }}>{plan.price}</div>
                   <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.28)', marginBottom: '20px' }}>{plan.sub}</div>
                   <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '9px', marginBottom: '20px' }}>
@@ -1289,9 +1290,10 @@ export default function Home() {
                       </div>
                     ))}
                   </div>
-                  <button style={{ width: '100%', background: plan.ctaBg, color: plan.ctaColor, border: 'none', borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
-                    {plan.cta}
-                  </button>
+                    <button style={{ width: '100%', background: plan.ctaBg, color: plan.ctaColor, border: 'none', borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
+                      {plan.cta}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1304,21 +1306,24 @@ export default function Home() {
         <div className={styles.stickyPageSection}>
           <section
             id="faq"
-            ref={faqRef as React.RefObject<HTMLElement>}
             style={{ width: '100%', maxWidth: '1200px', padding: '0 48px' }}
           >
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '28px' }}>FAQ</div>
+            <div ref={faqRef as React.RefObject<HTMLDivElement>} className={`${styles.revealUp} ${styles.stagger1}`}>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '28px' }}>FAQ</div>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(255,255,255,0.06)', borderRadius: '16px', overflow: 'hidden', marginBottom: '16px' }}>
               {[
                 { q: 'How long does setup take?', a: 'Under 30 minutes. Add your hostel details, create student accounts, and you\'re live.' },
                 { q: 'Does face recognition work without internet?', a: 'Face matching runs in the browser — no data leaves the device during verification.' },
                 { q: 'Can parents pay fees directly?', a: 'Yes. Parents have their own portal with Razorpay integration for hostel and mess fees.' },
                 { q: 'Is student data secure?', a: 'Row-level security on all tables. JWT auth. Face descriptors stored as numbers, not images.' },
+                { q: 'Can I manage multiple hostel blocks?', a: 'Absolutely. The platform is designed to handle multiple blocks, floors, and rooms from a single centralized dashboard.' },
+                { q: 'How are night curfew violations handled?', a: 'Violations are automatically flagged if a student doesn\'t check in by curfew time, with instant alerts sent to wardens and parents.' },
               ].map((item, i) => (
                 <div
                   key={i}
                   ref={el => { faqCardsRef.current[i] = el }}
-                  className={`${styles.cardReveal} ${[styles.stagger5, styles.stagger6, styles.stagger7, styles.stagger8][i]}`}
+                  className={`${styles.cardReveal} ${[styles.stagger5, styles.stagger6, styles.stagger7, styles.stagger8, styles.stagger9, styles.stagger10][i]}`}
                   style={{ background: '#080810', padding: '22px 24px' }}
                 >
                   <div style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.82)', marginBottom: '8px' }}>{item.q}</div>
