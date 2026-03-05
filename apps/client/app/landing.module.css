@@ -379,6 +379,7 @@
   perspective: 1000px;
   z-index: 1;
   transform: scale(1.30);
+  left: -11px;
 }
 
 .heroScrollHint {
@@ -878,6 +879,7 @@
 .cylinderScene {
   position: relative;
   perspective: 1200px;
+  -webkit-perspective: 1200px;
   height: 360px;
   display: flex;
   align-items: center;
@@ -890,6 +892,7 @@
   width: 330px;
   height: 290px;
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
   will-change: transform;
 }
 
@@ -903,11 +906,10 @@
   border: 0.5px solid rgba(255, 255, 255, 0.1);
   border-radius: 18px;
   padding: 20px 24px;
-  will-change: transform, opacity, filter;
+  will-change: transform, opacity;
   display: flex;
   flex-direction: column;
   gap: 0;
-  backdrop-filter: blur(12px);
 }
 
 .featureIcon {
@@ -1085,6 +1087,23 @@
 .cardReveal.revealVisible {
   opacity: 1;
   transform: translateY(0);
+}
+
+.pricingCard {
+  position: relative;
+  will-change: transform, box-shadow;
+  transition: 
+    transform 0.15s ease-out,
+    box-shadow 0.15s ease-out;
+}
+
+.pricingCard:hover {
+  transform: translateY(-2px) scale(1.015);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+  z-index: 2;
+  transition: 
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* Stagger delays for cards (extends existing stagger1-4) */
