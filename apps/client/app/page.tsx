@@ -1380,3 +1380,4 @@ export default function Home() {
 // layout behavior
 
 // PRICING WRAPPER
+// CAROUSEL FIXES
