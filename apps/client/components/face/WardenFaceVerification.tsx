@@ -213,6 +213,9 @@ export default function WardenFaceVerification({
             if (scores.length > 12) scores.shift();
           }
 
+          // ── Position motion ──────────────────────────────────────────────
+          checkPositionMotion({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
+
           // ── EMA distance smoothing ───────────────────────────────────────
           const rawDist = bestMatchDistance(descriptor, storedDescriptorsRef.current);
           smoothedDistRef.current = applyEMA(smoothedDistRef.current, rawDist);
@@ -222,50 +225,43 @@ export default function WardenFaceVerification({
           if (!blinkDetectedRef.current) {
             setStatus('scanning');
           } else {
-            runningRef.current = false; // pause scanning loop
-            setStatus('verifying'); // show verifying identity
-
-            setTimeout(() => {
-              // ── Gate 2: Frame-diff hard-block ──────────────────────────────
-              const scores = frameDiffScoresRef.current;
-              if (scores.length >= FRAME_DIFF_MIN_FRAMES) {
-                const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-                if (avgScore < FRAME_DIFF_LIVE_THRESHOLD) {
-                  stopCamera();
-                  setStatus('liveness-failed');
-                  onFailedRef.current(
-                    'Liveness check failed — please use a live camera, not a photo.'
-                  );
-                  return;
-                }
+            // ── Gate 2: Frame-diff hard-block ──────────────────────────────
+            const scores = frameDiffScoresRef.current;
+            if (scores.length >= FRAME_DIFF_MIN_FRAMES) {
+              const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+              if (avgScore < FRAME_DIFF_LIVE_THRESHOLD) {
+                runningRef.current = false;
+                stopCamera();
+                setStatus('liveness-failed');
+                onFailedRef.current(
+                  'Liveness check failed — please use a live camera, not a photo.'
+                );
+                return;
               }
+            }
 
-              // ── Face match ────────────────────────────────────────────────
-              if (!storedDescriptorsRef.current) return;
-              const { match } = isSamePerson(descriptor, storedDescriptorsRef.current);
-              if (match) {
-                setStatus('verified');
-                onVerifiedRef.current(); // Redirect immediately
+            // ── Face match ────────────────────────────────────────────────
+            if (!storedDescriptorsRef.current) return;
+            const { match } = isSamePerson(descriptor, storedDescriptorsRef.current);
+            if (match) {
+              runningRef.current = false;
+              stopCamera();
+              setStatus('verified');
+              onVerifiedRef.current(); // Redirect immediately
+              return;
+            } else {
+              failedAttemptsRef.current += 1;
+              setFailedAttempts(failedAttemptsRef.current);
+              if (failedAttemptsRef.current >= MAX_ATTEMPTS) {
+                runningRef.current = false;
+                stopCamera();
+                setStatus('max-attempts');
+                onFailedRef.current('Identity could not be verified. Access denied.');
                 return;
               } else {
-                failedAttemptsRef.current += 1;
-                setFailedAttempts(failedAttemptsRef.current);
-                if (failedAttemptsRef.current >= MAX_ATTEMPTS) {
-                  stopCamera();
-                  setStatus('max-attempts');
-                  onFailedRef.current('Identity could not be verified. Access denied.');
-                  return;
-                } else {
-                  // Resume scanning if failed
-                  runningRef.current = true;
-                  blinkDetectedRef.current = false;
-                  setBlinkDetected(false);
-                  setStatus('scanning');
-                  setTimeout(tick, 50);
-                }
+                setStatus('scanning');
               }
-            }, 1500); // 1.5s verification delay
-            return; // stop current tick execution
+            }
           }
         }
       } catch {
@@ -275,7 +271,7 @@ export default function WardenFaceVerification({
     };
 
     tick();
-  }, [stopCamera, computeFrameDiff]);
+  }, [stopCamera, computeFrameDiff, checkPositionMotion]);
 
   useEffect(() => {
     let cancelled = false;
