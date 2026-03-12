@@ -486,7 +486,7 @@ export default function LoginPage() {
           onMouseLeave={() => setIsHovered(false)}
         >
           {showFaceVerification && authenticatedUserId ? (
-            <div style={{ background: '#fff', borderRadius: '16px', overflow: 'hidden' }}>
+            <div style={{ background: 'transparent', borderRadius: '16px', overflow: 'hidden' }}>
               <WardenFaceVerification
                 wardenId={authenticatedUserId}
                 onVerified={() => { router.push('/warden/dashboard') }}
