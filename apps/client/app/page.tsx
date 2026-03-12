@@ -172,6 +172,34 @@ function HowItWorksCard({
   )
 }
 
+function FaqCard({
+  item, cardRef, staggerClass, cardRevealClass,
+}: {
+  item: { q: string; a: string }
+  cardRef: (_el: HTMLDivElement | null) => void
+  staggerClass: string
+  cardRevealClass: string
+}) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <div
+      ref={cardRef}
+      className={`${cardRevealClass} ${staggerClass}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: hovered ? 'rgba(255,255,255,0.055)' : '#080810',
+        padding: '22px 24px',
+        transition: 'background 0.22s ease',
+        cursor: 'default',
+      }}
+    >
+      <div style={{ fontSize: '13px', fontWeight: 500, color: hovered ? 'rgba(255,255,255,0.96)' : 'rgba(255,255,255,0.82)', marginBottom: '8px', transition: 'color 0.22s ease' }}>{item.q}</div>
+      <div style={{ fontSize: '12px', color: hovered ? 'rgba(255,255,255,0.48)' : 'rgba(255,255,255,0.35)', lineHeight: 1.65, transition: 'color 0.22s ease' }}>{item.a}</div>
+    </div>
+  )
+}
+
 export default function Home() {
   const [transitioning, setTransitioning] = useState(false)
   const loginCardRef = useRef<HTMLDivElement>(null)
@@ -1342,15 +1370,13 @@ export default function Home() {
                 { q: 'Can I manage multiple hostel blocks?', a: 'Absolutely. The platform is designed to handle multiple blocks, floors, and rooms from a single centralized dashboard.' },
                 { q: 'How are night curfew violations handled?', a: 'Violations are automatically flagged if a student doesn\'t check in by curfew time, with instant alerts sent to wardens and parents.' },
               ].map((item, i) => (
-                <div
+                <FaqCard
                   key={i}
-                  ref={el => { faqCardsRef.current[i] = el }}
-                  className={`${styles.cardReveal} ${[styles.stagger5, styles.stagger6, styles.stagger7, styles.stagger8, styles.stagger9, styles.stagger10][i]}`}
-                  style={{ background: '#080810', padding: '22px 24px' }}
-                >
-                  <div style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.82)', marginBottom: '8px' }}>{item.q}</div>
-                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.65 }}>{item.a}</div>
-                </div>
+                  item={item}
+                  cardRef={el => { faqCardsRef.current[i] = el }}
+                  staggerClass={[styles.stagger5, styles.stagger6, styles.stagger7, styles.stagger8, styles.stagger9, styles.stagger10][i]}
+                  cardRevealClass={styles.cardReveal}
+                />
               ))}
             </div>
 
