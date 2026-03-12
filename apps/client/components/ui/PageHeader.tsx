@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 
 const NotificationBell = dynamic(
   () => import('./NotificationBell').then((m) => ({ default: m.NotificationBell })),
@@ -21,20 +22,20 @@ type PageHeaderProps = {
 
 export function PageHeader({ title, showBack, backHref, onSignOut: _onSignOut }: PageHeaderProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const executeSignOut = () => {
+  const executeSignOut = async () => {
     if (isSigningOut) return;
     setIsSigningOut(true);
     
-    // Fire-and-forget sign out without awaiting
-    import('@/lib/supabase/client')
-      .then(({ createClient }) => createClient().auth.signOut())
-      .catch((error) => console.error('Sign out error:', error));
-      
-    // Instant zero-latency redirect
-    window.location.href = '/login';
+    try {
+      await _onSignOut();
+    } catch (error) {
+      console.error('Sign out error:', error);
+      setIsSigningOut(false);
+    }
   };
 
   // Infer the dashboard href if backHref isn't provided (e.g. /warden/complaints -> /warden/dashboard)
@@ -52,15 +53,15 @@ export function PageHeader({ title, showBack, backHref, onSignOut: _onSignOut }:
         {showBack ? (
           // Sub-page: show back button only, "by Nivo" is in fixed bottom-left via layout
           finalBackHref ? (
-            <a
+            <Link
               href={finalBackHref}
               className="text-xs text-gray-400 hover:text-gray-600 self-start transition-colors"
             >
               ← Back
-            </a>
+            </Link>
           ) : (
             <button
-              onClick={() => window.history.back()}
+              onClick={() => router.back()}
               className="text-xs text-gray-400 hover:text-gray-600 self-start transition-colors"
             >
               ← Back

@@ -61,6 +61,22 @@ export default function WardenDashboard() {
 
   useEffect(() => {
     const init = async () => {
+      // 1. Fast path: load from cache to make it instant
+      const cached = sessionStorage.getItem('wardenDashboardCache');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          setFirstName(parsed.firstName);
+          setStats(parsed.stats);
+          setFaceRegistered(parsed.faceRegistered);
+          setWardenId(parsed.wardenId);
+          setLoading(false); // Instant render
+        } catch (e) {
+          console.error('Failed to parse cache', e);
+        }
+      }
+
+      // 2. Fetch fresh data in the background
       const supabase = createClient();
       const {
         data: { session },
@@ -68,7 +84,7 @@ export default function WardenDashboard() {
       const user = session?.user;
       if (!user) return;
 
-      setWardenId(user.id);
+      if (!cached) setWardenId(user.id);
 
       // All fetches run in parallel
       const [profileResult, statsResult, faceResult] = await Promise.all([
@@ -81,24 +97,39 @@ export default function WardenDashboard() {
           .single(),
       ]);
 
+      let newFirstName = firstName;
       if (profileResult.data?.full_name) {
-        setFirstName(profileResult.data.full_name.split(' ')[0]);
+        newFirstName = profileResult.data.full_name.split(' ')[0];
+        setFirstName(newFirstName);
       }
 
+      let newStats = stats;
       if (statsResult?.success && statsResult.data) {
-        setStats({
+        newStats = {
           attendanceToday: statsResult.data.attendance?.today_percentage ?? 0,
           pendingLeaves: statsResult.data.leaves?.pending_count ?? 0,
           openComplaints: statsResult.data.complaints?.open_count ?? 0,
           activeNotices: statsResult.data.notices?.total_active ?? 0,
-        });
+        };
+        setStats(newStats);
       }
 
-      setFaceRegistered(!!faceResult.data);
+      const newFaceRegistered = !!faceResult.data;
+      setFaceRegistered(newFaceRegistered);
+      
+      // Update cache
+      sessionStorage.setItem('wardenDashboardCache', JSON.stringify({
+        firstName: newFirstName,
+        stats: newStats,
+        faceRegistered: newFaceRegistered,
+        wardenId: user.id
+      }));
+      
       setLoading(false);
     };
 
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSignOut = async () => {

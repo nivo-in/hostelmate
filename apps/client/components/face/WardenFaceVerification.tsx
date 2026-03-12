@@ -76,8 +76,7 @@ export default function WardenFaceVerification({
   });
 
   const [status, setStatus] = useState<Status>('loading-models');
-  const [errorMsg, setErrorMsg] = useState('');
-  const [smoothedDist, setSmoothedDist] = useState<number | null>(null);
+  // const [smoothedDist, setSmoothedDist] = useState<number | null>(null);
   const [blinkDetected, setBlinkDetected] = useState(false);
   const [showBlinkPrompt, setShowBlinkPrompt] = useState(true);
 
@@ -173,7 +172,7 @@ export default function WardenFaceVerification({
           // ── EMA distance smoothing ───────────────────────────────────────
           const rawDist = bestMatchDistance(descriptor, storedDescriptorsRef.current);
           smoothedDistRef.current = applyEMA(smoothedDistRef.current, rawDist);
-          setSmoothedDist(smoothedDistRef.current);
+          // setSmoothedDist(smoothedDistRef.current);
 
           // ── Gate 1: Blink mandatory ──────────────────────────────────────
           if (!blinkDetectedRef.current) {
@@ -305,7 +304,7 @@ export default function WardenFaceVerification({
           setStatus('camera-denied');
         } else {
           setStatus('error');
-          setErrorMsg(msg);
+          console.error(msg);
         }
       }
     };
@@ -320,7 +319,7 @@ export default function WardenFaceVerification({
   // ── Derived UI ─────────────────────────────────────────────────────────────
   const isVerified = status === 'verified';
   // const isFailed = ['failed', 'liveness-failed', 'max-attempts'].includes(status);
-  const isLoading = ['loading-models', 'requesting-camera', 'fetching-descriptor'].includes(status);
+  // const isLoading = ['loading-models', 'requesting-camera', 'fetching-descriptor'].includes(status);
   const showVideo = ![
     'loading-models',
     'fetching-descriptor',
@@ -333,268 +332,195 @@ export default function WardenFaceVerification({
     'no-face-data',
   ].includes(status);
 
-  const confidence =
-    smoothedDist !== null
-      ? Math.max(0, Math.min(100, Math.round((1 - smoothedDist / 0.6) * 100)))
-      : null;
+  // const confidence =
+  //   smoothedDist !== null
+  //     ? Math.max(0, Math.min(100, Math.round((1 - smoothedDist / 0.6) * 100)))
+  //     : null;
 
-  const barColor =
-    confidence === null
-      ? '#e5e7eb'
-      : confidence >= 70
-        ? '#16a34a'
-        : confidence >= 40
-          ? '#f59e0b'
-          : '#ef4444';
+  // const barColor =
+  //   confidence === null
+  //     ? '#e5e7eb'
+  //     : confidence >= 70
+  //       ? '#16a34a'
+  //       : confidence >= 40
+  //         ? '#f59e0b'
+  //         : '#ef4444';
 
-  const livenessColor = blinkDetected ? '#16a34a' : '#f59e0b';
-  const livenessText = blinkDetected
-    ? '👁 Liveness: ✓ Confirmed'
-    : "👁 Blink once to verify you're real";
+  // const livenessColor = blinkDetected ? '#16a34a' : '#f59e0b';
+  // const livenessText = blinkDetected
+  //   ? '👁 Liveness: ✓ Confirmed'
+  //   : "👁 Blink once to verify you're real";
 
   return (
-    <div className="flex flex-col items-center gap-5 p-6">
-      {/* Header */}
-      <div className="text-center">
-        <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center mx-auto mb-3">
-          <svg
-            className="w-5 h-5 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
-            />
+    <div style={{ position: 'fixed', inset: 0, background: '#04040a', zIndex: 50 }}>
+      {/* Background glow */}
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        pointerEvents: 'none',
+        background: 'radial-gradient(circle at top center, rgba(167,139,250,0.08) 0%, transparent 70%)',
+        transition: 'background 1s ease',
+      }} />
+
+      {/* Camera Feed */}
+      <video
+        ref={videoRef}
+        muted
+        playsInline
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          opacity: 0.35,
+          filter: 'blur(0px)',
+          transform: 'scaleX(-1)',
+          display: showVideo ? 'block' : 'none'
+        }}
+      />
+      
+      {/* Hidden canvas for frame-diff liveness */}
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
+
+      {/* Top bar */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '18px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <button
+          onClick={() => {
+            if (onSkipRef.current) onSkipRef.current();
+          }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '13px',
+            color: 'rgba(255,255,255,0.35)',
+            background: 'rgba(255,255,255,0.04)',
+            border: '0.5px solid rgba(255,255,255,0.08)',
+            padding: '6px 10px',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            transition: 'color 0.2s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M19 12H5M5 12l7-7M5 12l7 7"/>
           </svg>
+          Back
+        </button>
+        
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+          <span style={{ color: '#fff', fontSize: '15px', fontWeight: 500, letterSpacing: '-0.3px' }}>HostelMate</span>
+          <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>by Nivo</span>
         </div>
-        <h2 className="text-lg font-medium text-gray-900">Warden Security Check</h2>
-        <p className="text-sm text-gray-400 mt-1">Face verification required for warden access</p>
       </div>
 
-      {/* Loading */}
-      {isLoading && (
-        <div className="flex items-center gap-3 text-sm text-gray-500">
-          <svg className="animate-spin w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24">
-            <circle
-              className="opacity-20"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="3"
-            />
-            <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-          </svg>
-          {status === 'loading-models'
-            ? 'Loading face recognition...'
-            : status === 'fetching-descriptor'
-              ? 'Loading your face data...'
-              : 'Starting camera...'}
+      {/* Center content */}
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', width: '100%' }}>
+        <svg style={{ width: '28px', height: '28px', color: 'rgba(167,139,250,0.8)', marginBottom: '20px', display: 'inline-block' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+        </svg>
+
+        <h2 style={{ fontSize: '22px', fontWeight: 500, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>Warden verification</h2>
+        <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.38)', marginTop: '8px', margin: '8px 0 0 0' }}>Look directly at the camera</p>
+
+        <div style={{
+          marginTop: '28px',
+          background: 'rgba(255,255,255,0.06)',
+          border: '0.5px solid rgba(255,255,255,0.12)',
+          borderRadius: '100px',
+          padding: '8px 18px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <div style={{
+            width: '7px',
+            height: '7px',
+            borderRadius: '50%',
+            backgroundColor: status === 'verifying' ? '#fbbf24' : isVerified ? '#4ade80' : status === 'failed' || status === 'max-attempts' ? '#f87171' : '#a78bfa',
+            animation: 'pulseDot 1.5s infinite'
+          }} />
+          <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
+            {status === 'verifying' ? 'Verifying identity...' : isVerified ? 'Identity confirmed' : status === 'failed' || status === 'max-attempts' ? 'Face not recognized' : 'Scanning face...'}
+          </span>
         </div>
-      )}
 
-      {/* Camera */}
-      <div className="relative w-full max-w-sm">
-        {/* Hidden canvas for frame-diff liveness */}
-        <canvas ref={canvasRef} style={{ display: 'none' }} />
-        <video
-          ref={videoRef}
-          muted
-          playsInline
-          className="rounded-2xl w-full"
-          style={{ display: showVideo ? 'block' : 'none', transform: 'scaleX(-1)' }}
-        />
-
-        {showVideo && (
-          <>
-            {/* Oval face guide */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="relative" style={{ width: '42%', paddingTop: '58%' }}>
-                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 136" fill="none">
-                  <ellipse
-                    cx="50"
-                    cy="68"
-                    rx="48"
-                    ry="66"
-                    stroke={status === 'verifying' ? '#3b82f6' : '#ffffff'}
-                    strokeWidth="3"
-                    style={{
-                      filter: 'drop-shadow(0 0 6px rgba(0,0,0,0.5))',
-                      transition: 'stroke 0.2s ease',
-                    }}
-                  />
-                </svg>
-              </div>
-            </div>
-
-            {/* Status chip */}
-            <div className="absolute top-3 left-0 right-0 flex justify-center pointer-events-none">
-              <div
-                className="flex items-center gap-2 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-sm transition-all"
-                style={{
-                  background: 'rgba(0,0,0,0.6)',
-                  backdropFilter: 'blur(8px)',
-                }}
-              >
-                <div className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                </div>
-                Scanning face...
-              </div>
-            </div>
-
-            {/* Blink prompt overlay */}
-            {showBlinkPrompt && !blinkDetected && (
-              <div className="absolute bottom-3 left-0 right-0 flex justify-center pointer-events-none">
-                <div className="bg-yellow-500/80 text-white text-xs font-medium px-3 py-1 rounded-full">
-                  Please blink to verify you&apos;re real
-                </div>
-              </div>
-            )}
-          </>
+        {showBlinkPrompt && !blinkDetected && (
+          <div style={{
+            marginTop: '16px',
+            fontSize: '12px',
+            color: 'rgba(255,255,255,0.3)',
+            animation: 'fadeIn 1s ease forwards'
+          }}>
+            Blink once to confirm liveness
+          </div>
         )}
       </div>
 
-      {/* Liveness indicator */}
-      {showVideo && (
-        <div
-          className="text-xs font-semibold px-3 py-1.5 rounded-full border transition-all duration-300"
-          style={{
-            color: livenessColor,
-            borderColor: livenessColor,
-            background: blinkDetected ? 'rgba(22,163,74,0.1)' : 'rgba(245,158,11,0.1)',
-            animation: blinkDetected ? 'none' : 'livenessGlow 1.5s ease-in-out infinite',
-          }}
-        >
-          {livenessText}
+      {/* Scanning frame corner overlays */}
+      {showVideo && !isVerified && (
+        <>
+          <div style={{ position: 'absolute', top: 'calc(50% - 140px)', left: 'calc(50% - 140px)', width: '24px', height: '24px', borderTop: '1.5px solid rgba(167,139,250,0.5)', borderLeft: '1.5px solid rgba(167,139,250,0.5)', borderRadius: '2px 0 0 0' }} />
+          <div style={{ position: 'absolute', top: 'calc(50% - 140px)', right: 'calc(50% - 140px)', width: '24px', height: '24px', borderTop: '1.5px solid rgba(167,139,250,0.5)', borderRight: '1.5px solid rgba(167,139,250,0.5)', borderRadius: '0 2px 0 0' }} />
+          <div style={{ position: 'absolute', bottom: 'calc(50% - 140px)', left: 'calc(50% - 140px)', width: '24px', height: '24px', borderBottom: '1.5px solid rgba(167,139,250,0.5)', borderLeft: '1.5px solid rgba(167,139,250,0.5)', borderRadius: '0 0 0 2px' }} />
+          <div style={{ position: 'absolute', bottom: 'calc(50% - 140px)', right: 'calc(50% - 140px)', width: '24px', height: '24px', borderBottom: '1.5px solid rgba(167,139,250,0.5)', borderRight: '1.5px solid rgba(167,139,250,0.5)', borderRadius: '0 0 2px 0' }} />
+
+          <div style={{
+            position: 'absolute',
+            width: '280px',
+            height: '1px',
+            background: 'linear-gradient(90deg, transparent, rgba(167,139,250,0.6), transparent)',
+            left: 'calc(50% - 140px)',
+            animation: 'scanLine 2.5s ease-in-out infinite'
+          }} />
+        </>
+      )}
+
+      {/* Bottom bar */}
+      <div style={{ position: 'absolute', bottom: '32px', left: 0, right: 0, textAlign: 'center' }}>
+        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)' }}>
+          Attempt {Math.min(MAX_ATTEMPTS, failedAttempts + 1)} / {MAX_ATTEMPTS}
         </div>
-      )}
-
-      {/* Confidence meter */}
-      {showVideo && confidence !== null && (
-        <div className="w-full max-w-sm">
-          <div className="flex justify-between text-xs text-gray-400 mb-1">
-            <span>Match confidence</span>
-            <span>{confidence}%</span>
-          </div>
-          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full"
-              style={{
-                width: `${confidence}%`,
-                background: barColor,
-                transition: 'width 300ms ease-out, background 300ms ease-out',
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Attempt counter */}
-      {showVideo && failedAttempts > 0 && (
-        <p className="text-xs text-gray-400">
-          Attempt {failedAttempts}/{MAX_ATTEMPTS} — hold still and look directly at the camera
-        </p>
-      )}
-
-      {/* Verified */}
-      {isVerified && (
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
-            <svg
-              className="w-8 h-8 text-green-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
-          <p className="text-sm font-medium text-green-700">Identity confirmed ✓</p>
-        </div>
-      )}
-
-      {/* Failed states */}
-      {status === 'liveness-failed' && (
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center">
-            <span className="text-2xl">👁</span>
-          </div>
-          <p className="text-sm font-medium text-orange-600">Liveness check failed</p>
-          <p className="text-xs text-gray-400 text-center max-w-xs">
-            Please use a live camera, not a photo.
-          </p>
-        </div>
-      )}
-
-      {(status === 'failed' || status === 'max-attempts') && (
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
-            <svg
-              className="w-8 h-8 text-red-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </div>
-          <p className="text-sm font-medium text-red-600">Face not recognized</p>
-          <p className="text-xs text-gray-400 text-center max-w-xs">
-            {status === 'max-attempts'
-              ? 'Maximum attempts reached. Access denied.'
-              : 'Make sure lighting is good and face the camera directly.'}
-          </p>
-        </div>
-      )}
-
-      {/* Error states */}
-      {status === 'camera-denied' && (
-        <div className="flex flex-col items-center gap-2 text-center max-w-xs">
-          <span className="text-2xl">📷</span>
-          <p className="text-sm font-medium text-gray-700">Camera access required</p>
-          <p className="text-xs text-gray-400">
-            Enable camera permissions in your browser settings, then refresh.
-          </p>
-        </div>
-      )}
-
-      {status === 'error' && (
-        <p className="text-xs text-red-500 text-center max-w-xs">{errorMsg}</p>
-      )}
-
-      {/* Security badges */}
-      <div className="flex items-center gap-2 flex-wrap justify-center mt-1">
-        {['🔒 5-Angle Scan', '👁 Liveness Check', '🛡 Warden Auth'].map((badge) => (
-          <span
-            key={badge}
-            className="text-xs text-gray-400 border border-gray-200 rounded-full px-2 py-0.5"
+        {failedAttempts >= 3 && (
+          <button
+            onClick={() => {
+              if (onSkipRef.current) onSkipRef.current();
+            }}
+            style={{
+              fontSize: '12px',
+              color: 'rgba(255,255,255,0.35)',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              marginTop: '12px',
+            }}
+            onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+            onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
           >
-            {badge}
-          </span>
-        ))}
+            Skip verification
+          </button>
+        )}
       </div>
 
-      <button
-        id="skip-warden-face-verification-btn"
-        onClick={() => onSkipRef.current()}
-        className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        Skip verification
-      </button>
-
       <style>{`
-        @keyframes livenessGlow {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.3); }
-          50% { box-shadow: 0 0 0 4px rgba(245,158,11,0.15); }
+        @keyframes scanLine {
+          0% { top: calc(50% - 140px); opacity: 0; }
+          10% { opacity: 1; }
+          50% { top: calc(50% + 140px); }
+          90% { opacity: 1; }
+          100% { top: calc(50% - 140px); opacity: 0; }
+        }
+        @keyframes pulseDot {
+          0% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(0.8); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
       `}</style>
     </div>
