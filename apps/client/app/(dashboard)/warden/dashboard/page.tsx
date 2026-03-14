@@ -227,7 +227,6 @@ export default function WardenDashboard() {
             { emoji:'🚨', title:'Emergency', desc:'Send emergency alerts', href:'/warden/emergency' },
             { emoji:'🏠', title:'Room Allocation', desc:'Manage rooms and assignments', href:'/warden/rooms' },
             { emoji:'🌙', title:'Curfew Management', desc:'Track and notify curfew violations', href:'/warden/curfew' },
-            { emoji:'📋', title:'Audit Log', desc:'View all system activity', href:'/warden/audit' },
             { emoji:'🚪', title:'Visitor Management', desc:'Manage guest check-ins', href:'/warden/visitors' },
             { emoji:'💰', title:'Fee Management', desc:'Collect and track hostel fees', href:'/warden/payments' },
           ].map((item, i) => (
@@ -257,16 +256,37 @@ export default function WardenDashboard() {
           ))}
         </div>
         
-        {/* Warden Face Registration section at the bottom */}
+        {/* Settings & Security section at the bottom */}
         {!loading && (
-          <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '0.5px solid rgba(255,255,255,0.05)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '0.5px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <p style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.8)', margin: 0 }}>Login Face Security</p>
+                <p style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.8)', margin: 0 }}>System Audit Log</p>
                 <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '4px' }}>
-                  {faceRegistered ? 'Face data registered — verified on each login' : 'No face registered — add one to secure your login'}
+                  View all system activity, role changes, and security events
                 </p>
               </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  onClick={() => router.push('/warden/audit')}
+                  style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', transition: 'all 0.2s' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
+                >
+                  View Logs
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <div>
+                  <p style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.8)', margin: 0 }}>Login Face Security</p>
+                  <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '4px' }}>
+                    {faceRegistered ? 'Face data registered — verified on each login' : 'No face registered — add one to secure your login'}
+                  </p>
+                </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {faceRegistered && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#4ade80', fontWeight: 500 }}>
@@ -301,6 +321,7 @@ export default function WardenDashboard() {
               </div>
             )}
           </div>
+        </div>
         )}
       </div>
     </div>
