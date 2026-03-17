@@ -120,8 +120,8 @@ export default function StudentDashboard() {
                 boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
                 backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'radial-gradient(circle at top left, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; const svg = e.currentTarget.querySelector('svg'); if (svg) { svg.style.transform = 'translateX(4px)'; svg.style.color = 'rgba(255,255,255,0.6)'; } }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; const svg = e.currentTarget.querySelector('svg'); if (svg) { svg.style.transform = 'translateX(0)'; svg.style.color = 'rgba(255,255,255,0.2)'; } }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'radial-gradient(circle at top left, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; const arrow = e.currentTarget.querySelector('.arrow-wrapper'); if (arrow) { (arrow as HTMLElement).style.transform = 'translateX(4px)'; } const svg = e.currentTarget.querySelector('svg'); if (svg) { svg.style.color = 'rgba(255,255,255,0.6)'; } }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; const arrow = e.currentTarget.querySelector('.arrow-wrapper'); if (arrow) { (arrow as HTMLElement).style.transform = 'translateX(0)'; } const svg = e.currentTarget.querySelector('svg'); if (svg) { svg.style.color = 'rgba(255,255,255,0.2)'; } }}
               className="group"
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -131,9 +131,11 @@ export default function StudentDashboard() {
                 }}>
                   {item.emoji}
                 </div>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '14px', height: '14px', color: 'rgba(255,255,255,0.2)', transition: 'all 0.3s ease', marginTop: '4px' }}>
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
+                <div className="arrow-wrapper" style={{ transition: 'transform 0.3s ease', display: 'flex' }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '14px', height: '14px', color: 'rgba(255,255,255,0.2)', transition: 'color 0.3s ease', marginTop: '4px' }}>
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </div>
               </div>
               <div>
                 <div style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.82)', margin: '0 0 4px 0' }}>{item.title}</div>
