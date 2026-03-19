@@ -137,6 +137,15 @@ export default function WardenDashboard() {
         @keyframes spotlightFade {
           to { opacity: 1; }
         }
+        @keyframes bellRing {
+          0% { transform: rotate(0); }
+          15% { transform: rotate(15deg); }
+          30% { transform: rotate(-10deg); }
+          45% { transform: rotate(5deg); }
+          60% { transform: rotate(-3deg); }
+          75% { transform: rotate(1deg); }
+          100% { transform: rotate(0); }
+        }
         .dash-card { transition: all 0.3s ease; }
         .dash-card:hover {
           background: radial-gradient(circle at top left, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%) !important;
@@ -146,6 +155,8 @@ export default function WardenDashboard() {
         .dash-card:hover .arrow-icon { transform: translateX(6px); color: rgba(255,255,255,0.6); }
         .signout-btn .signout-arrow { transition: transform 0.2s ease; }
         .signout-btn:hover .signout-arrow { transform: translateX(3px); }
+        .bell-icon { transform-origin: top center; transition: stroke 0.2s ease; }
+        .bell-btn:hover .bell-icon { animation: bellRing 0.6s ease-in-out; stroke: rgba(255,255,255,0.8) !important; }
       `}</style>
       
       {/* Top bar */}
@@ -182,8 +193,8 @@ export default function WardenDashboard() {
         <div style={{ marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <h1 style={{ fontSize: '22px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', letterSpacing: '-0.3px', margin: 0 }}>Warden dashboard</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <button onClick={() => router.push('/warden/notices')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }} title="Notices">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2" style={{ transition: 'stroke 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.stroke = 'rgba(255,255,255,0.8)'} onMouseLeave={(e) => e.currentTarget.style.stroke = 'rgba(255,255,255,0.4)'}>
+            <button onClick={() => router.push('/warden/notices')} className="bell-btn" style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }} title="Notices">
+              <svg className="bell-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
               </svg>
