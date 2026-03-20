@@ -137,14 +137,12 @@ export default function WardenDashboard() {
         @keyframes spotlightFade {
           to { opacity: 1; }
         }
-        @keyframes bellRing {
-          0% { transform: rotate(0); }
-          15% { transform: rotate(15deg); }
-          30% { transform: rotate(-10deg); }
-          45% { transform: rotate(5deg); }
-          60% { transform: rotate(-3deg); }
-          75% { transform: rotate(1deg); }
-          100% { transform: rotate(0); }
+        @keyframes springPull {
+          0% { transform: translateY(0) scaleY(1); }
+          25% { transform: translateY(4px) scaleY(1.15); }
+          50% { transform: translateY(-3px) scaleY(0.9); }
+          75% { transform: translateY(1px) scaleY(1.05); }
+          100% { transform: translateY(0) scaleY(1); }
         }
         .dash-card { transition: all 0.3s ease; }
         .dash-card:hover {
@@ -156,7 +154,7 @@ export default function WardenDashboard() {
         .signout-btn .signout-arrow { transition: transform 0.2s ease; }
         .signout-btn:hover .signout-arrow { transform: translateX(3px); }
         .bell-icon { transform-origin: top center; transition: stroke 0.2s ease; }
-        .bell-btn:hover .bell-icon { animation: bellRing 0.6s ease-in-out; stroke: rgba(255,255,255,0.8) !important; }
+        .bell-btn:hover .bell-icon { animation: springPull 0.5s ease-out; stroke: rgba(255,255,255,0.8) !important; }
       `}</style>
       
       {/* Top bar */}
