@@ -2,17 +2,33 @@ import React from 'react';
 
 type BadgeProps = {
   children: React.ReactNode;
-  variant?: 'success' | 'danger' | 'warning' | 'default';
+  variant?: 'success' | 'danger' | 'warning' | 'info' | 'default';
+};
+
+const styles: Record<string, React.CSSProperties> = {
+  default: { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)', border: '0.5px solid rgba(255,255,255,0.12)' },
+  success: { background: 'rgba(74,222,128,0.12)', color: '#4ade80', border: '0.5px solid rgba(74,222,128,0.25)' },
+  danger: { background: 'rgba(248,113,113,0.12)', color: '#f87171', border: '0.5px solid rgba(248,113,113,0.25)' },
+  warning: { background: 'rgba(251,191,36,0.12)', color: '#fbbf24', border: '0.5px solid rgba(251,191,36,0.25)' },
+  info: { background: 'rgba(96,165,250,0.12)', color: '#60a5fa', border: '0.5px solid rgba(96,165,250,0.25)' },
 };
 
 export function Badge({ children, variant = 'default' }: BadgeProps) {
-  let colorClass = 'bg-gray-100 text-gray-700';
-
-  if (variant === 'success') colorClass = 'bg-green-50 text-green-700';
-  else if (variant === 'danger') colorClass = 'bg-red-50 text-red-700';
-  else if (variant === 'warning') colorClass = 'bg-yellow-50 text-yellow-700';
-
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>{children}</span>
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '4px',
+        padding: '3px 9px',
+        borderRadius: '9999px',
+        fontSize: '11px',
+        fontWeight: 500,
+        whiteSpace: 'nowrap',
+        ...styles[variant],
+      }}
+    >
+      {children}
+    </span>
   );
 }
