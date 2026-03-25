@@ -260,7 +260,7 @@ HostelMate uses **client-side biometric verification** powered by `face-api.js` 
 |---|---|---|
 | **1 — Intentional Blink Sequence** | Eye Aspect Ratio (EAR) tracking requiring an explicit **Open → Close → Open** eye sequence. | A static photo **cannot perform a coordinated blink**. |
 | **2 — Frame-diff (hard-block)** | Evaluated strictly *after* the blink sequence. A 32×32 patch is sampled every tick. Avg diff < 6/255 over recent frames = static source. | Catches a photo held still after a fake EAR dip (e.g., physically tilting/sliding the phone to fake a blink). |
-| **3 — Face match** | Euclidean distance vs all 5 stored angle descriptors. Best (minimum) distance must be < 0.52. | Threshold set below face-api's default 0.6 — tight enough to reject strangers, loose enough to match front-facing without head rotation. |
+| **3 — Face match** | Euclidean distance vs all 5 stored angle descriptors. Best (minimum) distance must be < 0.42. | Threshold set below face-api's default 0.6 — tight enough to reject strangers, loose enough to match front-facing without head rotation. |
 
 **Performance:** Recursive async tick instead of `setInterval` — next detection fires 50ms after the previous completes (~3× more detections/sec). Blink → verified in **~300ms total**. EMA smoothing on the confidence bar prevents jitter.
 
