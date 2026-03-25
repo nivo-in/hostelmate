@@ -221,7 +221,7 @@ export default function LoginPage() {
     } else {
       setAutoDetected(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [email])
 
   const handleLogin = async (e: React.FormEvent) => {

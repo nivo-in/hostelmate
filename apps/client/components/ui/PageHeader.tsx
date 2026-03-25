@@ -33,6 +33,7 @@ export function PageHeader({ title, showBack, backHref, onSignOut: _onSignOut }:
     try {
       await _onSignOut();
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Sign out error:', error);
       setIsSigningOut(false);
     }

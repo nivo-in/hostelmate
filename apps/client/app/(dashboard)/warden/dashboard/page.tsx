@@ -56,6 +56,7 @@ export default function WardenDashboard() {
           setWardenId(parsed.wardenId);
           setLoading(false); // Instant render
         } catch (e) {
+          // eslint-disable-next-line no-console
           console.error('Failed to parse cache', e);
         }
       }
@@ -113,7 +114,7 @@ export default function WardenDashboard() {
     };
 
     init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, []);
 
   const handleSignOut = async () => {

@@ -18,7 +18,10 @@ export function Header({ title, onSignOut: _onSignOut }: HeaderProps) {
     // Fire-and-forget sign out without awaiting
     import('@/lib/supabase/client')
       .then(({ createClient }) => createClient().auth.signOut())
-      .catch((error) => console.error('Sign out error:', error));
+      .catch((error) => {
+        // eslint-disable-next-line no-console
+        console.error('Sign out error:', error);
+      });
       
     // Instant zero-latency redirect
     window.location.href = '/login';

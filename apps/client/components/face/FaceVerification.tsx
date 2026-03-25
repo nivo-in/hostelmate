@@ -33,15 +33,10 @@ type Status =
   | 'max-attempts'
   | 'error';
 
-interface FacePosition {
-  x: number;
-  y: number;
-}
+
 
 const MAX_ATTEMPTS = 5;
-// Motion: std < this px across MOTION_HISTORY frames = static image
-const MOTION_STD_THRESHOLD = 1.2;
-const MOTION_HISTORY_FRAMES = 6;
+
 // Frame-diff: avg pixel change < this over MANY frames = photo spoof
 // Only used to BLOCK after a blink is already confirmed + we have lots of data.
 // A blink alone is strong enough liveness — frame-diff is a secondary hard-block.
@@ -72,7 +67,7 @@ export default function FaceVerification({
   const blinkDetectedRef = useRef(false);
   const closedFramesRef = useRef(0);
 
-  const facePositionHistoryRef = useRef<FacePosition[]>([]);
+
   // Frame-diff: store previous frame pixel data for comparison
   const prevFrameDataRef = useRef<Uint8ClampedArray | null>(null);
   const frameDiffScoresRef = useRef<number[]>([]); // rolling avg pixel diffs
@@ -155,21 +150,7 @@ export default function FaceVerification({
     []
   );
 
-  // ── Motion (face-position) liveness (secondary) ───────────────────────────
-  const checkPositionMotion = useCallback((pos: FacePosition): boolean => {
-    const history = facePositionHistoryRef.current;
-    history.push(pos);
-    if (history.length > MOTION_HISTORY_FRAMES) history.shift();
-    if (history.length < MOTION_HISTORY_FRAMES) return true; // collecting
 
-    const xs = history.map((p) => p.x);
-    const ys = history.map((p) => p.y);
-    const meanX = xs.reduce((a, b) => a + b, 0) / xs.length;
-    const meanY = ys.reduce((a, b) => a + b, 0) / ys.length;
-    const stdX = Math.sqrt(xs.reduce((s, x) => s + (x - meanX) ** 2, 0) / xs.length);
-    const stdY = Math.sqrt(ys.reduce((s, y) => s + (y - meanY) ** 2, 0) / ys.length);
-    return Math.max(stdX, stdY) >= MOTION_STD_THRESHOLD;
-  }, []);
 
   const startVerificationLoop = useCallback(() => {
     runningRef.current = true;
@@ -247,8 +228,6 @@ export default function FaceVerification({
             if (scores.length > 8) scores.shift();
           }
 
-          // ── Position motion ──────────────────────────────────────────────
-          const isMoving = checkPositionMotion({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
 
           // ── Gate 1: Blink mandatory ──────────────────────────────────────
           if (!blinkDetectedRef.current) {
@@ -269,14 +248,6 @@ export default function FaceVerification({
               }
             }
 
-            // ── Gate 3: Motion Check ──────────────────────────────
-            if (!isMoving) {
-              runningRef.current = false;
-              stopCamera();
-              setStatus('liveness-failed');
-              onFailedRef.current('Liveness check failed — face is unnaturally still.');
-              return;
-            }
 
             // All clear!
             runningRef.current = false;
@@ -294,7 +265,7 @@ export default function FaceVerification({
     };
 
     tick();
-  }, [stopCamera, computeFrameDiff, checkPositionMotion]);
+  }, [stopCamera, computeFrameDiff]);
 
   useEffect(() => {
     let cancelled = false;
