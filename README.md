@@ -254,13 +254,12 @@ Pipeline completes in **~55 seconds**. No broken code reaches `main`.
 
 HostelMate uses **client-side biometric verification** powered by `face-api.js` (SsdMobilenetv1 + 68-point landmarks). Registration captures **5 angles** (straight, left, right, up, down) — 24 frames total, averaged into 5 per-angle descriptors stored in Supabase.
 
-**Verification runs three hard gates before accepting a match:**
+**Verification runs two hard gates before accepting a match:**
 
 | Gate | Check | How it blocks spoofing |
 |---|---|---|
-| **1 — Blink (mandatory)** | Eye Aspect Ratio (EAR) falling-edge detection using 68-point landmarks. EAR = `(‖p2−p6‖ + ‖p3−p5‖) / (2 × ‖p1−p4‖)`. EAR < 0.25 on a falling edge = blink confirmed. | A static photo on a phone screen **cannot blink** — no real eye movement, no EAR drop. |
-| **2 — Frame-diff (hard-block)** | A 32×32 patch of the face region is sampled every tick, compared pixel-by-pixel (grayscale) to the previous frame. Avg diff < 6/255 over 10+ frames = static source. | Catches a photo held still after a fake EAR dip (e.g., tilting the phone). |
-| **3 — Face match** | Euclidean distance vs all 5 stored angle descriptors. Best (minimum) distance must be < 0.52. | Threshold set below face-api's default 0.6 — tight enough to reject strangers, loose enough to match front-facing without head rotation. |
+| **1 — Intentional Blink Sequence** | Eye Aspect Ratio (EAR) tracking requiring an explicit **Open → Close → Open** eye sequence. | A static photo **cannot perform a coordinated blink**. Motion requirements were removed; static holding with intentional blinking is perfectly valid and frictionless. |
+| **2 — Face match** | Euclidean distance vs all 5 stored angle descriptors. Best (minimum) distance must be < 0.52. | Threshold set below face-api's default 0.6 — tight enough to reject strangers, loose enough to match front-facing without head rotation. |
 
 **Performance:** Recursive async tick instead of `setInterval` — next detection fires 50ms after the previous completes (~3× more detections/sec). Blink → verified in **~300ms total**. EMA smoothing on the confidence bar prevents jitter.
 
@@ -365,7 +364,7 @@ Each role project uses **saved auth storage state** from the setup project — l
 | Feature | Description |
 |---|---|
 | QR Attendance | Scan rotating QR code (30-sec rotation) within geofenced zone |
-| **Face Recognition** | **Biometric attendance with blink-based liveness check** |
+| **Face Recognition** | **Biometric attendance with Open-Close-Open blink sequence** |
 | Leave Requests | Submit with date range and reason (20+ chars) |
 | Complaints | File categorized complaints with AI-powered urgency flags |
 | Mess Reviews | Rate meals (1-5 stars) with comments |
@@ -491,7 +490,7 @@ hostelmate/
 │   │   │   ├── useProfile.ts            # Cached Supabase profile hook
 │   │   │   └── useSocket.ts             # WebSocket hook (Socket.io connection)
 │   │   ├── lib/
-│   │   │   ├── faceRecognition.ts       # face-api.js wrapper (5-angle scan, blink liveness, EAR, frame-diff)
+│   │   │   ├── faceRecognition.ts       # face-api.js wrapper (5-angle scan, Open-Close-Open EAR blink liveness)
 │   │   │   ├── socket.ts                # Socket.io client singleton
 │   │   │   └── supabase/
 │   │   │       ├── client.ts            # Browser Supabase client (singleton)
@@ -842,7 +841,7 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | **Input Validation** | Zod v4 Schemas | Type-safe validation on every POST/PUT/PATCH |
 | **QR Anti-Fraud** | Rotating Tokens | 30-second rotation prevents screenshot sharing |
 | **Payment Security** | HMAC-SHA256 | Razorpay signature verified server-side before marking paid |
-| **Biometric Anti-Spoofing** | EAR + Frame-diff | 3-gate liveness: mandatory blink + frame-diff + face match |
+| **Biometric Anti-Spoofing** | EAR Sequence | 2-gate liveness: intentional Open-Close-Open blink + face match |
 | **Pre-commit Gate** | Husky | ESLint + Jest must pass before any commit is created |
 | **Error Handling** | Global Handler | Stack traces never exposed in production responses |
 | **Audit Trail** | Winston + DB | Every warden action logged with timestamp, resource, and actor |
@@ -873,7 +872,7 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | ✅ | **Staff Management** | Directory, attendance tracking, and monthly staff reports |
 | ✅ | **Staff Feedback** | Student rating system (1–5★) per staff member with warden aggregate view |
 | ✅ | **Emergency Alerts** | Warden broadcasts instant system-wide emergency notice to all students |
-| ✅ | **Face Recognition** | 5-angle biometric (SsdMobilenetv1) + EAR blink liveness + frame-diff anti-spoofing |
+| ✅ | **Face Recognition** | 5-angle biometric (SsdMobilenetv1) + Open-Close-Open EAR blink liveness |
 | ✅ | **Room Allocation** | Room assignment, transfer requests, and availability tracking |
 | ✅ | **Night Curfew Alerts** | Scheduled job (1-min interval, IST-aware) auto-notifies wardens of violations |
 | ✅ | **In-App Notifications** | Per-user notification centre with read/unread state |
