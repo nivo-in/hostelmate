@@ -40,7 +40,7 @@ const MAX_ATTEMPTS = 5;
 // Frame-diff: avg pixel change < this over MANY frames = photo spoof
 // Only used to BLOCK after a blink is already confirmed + we have lots of data.
 // A blink alone is strong enough liveness — frame-diff is a secondary hard-block.
-const FRAME_DIFF_LIVE_THRESHOLD = 6; // out of 255
+const FRAME_DIFF_LIVE_THRESHOLD = 6; // minimum required avg pixel difference (out of 255) to pass liveness
 const FRAME_DIFF_MIN_FRAMES = 10; // need this many frames before we hard-block
 
 export default function FaceVerification({
