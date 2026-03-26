@@ -2,9 +2,13 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageShell } from '@/components/ui/PageShell';
+import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { useApi } from '@/hooks/useApi';
 import { createClient } from '@/lib/supabase/client';
 import { useDebounce } from '@/hooks/useDebounce';
+import { ui, panel, panelElevated, input, buttonPrimary, buttonGhost, container, label } from '@/lib/ui';
 
 type Room = {
   id: string;
@@ -91,10 +95,13 @@ function fuzzyMatch(query: string, target: string, maxDistance: number = 2): boo
 // ----------------------------
 
 const SkeletonCard = () => (
-  <div className="border border-gray-100 rounded-xl p-6 animate-pulse">
-    <div className="h-4 bg-gray-100 rounded w-1/3 mb-3" />
-    <div className="h-3 bg-gray-100 rounded w-2/3 mb-2" />
-    <div className="h-1.5 bg-gray-100 rounded-full w-full mt-4" />
+  <div style={{ ...panel, padding: '22px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', animation: 'hmPulse 1.4s ease-in-out infinite' }}>
+      <div style={{ height: '16px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', width: '33%' }} />
+      <div style={{ height: '12px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', width: '66%' }} />
+      <div style={{ height: '6px', background: 'rgba(255,255,255,0.06)', borderRadius: '9999px', width: '100%', marginTop: '8px' }} />
+    </div>
+    <style>{`@keyframes hmPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }`}</style>
   </div>
 );
 
@@ -298,326 +305,307 @@ export default function WardenRoomsPage() {
   const formatDate = (dateString: string) =>
     mounted ? new Date(dateString).toLocaleDateString() : '—';
 
+  const tabBtn = (active: boolean): React.CSSProperties => ({
+    paddingBottom: '12px',
+    fontSize: '13px',
+    fontWeight: 500,
+    background: 'transparent',
+    border: 'none',
+    borderBottom: active ? `2px solid ${ui.accent}` : '2px solid transparent',
+    color: active ? ui.text : ui.textMuted,
+    cursor: 'pointer',
+    transition: 'color 0.2s',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  });
+
   return (
-    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
+    <PageShell>
       <PageHeader title="Room Allocation" showBack={true} onSignOut={handleSignOut} />
 
-      {/* Tabs */}
-      <div className="flex gap-6 mb-8 border-b border-gray-100">
-        <button
-          onClick={() => setTab('rooms')}
-          className={`text-sm font-medium pb-3 transition-colors ${
-            tab === 'rooms'
-              ? 'text-gray-900 border-b-2 border-gray-900'
-              : 'text-gray-400 hover:text-gray-600'
-          }`}
-        >
-          Room Grid
-        </button>
-        <button
-          onClick={() => setTab('requests')}
-          className={`text-sm font-medium pb-3 flex items-center gap-2 transition-colors ${
-            tab === 'requests'
-              ? 'text-gray-900 border-b-2 border-gray-900'
-              : 'text-gray-400 hover:text-gray-600'
-          }`}
-        >
-          Transfer Requests
-          {requests.length > 0 && (
-            <span className="bg-gray-900 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-              {requests.length}
-            </span>
-          )}
-        </button>
-      </div>
-
-      {/* Error states */}
-      {isForbidden && (
-        <div className="border border-yellow-100 rounded-xl p-6 bg-yellow-50 mb-6">
-          <div className="text-sm font-medium text-yellow-800 mb-1">Session expired</div>
-          <div className="text-xs text-yellow-600 mb-4">
-            Your warden session has expired. Please refresh to continue.
-          </div>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700 transition-colors"
-          >
-            Refresh page
+      <div style={container}>
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: '24px', marginBottom: '24px', borderBottom: ui.border }}>
+          <button onClick={() => setTab('rooms')} style={tabBtn(tab === 'rooms')}>
+            Room Grid
+          </button>
+          <button onClick={() => setTab('requests')} style={tabBtn(tab === 'requests')}>
+            Transfer Requests
+            {requests.length > 0 && (
+              <span style={{ background: ui.accent, color: '#fff', fontSize: '10px', padding: '1px 7px', borderRadius: '9999px', fontWeight: 600 }}>
+                {requests.length}
+              </span>
+            )}
           </button>
         </div>
-      )}
 
-      {error && !isForbidden && (
-        <div className="border border-red-100 rounded-xl p-4 bg-red-50 mb-6 flex items-center justify-between">
-          <span className="text-sm text-red-600">{error}</span>
-          <button onClick={fetchData} className="text-xs text-red-600 underline hover:text-red-800">
-            Retry
-          </button>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </div>
-      ) : tab === 'rooms' ? (
-        <>
-          {/* Stats + Add Room */}
-          <div className="flex items-start justify-between mb-6">
-            <div className="grid grid-cols-3 gap-4 flex-1 mr-4">
-              <div className="border border-gray-100 rounded-xl p-4">
-                <div className="text-xs text-gray-400 mb-1">Total</div>
-                <div className="text-2xl font-medium text-gray-900">{totalRooms}</div>
-              </div>
-              <div className="border border-gray-100 rounded-xl p-4">
-                <div className="text-xs text-gray-400 mb-1">Occupied</div>
-                <div className="text-2xl font-medium text-gray-900">{occupiedRooms}</div>
-              </div>
-              <div className="border border-gray-100 rounded-xl p-4">
-                <div className="text-xs text-gray-400 mb-1">Available</div>
-                <div className="text-2xl font-medium text-gray-900">{availableRooms}</div>
-              </div>
+        {/* Error states */}
+        {isForbidden && (
+          <div style={{ background: 'rgba(251,191,36,0.1)', border: '0.5px solid rgba(251,191,36,0.25)', borderRadius: ui.radius, padding: '22px', marginBottom: '24px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 500, color: ui.amber, marginBottom: '4px' }}>Session expired</div>
+            <div style={{ fontSize: '12px', color: ui.textMuted, marginBottom: '16px' }}>
+              Your warden session has expired. Please refresh to continue.
             </div>
-            <button
-              onClick={() => setShowAddRoom((v) => !v)}
-              className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors whitespace-nowrap"
-            >
-              {showAddRoom ? 'Cancel' : '+ Add Room'}
+            <button onClick={() => window.location.reload()} className="btn-primary" style={buttonPrimary}>
+              Refresh page
             </button>
           </div>
+        )}
 
-          {/* Add Room Form */}
-          {showAddRoom && (
-            <form
-              onSubmit={handleAddRoom}
-              className="border border-gray-100 rounded-xl p-6 mb-6 space-y-4"
-            >
-              <h2 className="text-sm font-medium text-gray-900">Add New Room</h2>
-              {addRoomError && (
-                <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
-                  {addRoomError}
+        {error && !isForbidden && (
+          <div style={{ background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.25)', borderRadius: ui.radius, padding: '16px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '13px', color: ui.red }}>{error}</span>
+            <button onClick={fetchData} style={{ fontSize: '12px', color: ui.red, background: 'transparent', border: 'none', textDecoration: 'underline', cursor: 'pointer' }}>
+              Retry
+            </button>
+          </div>
+        )}
+
+        {loading ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }} className="rooms-grid">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        ) : tab === 'rooms' ? (
+          <>
+            {/* Stats + Add Room */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', flex: 1, marginRight: '16px' }}>
+                <div style={{ ...panelElevated, padding: '16px 18px' }}>
+                  <div style={{ ...label, marginBottom: '8px' }}>Total</div>
+                  <div style={{ fontSize: '26px', fontWeight: 500, color: ui.text, fontVariantNumeric: 'tabular-nums' }}>{totalRooms}</div>
                 </div>
-              )}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Room Number</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. A-101"
-                    value={newRoomNumber}
-                    onChange={(e) => setNewRoomNumber(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full"
-                  />
+                <div style={{ ...panelElevated, padding: '16px 18px' }}>
+                  <div style={{ ...label, marginBottom: '8px' }}>Occupied</div>
+                  <div style={{ fontSize: '26px', fontWeight: 500, color: ui.amber, fontVariantNumeric: 'tabular-nums' }}>{occupiedRooms}</div>
                 </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Block Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Block A"
-                    value={newBlockName}
-                    onChange={(e) => setNewBlockName(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Capacity</label>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    max={10}
-                    value={newCapacity}
-                    onChange={(e) => setNewCapacity(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full"
-                  />
+                <div style={{ ...panelElevated, padding: '16px 18px' }}>
+                  <div style={{ ...label, marginBottom: '8px' }}>Available</div>
+                  <div style={{ fontSize: '26px', fontWeight: 500, color: ui.green, fontVariantNumeric: 'tabular-nums' }}>{availableRooms}</div>
                 </div>
               </div>
-              <button
-                type="submit"
-                disabled={addingRoom}
-                className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors"
-              >
-                {addingRoom ? 'Adding...' : 'Add Room'}
-              </button>
-            </form>
-          )}
-
-          {/* Empty state */}
-          {rooms.length === 0 ? (
-            <div className="border border-gray-100 rounded-xl p-12 text-center">
-              <div className="text-sm font-medium text-gray-900 mb-1">No rooms configured yet</div>
-              <div className="text-xs text-gray-400 mb-4">
-                Add your first room using the button above.
-              </div>
-              <button
-                onClick={() => setShowAddRoom(true)}
-                className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors"
-              >
-                + Add Room
+              <button onClick={() => setShowAddRoom((v) => !v)} className="btn-primary" style={{ ...buttonPrimary, whiteSpace: 'nowrap' }}>
+                {showAddRoom ? 'Cancel' : '+ Add Room'}
               </button>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {rooms.map((room) => {
-                const isFull = room.occupancy >= room.capacity;
-                const isEmpty = room.occupancy === 0;
 
-                return (
-                  <div
-                    key={room.id}
-                    className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors"
-                  >
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <div className="text-lg font-medium text-gray-900">{room.room_number}</div>
-                        <div className="text-xs text-gray-400">{room.block_name}</div>
-                      </div>
-                      <span
-                        className={`text-[10px] px-2 py-1 rounded-full font-medium ${
-                          isFull
-                            ? 'bg-red-50 text-red-600'
-                            : isEmpty
-                              ? 'bg-green-50 text-green-600'
-                              : 'bg-yellow-50 text-yellow-600'
-                        }`}
-                      >
-                        {isFull ? 'Full' : isEmpty ? 'Available' : 'Partial'}
-                      </span>
-                    </div>
+            {/* Add Room Form */}
+            {showAddRoom && (
+              <form onSubmit={handleAddRoom} style={{ ...panel, padding: '22px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <h2 style={{ fontSize: '13px', fontWeight: 500, color: ui.text, margin: 0 }}>Add New Room</h2>
+                {addRoomError && (
+                  <div style={{ fontSize: '12px', color: ui.red, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.25)', borderRadius: ui.radiusXs, padding: '8px 12px' }}>
+                    {addRoomError}
+                  </div>
+                )}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }} className="room-form-grid">
+                  <div>
+                    <label style={{ ...label, display: 'block' }}>Room Number</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. A-101"
+                      value={newRoomNumber}
+                      onChange={(e) => setNewRoomNumber(e.target.value)}
+                      className="hm-input"
+                      style={input}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ ...label, display: 'block' }}>Block Name</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Block A"
+                      value={newBlockName}
+                      onChange={(e) => setNewBlockName(e.target.value)}
+                      className="hm-input"
+                      style={input}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ ...label, display: 'block' }}>Capacity</label>
+                    <input
+                      type="number"
+                      required
+                      min={1}
+                      max={10}
+                      value={newCapacity}
+                      onChange={(e) => setNewCapacity(e.target.value)}
+                      className="hm-input"
+                      style={input}
+                    />
+                  </div>
+                </div>
+                <button type="submit" disabled={addingRoom} className="btn-primary" style={{ ...buttonPrimary, alignSelf: 'flex-start', opacity: addingRoom ? 0.5 : 1 }}>
+                  {addingRoom ? 'Adding...' : 'Add Room'}
+                </button>
+              </form>
+            )}
 
-                    <div className="mb-4">
-                      <div className="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>Occupancy</span>
-                        <span>
-                          {room.occupancy}/{room.capacity}
-                        </span>
-                      </div>
-                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-gray-900 rounded-full transition-all"
-                          style={{
-                            width: `${(room.occupancy / room.capacity) * 100}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
+            {/* Empty state */}
+            {rooms.length === 0 ? (
+              <div style={{ ...panel, padding: '12px' }}>
+                <EmptyState message="No rooms configured yet. Add your first room using the button above." icon="🏠" />
+                <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: '32px' }}>
+                  <button onClick={() => setShowAddRoom(true)} className="btn-primary" style={buttonPrimary}>
+                    + Add Room
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }} className="rooms-grid">
+                {rooms.map((room) => {
+                  const isFull = room.occupancy >= room.capacity;
+                  const isEmpty = room.occupancy === 0;
+                  const statusVariant = isFull ? 'danger' : isEmpty ? 'success' : 'warning';
+                  const barColor = isFull ? ui.red : isEmpty ? ui.green : ui.amber;
 
-                    <div className="mb-4 min-h-[40px]">
-                      {room.occupants.length > 0 ? (
-                        <ul className="text-sm text-gray-600 space-y-1">
-                          {room.occupants.map((occ) => (
-                            <li key={occ.id}>• {occ.name}</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <span className="text-sm text-gray-400 italic">No occupants</span>
+                  return (
+                    <div key={room.id} className="glass-card" style={{ ...panel, padding: '22px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                        <div>
+                          <div style={{ fontSize: '17px', fontWeight: 500, color: ui.text }}>{room.room_number}</div>
+                          <div style={{ fontSize: '12px', color: ui.textMuted }}>{room.block_name}</div>
+                        </div>
+                        <Badge variant={statusVariant}>{isFull ? 'Full' : isEmpty ? 'Available' : 'Partial'}</Badge>
+                      </div>
+
+                      <div style={{ marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: ui.textMuted, marginBottom: '6px' }}>
+                          <span>Occupancy</span>
+                          <span>
+                            {room.occupancy}/{room.capacity}
+                          </span>
+                        </div>
+                        <div style={{ height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '9999px', overflow: 'hidden' }}>
+                          <div
+                            style={{
+                              height: '100%',
+                              background: barColor,
+                              borderRadius: '9999px',
+                              transition: 'all 0.3s',
+                              width: `${(room.occupancy / room.capacity) * 100}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ marginBottom: '16px', minHeight: '40px' }}>
+                        {room.occupants.length > 0 ? (
+                          <ul style={{ fontSize: '13px', color: ui.textSoft, margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {room.occupants.map((occ) => (
+                              <li key={occ.id}>• {occ.name}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <span style={{ fontSize: '13px', color: ui.textMuted, fontStyle: 'italic' }}>No occupants</span>
+                        )}
+                      </div>
+
+                      {!isFull && (
+                        <button onClick={() => handleAssignClick(room.id)} className="btn-ghost" style={{ ...buttonGhost, width: '100%' }}>
+                          {assignRoomId === room.id ? 'Cancel' : 'Assign Student'}
+                        </button>
+                      )}
+
+                      {assignRoomId === room.id && !isFull && (
+                        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: ui.border }}>
+                          <input
+                            type="text"
+                            placeholder="Search student..."
+                            value={searchQuery}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSearchQuery(val);
+
+                              // Automatically select the first match when searching
+                              if (val.trim() !== '') {
+                                const matches = unassignedStudents.filter(
+                                  (s) =>
+                                    fuzzyMatch(val, s.full_name) || fuzzyMatch(val, s.roll_number)
+                                );
+                                if (matches.length > 0) {
+                                  setSelectedStudentId(matches[0].id);
+                                } else {
+                                  setSelectedStudentId('');
+                                }
+                              }
+                            }}
+                            className="hm-input"
+                            style={{ ...input, marginBottom: '8px' }}
+                          />
+                          <select
+                            value={selectedStudentId}
+                            onChange={(e) => setSelectedStudentId(e.target.value)}
+                            className="hm-input"
+                            style={{ ...input, colorScheme: 'dark', marginBottom: '12px' }}
+                          >
+                            <option value="">Select student...</option>
+                            {filteredStudents.map((s) => (
+                              <option key={s.id} value={s.id}>
+                                {s.full_name} ({s.roll_number})
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={handleAssignSubmit}
+                            disabled={!selectedStudentId || assigning}
+                            className="btn-primary"
+                            style={{ ...buttonPrimary, width: '100%', opacity: !selectedStudentId || assigning ? 0.5 : 1 }}
+                          >
+                            {assigning ? 'Assigning...' : 'Confirm Assign'}
+                          </button>
+                        </div>
                       )}
                     </div>
-
-                    {!isFull && (
-                      <button
-                        onClick={() => handleAssignClick(room.id)}
-                        className="w-full border border-gray-200 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 transition-colors"
-                      >
-                        {assignRoomId === room.id ? 'Cancel' : 'Assign Student'}
-                      </button>
-                    )}
-
-                    {assignRoomId === room.id && !isFull && (
-                      <div className="mt-4 pt-4 border-t border-gray-100">
-                        <input
-                          type="text"
-                          placeholder="Search student..."
-                          value={searchQuery}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setSearchQuery(val);
-
-                            // Automatically select the first match when searching
-                            if (val.trim() !== '') {
-                              const matches = unassignedStudents.filter(
-                                (s) =>
-                                  fuzzyMatch(val, s.full_name) || fuzzyMatch(val, s.roll_number)
-                              );
-                              if (matches.length > 0) {
-                                setSelectedStudentId(matches[0].id);
-                              } else {
-                                setSelectedStudentId('');
-                              }
-                            }
-                          }}
-                          className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-500 w-full mb-2"
-                        />
-                        <select
-                          value={selectedStudentId}
-                          onChange={(e) => setSelectedStudentId(e.target.value)}
-                          className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-500 w-full mb-3 bg-white"
-                        >
-                          <option value="">Select student...</option>
-                          {filteredStudents.map((s) => (
-                            <option key={s.id} value={s.id}>
-                              {s.full_name} ({s.roll_number})
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={handleAssignSubmit}
-                          disabled={!selectedStudentId || assigning}
-                          className="w-full bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors"
-                        >
-                          {assigning ? 'Assigning...' : 'Confirm Assign'}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </>
-      ) : (
-        <div className="space-y-4">
-          {requests.length === 0 ? (
-            <div className="border border-gray-100 rounded-xl p-12 text-center text-sm text-gray-400">
-              No pending transfer requests.
-            </div>
-          ) : (
-            requests.map((req) => (
-              <div
-                key={req.id}
-                className="border border-gray-100 rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-gray-300 transition-colors"
-              >
-                <div>
-                  <div className="text-sm font-medium text-gray-900 mb-1">{req.student_name}</div>
-                  <div className="text-xs text-gray-500 mb-2">
-                    {req.current_room} → {req.requested_room}
-                  </div>
-                  <div className="text-sm text-gray-600">&quot;{req.reason}&quot;</div>
-                  <div className="text-xs text-gray-400 mt-2">{formatDate(req.created_at)}</div>
-                </div>
-                <div className="flex gap-2 flex-shrink-0">
-                  <button
-                    onClick={() => handleTransfer(req.id, 'approve')}
-                    className="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700 transition-colors"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => handleTransfer(req.id, 'reject')}
-                    className="border border-gray-200 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 transition-colors"
-                  >
-                    Reject
-                  </button>
-                </div>
+                  );
+                })}
               </div>
-            ))
-          )}
-        </div>
-      )}
-    </div>
+            )}
+          </>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {requests.length === 0 ? (
+              <div style={{ ...panel, overflow: 'hidden' }}>
+                <EmptyState message="No pending transfer requests." icon="🔁" />
+              </div>
+            ) : (
+              requests.map((req) => (
+                <div key={req.id} className="glass-card" style={{ ...panel, padding: '22px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: 500, color: ui.text, marginBottom: '4px' }}>{req.student_name}</div>
+                      <div style={{ fontSize: '12px', color: ui.textMuted, marginBottom: '8px' }}>
+                        {req.current_room} → {req.requested_room}
+                      </div>
+                      <div style={{ fontSize: '13px', color: ui.textSoft }}>&quot;{req.reason}&quot;</div>
+                      <div style={{ fontSize: '12px', color: ui.textMuted, marginTop: '8px' }}>{formatDate(req.created_at)}</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                      <button onClick={() => handleTransfer(req.id, 'approve')} className="btn-primary" style={buttonPrimary}>
+                        Approve
+                      </button>
+                      <button onClick={() => handleTransfer(req.id, 'reject')} className="btn-ghost" style={buttonGhost}>
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
+      <style>{`
+        @media (max-width: 860px) {
+          .rooms-grid { grid-template-columns: 1fr !important; }
+          .room-form-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+    </PageShell>
   );
 }
