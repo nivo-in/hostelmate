@@ -2,10 +2,14 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageShell } from '@/components/ui/PageShell';
+import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { useDebounce } from '@/hooks/useDebounce';
+import { ui, panel, panelElevated, input, buttonPrimary, buttonGhost, container, label } from '@/lib/ui';
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -55,18 +59,17 @@ interface Summary {
 const fmt = (n: number) => '₹' + n.toLocaleString('en-IN');
 
 const statusBadge = (status: string) => {
-  const base = 'text-xs px-2.5 py-1 rounded-full font-medium';
   switch (status) {
     case 'paid':
-      return <span className={`${base} bg-green-50 text-green-700`}>Paid</span>;
+      return <Badge variant="success">Paid</Badge>;
     case 'pending':
-      return <span className={`${base} bg-yellow-50 text-yellow-700`}>Pending</span>;
+      return <Badge variant="warning">Pending</Badge>;
     case 'processing':
-      return <span className={`${base} bg-blue-50 text-blue-700`}>Processing</span>;
+      return <Badge variant="info">Processing</Badge>;
     case 'failed':
-      return <span className={`${base} bg-red-50 text-red-700`}>Failed</span>;
+      return <Badge variant="danger">Failed</Badge>;
     default:
-      return <span className={`${base} bg-gray-100 text-gray-600`}>{status}</span>;
+      return <Badge variant="default">{status}</Badge>;
   }
 };
 
@@ -342,208 +345,545 @@ export default function WardenPaymentsPage() {
     { key: 'structures', label: 'Fee Structures' },
   ] as const;
 
+  const th: React.CSSProperties = {
+    textAlign: 'left',
+    padding: '12px 16px',
+    fontSize: '11px',
+    fontWeight: 500,
+    color: ui.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    whiteSpace: 'nowrap',
+  };
+  const td: React.CSSProperties = { padding: '12px 16px' };
+  const stepLabel: React.CSSProperties = {
+    fontSize: '11px',
+    fontWeight: 500,
+    color: ui.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: '0.8px',
+    marginBottom: '12px',
+  };
+
   return (
-    <div className="min-h-screen bg-white px-6 py-10 max-w-6xl mx-auto">
+    <PageShell>
       <PageHeader title="Fee Management" showBack onSignOut={handleSignOut} />
 
-      {/* Alerts */}
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-600 flex justify-between">
-          {error}
-          <button onClick={() => setError('')}>✕</button>
-        </div>
-      )}
-      {success && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-100 rounded-lg text-sm text-green-700">
-          {success}
-        </div>
-      )}
+      <div style={container}>
+        {/* Alerts */}
+        {error && (
+          <div style={{ marginBottom: '16px', padding: '12px 16px', background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.25)', borderRadius: ui.radiusXs, fontSize: '13px', color: ui.red, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {error}
+            <button onClick={() => setError('')} style={{ background: 'transparent', border: 'none', color: ui.red, cursor: 'pointer' }}>✕</button>
+          </div>
+        )}
+        {success && (
+          <div style={{ marginBottom: '16px', padding: '12px 16px', background: 'rgba(74,222,128,0.1)', border: '0.5px solid rgba(74,222,128,0.25)', borderRadius: ui.radiusXs, fontSize: '13px', color: ui.green, fontWeight: 500 }}>
+            {success}
+          </div>
+        )}
 
-      {/* Tab bar */}
-      <div className="flex gap-1 mb-8 border border-gray-100 rounded-xl p-1 w-fit">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`px-4 py-2 text-sm rounded-lg transition-colors font-medium ${tab === t.key ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-900'}`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+        {/* Tab bar */}
+        <div style={{ display: 'flex', gap: '4px', marginBottom: '24px', ...panel, padding: '4px', width: 'fit-content', borderRadius: ui.radiusXs }}>
+          {TABS.map((t) => {
+            const active = tab === t.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                style={{
+                  padding: '8px 16px',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  border: 'none',
+                  background: active ? ui.accent : 'transparent',
+                  color: active ? '#fff' : ui.textMuted,
+                }}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
 
-      {/* ── TAB 1: Overview ── */}
-      {tab === 'overview' && (
-        <div className="space-y-6">
-          {/* Stats + Reminders header */}
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
-              <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
-                <p className="text-xs text-gray-400 mb-1">Total Collected</p>
-                <p className="text-2xl font-medium text-green-600">
-                  {fmt(summary?.total_collected ?? 0)}
-                </p>
+        {/* ── TAB 1: Overview ── */}
+        {tab === 'overview' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Stats + Reminders header */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', flex: 1 }} className="pay-stats">
+                <div style={{ ...panelElevated, padding: '18px 20px' }}>
+                  <p style={{ ...label, marginBottom: '8px' }}>Total Collected</p>
+                  <p style={{ fontSize: '26px', fontWeight: 500, color: ui.green, margin: 0, fontVariantNumeric: 'tabular-nums' }}>
+                    {fmt(summary?.total_collected ?? 0)}
+                  </p>
+                </div>
+                <div style={{ ...panelElevated, padding: '18px 20px' }}>
+                  <p style={{ ...label, marginBottom: '8px' }}>Total Pending</p>
+                  <p style={{ fontSize: '26px', fontWeight: 500, color: ui.red, margin: 0, fontVariantNumeric: 'tabular-nums' }}>
+                    {fmt(summary?.total_pending ?? 0)}
+                  </p>
+                </div>
+                <div style={{ ...panelElevated, padding: '18px 20px' }}>
+                  <p style={{ ...label, marginBottom: '8px' }}>Paid</p>
+                  <p style={{ fontSize: '26px', fontWeight: 500, color: ui.text, margin: 0, fontVariantNumeric: 'tabular-nums' }}>{summary?.paid_count ?? 0}</p>
+                </div>
+                <div style={{ ...panelElevated, padding: '18px 20px' }}>
+                  <p style={{ ...label, marginBottom: '8px' }}>Pending</p>
+                  <p style={{ fontSize: '26px', fontWeight: 500, color: ui.text, margin: 0, fontVariantNumeric: 'tabular-nums' }}>{summary?.pending_count ?? 0}</p>
+                </div>
               </div>
-              <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
-                <p className="text-xs text-gray-400 mb-1">Total Pending</p>
-                <p className="text-2xl font-medium text-red-500">
-                  {fmt(summary?.total_pending ?? 0)}
-                </p>
-              </div>
-              <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
-                <p className="text-xs text-gray-400 mb-1">Paid</p>
-                <p className="text-2xl font-medium text-gray-900">{summary?.paid_count ?? 0}</p>
-              </div>
-              <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
-                <p className="text-xs text-gray-400 mb-1">Pending</p>
-                <p className="text-2xl font-medium text-gray-900">{summary?.pending_count ?? 0}</p>
+              <div style={{ textAlign: 'right' }}>
+                <button
+                  onClick={handleSendReminders}
+                  disabled={sendingReminders}
+                  className="btn-ghost"
+                  style={{ ...buttonGhost, whiteSpace: 'nowrap', opacity: sendingReminders ? 0.5 : 1 }}
+                >
+                  {sendingReminders ? 'Sending...' : '🔔 Send Due Reminders'}
+                </button>
+                {lastReminder && (
+                  <p style={{ fontSize: '11px', color: ui.textMuted, marginTop: '4px' }}>
+                    Last sent:{' '}
+                    {new Date(lastReminder).toLocaleString('en-IN', {
+                      dateStyle: 'short',
+                      timeStyle: 'short',
+                    })}
+                  </p>
+                )}
               </div>
             </div>
-            <div className="text-right">
-              <button
-                onClick={handleSendReminders}
-                disabled={sendingReminders}
-                className="border border-gray-200 text-gray-600 rounded-lg px-4 py-2.5 text-sm hover:border-gray-400 transition-colors disabled:opacity-50 whitespace-nowrap"
+
+            {/* Filters */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="hm-input"
+                style={{ ...input, width: 'auto', colorScheme: 'dark' }}
               >
-                {sendingReminders ? 'Sending...' : '🔔 Send Due Reminders'}
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="paid">Paid</option>
+                <option value="processing">Processing</option>
+                <option value="failed">Failed</option>
+              </select>
+              <select
+                value={filterFeeType}
+                onChange={(e) => setFilterFeeType(e.target.value)}
+                className="hm-input"
+                style={{ ...input, width: 'auto', colorScheme: 'dark' }}
+              >
+                <option value="">All Fee Types</option>
+                <option value="combined">Hostel + Mess</option>
+                <option value="hostel">Hostel</option>
+                <option value="mess">Mess</option>
+              </select>
+              <select
+                value={filterBilling}
+                onChange={(e) => setFilterBilling(e.target.value)}
+                className="hm-input"
+                style={{ ...input, width: 'auto', colorScheme: 'dark' }}
+              >
+                <option value="">All Billing</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Period (e.g. 2025-26)"
+                value={filterPeriod}
+                onChange={(e) => setFilterPeriod(e.target.value)}
+                className="hm-input"
+                style={{ ...input, width: '176px' }}
+              />
+              <button
+                onClick={() => {
+                  setPage(1);
+                  fetchPayments(1);
+                }}
+                className="btn-ghost"
+                style={buttonGhost}
+              >
+                Apply
               </button>
-              {lastReminder && (
-                <p className="text-xs text-gray-400 mt-1">
-                  Last sent:{' '}
-                  {new Date(lastReminder).toLocaleString('en-IN', {
-                    dateStyle: 'short',
-                    timeStyle: 'short',
-                  })}
+            </div>
+
+            {/* Table */}
+            <div style={{ ...panel, overflow: 'hidden' }}>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                  <thead>
+                    <tr style={{ borderBottom: ui.border }}>
+                      <th style={th}>Student</th>
+                      <th style={th}>Fee Plan</th>
+                      <th style={th}>Amount</th>
+                      <th style={th}>Period</th>
+                      <th style={th}>Due Date</th>
+                      <th style={th}>Status</th>
+                      <th style={th}>Method</th>
+                      <th style={th}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payments.length === 0 ? (
+                      <tr>
+                        <td colSpan={8}>
+                          <EmptyState message="No payments found" icon="💰" />
+                        </td>
+                      </tr>
+                    ) : (
+                      payments.map((p) => (
+                        <tr
+                          key={p.id}
+                          className="row-hover"
+                          style={{
+                            borderBottom: '0.5px solid rgba(255,255,255,0.04)',
+                            background: p.is_overdue ? 'rgba(248,113,113,0.07)' : undefined,
+                          }}
+                        >
+                          <td style={td}>
+                            <div style={{ color: ui.text, fontWeight: 500 }}>
+                              {p.students?.profiles?.full_name || '—'}
+                            </div>
+                            <div style={{ fontSize: '11px', color: ui.textMuted }}>{p.students?.roll_number}</div>
+                          </td>
+                          <td style={{ ...td, color: ui.textSoft }}>{p.fee_structures?.name}</td>
+                          <td style={{ ...td, fontWeight: 500, color: ui.text }}>{fmt(p.amount)}</td>
+                          <td style={{ ...td, color: ui.textMuted }}>{p.period_label}</td>
+                          <td style={{ ...td, color: ui.textMuted }}>
+                            {new Date(p.due_date).toLocaleDateString('en-IN')}
+                          </td>
+                          <td style={td}>{statusBadge(p.status)}</td>
+                          <td style={{ ...td, fontSize: '12px', color: ui.textMuted, textTransform: 'capitalize' }}>
+                            {p.payment_method || '—'}
+                          </td>
+                          <td style={td}>
+                            {p.status === 'pending' || p.status === 'processing' ? (
+                              <button
+                                onClick={() => handleMarkPaid(p.id)}
+                                disabled={markingId === p.id}
+                                className="btn-ghost"
+                                style={{ ...buttonGhost, padding: '6px 12px', fontSize: '12px', whiteSpace: 'nowrap', opacity: markingId === p.id ? 0.5 : 1 }}
+                              >
+                                {markingId === p.id ? '...' : 'Mark Paid (Cash)'}
+                              </button>
+                            ) : p.receipt_number ? (
+                              <span style={{ fontSize: '11px', color: ui.textMuted, fontFamily: 'monospace' }}>
+                                {p.receipt_number}
+                              </span>
+                            ) : null}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {hasNext && (
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <button
+                  onClick={() => {
+                    const nextPage = page + 1;
+                    setPage(nextPage);
+                    fetchPayments(nextPage);
+                  }}
+                  className="btn-ghost"
+                  style={buttonGhost}
+                >
+                  Load more
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── TAB 2: Generate Bills ── */}
+        {tab === 'generate' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '576px' }}>
+            <div>
+              <h2 style={{ fontSize: '14px', fontWeight: 500, color: ui.text, margin: '0 0 4px' }}>
+                Generate Fee Bills for Students
+              </h2>
+              <p style={{ fontSize: '12px', color: ui.textMuted, margin: 0 }}>
+                Creates a pending payment record for every active student.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Step 1 */}
+              <div style={{ ...panel, padding: '20px' }}>
+                <p style={stepLabel}>Step 1 — Select Fee Structure</p>
+                <select
+                  value={selectedStructureId}
+                  onChange={(e) => setSelectedStructureId(e.target.value)}
+                  className="hm-input"
+                  style={{ ...input, colorScheme: 'dark' }}
+                >
+                  <option value="">Choose a fee structure...</option>
+                  {feeStructures.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name} — {fmt(f.amount)} ({f.billing_period})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Step 2 */}
+              <div style={{ ...panel, padding: '20px' }}>
+                <p style={stepLabel}>Step 2 — Period Label</p>
+                <input
+                  type="text"
+                  placeholder={
+                    selectedStructure?.billing_period === 'monthly' ? 'May-2025' : '2025-26'
+                  }
+                  value={periodLabel}
+                  onChange={(e) => setPeriodLabel(e.target.value)}
+                  className="hm-input"
+                  style={input}
+                />
+                <p style={{ fontSize: '11px', color: ui.textMuted, marginTop: '6px' }}>
+                  {selectedStructure?.billing_period === 'monthly'
+                    ? 'Format: May-2025'
+                    : 'Format: 2025-26'}
                 </p>
+              </div>
+
+              {/* Step 3 */}
+              <div style={{ ...panel, padding: '20px' }}>
+                <p style={stepLabel}>Step 3 — Due Date</p>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="hm-input"
+                  style={{ ...input, colorScheme: 'dark' }}
+                />
+              </div>
+
+              {/* Step 4: Target Students */}
+              <div style={{ ...panel, padding: '20px' }}>
+                <p style={{ ...stepLabel, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>Step 4 — Target Students (Optional)</span>
+                  {targetStudents.length > 0 && (
+                    <span style={{ color: ui.text, background: 'rgba(255,255,255,0.08)', padding: '2px 8px', borderRadius: '6px', textTransform: 'none', letterSpacing: 0 }}>
+                      {targetStudents.length} selected
+                    </span>
+                  )}
+                </p>
+                <p style={{ fontSize: '11px', color: ui.textMuted, marginBottom: '12px' }}>
+                  If none selected, bills are generated for ALL students.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <input
+                    type="text"
+                    placeholder="Search students to target..."
+                    value={studentSearchText}
+                    onChange={(e) => setStudentSearchText(e.target.value)}
+                    className="hm-input"
+                    style={{ ...input, marginBottom: '4px' }}
+                  />
+
+                  <div style={{ maxHeight: '160px', overflowY: 'auto', border: ui.border, borderRadius: ui.radiusXs, padding: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {allStudents
+                      .filter(
+                        (s) =>
+                          !debouncedStudentSearch ||
+                          fuzzyMatch(debouncedStudentSearch, s.profiles?.full_name || '') ||
+                          fuzzyMatch(debouncedStudentSearch, s.roll_number || '')
+                      )
+                      .map((s) => {
+                        const isSelected = targetStudents.includes(s.id!);
+                        return (
+                          <label
+                            key={s.id}
+                            className="row-hover"
+                            style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px', borderRadius: '8px', cursor: 'pointer' }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                if (e.target.checked) setTargetStudents([...targetStudents, s.id!]);
+                                else setTargetStudents(targetStudents.filter((id) => id !== s.id));
+                              }}
+                              style={{ accentColor: ui.accent }}
+                            />
+                            <div style={{ fontSize: '13px' }}>
+                              <p style={{ fontWeight: 500, color: ui.text, margin: 0 }}>{s.profiles?.full_name}</p>
+                              <p style={{ fontSize: '11px', color: ui.textMuted, margin: 0 }}>{s.roll_number}</p>
+                            </div>
+                          </label>
+                        );
+                      })}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleGenerateBills}
+                disabled={generating}
+                className="btn-primary"
+                style={{ ...buttonPrimary, width: '100%', opacity: generating ? 0.5 : 1 }}
+              >
+                {generating
+                  ? 'Generating...'
+                  : `Generate Bills ${targetStudents.length > 0 ? `(${targetStudents.length} students)` : '(All students)'}`}
+              </button>
+
+              {genResult && (
+                <div style={{ background: 'rgba(74,222,128,0.1)', border: '0.5px solid rgba(74,222,128,0.25)', borderRadius: ui.radius, padding: '16px' }}>
+                  <p style={{ fontSize: '13px', color: ui.green, fontWeight: 500, margin: 0 }}>
+                    Generated {genResult.generated} bills, Skipped {genResult.skipped} (already exist)
+                  </p>
+                </div>
               )}
             </div>
           </div>
+        )}
 
-          {/* Filters */}
-          <div className="flex flex-wrap gap-3 items-center">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 outline-none focus:border-gray-400"
-            >
-              <option value="">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="paid">Paid</option>
-              <option value="processing">Processing</option>
-              <option value="failed">Failed</option>
-            </select>
-            <select
-              value={filterFeeType}
-              onChange={(e) => setFilterFeeType(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 outline-none focus:border-gray-400"
-            >
-              <option value="">All Fee Types</option>
-              <option value="combined">Hostel + Mess</option>
-              <option value="hostel">Hostel</option>
-              <option value="mess">Mess</option>
-            </select>
-            <select
-              value={filterBilling}
-              onChange={(e) => setFilterBilling(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 outline-none focus:border-gray-400"
-            >
-              <option value="">All Billing</option>
-              <option value="monthly">Monthly</option>
-              <option value="yearly">Yearly</option>
-            </select>
-            <input
-              type="text"
-              placeholder="Period (e.g. 2025-26)"
-              value={filterPeriod}
-              onChange={(e) => setFilterPeriod(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400 w-44"
-            />
-            <button
-              onClick={() => {
-                setPage(1);
-                fetchPayments(1);
-              }}
-              className="border border-gray-200 text-gray-600 rounded-lg px-4 py-2.5 text-sm hover:border-gray-400 transition-colors"
-            >
-              Apply
-            </button>
-          </div>
+        {/* ── TAB 3: Fee Structures ── */}
+        {tab === 'structures' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '15px', fontWeight: 500, color: ui.text, margin: 0 }}>Fee Structures</h2>
+              <button onClick={() => setShowAddForm((v) => !v)} className="btn-primary" style={buttonPrimary}>
+                {showAddForm ? 'Cancel' : '+ Add Structure'}
+              </button>
+            </div>
 
-          {/* Table */}
-          <div className="border border-gray-100 rounded-xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            {/* Add form */}
+            {showAddForm && (
+              <form onSubmit={handleAddStructure} style={{ ...panel, padding: '22px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <p style={{ ...stepLabel, marginBottom: 0 }}>New Fee Structure</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }} className="struct-form-grid">
+                  <div>
+                    <label style={{ ...label, display: 'block' }}>Name</label>
+                    <input
+                      type="text"
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      required
+                      className="hm-input"
+                      style={input}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ ...label, display: 'block' }}>Amount (₹)</label>
+                    <input
+                      type="number"
+                      value={newAmount}
+                      onChange={(e) => setNewAmount(e.target.value)}
+                      required
+                      min={1}
+                      className="hm-input"
+                      style={input}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ ...label, display: 'block' }}>Fee Type</label>
+                    <select
+                      value={newFeeType}
+                      onChange={(e) => setNewFeeType(e.target.value)}
+                      className="hm-input"
+                      style={{ ...input, colorScheme: 'dark' }}
+                    >
+                      <option value="combined">Hostel + Mess</option>
+                      <option value="hostel">Hostel</option>
+                      <option value="mess">Mess</option>
+                      <option value="maintenance">Maintenance</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ ...label, display: 'block' }}>Billing Period</label>
+                    <select
+                      value={newBilling}
+                      onChange={(e) => setNewBilling(e.target.value)}
+                      className="hm-input"
+                      style={{ ...input, colorScheme: 'dark' }}
+                    >
+                      <option value="monthly">Monthly</option>
+                      <option value="yearly">Yearly</option>
+                      <option value="one_time">One Time</option>
+                    </select>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '24px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: ui.textSoft, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={newIncludesHostel}
+                      onChange={(e) => setNewIncludesHostel(e.target.checked)}
+                      style={{ accentColor: ui.accent }}
+                    />
+                    Includes Hostel
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: ui.textSoft, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={newIncludesMess}
+                      onChange={(e) => setNewIncludesMess(e.target.checked)}
+                      style={{ accentColor: ui.accent }}
+                    />
+                    Includes Mess
+                  </label>
+                </div>
+                <div>
+                  <label style={{ ...label, display: 'block' }}>Description</label>
+                  <input
+                    type="text"
+                    value={newDesc}
+                    onChange={(e) => setNewDesc(e.target.value)}
+                    className="hm-input"
+                    style={input}
+                  />
+                </div>
+                <button type="submit" disabled={loading} className="btn-primary" style={{ ...buttonPrimary, alignSelf: 'flex-start', opacity: loading ? 0.5 : 1 }}>
+                  {loading ? 'Creating...' : 'Create Fee Structure'}
+                </button>
+              </form>
+            )}
+
+            {/* List */}
+            <div style={{ ...panel, overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="text-left px-4 py-3 text-xs text-gray-400 font-medium">
-                      Student
-                    </th>
-                    <th className="text-left px-4 py-3 text-xs text-gray-400 font-medium">
-                      Fee Plan
-                    </th>
-                    <th className="text-left px-4 py-3 text-xs text-gray-400 font-medium">
-                      Amount
-                    </th>
-                    <th className="text-left px-4 py-3 text-xs text-gray-400 font-medium">
-                      Period
-                    </th>
-                    <th className="text-left px-4 py-3 text-xs text-gray-400 font-medium">
-                      Due Date
-                    </th>
-                    <th className="text-left px-4 py-3 text-xs text-gray-400 font-medium">
-                      Status
-                    </th>
-                    <th className="text-left px-4 py-3 text-xs text-gray-400 font-medium">
-                      Method
-                    </th>
-                    <th className="text-left px-4 py-3 text-xs text-gray-400 font-medium">
-                      Action
-                    </th>
+                  <tr style={{ borderBottom: ui.border }}>
+                    <th style={th}>Name</th>
+                    <th style={th}>Type</th>
+                    <th style={th}>Amount</th>
+                    <th style={th}>Period</th>
+                    <th style={th}>Active</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {payments.length === 0 ? (
+                  {feeStructures.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="text-center py-12 text-gray-400 text-sm">
-                        No payments found
+                      <td colSpan={5}>
+                        <EmptyState message="No fee structures yet" icon="📋" />
                       </td>
                     </tr>
                   ) : (
-                    payments.map((p) => (
-                      <tr
-                        key={p.id}
-                        className={`border-b transition-colors ${p.is_overdue ? 'bg-red-50 border-red-100' : 'border-gray-50 hover:bg-gray-50'}`}
-                      >
-                        <td className="px-4 py-3">
-                          <div className="text-gray-900 font-medium">
-                            {p.students?.profiles?.full_name || '—'}
-                          </div>
-                          <div className="text-xs text-gray-400">{p.students?.roll_number}</div>
+                    feeStructures.map((f) => (
+                      <tr key={f.id} className="row-hover" style={{ borderBottom: '0.5px solid rgba(255,255,255,0.04)' }}>
+                        <td style={td}>
+                          <div style={{ fontWeight: 500, color: ui.text }}>{f.name}</div>
+                          {f.description && (
+                            <div style={{ fontSize: '11px', color: ui.textMuted }}>{f.description}</div>
+                          )}
                         </td>
-                        <td className="px-4 py-3 text-gray-700">{p.fee_structures?.name}</td>
-                        <td className="px-4 py-3 font-medium text-gray-900">{fmt(p.amount)}</td>
-                        <td className="px-4 py-3 text-gray-500">{p.period_label}</td>
-                        <td className="px-4 py-3 text-gray-500">
-                          {new Date(p.due_date).toLocaleDateString('en-IN')}
-                        </td>
-                        <td className="px-4 py-3">{statusBadge(p.status)}</td>
-                        <td className="px-4 py-3 text-xs text-gray-500 capitalize">
-                          {p.payment_method || '—'}
-                        </td>
-                        <td className="px-4 py-3">
-                          {p.status === 'pending' || p.status === 'processing' ? (
-                            <button
-                              onClick={() => handleMarkPaid(p.id)}
-                              disabled={markingId === p.id}
-                              className="border border-gray-200 text-gray-600 rounded-lg px-3 py-1.5 text-xs hover:border-gray-400 transition-colors disabled:opacity-50 whitespace-nowrap"
-                            >
-                              {markingId === p.id ? '...' : 'Mark Paid (Cash)'}
-                            </button>
-                          ) : p.receipt_number ? (
-                            <span className="text-xs text-gray-400 font-mono">
-                              {p.receipt_number}
-                            </span>
-                          ) : null}
+                        <td style={{ ...td, textTransform: 'capitalize', color: ui.textSoft }}>{f.fee_type}</td>
+                        <td style={{ ...td, fontWeight: 500, color: ui.text }}>{fmt(f.amount)}</td>
+                        <td style={{ ...td, color: ui.textMuted, textTransform: 'capitalize' }}>{f.billing_period}</td>
+                        <td style={td}>
+                          <Badge variant={f.is_active ? 'success' : 'default'}>{f.is_active ? 'Active' : 'Inactive'}</Badge>
                         </td>
                       </tr>
                     ))
@@ -552,328 +892,15 @@ export default function WardenPaymentsPage() {
               </table>
             </div>
           </div>
+        )}
+      </div>
 
-          {hasNext && (
-            <div className="mt-6 flex justify-center">
-              <button
-                onClick={() => {
-                  const nextPage = page + 1;
-                  setPage(nextPage);
-                  fetchPayments(nextPage);
-                }}
-                className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Load more
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── TAB 2: Generate Bills ── */}
-      {tab === 'generate' && (
-        <div className="space-y-6 max-w-xl">
-          <div>
-            <h2 className="text-sm font-medium text-gray-900 mb-1">
-              Generate Fee Bills for Students
-            </h2>
-            <p className="text-xs text-gray-400">
-              Creates a pending payment record for every active student.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            {/* Step 1 */}
-            <div className="border border-gray-100 rounded-xl p-5">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
-                Step 1 — Select Fee Structure
-              </p>
-              <select
-                value={selectedStructureId}
-                onChange={(e) => setSelectedStructureId(e.target.value)}
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400 w-full"
-              >
-                <option value="">Choose a fee structure...</option>
-                {feeStructures.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.name} — {fmt(f.amount)} ({f.billing_period})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Step 2 */}
-            <div className="border border-gray-100 rounded-xl p-5">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
-                Step 2 — Period Label
-              </p>
-              <input
-                type="text"
-                placeholder={
-                  selectedStructure?.billing_period === 'monthly' ? 'May-2025' : '2025-26'
-                }
-                value={periodLabel}
-                onChange={(e) => setPeriodLabel(e.target.value)}
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400 w-full"
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                {selectedStructure?.billing_period === 'monthly'
-                  ? 'Format: May-2025'
-                  : 'Format: 2025-26'}
-              </p>
-            </div>
-
-            {/* Step 3 */}
-            <div className="border border-gray-100 rounded-xl p-5">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
-                Step 3 — Due Date
-              </p>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400 w-full"
-              />
-            </div>
-
-            {/* Step 4: Target Students */}
-            <div className="border border-gray-100 rounded-xl p-5">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 flex justify-between">
-                <span>Step 4 — Target Students (Optional)</span>
-                {targetStudents.length > 0 && (
-                  <span className="text-gray-900 bg-gray-100 px-2 py-0.5 rounded-md">
-                    {targetStudents.length} selected
-                  </span>
-                )}
-              </p>
-              <p className="text-xs text-gray-400 mb-3">
-                If none selected, bills are generated for ALL students.
-              </p>
-
-              <div className="flex flex-col gap-2">
-                <input
-                  type="text"
-                  placeholder="Search students to target..."
-                  value={studentSearchText}
-                  onChange={(e) => setStudentSearchText(e.target.value)}
-                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400 w-full mb-1"
-                />
-
-                <div className="max-h-40 overflow-y-auto border border-gray-100 rounded-lg p-2 space-y-1">
-                  {allStudents
-                    .filter(
-                      (s) =>
-                        !debouncedStudentSearch ||
-                        fuzzyMatch(debouncedStudentSearch, s.profiles?.full_name || '') ||
-                        fuzzyMatch(debouncedStudentSearch, s.roll_number || '')
-                    )
-                    .map((s) => {
-                      const isSelected = targetStudents.includes(s.id!);
-                      return (
-                        <label
-                          key={s.id}
-                          className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={(e) => {
-                              if (e.target.checked) setTargetStudents([...targetStudents, s.id!]);
-                              else setTargetStudents(targetStudents.filter((id) => id !== s.id));
-                            }}
-                            className="rounded border-gray-300"
-                          />
-                          <div className="text-sm">
-                            <p className="font-medium text-gray-900">{s.profiles?.full_name}</p>
-                            <p className="text-xs text-gray-400">{s.roll_number}</p>
-                          </div>
-                        </label>
-                      );
-                    })}
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={handleGenerateBills}
-              disabled={generating}
-              className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors w-full disabled:opacity-50"
-            >
-              {generating
-                ? 'Generating...'
-                : `Generate Bills ${targetStudents.length > 0 ? `(${targetStudents.length} students)` : '(All students)'}`}
-            </button>
-
-            {genResult && (
-              <div className="border border-green-100 bg-green-50 rounded-xl p-4">
-                <p className="text-sm text-green-700 font-medium">
-                  Generated {genResult.generated} bills, Skipped {genResult.skipped} (already exist)
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── TAB 3: Fee Structures ── */}
-      {tab === 'structures' && (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-sm font-medium text-gray-900">Fee Structures</h2>
-            <button
-              onClick={() => setShowAddForm((v) => !v)}
-              className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors"
-            >
-              {showAddForm ? 'Cancel' : '+ Add Structure'}
-            </button>
-          </div>
-
-          {/* Add form */}
-          {showAddForm && (
-            <form
-              onSubmit={handleAddStructure}
-              className="border border-gray-100 rounded-xl p-6 space-y-4"
-            >
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                New Fee Structure
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Name</label>
-                  <input
-                    type="text"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    required
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400 w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Amount (₹)</label>
-                  <input
-                    type="number"
-                    value={newAmount}
-                    onChange={(e) => setNewAmount(e.target.value)}
-                    required
-                    min={1}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400 w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Fee Type</label>
-                  <select
-                    value={newFeeType}
-                    onChange={(e) => setNewFeeType(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400 w-full"
-                  >
-                    <option value="combined">Hostel + Mess</option>
-                    <option value="hostel">Hostel</option>
-                    <option value="mess">Mess</option>
-                    <option value="maintenance">Maintenance</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Billing Period</label>
-                  <select
-                    value={newBilling}
-                    onChange={(e) => setNewBilling(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400 w-full"
-                  >
-                    <option value="monthly">Monthly</option>
-                    <option value="yearly">Yearly</option>
-                    <option value="one_time">One Time</option>
-                  </select>
-                </div>
-              </div>
-              <div className="flex gap-6">
-                <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={newIncludesHostel}
-                    onChange={(e) => setNewIncludesHostel(e.target.checked)}
-                    className="rounded"
-                  />
-                  Includes Hostel
-                </label>
-                <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={newIncludesMess}
-                    onChange={(e) => setNewIncludesMess(e.target.checked)}
-                    className="rounded"
-                  />
-                  Includes Mess
-                </label>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Description</label>
-                <input
-                  type="text"
-                  value={newDesc}
-                  onChange={(e) => setNewDesc(e.target.value)}
-                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400 w-full"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50"
-              >
-                {loading ? 'Creating...' : 'Create Fee Structure'}
-              </button>
-            </form>
-          )}
-
-          {/* List */}
-          <div className="border border-gray-100 rounded-xl overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-4 py-3 text-xs text-gray-400 font-medium">Name</th>
-                  <th className="text-left px-4 py-3 text-xs text-gray-400 font-medium">Type</th>
-                  <th className="text-left px-4 py-3 text-xs text-gray-400 font-medium">Amount</th>
-                  <th className="text-left px-4 py-3 text-xs text-gray-400 font-medium">Period</th>
-                  <th className="text-left px-4 py-3 text-xs text-gray-400 font-medium">Active</th>
-                </tr>
-              </thead>
-              <tbody>
-                {feeStructures.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="text-center py-12 text-gray-400 text-sm">
-                      No fee structures yet
-                    </td>
-                  </tr>
-                ) : (
-                  feeStructures.map((f) => (
-                    <tr
-                      key={f.id}
-                      className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-gray-900">{f.name}</div>
-                        {f.description && (
-                          <div className="text-xs text-gray-400">{f.description}</div>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 capitalize text-gray-600">{f.fee_type}</td>
-                      <td className="px-4 py-3 font-medium text-gray-900">{fmt(f.amount)}</td>
-                      <td className="px-4 py-3 text-gray-500 capitalize">{f.billing_period}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`text-xs px-2.5 py-1 rounded-full font-medium ${f.is_active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-400'}`}
-                        >
-                          {f.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-    </div>
+      <style>{`
+        @media (max-width: 860px) {
+          .pay-stats { grid-template-columns: repeat(2, 1fr) !important; }
+          .struct-form-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+    </PageShell>
   );
 }
