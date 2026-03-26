@@ -2,9 +2,12 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageShell } from '@/components/ui/PageShell';
+import { Badge } from '@/components/ui/Badge';
 import { useApi } from '@/hooks/useApi';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { ui, panel, input, buttonPrimary, container, label, sectionTitle } from '@/lib/ui';
 
 type Violation = {
   student_id: string;
@@ -19,9 +22,26 @@ type CurfewSettings = {
 };
 
 const SkeletonCard = () => (
-  <div className="border border-gray-100 rounded-xl p-6 animate-pulse">
-    <div className="h-4 bg-gray-100 rounded w-1/3 mb-2" />
-    <div className="h-3 bg-gray-100 rounded w-2/3" />
+  <div style={{ ...panel, padding: '24px' }}>
+    <div
+      style={{
+        height: '16px',
+        width: '33%',
+        marginBottom: '10px',
+        borderRadius: '6px',
+        background: 'rgba(255,255,255,0.06)',
+        animation: 'curfewPulse 1.4s ease-in-out infinite',
+      }}
+    />
+    <div
+      style={{
+        height: '12px',
+        width: '66%',
+        borderRadius: '6px',
+        background: 'rgba(255,255,255,0.06)',
+        animation: 'curfewPulse 1.4s ease-in-out infinite',
+      }}
+    />
   </div>
 );
 
@@ -168,185 +188,316 @@ export default function WardenCurfewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
+    <PageShell>
       <PageHeader title="Curfew Management" showBack={true} onSignOut={handleSignOut} />
 
-      {loading ? (
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {/* Status Card */}
-          <div className="border border-gray-100 rounded-xl p-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-              <div>
-                <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">
-                  Current Time
-                </div>
-                <div className="text-3xl font-medium text-gray-900">
-                  {mounted ? displayTime : '——:——'}
-                </div>
-              </div>
-              <div>
-                <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">
-                  Curfew Time
-                </div>
-                <div className="text-xl text-gray-500">{settings.curfew_time}</div>
-              </div>
-              <div className="text-right">
-                <span
-                  className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium border ${
-                    isAfterCurfew
-                      ? 'bg-red-50 text-red-700 border-red-200'
-                      : 'bg-green-50 text-green-700 border-green-200'
-                  }`}
-                >
-                  {isAfterCurfew ? 'After Curfew' : 'Before Curfew'}
-                </span>
-                {mounted && <div className="text-sm text-gray-500 mt-1.5">{statusText}</div>}
-              </div>
-            </div>
+      <div style={container}>
+        {loading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
-
-          {/* Settings Card */}
-          <div className="border border-gray-100 rounded-xl p-6">
-            <h2 className="text-sm font-medium text-gray-900 mb-5">Curfew Settings</h2>
-            <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-end">
-              <div className="flex-1 space-y-4">
-                {/* Custom Toggle */}
-                <div className="flex items-center gap-3">
-                  <button
-                    role="switch"
-                    aria-checked={settings.enabled}
-                    onClick={() => setSettings((s) => ({ ...s, enabled: !s.enabled }))}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                      settings.enabled ? 'bg-gray-900' : 'bg-gray-200'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        settings.enabled ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                  <span className="text-sm text-gray-700">Enable curfew system</span>
-                </div>
-
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Curfew Time</label>
-                  <input
-                    type="time"
-                    value={settings.curfew_time}
-                    onChange={(e) => setSettings((s) => ({ ...s, curfew_time: e.target.value }))}
-                    className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full"
-                  />
-                </div>
-              </div>
-
-              <button
-                onClick={handleSaveSettings}
-                disabled={savingSettings}
-                className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors whitespace-nowrap"
-              >
-                {savingSettings ? 'Saving...' : 'Save Settings'}
-              </button>
-            </div>
-            {settingsMessage && (
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Status Card */}
+            <div style={{ ...panel, padding: '24px' }}>
               <div
-                className={`mt-3 text-xs font-medium ${settingsMessage.includes('Failed') ? 'text-red-600' : 'text-green-600'}`}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: '24px',
+                  flexWrap: 'wrap',
+                }}
               >
-                {settingsMessage}
+                <div>
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      color: ui.textMuted,
+                      textTransform: 'uppercase',
+                      letterSpacing: '1.5px',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    Current Time
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '32px',
+                      fontWeight: 500,
+                      color: ui.text,
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {mounted ? displayTime : '——:——'}
+                  </div>
+                </div>
+                <div>
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      color: ui.textMuted,
+                      textTransform: 'uppercase',
+                      letterSpacing: '1.5px',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    Curfew Time
+                  </div>
+                  <div style={{ fontSize: '20px', color: ui.textSoft, fontVariantNumeric: 'tabular-nums' }}>
+                    {settings.curfew_time}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <Badge variant={isAfterCurfew ? 'danger' : 'success'}>
+                    {isAfterCurfew ? 'After Curfew' : 'Before Curfew'}
+                  </Badge>
+                  {mounted && (
+                    <div style={{ fontSize: '13px', color: ui.textMuted, marginTop: '8px' }}>{statusText}</div>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* Violations Card */}
-          <div className="border border-gray-100 rounded-xl p-6">
-            <div className="flex justify-between items-center mb-5">
-              <h2 className="text-sm font-medium text-gray-900">Tonight&apos;s Violations</h2>
-              {violations.length > 0 && (
+            {/* Settings Card */}
+            <div style={{ ...panel, padding: '24px' }}>
+              <h2 style={{ ...sectionTitle, fontSize: '13px', marginBottom: '20px' }}>Curfew Settings</h2>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '24px',
+                  alignItems: 'flex-end',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <div style={{ flex: '1 1 240px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* Custom Toggle */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <button
+                      role="switch"
+                      aria-checked={settings.enabled}
+                      onClick={() => setSettings((s) => ({ ...s, enabled: !s.enabled }))}
+                      style={{
+                        position: 'relative',
+                        display: 'inline-flex',
+                        height: '24px',
+                        width: '44px',
+                        alignItems: 'center',
+                        borderRadius: '9999px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s',
+                        background: settings.enabled ? ui.accent : 'rgba(255,255,255,0.12)',
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          height: '16px',
+                          width: '16px',
+                          borderRadius: '9999px',
+                          background: '#fff',
+                          transition: 'transform 0.2s',
+                          transform: settings.enabled ? 'translateX(24px)' : 'translateX(4px)',
+                        }}
+                      />
+                    </button>
+                    <span style={{ fontSize: '13px', color: ui.textSoft }}>Enable curfew system</span>
+                  </div>
+
+                  <div>
+                    <label style={label}>Curfew Time</label>
+                    <input
+                      type="time"
+                      value={settings.curfew_time}
+                      onChange={(e) => setSettings((s) => ({ ...s, curfew_time: e.target.value }))}
+                      className="hm-input"
+                      style={{ ...input, colorScheme: 'dark' }}
+                    />
+                  </div>
+                </div>
+
                 <button
-                  onClick={() => handleNotify(violations.map((v) => v.student_id))}
-                  disabled={notifyingIds.length > 0}
-                  className="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors"
+                  onClick={handleSaveSettings}
+                  disabled={savingSettings}
+                  className="btn-primary"
+                  style={{ ...buttonPrimary, whiteSpace: 'nowrap', opacity: savingSettings ? 0.5 : 1 }}
                 >
-                  {notifyingIds.length > 0 ? 'Notifying...' : 'Notify All Parents'}
+                  {savingSettings ? 'Saving...' : 'Save Settings'}
                 </button>
+              </div>
+              {settingsMessage && (
+                <div
+                  style={{
+                    marginTop: '12px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    color: settingsMessage.includes('Failed') ? ui.red : ui.green,
+                  }}
+                >
+                  {settingsMessage}
+                </div>
               )}
             </div>
 
-            {violations.length === 0 ? (
-              <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg
-                    className="w-4 h-4 text-green-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2.5}
+            {/* Violations Card */}
+            <div style={{ ...panel, padding: '24px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '20px',
+                  gap: '12px',
+                }}
+              >
+                <h2 style={{ ...sectionTitle, fontSize: '13px' }}>Tonight&apos;s Violations</h2>
+                {violations.length > 0 && (
+                  <button
+                    onClick={() => handleNotify(violations.map((v) => v.student_id))}
+                    disabled={notifyingIds.length > 0}
+                    className="btn-primary"
+                    style={{ ...buttonPrimary, opacity: notifyingIds.length > 0 ? 0.5 : 1 }}
                   >
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-green-700">All students checked in</div>
-                  <div className="text-xs text-green-600">No curfew violations tonight</div>
-                </div>
+                    {notifyingIds.length > 0 ? 'Notifying...' : 'Notify All Parents'}
+                  </button>
+                )}
               </div>
-            ) : (
-              <>
-                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
-                  <div className="text-sm font-medium text-red-700">
-                    {violations.length} student{violations.length === 1 ? '' : 's'} not checked in
+
+              {violations.length === 0 ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '16px',
+                    background: 'rgba(74,222,128,0.08)',
+                    border: '0.5px solid rgba(74,222,128,0.25)',
+                    borderRadius: ui.radiusSm,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      background: 'rgba(74,222,128,0.15)',
+                      borderRadius: '9999px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <svg
+                      style={{ width: '16px', height: '16px', color: ui.green }}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2.5}
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
                   </div>
-                  <div className="text-xs text-red-500 mt-0.5">
-                    Notify parents to alert them of the violation
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 500, color: ui.green }}>All students checked in</div>
+                    <div style={{ fontSize: '12px', color: 'rgba(74,222,128,0.7)' }}>No curfew violations tonight</div>
                   </div>
                 </div>
+              ) : (
+                <>
+                  <div
+                    style={{
+                      marginBottom: '16px',
+                      padding: '16px',
+                      background: 'rgba(248,113,113,0.08)',
+                      border: '0.5px solid rgba(248,113,113,0.25)',
+                      borderRadius: ui.radiusSm,
+                    }}
+                  >
+                    <div style={{ fontSize: '13px', fontWeight: 500, color: ui.red }}>
+                      {violations.length} student{violations.length === 1 ? '' : 's'} not checked in
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'rgba(248,113,113,0.7)', marginTop: '2px' }}>
+                      Notify parents to alert them of the violation
+                    </div>
+                  </div>
 
-                <div className="space-y-3">
-                  {violations.map((v) => {
-                    const isNotified = notifiedIds.includes(v.student_id);
-                    const isNotifying = notifyingIds.includes(v.student_id);
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {violations.map((v) => {
+                      const isNotified = notifiedIds.includes(v.student_id);
+                      const isNotifying = notifyingIds.includes(v.student_id);
 
-                    return (
-                      <div
-                        key={v.student_id}
-                        className="border border-gray-100 rounded-xl p-4 flex justify-between items-center hover:border-gray-300 transition-colors"
-                      >
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{v.full_name}</div>
-                          <div className="text-xs text-gray-500 mt-0.5">
-                            {v.roll_number} · Room {v.room_number || 'Unassigned'}
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => handleNotify([v.student_id])}
-                          disabled={isNotified || isNotifying}
-                          className={`border rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                            isNotified
-                              ? 'border-green-200 text-green-600 bg-green-50'
-                              : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-                          }`}
+                      return (
+                        <div
+                          key={v.student_id}
+                          className="glass-card"
+                          style={{
+                            ...panel,
+                            padding: '14px 16px',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: '12px',
+                          }}
                         >
-                          {isNotifying
-                            ? 'Notifying...'
-                            : isNotified
-                              ? 'Notified ✓'
-                              : 'Notify Parent'}
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-            )}
+                          <div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: ui.text }}>{v.full_name}</div>
+                            <div style={{ fontSize: '12px', color: ui.textMuted, marginTop: '2px' }}>
+                              {v.roll_number} · Room {v.room_number || 'Unassigned'}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleNotify([v.student_id])}
+                            disabled={isNotified || isNotifying}
+                            style={{
+                              borderRadius: ui.radiusXs,
+                              padding: '6px 12px',
+                              fontSize: '12px',
+                              fontWeight: 500,
+                              cursor: isNotified || isNotifying ? 'default' : 'pointer',
+                              transition: 'all 0.2s',
+                              whiteSpace: 'nowrap',
+                              border: isNotified
+                                ? '0.5px solid rgba(74,222,128,0.25)'
+                                : '0.5px solid rgba(255,255,255,0.1)',
+                              background: isNotified ? 'rgba(74,222,128,0.12)' : 'rgba(255,255,255,0.05)',
+                              color: isNotified ? ui.green : ui.textSoft,
+                              opacity: isNotifying ? 0.6 : 1,
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isNotified && !isNotifying) {
+                                e.currentTarget.style.color = ui.text;
+                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isNotified && !isNotifying) {
+                                e.currentTarget.style.color = ui.textSoft;
+                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                              }
+                            }}
+                          >
+                            {isNotifying ? 'Notifying...' : isNotified ? 'Notified ✓' : 'Notify Parent'}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+
+      <style>{`
+        @keyframes curfewPulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
+      `}</style>
+    </PageShell>
   );
 }
