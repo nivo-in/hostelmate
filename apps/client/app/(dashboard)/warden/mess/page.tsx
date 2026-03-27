@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageShell } from '@/components/ui/PageShell';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { MessMenu, MessReview } from '@/types';
+import { ui, panel, panelElevated, input, buttonPrimary, container, label, sectionTitle } from '@/lib/ui';
 
 export default function WardenMess() {
   const [day, setDay] = useState('monday');
@@ -103,112 +105,146 @@ export default function WardenMess() {
   };
 
   return (
-    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
+    <PageShell>
       <PageHeader title="Mess Management" showBack onSignOut={handleSignOut} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        <div className="p-6 border border-gray-100 rounded-xl hover:border-gray-300 transition-colors">
-          <h2 className="font-medium tracking-tight text-gray-900 mb-4">Update Menu</h2>
-          <form onSubmit={handleSaveMenu} className="space-y-4">
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Day</label>
-              <select
-                value={day}
-                onChange={(e) => setDay(e.target.value)}
-                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 transition-colors w-full bg-white"
-              >
-                {days.map((d) => (
-                  <option key={d} value={d} className="capitalize">
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Meal</label>
-              <select
-                value={mealType}
-                onChange={(e) => setMealType(e.target.value)}
-                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 transition-colors w-full bg-white"
-              >
-                {meals.map((m) => (
-                  <option key={m} value={m} className="capitalize">
+      <div style={container}>
+        <div
+          style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}
+          className="mess-grid"
+        >
+          {/* Update Menu */}
+          <div style={{ ...panel, padding: '22px' }} className="glass-card">
+            <h2 style={{ ...sectionTitle, fontSize: '13px', marginBottom: '16px' }}>Update Menu</h2>
+            <form onSubmit={handleSaveMenu} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={label}>Day</label>
+                <select
+                  value={day}
+                  onChange={(e) => setDay(e.target.value)}
+                  className="hm-input"
+                  style={{ ...input, colorScheme: 'dark', textTransform: 'capitalize' }}
+                >
+                  {days.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={label}>Meal</label>
+                <select
+                  value={mealType}
+                  onChange={(e) => setMealType(e.target.value)}
+                  className="hm-input"
+                  style={{ ...input, colorScheme: 'dark', textTransform: 'capitalize' }}
+                >
+                  {meals.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={label}>Items (comma separated)</label>
+                <input
+                  value={items}
+                  onChange={(e) => setItems(e.target.value)}
+                  type="text"
+                  className="hm-input"
+                  style={input}
+                  placeholder="e.g. Roti, Dal, Rice"
+                />
+              </div>
+              {message && <p style={{ fontSize: '12px', color: ui.green, margin: 0 }}>{message}</p>}
+              {error && <p style={{ fontSize: '12px', color: ui.red, margin: 0 }}>{error}</p>}
+              <button type="submit" className="btn-primary" style={{ ...buttonPrimary, alignSelf: 'flex-start' }}>
+                Save Menu
+              </button>
+            </form>
+          </div>
+
+          {/* Average Ratings */}
+          <div style={{ ...panel, padding: '22px' }} className="glass-card">
+            <h2 style={{ ...sectionTitle, fontSize: '13px', marginBottom: '16px' }}>Average Ratings</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {meals.map((m) => (
+                <div
+                  key={m}
+                  style={{
+                    ...panelElevated,
+                    padding: '14px 16px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <span style={{ fontSize: '13px', fontWeight: 500, color: ui.text, textTransform: 'capitalize' }}>
                     {m}
-                  </option>
-                ))}
-              </select>
+                  </span>
+                  <span style={{ fontSize: '13px', fontWeight: 500, color: ui.amber, fontVariantNumeric: 'tabular-nums' }}>
+                    {getAverageRating(m)} ⭐
+                  </span>
+                </div>
+              ))}
             </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Items (comma separated)</label>
-              <input
-                value={items}
-                onChange={(e) => setItems(e.target.value)}
-                type="text"
-                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 transition-colors w-full"
-                placeholder="e.g. Roti, Dal, Rice"
-              />
-            </div>
-            {message && <p className="text-xs text-green-600">{message}</p>}
-            {error && <p className="text-xs text-red-500">{error}</p>}
-            <button
-              type="submit"
-              className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors"
-            >
-              Save Menu
-            </button>
-          </form>
+          </div>
         </div>
 
-        <div className="p-6 border border-gray-100 rounded-xl hover:border-gray-300 transition-colors">
-          <h2 className="font-medium tracking-tight text-gray-900 mb-4">Average Ratings</h2>
-          <div className="space-y-4">
-            {meals.map((m) => (
-              <div
-                key={m}
-                className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-100"
-              >
-                <span className="capitalize font-medium text-gray-900 text-sm">{m}</span>
-                <span className="text-sm font-medium text-gray-900">{getAverageRating(m)} ⭐</span>
-              </div>
-            ))}
+        {/* Current Week Menu */}
+        <h2 style={{ ...sectionTitle, marginBottom: '14px' }}>Current Week Menu</h2>
+        <div style={{ ...panel, overflow: 'hidden' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ borderBottom: ui.border }}>
+                  {['Day', ...meals].map((h) => (
+                    <th
+                      key={h}
+                      style={{
+                        padding: '12px 18px',
+                        textAlign: 'left',
+                        fontSize: '11px',
+                        fontWeight: 500,
+                        color: ui.textMuted,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {days.map((d) => (
+                  <tr key={d} className="row-hover" style={{ borderBottom: '0.5px solid rgba(255,255,255,0.04)' }}>
+                    <td style={{ padding: '12px 18px', color: ui.text, fontWeight: 500, textTransform: 'capitalize' }}>
+                      {d}
+                    </td>
+                    {meals.map((m) => {
+                      const md = menu.find((x) => x.day_of_week === d && x.meal_type === m);
+                      return (
+                        <td key={m} style={{ padding: '12px 18px', color: ui.textSoft, minWidth: '120px' }}>
+                          {md?.items?.join(', ') || '-'}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
 
-      <div>
-        <h2 className="font-medium tracking-tight text-gray-900 mb-4">Current Week Menu</h2>
-        <div className="overflow-x-auto border border-gray-100 rounded-xl">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr>
-                <th className="px-4 py-3 font-medium text-xs text-gray-500">Day</th>
-                {meals.map((m) => (
-                  <th key={m} className="px-4 py-3 font-medium text-xs text-gray-500 capitalize">
-                    {m}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {days.map((d) => (
-                <tr key={d} className="border-b border-gray-50">
-                  <td className="px-4 py-3 text-gray-900 capitalize font-medium bg-gray-50/50">
-                    {d}
-                  </td>
-                  {meals.map((m) => {
-                    const md = menu.find((x) => x.day_of_week === d && x.meal_type === m);
-                    return (
-                      <td key={m} className="px-4 py-3 text-gray-600 min-w-[120px]">
-                        {md?.items?.join(', ') || '-'}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+      <style>{`
+        @media (max-width: 720px) {
+          .mess-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+    </PageShell>
   );
 }
