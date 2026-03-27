@@ -2,10 +2,13 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageShell } from '@/components/ui/PageShell';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { useApi } from '@/hooks/useApi';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useDebounce } from '@/hooks/useDebounce';
+import { ui, panel, input, buttonGhost, container, label } from '@/lib/ui';
 
 type AuditLog = {
   id: string;
@@ -112,31 +115,51 @@ export default function WardenAuditPage() {
 
   const getActionBadge = (action: string) => {
     const actionLower = action.toLowerCase();
-    let bg = 'bg-gray-50';
-    let text = 'text-gray-600';
+    let bg = 'rgba(255,255,255,0.08)';
+    let text: string = ui.textSoft;
+    let border = 'rgba(255,255,255,0.12)';
 
     if (actionLower.includes('attendance')) {
-      bg = 'bg-green-50';
-      text = 'text-green-600';
+      bg = 'rgba(74,222,128,0.12)';
+      text = ui.green;
+      border = 'rgba(74,222,128,0.25)';
     } else if (actionLower.includes('approve_leave')) {
-      bg = 'bg-blue-50';
-      text = 'text-blue-600';
+      bg = 'rgba(96,165,250,0.12)';
+      text = ui.blue;
+      border = 'rgba(96,165,250,0.25)';
     } else if (actionLower.includes('reject_leave')) {
-      bg = 'bg-red-50';
-      text = 'text-red-600';
+      bg = 'rgba(248,113,113,0.12)';
+      text = ui.red;
+      border = 'rgba(248,113,113,0.25)';
     } else if (actionLower.includes('complaint')) {
-      bg = 'bg-yellow-50';
-      text = 'text-yellow-600';
+      bg = 'rgba(251,191,36,0.12)';
+      text = ui.amber;
+      border = 'rgba(251,191,36,0.25)';
     } else if (actionLower.includes('notice')) {
-      bg = 'bg-purple-50';
-      text = 'text-purple-600';
+      bg = 'rgba(167,139,250,0.12)';
+      text = '#a78bfa';
+      border = 'rgba(167,139,250,0.25)';
     } else if (actionLower.includes('assign_room') || actionLower.includes('transfer')) {
-      bg = 'bg-teal-50';
-      text = 'text-teal-600';
+      bg = 'rgba(45,212,191,0.12)';
+      text = '#2dd4bf';
+      border = 'rgba(45,212,191,0.25)';
     }
 
     return (
-      <span className={`text-[10px] px-2 py-1 rounded-full font-medium ${bg} ${text}`}>
+      <span
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          fontSize: '10px',
+          fontWeight: 500,
+          padding: '3px 9px',
+          borderRadius: '9999px',
+          whiteSpace: 'nowrap',
+          background: bg,
+          color: text,
+          border: `0.5px solid ${border}`,
+        }}
+      >
         {action}
       </span>
     );
@@ -162,172 +185,203 @@ export default function WardenAuditPage() {
     return new Date(dateString).toLocaleString();
   };
 
+  const th: React.CSSProperties = {
+    padding: '12px 24px',
+    textAlign: 'left',
+    fontSize: '11px',
+    fontWeight: 500,
+    color: ui.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    whiteSpace: 'nowrap',
+  };
+
   return (
-    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
+    <PageShell>
       <PageHeader title="Audit Log" showBack={true} onSignOut={handleSignOut} />
 
-      {/* Error */}
-      {error && (
-        <div className="border border-red-100 rounded-xl p-4 bg-red-50 mb-6 flex items-center justify-between">
-          <span className="text-sm text-red-600">{error}</span>
-          <button
-            onClick={() => fetchLogs(1)}
-            className="text-xs text-red-600 underline hover:text-red-800"
-          >
-            Retry
-          </button>
-        </div>
-      )}
+      <div style={container}>
+        {/* Error */}
+        {error && (
+          <div style={{ background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.25)', borderRadius: ui.radius, padding: '16px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '13px', color: ui.red }}>{error}</span>
+            <button
+              onClick={() => fetchLogs(1)}
+              style={{ fontSize: '12px', color: ui.red, background: 'transparent', border: 'none', textDecoration: 'underline', cursor: 'pointer' }}
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
-      {/* Filters */}
-      <div className="mb-6 grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">Resource</label>
-          <select
-            value={resourceFilter}
-            onChange={(e) => setResourceFilter(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full bg-white"
-          >
-            <option value="all">All</option>
-            <option value="attendance">Attendance</option>
-            <option value="leave_request">Leave Request</option>
-            <option value="complaint">Complaint</option>
-            <option value="notice">Notice</option>
-            <option value="room">Room</option>
-          </select>
+        {/* Filters */}
+        <div style={{ marginBottom: '24px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }} className="audit-filters">
+          <div>
+            <label style={{ ...label, display: 'block' }}>Resource</label>
+            <select
+              value={resourceFilter}
+              onChange={(e) => setResourceFilter(e.target.value)}
+              className="hm-input"
+              style={{ ...input, colorScheme: 'dark' }}
+            >
+              <option value="all">All</option>
+              <option value="attendance">Attendance</option>
+              <option value="leave_request">Leave Request</option>
+              <option value="complaint">Complaint</option>
+              <option value="notice">Notice</option>
+              <option value="room">Room</option>
+            </select>
+          </div>
+          <div>
+            <label style={{ ...label, display: 'block' }}>Action Search</label>
+            <input
+              type="text"
+              placeholder="e.g. mark_attendance"
+              value={searchAction}
+              onChange={(e) => setSearchAction(e.target.value)}
+              className="hm-input"
+              style={input}
+            />
+          </div>
+          <div>
+            <label style={{ ...label, display: 'block' }}>From Date</label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="hm-input"
+              style={{ ...input, colorScheme: 'dark' }}
+            />
+          </div>
+          <div>
+            <label style={{ ...label, display: 'block' }}>To Date</label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="hm-input"
+              style={{ ...input, colorScheme: 'dark' }}
+            />
+          </div>
         </div>
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">Action Search</label>
-          <input
-            type="text"
-            placeholder="e.g. mark_attendance"
-            value={searchAction}
-            onChange={(e) => setSearchAction(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full"
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">From Date</label>
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full"
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">To Date</label>
-          <input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full"
-          />
-        </div>
-      </div>
 
-      {/* Table */}
-      <div className="border border-gray-100 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100 text-xs text-gray-500 font-medium">
-                <th className="px-6 py-3 whitespace-nowrap">Time</th>
-                <th className="px-6 py-3 whitespace-nowrap">User</th>
-                <th className="px-6 py-3 whitespace-nowrap">Action</th>
-                <th className="px-6 py-3 whitespace-nowrap">Resource</th>
-                <th className="px-6 py-3">Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i} className="border-b border-gray-50 animate-pulse">
-                    <td className="px-6 py-4">
-                      <div className="h-4 bg-gray-100 rounded w-16" />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="h-4 bg-gray-100 rounded w-24" />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="h-5 bg-gray-100 rounded-full w-20" />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="h-4 bg-gray-100 rounded w-16" />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="h-4 bg-gray-100 rounded w-32" />
+        {/* Table */}
+        <div style={{ ...panel, overflow: 'hidden' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ borderBottom: ui.border }}>
+                  <th style={th}>Time</th>
+                  <th style={th}>User</th>
+                  <th style={th}>Action</th>
+                  <th style={th}>Resource</th>
+                  <th style={{ ...th, whiteSpace: 'normal' }}>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i} style={{ borderBottom: '0.5px solid rgba(255,255,255,0.04)' }}>
+                      {[64, 96, 80, 64, 128].map((w, j) => (
+                        <td key={j} style={{ padding: '16px 24px' }}>
+                          <div style={{ height: '16px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', width: `${w}px`, animation: 'hmPulse 1.4s ease-in-out infinite' }} />
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                ) : filteredLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={5}>
+                      <EmptyStateRow />
                     </td>
                   </tr>
-                ))
-              ) : filteredLogs.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-sm text-gray-400">
-                    No audit logs found.
-                  </td>
-                </tr>
-              ) : (
-                filteredLogs.map((log) => {
-                  const isExpanded = expandedRow === log.id;
-                  const detailsStr =
-                    typeof log.details === 'string' ? log.details : JSON.stringify(log.details);
-                  const isLongDetails = detailsStr.length > 30;
+                ) : (
+                  filteredLogs.map((log) => {
+                    const isExpanded = expandedRow === log.id;
+                    const detailsStr =
+                      typeof log.details === 'string' ? log.details : JSON.stringify(log.details);
+                    const isLongDetails = detailsStr.length > 30;
 
-                  return (
-                    <tr
-                      key={log.id}
-                      className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className="text-sm text-gray-600 cursor-help"
-                          title={formatFullDate(log.created_at)}
-                        >
-                          {getRelativeTime(log.created_at)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                        {log.user_name || 'System'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">{getActionBadge(log.action)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {log.resource}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 max-w-[200px]">
-                        <div
-                          className={`font-mono text-[10px] bg-gray-50 border border-gray-100 p-2 rounded ${
-                            isExpanded ? '' : 'truncate'
-                          } ${isLongDetails ? 'cursor-pointer hover:border-gray-200' : ''}`}
-                          onClick={() =>
-                            isLongDetails && setExpandedRow(isExpanded ? null : log.id)
-                          }
-                        >
-                          {detailsStr}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                    return (
+                      <tr
+                        key={log.id}
+                        className="row-hover"
+                        style={{ borderBottom: '0.5px solid rgba(255,255,255,0.04)' }}
+                      >
+                        <td style={{ padding: '16px 24px', whiteSpace: 'nowrap' }}>
+                          <span
+                            style={{ fontSize: '13px', color: ui.textMuted, cursor: 'help' }}
+                            title={formatFullDate(log.created_at)}
+                          >
+                            {getRelativeTime(log.created_at)}
+                          </span>
+                        </td>
+                        <td style={{ padding: '16px 24px', whiteSpace: 'nowrap', fontSize: '13px', color: ui.text, fontWeight: 500 }}>
+                          {log.user_name || 'System'}
+                        </td>
+                        <td style={{ padding: '16px 24px', whiteSpace: 'nowrap' }}>{getActionBadge(log.action)}</td>
+                        <td style={{ padding: '16px 24px', whiteSpace: 'nowrap', fontSize: '13px', color: ui.textMuted }}>
+                          {log.resource}
+                        </td>
+                        <td style={{ padding: '16px 24px', fontSize: '13px', maxWidth: '200px' }}>
+                          <div
+                            style={{
+                              fontFamily: 'monospace',
+                              fontSize: '10px',
+                              background: 'rgba(255,255,255,0.04)',
+                              border: ui.border,
+                              padding: '8px',
+                              borderRadius: '8px',
+                              color: ui.textSoft,
+                              overflow: isExpanded ? 'visible' : 'hidden',
+                              textOverflow: isExpanded ? 'clip' : 'ellipsis',
+                              whiteSpace: isExpanded ? 'normal' : 'nowrap',
+                              wordBreak: isExpanded ? 'break-all' : 'normal',
+                              cursor: isLongDetails ? 'pointer' : 'default',
+                            }}
+                            onClick={() =>
+                              isLongDetails && setExpandedRow(isExpanded ? null : log.id)
+                            }
+                          >
+                            {detailsStr}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
+
+        {hasNext && (
+          <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'center' }}>
+            <button
+              onClick={() => {
+                const nextPage = page + 1;
+                setPage(nextPage);
+                fetchLogs(nextPage);
+              }}
+              className="btn-ghost"
+              style={buttonGhost}
+            >
+              Load more
+            </button>
+          </div>
+        )}
       </div>
 
-      {hasNext && (
-        <div className="mt-6 flex justify-center">
-          <button
-            onClick={() => {
-              const nextPage = page + 1;
-              setPage(nextPage);
-              fetchLogs(nextPage);
-            }}
-            className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            Load more
-          </button>
-        </div>
-      )}
-    </div>
+      <style>{`
+        @keyframes hmPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @media (max-width: 720px) {
+          .audit-filters { grid-template-columns: 1fr 1fr !important; }
+        }
+      `}</style>
+    </PageShell>
   );
+}
+
+function EmptyStateRow() {
+  return <EmptyState message="No audit logs found." icon="🛡️" />;
 }
