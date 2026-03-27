@@ -2,10 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageShell } from '@/components/ui/PageShell';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { Notice } from '@/types';
+import { ui, container, sectionTitle } from '@/lib/ui';
 
 export default function EmergencyAlert() {
   const router = useRouter();
@@ -87,36 +91,77 @@ export default function EmergencyAlert() {
     return `${Math.floor(diffInSeconds / 86400)} days ago`;
   };
 
+  const dangerButton = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    background: 'rgba(248,113,113,0.15)',
+    border: '0.5px solid rgba(248,113,113,0.4)',
+    borderRadius: ui.radiusXs,
+    padding: '10px 20px',
+    fontSize: '13px',
+    fontWeight: 600,
+    color: ui.red,
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  } as const;
+
   return (
-    <div className="min-h-screen bg-white p-8 max-w-5xl mx-auto">
+    <PageShell spotlight="rgba(248,113,113,0.12)">
       <PageHeader title="Emergency" showBack onSignOut={handleSignOut} />
 
-      <div className="mb-12 mt-8">
-        <div className="border border-red-200 rounded-xl p-8 bg-red-50/30">
-          <div className="flex items-center gap-3 mb-6">
+      <div style={container}>
+        {/* Broadcast card */}
+        <div
+          style={{
+            marginBottom: '40px',
+            background: 'rgba(248,113,113,0.06)',
+            border: '0.5px solid rgba(248,113,113,0.25)',
+            borderRadius: ui.radius,
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 0 40px rgba(248,113,113,0.06)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            padding: '28px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
               height="24"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="currentColor"
+              stroke={ui.red}
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="w-6 h-6 text-red-600"
+              style={{ width: '24px', height: '24px' }}
             >
               <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
               <path d="M12 9v4" />
               <path d="M12 17h.01" />
             </svg>
-            <h2 className="text-xl font-medium tracking-tight text-gray-900">
+            <h2 style={{ fontSize: '18px', fontWeight: 600, color: ui.text, margin: 0, letterSpacing: '-0.2px' }}>
               Broadcast Emergency Alert
             </h2>
           </div>
 
           <textarea
-            className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 mb-4 bg-white transition-colors"
+            className="hm-input"
+            style={{
+              width: '100%',
+              background: 'rgba(255,255,255,0.04)',
+              border: '0.5px solid rgba(248,113,113,0.25)',
+              borderRadius: ui.radiusXs,
+              padding: '12px 14px',
+              fontSize: '13px',
+              color: ui.text,
+              outline: 'none',
+              resize: 'vertical',
+              marginBottom: '16px',
+              fontFamily: 'inherit',
+            }}
             rows={4}
             placeholder="Type your emergency message here. Be clear and concise..."
             value={message}
@@ -124,18 +169,62 @@ export default function EmergencyAlert() {
           />
 
           {confirming && (
-            <div className="mb-4 border border-red-200 bg-red-50 rounded-lg p-4 flex items-center justify-between">
-              <p className="text-sm text-red-700">Are you sure? This cannot be undone.</p>
-              <div className="flex items-center gap-2">
+            <div
+              style={{
+                marginBottom: '16px',
+                background: 'rgba(248,113,113,0.12)',
+                border: '0.5px solid rgba(248,113,113,0.35)',
+                borderRadius: ui.radiusXs,
+                padding: '14px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                flexWrap: 'wrap',
+              }}
+            >
+              <p style={{ fontSize: '13px', color: ui.red, margin: 0, fontWeight: 500 }}>
+                Are you sure? This cannot be undone.
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button
                   onClick={() => setConfirming(false)}
-                  className="border border-gray-200 text-gray-600 rounded-lg px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
+                  className="btn-ghost"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    borderRadius: ui.radiusXs,
+                    padding: '8px 16px',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    color: ui.textSoft,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={sendAlert}
-                  className="bg-red-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-red-700 transition-colors"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: ui.red,
+                    border: 'none',
+                    borderRadius: ui.radiusXs,
+                    padding: '8px 16px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#1a0808',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.1)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.filter = 'none')}
                 >
                   Confirm &amp; Send
                 </button>
@@ -143,48 +232,96 @@ export default function EmergencyAlert() {
             </div>
           )}
 
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-red-600/80">
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              flexWrap: 'wrap',
+            }}
+          >
+            <p style={{ fontSize: '13px', color: 'rgba(248,113,113,0.75)', margin: 0 }}>
               Warning: This will send an immediate notification to all students and staff.
             </p>
             <button
               onClick={handleSendAlert}
               disabled={confirming || sending || !message.trim()}
-              className="bg-red-600 text-white rounded-lg px-6 py-2.5 text-sm font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
+              style={{
+                ...dangerButton,
+                opacity: confirming || sending || !message.trim() ? 0.5 : 1,
+                cursor: confirming || sending || !message.trim() ? 'not-allowed' : 'pointer',
+              }}
+              onMouseEnter={(e) => {
+                if (!(confirming || sending || !message.trim()))
+                  e.currentTarget.style.background = 'rgba(248,113,113,0.25)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(248,113,113,0.15)';
+              }}
             >
               {sending ? 'Sending...' : confirming ? 'Confirm above ↑' : 'Send Emergency Alert'}
             </button>
           </div>
 
           {success && (
-            <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm font-medium">
+            <div
+              style={{
+                marginTop: '16px',
+                padding: '12px 16px',
+                background: 'rgba(74,222,128,0.1)',
+                border: '0.5px solid rgba(74,222,128,0.25)',
+                borderRadius: ui.radiusXs,
+                color: ui.green,
+                fontSize: '13px',
+                fontWeight: 500,
+              }}
+            >
               ✓ {success}
             </div>
           )}
         </div>
-      </div>
 
-      <div>
-        <h2 className="text-xl font-medium tracking-tight text-gray-900 mb-6">
+        {/* Recent alerts */}
+        <h2 style={{ ...sectionTitle, fontSize: '18px', marginBottom: '20px', letterSpacing: '-0.2px' }}>
           Recent Emergency Alerts
         </h2>
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {loading ? (
-            <div className="text-sm text-gray-400">Loading alerts...</div>
+            <LoadingSpinner />
           ) : notices.length === 0 ? (
-            <div className="text-sm text-gray-400">No emergency alerts sent.</div>
+            <EmptyState message="No emergency alerts sent." icon="🚨" />
           ) : (
             notices.map((notice) => (
               <div
                 key={notice.id}
-                className="border border-red-100 rounded-xl p-6 hover:border-red-200 transition-colors bg-white"
+                className="glass-card"
+                style={{
+                  background: 'rgba(248,113,113,0.05)',
+                  border: '0.5px solid rgba(248,113,113,0.18)',
+                  borderRadius: ui.radius,
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  padding: '20px 22px',
+                }}
               >
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                    <h3 className="font-medium text-gray-900">{notice.title}</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span
+                      style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '9999px',
+                        background: ui.red,
+                        boxShadow: '0 0 8px rgba(248,113,113,0.6)',
+                        animation: 'emPulse 1.6s ease-in-out infinite',
+                        flexShrink: 0,
+                      }}
+                    />
+                    <h3 style={{ fontSize: '14px', fontWeight: 600, color: ui.text, margin: 0 }}>{notice.title}</h3>
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: ui.textMuted, whiteSpace: 'nowrap' }}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
@@ -195,7 +332,7 @@ export default function EmergencyAlert() {
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="w-3.5 h-3.5"
+                      style={{ width: '14px', height: '14px' }}
                     >
                       <circle cx="12" cy="12" r="10" />
                       <path d="M12 6v6l4 2" />
@@ -203,12 +340,21 @@ export default function EmergencyAlert() {
                     {timeAgo(notice.created_at)}
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 whitespace-pre-wrap ml-4">{notice.content}</p>
+                <p style={{ fontSize: '13px', color: ui.textSoft, whiteSpace: 'pre-wrap', margin: 0, marginLeft: '16px', lineHeight: 1.6 }}>
+                  {notice.content}
+                </p>
               </div>
             ))
           )}
         </div>
       </div>
-    </div>
+
+      <style>{`
+        @keyframes emPulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(0.85); }
+        }
+      `}</style>
+    </PageShell>
   );
 }
