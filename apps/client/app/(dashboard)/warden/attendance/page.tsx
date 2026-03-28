@@ -3,11 +3,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import QRCode from 'qrcode';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageShell } from '@/components/ui/PageShell';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { ui, panel, panelElevated, input, container } from '@/lib/ui';
 import Image from 'next/image';
 
 interface AttendanceStats {
@@ -58,7 +60,7 @@ export default function WardenAttendance() {
     const dataUrl = await QRCode.toDataURL(payload, {
       width: 256,
       margin: 2,
-      color: { dark: '#111827', light: '#ffffff' },
+      color: { dark: '#080810', light: '#ffffff' },
     });
     setQrCodeDataUrl(dataUrl);
   }, []);
@@ -109,119 +111,106 @@ export default function WardenAttendance() {
 
   const s = stats?.data ?? stats;
 
+  const statTiles = [
+    { label: 'Present', value: s?.today_present ?? s?.present_today ?? s?.present ?? 0, color: ui.green },
+    { label: 'Absent', value: s?.today_absent ?? s?.absent_today ?? s?.absent ?? 0, color: ui.red },
+    { label: 'Total', value: s?.total_students ?? s?.total ?? 0, color: ui.text },
+    { label: 'Attendance %', value: `${s?.today_percentage ?? s?.percentage ?? 0}%`, color: ui.text },
+  ];
+
   return (
-    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
+    <PageShell>
       <PageHeader title="Attendance Management" showBack onSignOut={handleSignOut} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        <div className="border border-gray-100 rounded-xl p-6 flex flex-col items-center hover:border-gray-300 transition-colors">
-          <h2 className="text-sm font-medium text-gray-900 mb-4 self-start">Daily QR Code</h2>
-          {qrCodeDataUrl ? (
-            <Image
-              src={qrCodeDataUrl}
-              alt="Attendance QR Code"
-              width={192}
-              height={192}
-              className="mb-4 border border-gray-100 rounded-lg"
-            />
-          ) : (
-            <div className="w-48 h-48 mb-4 bg-gray-50 flex items-center justify-center text-sm text-gray-400 rounded-lg">
-              Generating...
-            </div>
-          )}
-          <p className="text-xs text-gray-500 font-medium tracking-wide uppercase">
-            Refreshes in: {countdown}s
-          </p>
-        </div>
+      <div style={container}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 320px) 1fr', gap: '16px', marginBottom: '24px' }} className="att-grid">
+          {/* QR card */}
+          <div style={{ ...panel, padding: '22px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <h2 style={{ fontSize: '13px', fontWeight: 500, color: ui.text, alignSelf: 'flex-start', margin: '0 0 16px' }}>Daily QR Code</h2>
+            {qrCodeDataUrl ? (
+              <div style={{ padding: '10px', background: '#fff', borderRadius: '12px', marginBottom: '16px' }}>
+                <Image src={qrCodeDataUrl} alt="Attendance QR Code" width={184} height={184} style={{ display: 'block', borderRadius: '6px' }} />
+              </div>
+            ) : (
+              <div style={{ width: '204px', height: '204px', marginBottom: '16px', background: 'rgba(255,255,255,0.04)', border: ui.border, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: ui.textMuted }}>
+                Generating…
+              </div>
+            )}
+            <p style={{ fontSize: '11px', color: ui.textMuted, textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 500, margin: 0 }}>
+              Refreshes in{' '}
+              <span style={{ color: ui.accent, fontVariantNumeric: 'tabular-nums' }}>{countdown}s</span>
+            </p>
+          </div>
 
-        <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
-          <h2 className="text-sm font-medium text-gray-900 mb-4">Today&apos;s Stats</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 p-4 rounded-xl">
-              <p className="text-xs text-gray-500 mb-1">Present</p>
-              <p className="text-2xl font-medium text-green-600">
-                {s?.today_present ?? s?.present_today ?? s?.present ?? 0}
-              </p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-xl">
-              <p className="text-xs text-gray-500 mb-1">Absent</p>
-              <p className="text-2xl font-medium text-red-600">
-                {s?.today_absent ?? s?.absent_today ?? s?.absent ?? 0}
-              </p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-xl">
-              <p className="text-xs text-gray-500 mb-1">Total</p>
-              <p className="text-2xl font-medium text-gray-900">
-                {s?.total_students ?? s?.total ?? 0}
-              </p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-xl">
-              <p className="text-xs text-gray-500 mb-1">Attendance %</p>
-              <p className="text-2xl font-medium text-gray-900">
-                {s?.today_percentage ?? s?.percentage ?? 0}%
-              </p>
+          {/* Stats card */}
+          <div style={{ ...panel, padding: '22px' }}>
+            <h2 style={{ fontSize: '13px', fontWeight: 500, color: ui.text, margin: '0 0 16px' }}>Today&apos;s Stats</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+              {statTiles.map((t) => (
+                <div key={t.label} style={{ ...panelElevated, padding: '16px 18px' }}>
+                  <p style={{ fontSize: '11px', color: ui.textMuted, margin: '0 0 8px' }}>{t.label}</p>
+                  <p style={{ fontSize: '26px', fontWeight: 500, color: t.color, margin: 0, fontVariantNumeric: 'tabular-nums' }}>{t.value}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      </div>
 
-      <div>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-medium text-gray-900">Attendance List</h2>
+        {/* Attendance list */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+          <h2 style={{ fontSize: '15px', fontWeight: 500, color: ui.text, margin: 0 }}>Attendance List</h2>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-500 transition-colors"
+            className="hm-input"
+            style={{ ...input, width: 'auto', colorScheme: 'dark' }}
           />
         </div>
-        <table className="w-full text-left text-sm border border-gray-100 rounded-xl overflow-hidden">
-          <thead className="bg-gray-50 border-b border-gray-100">
-            <tr>
-              <th className="px-4 py-3 font-medium text-xs text-gray-500">Name</th>
-              <th className="px-4 py-3 font-medium text-xs text-gray-500">Roll No</th>
-              <th className="px-4 py-3 font-medium text-xs text-gray-500">Status</th>
-              <th className="px-4 py-3 font-medium text-xs text-gray-500">Verified</th>
-              <th className="px-4 py-3 font-medium text-xs text-gray-500">Scan Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            {records.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-3 text-center border-b border-gray-50">
-                  <EmptyState message="No attendance records for this date" />
-                </td>
+
+        <div style={{ ...panel, overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            <thead>
+              <tr style={{ borderBottom: ui.border }}>
+                {['Name', 'Roll No', 'Status', 'Verified', 'Scan Time'].map((h) => (
+                  <th key={h} style={{ padding: '12px 18px', textAlign: 'left', fontSize: '11px', fontWeight: 500, color: ui.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{h}</th>
+                ))}
               </tr>
-            ) : (
-              records.map((r, i) => (
-                <tr key={i} className="border-b border-gray-50">
-                  <td className="px-4 py-3 text-gray-900 font-medium">
-                    {r.full_name || r.profiles?.full_name || 'Unknown'}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">{r.roll_number || '-'}</td>
-                  <td className="px-4 py-3">
-                    <Badge variant={getStatusVariant(r.status)}>{r.status.toUpperCase()}</Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    {r.face_verified ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">
-                        ✓ Face
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
-                        QR Only
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {r.scan_time ? new Date(r.scan_time).toLocaleTimeString() : '-'}
+            </thead>
+            <tbody>
+              {records.length === 0 ? (
+                <tr>
+                  <td colSpan={5}>
+                    <EmptyState message="No attendance records for this date" icon="📋" />
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                records.map((r, i) => (
+                  <tr key={i} className="row-hover" style={{ borderBottom: '0.5px solid rgba(255,255,255,0.04)' }}>
+                    <td style={{ padding: '12px 18px', color: ui.text, fontWeight: 500 }}>{r.full_name || r.profiles?.full_name || 'Unknown'}</td>
+                    <td style={{ padding: '12px 18px', color: ui.textMuted }}>{r.roll_number || '-'}</td>
+                    <td style={{ padding: '12px 18px' }}>
+                      <Badge variant={getStatusVariant(r.status)}>{r.status.toUpperCase()}</Badge>
+                    </td>
+                    <td style={{ padding: '12px 18px' }}>
+                      {r.face_verified ? <Badge variant="success">✓ Face</Badge> : <Badge variant="default">QR Only</Badge>}
+                    </td>
+                    <td style={{ padding: '12px 18px', color: ui.textMuted }}>
+                      {r.scan_time ? new Date(r.scan_time).toLocaleTimeString() : '-'}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+
+      <style>{`
+        @media (max-width: 720px) {
+          .att-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+    </PageShell>
   );
 }
