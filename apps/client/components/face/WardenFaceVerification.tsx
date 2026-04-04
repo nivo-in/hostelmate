@@ -123,7 +123,7 @@ export default function WardenFaceVerification({
             faceDetectedRef.current = true;
             setFaceDetected(true);
           }
-          const { descriptor, landmarks, box } = detection;
+          const { descriptor, landmarks } = detection;
 
           // ── Face match FIRST ───────────────────────────────────────────
           if (!storedDescriptorsRef.current) return;
@@ -160,14 +160,6 @@ export default function WardenFaceVerification({
             } else {
               closedFramesRef.current = 0;
             }
-          }
-
-          // ── Frame-difference liveness ────────────────────────────────────
-          const frameDiff = computeFrameDiff(box);
-          if (frameDiff !== null) {
-            const scores = frameDiffScoresRef.current;
-            scores.push(frameDiff);
-            if (scores.length > 12) scores.shift();
           }
 
 
