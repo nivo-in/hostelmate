@@ -61,7 +61,7 @@ export default function FaceVerification({
 
   // Liveness tracking
   const blinkDetectedRef = useRef(false);
-  const closedFramesRef = useRef(0);
+  const lastEARRef = useRef<number>(1.0);
 
 
   const onVerifiedRef = useRef(onVerified);
@@ -151,16 +151,13 @@ export default function FaceVerification({
           // ── Blink detection ──────────────────────────────────────────────
           const ear = calculateEAR(landmarks);
           if (!blinkDetectedRef.current) {
-            if (ear < EAR_BLINK_THRESHOLD) {
-              closedFramesRef.current += 1;
-            } else if (closedFramesRef.current > 0 && closedFramesRef.current < 20) {
+            if (lastEARRef.current >= EAR_BLINK_THRESHOLD && ear < EAR_BLINK_THRESHOLD) {
               blinkDetectedRef.current = true;
               setBlinkDetected(true);
               setShowBlinkPrompt(false);
-            } else {
-              closedFramesRef.current = 0;
             }
           }
+          lastEARRef.current = ear;
 
 
           // ── Gate 1: Blink mandatory ──────────────────────────────────────
