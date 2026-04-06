@@ -325,17 +325,13 @@ export default function WardenFaceVerification({
           position: 'absolute',
           inset: 0,
           display: 'flex',
-          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#04040a',
+          background: '#080810',
           zIndex: 5,
         }}>
-          <svg className="animate-spin" style={{ width: '32px', height: '32px', color: '#3b82f6', marginBottom: '16px' }} fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-          </svg>
-          <div style={{ fontSize: '14px', fontWeight: 500, color: '#9ca3af', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}>
+          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="animate-spin" style={{ width: '12px', height: '12px', border: '1.5px solid rgba(255,255,255,0.1)', borderTopColor: 'rgba(255,255,255,0.6)', borderRadius: '50%' }} />
             {status === 'loading-models'
               ? 'Initializing secure environment...'
               : status === 'fetching-descriptor'
