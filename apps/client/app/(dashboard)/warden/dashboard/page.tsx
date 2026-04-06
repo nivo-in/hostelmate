@@ -7,6 +7,7 @@ import { useApi } from '@/hooks/useApi';
 import dynamic from 'next/dynamic';
 import { Reveal } from '@/components/ui/Reveal';
 import { TiltCard } from '@/components/ui/TiltCard';
+import { CursorGlow } from '@/components/ui/CursorGlow';
 import { AiAssistant } from '@/components/ui/AiAssistant';
 import {
   ClipboardList,
@@ -214,6 +215,7 @@ export default function WardenDashboard() {
       </div>
 
       <div style={{ padding: '24px 32px', maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <CursorGlow color="rgba(124, 92, 252, 0.12)" size={600} />
         <Reveal>
         <div style={{ marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <h1 style={{ fontSize: '22px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', letterSpacing: '-0.3px', margin: 0, transform: 'translateY(5px)' }}>Warden dashboard</h1>
