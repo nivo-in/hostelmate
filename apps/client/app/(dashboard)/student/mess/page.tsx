@@ -1,11 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { PageShell } from '@/components/ui/PageShell';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { container } from '@/lib/ui';
 import { MessMenu } from '@/types';
+
+const ORANGE = '#fb923c';
+const ORANGE_BORDER = 'rgba(251,146,60,0.4)';
 
 export default function StudentMess() {
   const [activeDay, setActiveDay] = useState('monday');
@@ -78,93 +83,169 @@ export default function StudentMess() {
   const activeMenu = menu.filter((m) => m.day_of_week === activeDay);
 
   return (
-    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
+    <PageShell spotlight="rgba(251,146,60,0.12)">
       <PageHeader title="Mess" showBack onSignOut={handleSignOut} />
 
-      <div className="mb-8">
-        <div className="flex overflow-x-auto border-b border-gray-100 mb-6 pb-2">
-          {days.map((d) => (
-            <button
-              key={d}
-              onClick={() => setActiveDay(d)}
-              className={`px-4 py-2 text-sm font-medium capitalize whitespace-nowrap transition-colors ${
-                activeDay === d
-                  ? 'text-gray-900 border-b-2 border-gray-900'
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              {d.substring(0, 3)}
-            </button>
-          ))}
+      <div style={container}>
+        {/* ── DAY TABS ── */}
+        <div style={{ marginBottom: '28px' }}>
+          <div
+            style={{
+              display: 'flex',
+              overflowX: 'auto',
+              gap: '8px',
+              borderBottom: '0.5px solid rgba(255,255,255,0.07)',
+              marginBottom: '20px',
+              paddingBottom: '10px',
+            }}
+          >
+            {days.map((d) => {
+              const isActive = activeDay === d;
+              return (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => setActiveDay(d)}
+                  style={{
+                    flexShrink: 0,
+                    textTransform: 'capitalize',
+                    whiteSpace: 'nowrap',
+                    fontSize: '13px',
+                    fontWeight: isActive ? 600 : 500,
+                    padding: '8px 14px',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    background: isActive ? 'rgba(251,146,60,0.12)' : 'rgba(255,255,255,0.03)',
+                    border: isActive ? `0.5px solid ${ORANGE_BORDER}` : '0.5px solid rgba(255,255,255,0.07)',
+                    color: isActive ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.45)',
+                  }}
+                >
+                  {d.substring(0, 3)}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ── MEAL CARDS ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
+            {meals.map((meal) => {
+              const item = activeMenu.find((m) => m.meal_type === meal);
+              return (
+                <div key={meal} className="glass-card" style={{ ...panelStyle, padding: '20px' }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', textTransform: 'capitalize', marginBottom: '8px' }}>
+                    {meal}
+                  </h3>
+                  <p style={{ fontSize: '13px', color: item?.items?.length ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.35)' }}>
+                    {item?.items?.length ? item.items.join(', ') : 'Menu not set'}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {meals.map((meal) => {
-            const item = activeMenu.find((m) => m.meal_type === meal);
-            return (
+        {/* ── RATE TODAY'S MEALS ── */}
+        <div style={{ ...panelStyle, padding: '24px', marginBottom: '32px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 500, letterSpacing: '-0.01em', color: 'rgba(255,255,255,0.9)', marginBottom: '4px' }}>
+            Rate Today&apos;s Meals
+          </h2>
+          {today && <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '20px' }}>{today}</p>}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {meals.map((meal, idx) => (
               <div
                 key={meal}
-                className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors"
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  gap: '16px',
+                  paddingTop: idx === 0 ? 0 : '16px',
+                  paddingBottom: idx === meals.length - 1 ? 0 : '16px',
+                  borderBottom: idx === meals.length - 1 ? 'none' : '0.5px solid rgba(255,255,255,0.05)',
+                }}
               >
-                <h3 className="text-sm font-medium text-gray-900 capitalize mb-2">{meal}</h3>
-                <p className="text-sm text-gray-600">
-                  {item?.items?.length ? item.items.join(', ') : 'Menu not set'}
-                </p>
+                <span style={{ width: '96px', fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', textTransform: 'capitalize' }}>
+                  {meal}
+                </span>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => handleRatingChange(meal, star)}
+                      style={{
+                        fontSize: '20px',
+                        lineHeight: 1,
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        outline: 'none',
+                        padding: 0,
+                        transition: 'color 0.15s',
+                        color: (ratings[meal]?.rating ?? 0) >= star ? ORANGE : 'rgba(255,255,255,0.2)',
+                      }}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  placeholder="Optional comment..."
+                  value={ratings[meal]?.comment || ''}
+                  onChange={(e) => handleCommentChange(meal, e.target.value)}
+                  style={{
+                    flex: 1,
+                    minWidth: '180px',
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    borderRadius: '10px',
+                    padding: '10px 12px',
+                    fontSize: '13px',
+                    color: 'rgba(255,255,255,0.85)',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                  }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(251,146,60,0.5)')}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                />
               </div>
-            );
-          })}
-        </div>
-      </div>
+            ))}
+          </div>
 
-      <div className="border border-gray-100 rounded-xl p-6 mb-8">
-        <h2 className="text-xl font-medium tracking-tight text-gray-900 mb-1">
-          Rate Today&apos;s Meals
-        </h2>
-        {today && <p className="text-xs text-gray-400 mb-6">{today}</p>}
-
-        <div className="space-y-6">
-          {meals.map((meal) => (
-            <div
-              key={meal}
-              className="flex flex-col sm:flex-row sm:items-center gap-4 border-b border-gray-50 pb-4 last:border-0 last:pb-0"
+          <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button
+              type="button"
+              onClick={handleSubmitRatings}
+              style={{
+                background: ORANGE,
+                color: '#1a0f04',
+                fontWeight: 600,
+                fontSize: '13px',
+                borderRadius: '10px',
+                padding: '9px 16px',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'filter 0.2s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.1)')}
+              onMouseLeave={(e) => (e.currentTarget.style.filter = 'none')}
             >
-              <span className="w-24 text-sm font-medium text-gray-900 capitalize">{meal}</span>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => handleRatingChange(meal, star)}
-                    className={`text-xl focus:outline-none transition-colors ${
-                      (ratings[meal]?.rating ?? 0) >= star
-                        ? 'text-yellow-400'
-                        : 'text-gray-200 hover:text-gray-300'
-                    }`}
-                  >
-                    ★
-                  </button>
-                ))}
-              </div>
-              <input
-                type="text"
-                placeholder="Optional comment..."
-                value={ratings[meal]?.comment || ''}
-                onChange={(e) => handleCommentChange(meal, e.target.value)}
-                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-500 transition-colors"
-              />
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-6 flex items-center gap-4">
-          <button
-            onClick={handleSubmitRatings}
-            className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors"
-          >
-            Submit All Ratings
-          </button>
-          {success && <span className="text-sm text-green-600">{success}</span>}
+              Submit All Ratings
+            </button>
+            {success && <span style={{ fontSize: '13px', color: '#4ade80' }}>{success}</span>}
+          </div>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }
+
+const panelStyle: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.03)',
+  border: '0.5px solid rgba(255,255,255,0.07)',
+  borderRadius: '16px',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+};

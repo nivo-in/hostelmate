@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { PageShell } from '@/components/ui/PageShell';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { container } from '@/lib/ui';
+
+const ORANGE = '#fb923c';
 
 interface Visitor {
   id: string;
@@ -17,6 +20,14 @@ interface Visitor {
   warden_notes?: string;
   created_at: string;
 }
+
+const STATUS_STYLES: Record<string, { label: string; color: string }> = {
+  pending: { label: 'Pending', color: '#fbbf24' },
+  approved: { label: 'Approved', color: '#4ade80' },
+  rejected: { label: 'Rejected', color: '#f87171' },
+  checked_in: { label: 'Checked In', color: '#60a5fa' },
+  checked_out: { label: 'Checked Out', color: '#60a5fa' },
+};
 
 export default function StudentVisitors() {
   const router = useRouter();
@@ -86,143 +97,208 @@ export default function StudentVisitors() {
   };
 
   const getStatusBadge = (status: string) => {
-    const base = 'text-xs px-2.5 py-1 rounded-full font-medium';
-    switch (status) {
-      case 'pending':
-        return <span className={`${base} bg-yellow-50 text-yellow-700`}>Pending</span>;
-      case 'approved':
-        return <span className={`${base} bg-green-50 text-green-700`}>Approved</span>;
-      case 'rejected':
-        return <span className={`${base} bg-red-50 text-red-700`}>Rejected</span>;
-      case 'checked_in':
-        return <span className={`${base} bg-blue-50 text-blue-700`}>Checked In</span>;
-      case 'checked_out':
-        return <span className={`${base} bg-gray-50 text-gray-600`}>Checked Out</span>;
-      default:
-        return null;
-    }
+    const s = STATUS_STYLES[status];
+    if (!s) return null;
+    return (
+      <span
+        style={{
+          display: 'inline-block',
+          fontSize: '11px',
+          fontWeight: 600,
+          color: s.color,
+          background: `${s.color}1c`,
+          border: `0.5px solid ${s.color}40`,
+          borderRadius: '999px',
+          padding: '3px 10px',
+        }}
+      >
+        {s.label}
+      </span>
+    );
   };
 
   const today = new Date().toISOString().split('T')[0];
 
+  const onInputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    e.currentTarget.style.borderColor = 'rgba(251,146,60,0.5)';
+  };
+  const onInputBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+  };
+
   return (
-    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
+    <PageShell spotlight="rgba(251,146,60,0.12)">
       <PageHeader title="Visitors" showBack onSignOut={handleSignOut} />
 
-      <div className="mb-8 p-6 border border-gray-100 rounded-xl hover:border-gray-300 transition-colors">
-        <h2 className="text-sm font-medium text-gray-900 mb-4">Request New Visitor</h2>
-        <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">Visitor Name</label>
-            <input
-              type="text"
-              value={visitorName}
-              onChange={(e) => setVisitorName(e.target.value)}
-              required
-              minLength={2}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-500 w-full"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">Phone Number</label>
-            <input
-              type="tel"
-              value={visitorPhone}
-              onChange={(e) => setVisitorPhone(e.target.value)}
-              required
-              minLength={10}
-              maxLength={15}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-500 w-full"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">Relationship</label>
-            <select
-              value={relationship}
-              onChange={(e) => setRelationship(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-500 w-full"
-            >
-              <option value="parent">Parent</option>
-              <option value="sibling">Sibling</option>
-              <option value="relative">Relative</option>
-              <option value="friend">Friend</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">Purpose of Visit</label>
-            <textarea
-              value={purpose}
-              onChange={(e) => setPurpose(e.target.value)}
-              required
-              minLength={10}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-500 w-full"
-              rows={3}
-            ></textarea>
-          </div>
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">Expected Visit Date</label>
-            <input
-              type="date"
-              min={today}
-              value={expectedDate}
-              onChange={(e) => setExpectedDate(e.target.value)}
-              required
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-500 w-full"
-            />
-          </div>
-
-          {error && <p className="text-xs text-red-500">{error}</p>}
-          {success && <p className="text-xs text-green-600">{success}</p>}
-
-          <button
-            type="submit"
-            className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors mt-2"
-          >
-            Submit Request
-          </button>
-        </form>
-      </div>
-
-      <div className="space-y-4">
-        <h2 className="text-sm font-medium text-gray-900 mb-2">My Visitor Requests</h2>
-        {visitors.length === 0 ? (
-          <div className="border border-gray-100 rounded-xl p-8">
-            <EmptyState message="No visitor requests yet" />
-          </div>
-        ) : (
-          visitors.map((v) => (
-            <div
-              key={v.id}
-              className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors bg-white"
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="capitalize text-sm font-medium text-gray-900">
-                    {v.visitor_name}
-                  </span>
-                  <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 capitalize">
-                    {v.relationship}
-                  </span>
-                </div>
-                {getStatusBadge(v.status)}
-              </div>
-              <p className="text-sm text-gray-500 mb-2">{v.purpose}</p>
-              <div className="text-xs text-gray-400">Date: {v.expected_visit_date}</div>
-
-              {v.status === 'approved' && (
-                <div className="mt-4 text-xs font-medium text-green-600">Approved ✓</div>
-              )}
-              {v.status === 'rejected' && v.warden_notes && (
-                <div className="mt-4 text-xs text-red-600 bg-red-50 p-3 rounded-lg">
-                  <span className="font-medium block mb-1">Warden Notes:</span>
-                  {v.warden_notes}
-                </div>
-              )}
+      <div style={container}>
+        {/* ── REQUEST NEW VISITOR ── */}
+        <div style={{ ...panelStyle, padding: '24px', marginBottom: '32px' }} className="glass-card">
+          <h2 style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', marginBottom: '18px' }}>
+            Request New Visitor
+          </h2>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '420px' }}>
+            <div>
+              <label style={labelStyle}>Visitor Name</label>
+              <input
+                type="text"
+                value={visitorName}
+                onChange={(e) => setVisitorName(e.target.value)}
+                required
+                minLength={2}
+                style={inputStyle}
+                onFocus={onInputFocus}
+                onBlur={onInputBlur}
+              />
             </div>
-          ))
-        )}
+            <div>
+              <label style={labelStyle}>Phone Number</label>
+              <input
+                type="tel"
+                value={visitorPhone}
+                onChange={(e) => setVisitorPhone(e.target.value)}
+                required
+                minLength={10}
+                maxLength={15}
+                style={inputStyle}
+                onFocus={onInputFocus}
+                onBlur={onInputBlur}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>Relationship</label>
+              <select
+                value={relationship}
+                onChange={(e) => setRelationship(e.target.value)}
+                style={{ ...inputStyle, colorScheme: 'dark' }}
+                onFocus={onInputFocus}
+                onBlur={onInputBlur}
+              >
+                <option value="parent">Parent</option>
+                <option value="sibling">Sibling</option>
+                <option value="relative">Relative</option>
+                <option value="friend">Friend</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>Purpose of Visit</label>
+              <textarea
+                value={purpose}
+                onChange={(e) => setPurpose(e.target.value)}
+                required
+                minLength={10}
+                style={{ ...inputStyle, resize: 'vertical' }}
+                rows={3}
+                onFocus={onInputFocus}
+                onBlur={onInputBlur}
+              ></textarea>
+            </div>
+            <div>
+              <label style={labelStyle}>Expected Visit Date</label>
+              <input
+                type="date"
+                min={today}
+                value={expectedDate}
+                onChange={(e) => setExpectedDate(e.target.value)}
+                required
+                style={{ ...inputStyle, colorScheme: 'dark' }}
+                onFocus={onInputFocus}
+                onBlur={onInputBlur}
+              />
+            </div>
+
+            {error && <p className="text-red-500" style={{ fontSize: '12px' }}>{error}</p>}
+            {success && <p style={{ fontSize: '12px', color: '#4ade80' }}>{success}</p>}
+
+            <button
+              type="submit"
+              style={{
+                alignSelf: 'flex-start',
+                background: ORANGE,
+                color: '#1a0f04',
+                borderRadius: '10px',
+                border: 'none',
+                padding: '10px 18px',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                marginTop: '4px',
+                transition: 'filter 0.2s',
+              }}
+              className="btn-primary"
+            >
+              Submit Request
+            </button>
+          </form>
+        </div>
+
+        {/* ── MY VISITOR REQUESTS ── */}
+        <div>
+          <h2 style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', marginBottom: '14px' }}>
+            My Visitor Requests
+          </h2>
+          {visitors.length === 0 ? (
+            <div style={{ ...panelStyle, padding: '40px', textAlign: 'center', color: 'rgba(255,255,255,0.35)', fontSize: '13px' }}>
+              No visitor requests yet
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {visitors.map((v) => (
+                <div key={v.id} style={{ ...panelStyle, padding: '20px' }} className="glass-card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', textTransform: 'capitalize' }}>
+                        {v.visitor_name}
+                      </span>
+                      <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)', textTransform: 'capitalize', border: '0.5px solid rgba(255,255,255,0.08)' }}>
+                        {v.relationship}
+                      </span>
+                    </div>
+                    {getStatusBadge(v.status)}
+                  </div>
+                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '8px' }}>{v.purpose}</p>
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>Date: {v.expected_visit_date}</div>
+
+                  {v.status === 'approved' && (
+                    <div style={{ marginTop: '14px', fontSize: '12px', fontWeight: 500, color: '#4ade80' }}>Approved ✓</div>
+                  )}
+                  {v.status === 'rejected' && v.warden_notes && (
+                    <div style={{ marginTop: '14px', fontSize: '12px', color: '#f87171', background: 'rgba(248,113,113,0.08)', border: '0.5px solid rgba(248,113,113,0.25)', padding: '12px', borderRadius: '10px' }}>
+                      <span style={{ fontWeight: 600, display: 'block', marginBottom: '4px' }}>Warden Notes:</span>
+                      {v.warden_notes}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </PageShell>
   );
 }
+
+const panelStyle: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.03)',
+  border: '0.5px solid rgba(255,255,255,0.07)',
+  borderRadius: '16px',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+};
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: '11px',
+  color: 'rgba(255,255,255,0.5)',
+  marginBottom: '6px',
+};
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  background: 'rgba(255,255,255,0.04)',
+  border: '0.5px solid rgba(255,255,255,0.1)',
+  borderRadius: '10px',
+  padding: '10px 12px',
+  fontSize: '13px',
+  color: 'rgba(255,255,255,0.85)',
+  outline: 'none',
+};

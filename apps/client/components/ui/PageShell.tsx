@@ -31,6 +31,11 @@ export function PageShell({ children, spotlight = 'rgba(124,92,252,0.1)' }: Page
       />
       <style>{`
         @keyframes spotlightFade { to { opacity: 1; } }
+        @keyframes pageEnter { from { opacity: 0; } to { opacity: 1; } }
+        /* Opacity-only entrance — never transform here, it would break the
+           sticky PageHeader by creating a containing block. */
+        .page-enter { animation: pageEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+        @media (prefers-reduced-motion: reduce) { .page-enter { animation: none; } }
         .glass-card { transition: all 0.25s ease; }
         .glass-card:hover {
           background: rgba(255,255,255,0.06) !important;
@@ -44,7 +49,7 @@ export function PageShell({ children, spotlight = 'rgba(124,92,252,0.1)' }: Page
         .btn-primary:hover { filter: brightness(1.1); }
         .btn-ghost:hover { color: rgba(255,255,255,0.9) !important; border-color: rgba(255,255,255,0.2) !important; }
       `}</style>
-      {children}
+      <div className="page-enter">{children}</div>
     </div>
   );
 }

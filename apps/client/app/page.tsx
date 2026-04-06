@@ -114,6 +114,10 @@ function PreviewGooglyEyes() {
   )
 }
 
+// Nav tab order — used to decide whether a jump is to an adjacent section
+// (plain smooth scroll) or a far one (zoom-out → jump → reveal transition).
+const NAV_TARGET_IDS = ['features', 'howitworks', 'pricing', 'faq']
+
 const PROXIMITY = 96 // px — how close to a floating card triggers it
 
 function isNear(rect: DOMRect, x: number, y: number) {
@@ -204,6 +208,8 @@ export default function Home() {
   const [transitioning, setTransitioning] = useState(false)
   const loginCardRef = useRef<HTMLDivElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
+  const siteRef = useRef<HTMLDivElement>(null)
+  const navAnimatingRef = useRef(false)
 
   const [hoveredNavIdx, setHoveredNavIdx] = useState<number | null>(null)
   const [isNavPressed, setIsNavPressed] = useState(false)
@@ -429,6 +435,10 @@ export default function Home() {
   const currentRot = useRef(0)
   const targetRot = useRef(0)
   const wheelAnimRef = useRef<number | null>(null)
+  // Imperative "re-arm the carousel rAF loop" handle, set by the carousel effect
+  // and callable from anywhere (e.g. the return-from-login flow) to recover from
+  // a BFCache restore that left the loop dead and the cards collapsed to one stack.
+  const healCarouselRef = useRef<(() => void) | null>(null)
 
   const tickWheel = useCallback(function tickWheelFn() {
     if (window.innerWidth <= 768) {
@@ -593,9 +603,37 @@ export default function Home() {
     }
     window.addEventListener('resize', onResize)
 
+    // BFCache restore (e.g. pressing Back from /login) discards any pending
+    // requestAnimationFrame, so the tickWheel loop dies while wheelAnimRef still
+    // holds its now-dead frame id. The `if (!wheelAnimRef.current)` guards then
+    // never restart it, so the cylinder cards never receive their
+    // rotateY/translateZ transforms and collapse into a single stack (only the
+    // last card is visible). restartWheelLoop force-revives the loop; we expose
+    // it via a ref and bind it to every "page is shown again" signal.
+    const restartWheelLoop = () => {
+      if (wheelAnimRef.current) {
+        cancelAnimationFrame(wheelAnimRef.current)
+        wheelAnimRef.current = null
+      }
+      handleScroll()
+      currentRot.current = targetRot.current
+      // Apply one synchronous positioning pass immediately so the cards are
+      // never left stacked even if the next animation frame is throttled.
+      tickWheel()
+    }
+    healCarouselRef.current = restartWheelLoop
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') restartWheelLoop()
+    }
+    window.addEventListener('pageshow', restartWheelLoop)
+    document.addEventListener('visibilitychange', onVisibility)
+
     return () => {
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('resize', onResize)
+      window.removeEventListener('pageshow', restartWheelLoop)
+      document.removeEventListener('visibilitychange', onVisibility)
       if (wheelAnimRef.current) cancelAnimationFrame(wheelAnimRef.current)
     }
   }, [tickWheel])
@@ -737,6 +775,98 @@ export default function Home() {
     }, 250)
   }, [transitioning])
 
+  // Resolve a nav target id to the document scroll position that fully reveals
+  // its section. The sections are sticky-centred inside tall wrappers, so we
+  // align to the wrapper's top (where the sticky content is pinned & centred)
+  // rather than the inner <section> — that's what was landing "in between".
+  const getSectionTargetY = useCallback((id: string): number | null => {
+    const el = document.getElementById(id)
+    if (!el) return null
+    const wrapper =
+      (el.closest(`.${styles.sectionStickyWrapper}`) as HTMLElement | null) ||
+      (el.closest(`.${styles.featuresScrollWrapper}`) as HTMLElement | null) ||
+      el
+    const top = wrapper.getBoundingClientRect().top + window.scrollY
+    const max = document.documentElement.scrollHeight - window.innerHeight
+    return Math.max(0, Math.min(top, max))
+  }, [])
+
+  const handleNavTabClick = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+      e.preventDefault()
+      const targetY = getSectionTargetY(id)
+      if (targetY == null) return
+
+      const destIdx = NAV_TARGET_IDS.indexOf(id)
+      // Which section are we currently looking at?
+      const probe = window.scrollY + window.innerHeight * 0.4
+      let srcIdx = 0
+      NAV_TARGET_IDS.forEach((nid, i) => {
+        const t = getSectionTargetY(nid)
+        if (t != null && probe >= t - 4) srcIdx = i
+      })
+
+      const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      const adjacent = Math.abs(destIdx - srcIdx) <= 1
+
+      // Adjacent tabs (or reduced motion / mid-animation): keep the plain scroll.
+      if (adjacent || reduce || navAnimatingRef.current) {
+        window.scrollTo({ top: targetY, behavior: reduce ? 'auto' : 'smooth' })
+        return
+      }
+
+      const site = siteRef.current
+      if (!site) {
+        window.scrollTo({ top: targetY, behavior: 'smooth' })
+        return
+      }
+
+      // Far jump: zoom + fade out, jump while hidden, then zoom + fade back in.
+      // transform-origin is pinned to the viewport centre (in document px) so the
+      // page scales toward what the user is looking at, not the huge doc centre.
+      navAnimatingRef.current = true
+      const vh = window.innerHeight
+
+      site.style.transformOrigin = `50% ${window.scrollY + vh / 2}px`
+      site.style.transition = 'transform 0.30s cubic-bezier(0.4,0,0.2,1), opacity 0.26s ease'
+      site.style.transform = 'scale(0.93)'
+      site.style.opacity = '0'
+
+      window.setTimeout(() => {
+        // Force a TRUE instant jump. `behavior: 'auto'` resolves to the CSS
+        // `scroll-behavior` (which is `smooth` here), so it would animate the
+        // scroll and you'd see it during the reveal — temporarily disable it.
+        const prevBehavior = document.documentElement.style.scrollBehavior
+        document.documentElement.style.scrollBehavior = 'auto'
+        window.scrollTo(0, targetY)
+        document.documentElement.style.scrollBehavior = prevBehavior
+        window.dispatchEvent(new Event('scroll'))
+        healCarouselRef.current?.()
+
+        // Re-anchor the origin to the new viewport centre instantly (hidden at opacity 0).
+        site.style.transition = 'none'
+        site.style.transformOrigin = `50% ${targetY + vh / 2}px`
+        void site.offsetHeight // reflow so phase B starts from scale(0.93)
+
+        requestAnimationFrame(() => {
+          site.style.transition =
+            'transform 0.44s cubic-bezier(0.16,1,0.3,1), opacity 0.40s ease'
+          site.style.transform = 'scale(1)'
+          site.style.opacity = '1'
+        })
+
+        window.setTimeout(() => {
+          site.style.transition = ''
+          site.style.transform = ''
+          site.style.opacity = ''
+          site.style.transformOrigin = ''
+          navAnimatingRef.current = false
+        }, 480)
+      }, 300)
+    },
+    [getSectionTargetY]
+  )
+
   useEffect(() => {
     const doReverseTransition = () => {
       setTransitioning(false)
@@ -830,6 +960,12 @@ export default function Home() {
     const handleReturnFromLogin = () => {
       scrollToExactPosition()
       doReverseTransition()
+      // Returning from /login can leave the carousel's rAF loop dead (BFCache),
+      // collapsing the cylinder into a single card. Re-arm it now and again as
+      // the aggressive 1s scroll-restore settles so the cards re-spread reliably.
+      healCarouselRef.current?.()
+      setTimeout(() => healCarouselRef.current?.(), 350)
+      setTimeout(() => healCarouselRef.current?.(), 1150)
     }
 
     try {
@@ -966,7 +1102,7 @@ export default function Home() {
   }, [])
 
   return (
-    <div className={styles.site}>
+    <div className={styles.site} ref={siteRef}>
       <div className={styles.glow} />
       <div className={styles.glow2} />
       <div className={styles.noise} />
@@ -1010,6 +1146,7 @@ export default function Home() {
               className={styles.navLink}
               draggable={false}
               ref={(el) => { navItemsRef.current[i] = el }}
+              onClick={(e) => handleNavTabClick(e, label.toLowerCase().replace(/\s+/g, ''))}
               onMouseEnter={() => setHoveredNavIdx(i)}
               onMouseDown={() => setIsNavPressed(true)}
             >
