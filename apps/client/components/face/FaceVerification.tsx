@@ -328,36 +328,38 @@ export default function FaceVerification({
         <p className="text-sm text-gray-400 mt-1">Look at the camera to verify your identity</p>
       </div>
 
-      {/* Loading */}
-      {isLoading && (
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <svg className="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24">
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-          </svg>
-          {status === 'loading-models'
-            ? 'Loading face recognition...'
-            : status === 'fetching-descriptor'
-              ? 'Loading your face data...'
-              : 'Starting camera...'}
-        </div>
-      )}
-
-      {/* Camera */}
-      <div className="relative w-full max-w-sm">
+      {/* Camera / Loading Container */}
+      <div className="relative w-full max-w-sm rounded-2xl overflow-hidden bg-gray-100 aspect-[4/3] shadow-inner">
+        
+        {/* Loading Overlay */}
+        {!showVideo && isLoading && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50/80 backdrop-blur-sm z-10">
+            <svg className="animate-spin w-8 h-8 text-blue-500 mb-4" fill="none" viewBox="0 0 24 24">
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+            </svg>
+            <div className="text-sm font-medium text-gray-600 animate-pulse">
+              {status === 'loading-models'
+                ? 'Initializing secure environment...'
+                : status === 'fetching-descriptor'
+                  ? 'Verifying identity access...'
+                  : 'Starting camera stream...'}
+            </div>
+          </div>
+        )}
 
         <video
           ref={videoRef}
           muted
           playsInline
-          className="rounded-2xl w-full"
+          className="w-full h-full object-cover"
           style={{ display: showVideo ? 'block' : 'none', transform: 'scaleX(-1)' }}
         />
 
