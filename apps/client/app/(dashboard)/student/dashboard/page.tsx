@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useApi } from '@/hooks/useApi';
 import dynamic from 'next/dynamic';
 import { Reveal } from '@/components/ui/Reveal';
+import { TiltCard } from '@/components/ui/TiltCard';
 import { AiAssistant } from '@/components/ui/AiAssistant';
 import {
   ClipboardCheck,
@@ -302,16 +303,17 @@ export default function StudentDashboard() {
             { Icon: ArrowLeftRight, title: 'Room Transfer', desc: 'Request a room change', href: '/student/room-transfer' },
           ].map((item, i) => (
             <Reveal key={i} delay={Math.min(i * 22, 120)} style={{ height: '100%' }}>
-            <div
+            <TiltCard
               onClick={() => router.push(item.href)}
+              className="dash-card group"
+              accent="#fb923c"
               style={{
                 background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '16px',
                 padding: '22px 20px', cursor: 'pointer', height: '100%',
-                display: 'flex', flexDirection: 'column', gap: '10px', position: 'relative', overflow: 'hidden',
+                display: 'flex', flexDirection: 'column', gap: '10px', overflow: 'hidden',
                 boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
                 backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)'
               }}
-              className="dash-card group"
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div
@@ -334,7 +336,7 @@ export default function StudentDashboard() {
                 <div style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.82)', margin: '0 0 4px 0' }}>{item.title}</div>
                 <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.32)', lineHeight: 1.5 }}>{item.desc}</div>
               </div>
-            </div>
+            </TiltCard>
             </Reveal>
           ))}
         </div>
