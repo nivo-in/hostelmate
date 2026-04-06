@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useApi } from '@/hooks/useApi';
 import dynamic from 'next/dynamic';
 import { Reveal } from '@/components/ui/Reveal';
+import { AiAssistant } from '@/components/ui/AiAssistant';
 import {
   ClipboardCheck,
   Palmtree,
@@ -237,6 +238,7 @@ export default function StudentDashboard() {
             <h1 style={{ fontSize: '26px', fontWeight: 500, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>{loading && !firstName ? 'Student' : firstName || 'Student'}</h1>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <AiAssistant />
             <NotificationBell />
             <div suppressHydrationWarning style={{ fontSize: '12px', color: 'rgba(255,255,255,0.22)' }}>{dateStr}</div>
           </div>

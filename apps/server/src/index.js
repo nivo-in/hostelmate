@@ -35,6 +35,9 @@ import parentRoutes from './routes/parent.js';
 import visitorsRoutes from './routes/visitors.js';
 import paymentsRoutes from './routes/payments.js';
 import healthRoutes from './routes/health.js';
+import institutionsRoutes from './routes/institutions.js';
+import aiRoutes from './routes/ai.js';
+import demoRoutes from './routes/demo.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -120,6 +123,9 @@ app.use('/api/v1/students', studentsRoutes);
 app.use('/api/v1/parent', parentRoutes);
 app.use('/api/v1/visitors', visitorsRoutes);
 app.use('/api/v1/payments', paymentsRoutes);
+app.use('/api/v1/institutions', institutionsRoutes);
+app.use('/api/v1/ai', aiRoutes);
+app.use('/api/v1/demo', demoRoutes);
 
 // Backward compatibility redirect
 app.use('/api', (req, res, next) => {

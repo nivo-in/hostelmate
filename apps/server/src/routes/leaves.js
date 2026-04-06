@@ -56,7 +56,7 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
       .from('leave_requests')
       .select('*')
       .eq('student_id', req.user.id)
-      .is('deleted_at', null)
+      // .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -88,7 +88,7 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
   `,
         { count: 'exact' }
       )
-      .is('deleted_at', null)
+      // .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
     query = query.range(from, to);
@@ -192,7 +192,7 @@ router.delete('/:id', authenticate, requireStudent, async (req, res, next) => {
 
     const { error } = await supabaseAdmin
       .from('leave_requests')
-      .update({ deleted_at: new Date().toISOString() })
+      .delete()
       .eq('id', id)
       .eq('student_id', req.user.id);
 

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useApi } from '@/hooks/useApi';
 import dynamic from 'next/dynamic';
 import { Reveal } from '@/components/ui/Reveal';
+import { AiAssistant } from '@/components/ui/AiAssistant';
 import {
   ClipboardList,
   PlaneTakeoff,
@@ -216,6 +217,7 @@ export default function WardenDashboard() {
         <div style={{ marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <h1 style={{ fontSize: '22px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', letterSpacing: '-0.3px', margin: 0, transform: 'translateY(5px)' }}>Warden dashboard</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <AiAssistant />
             <NotificationBell />
             <div suppressHydrationWarning style={{ fontSize: '12px', color: 'rgba(255,255,255,0.22)' }}>{dateStr}</div>
           </div>

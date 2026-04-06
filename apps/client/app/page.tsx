@@ -218,7 +218,6 @@ export default function Home() {
 
   // FAQ ask-a-question
   const [faqQuestion, setFaqQuestion] = useState('')
-  const [faqSent, setFaqSent] = useState(false)
 
   // Section reveal refs
   const howItWorksRef = useRef<HTMLElement>(null)
@@ -454,7 +453,16 @@ export default function Home() {
       return
     }
 
-    currentRot.current += (targetRot.current - currentRot.current) * 0.025
+    if (Math.abs(targetRot.current - currentRot.current) > 0.01) {
+      // Snap to target instantly when the gap is huge (e.g. after a BFCache
+      // restore where scroll position was teleported) to avoid a slow spin
+      // back through 300+ degrees of rotation that looks like jitter.
+      if (Math.abs(targetRot.current - currentRot.current) > 30) {
+        currentRot.current = targetRot.current
+      } else {
+        currentRot.current += (targetRot.current - currentRot.current) * 0.025
+      }
+    }
     const RADIUS = window.innerWidth > 1024 ? 445 : 335
 
     if (cylinderRef.current) {
@@ -603,37 +611,42 @@ export default function Home() {
     }
     window.addEventListener('resize', onResize)
 
-    // BFCache restore (e.g. pressing Back from /login) discards any pending
-    // requestAnimationFrame, so the tickWheel loop dies while wheelAnimRef still
-    // holds its now-dead frame id. The `if (!wheelAnimRef.current)` guards then
-    // never restart it, so the cylinder cards never receive their
-    // rotateY/translateZ transforms and collapse into a single stack (only the
-    // last card is visible). restartWheelLoop force-revives the loop; we expose
-    // it via a ref and bind it to every "page is shown again" signal.
-    const restartWheelLoop = () => {
-      if (wheelAnimRef.current) {
-        cancelAnimationFrame(wheelAnimRef.current)
-        wheelAnimRef.current = null
-      }
-      handleScroll()
-      currentRot.current = targetRot.current
-      // Apply one synchronous positioning pass immediately so the cards are
-      // never left stacked even if the next animation frame is throttled.
-      tickWheel()
+    const forceRestartLoop = () => {
+      // Always cancel whatever frame id is stored — even if BFCache eviction
+      // already discarded the real callback, the id must be cleared so the
+      // `if (!wheelAnimRef.current)` guard below doesn't block re-arming.
+      cancelAnimationFrame(wheelAnimRef.current!)
+      wheelAnimRef.current = null
+      handleScroll()                     // re-sync targetRot from current scroll
+      currentRot.current = targetRot.current  // snap — no slow lerp spin
+      tickWheel()                        // synchronous paint before first rAF
+      wheelAnimRef.current = requestAnimationFrame(tickWheel)
     }
-    healCarouselRef.current = restartWheelLoop
+    healCarouselRef.current = forceRestartLoop
 
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') restartWheelLoop()
+    // Listen for BFCache restores and tab-switches directly here so there is no
+    // timing race with the separate navigation useEffect that calls the ref.
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) forceRestartLoop()
     }
-    window.addEventListener('pageshow', restartWheelLoop)
-    document.addEventListener('visibilitychange', onVisibility)
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') forceRestartLoop()
+    }
+    const onPopState = () => {
+      // Browser back/forward button within Next.js SPA navigation also kills rAF
+      requestAnimationFrame(() => requestAnimationFrame(() => forceRestartLoop()))
+    }
+
+    window.addEventListener('pageshow', onPageShow)
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    window.addEventListener('popstate', onPopState)
 
     return () => {
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('resize', onResize)
-      window.removeEventListener('pageshow', restartWheelLoop)
-      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('pageshow', onPageShow)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+      window.removeEventListener('popstate', onPopState)
       if (wheelAnimRef.current) cancelAnimationFrame(wheelAnimRef.current)
     }
   }, [tickWheel])
@@ -982,7 +995,9 @@ export default function Home() {
 
     const handlePageShow = (e: PageTransitionEvent) => {
       try {
-        if (e.persisted || sessionStorage.getItem('navigatingBackFromLogin') === 'true') {
+        // BFCache persisted restores are handled directly in the carousel effect.
+        // Here we only need to catch the sessionStorage flag for login transitions.
+        if (!e.persisted && sessionStorage.getItem('navigatingBackFromLogin') === 'true') {
           sessionStorage.removeItem('navigatingBackFromLogin')
           handleReturnFromLogin()
         }
@@ -990,7 +1005,9 @@ export default function Home() {
     }
 
     window.addEventListener('pageshow', handlePageShow)
-    return () => window.removeEventListener('pageshow', handlePageShow)
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow)
+    }
   }, [])
 
   // Bulletproof scroll position tracking constantly and on exit
@@ -1156,7 +1173,7 @@ export default function Home() {
         </div>
         <div className={styles.navRight}>
           <Link href="/login" onClick={handleNavSigninClick} className={styles.navSignin}>Sign in</Link>
-          <button className={styles.navBtn}>Request demo ↗</button>
+          <Link href="/demo" className={styles.navBtn}>Request demo ↗</Link>
         </div>
       </nav>
 
@@ -1170,8 +1187,8 @@ export default function Home() {
             Smart hostel management built for Indian institutions. Attendance, complaints, mess, fees — all in one place.
           </p>
           <div className={styles.heroActions}>
-            <button className={styles.btnPrimary}>Request a demo</button>
-            <button className={styles.btnGhost}>See how it works</button>
+            <Link href="/demo" className={styles.btnPrimary} style={{ textDecoration: 'none', display: 'inline-block' }}>Request a demo</Link>
+            <a href="#howitworks" className={styles.btnGhost} style={{ textDecoration: 'none' }} onClick={(e) => { e.preventDefault(); handleNavTabClick(e as unknown as React.MouseEvent<HTMLAnchorElement>, 'howitworks') }}>See how it works</a>
           </div>
           <div className={styles.heroTrust}>
             <div className={styles.trustDots}>
@@ -1477,9 +1494,11 @@ export default function Home() {
                       </div>
                     ))}
                   </div>
-                    <button style={{ width: '100%', background: plan.ctaBg, color: plan.ctaColor, border: 'none', borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
-                      {plan.cta}
-                    </button>
+                    <Link href="/demo" style={{ textDecoration: 'none', display: 'block' }}>
+                      <button style={{ width: '100%', background: plan.ctaBg, color: plan.ctaColor, border: 'none', borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
+                        {plan.cta}
+                      </button>
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -1517,33 +1536,39 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Ask a question */}
+            {/* Ask a question / Request demo capsule */}
             <div
               ref={faqAskRef}
               className={`${styles.faqAskBox} ${styles.cardReveal} ${styles.stagger8}`}
               style={{ marginTop: '0', padding: '22px 24px' }}
             >
               <div className={styles.faqAskLabel}>Still have a question?</div>
-              {faqSent ? (
-                <div className={styles.faqAskSent}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5"/></svg>
-                  Got it — we&apos;ll be in touch soon.
-                </div>
-              ) : (
-                <div className={styles.faqAskRow}>
-                  <input
-                    className={styles.faqAskInput}
-                    type="text"
-                    placeholder="Type your question…"
-                    value={faqQuestion}
-                    onChange={e => setFaqQuestion(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter' && faqQuestion.trim()) setFaqSent(true) }}
-                  />
-                  <button className={styles.faqAskBtn} onClick={() => { if (faqQuestion.trim()) setFaqSent(true) }}>
-                    Send
-                  </button>
-                </div>
-              )}
+              <div className={styles.faqAskRow}>
+                <input
+                  className={styles.faqAskInput}
+                  type="text"
+                  placeholder="Ask anything — or book a live demo…"
+                  value={faqQuestion}
+                  onChange={e => setFaqQuestion(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && faqQuestion.trim()) {
+                      window.location.href = `/demo?q=${encodeURIComponent(faqQuestion.trim())}`
+                    }
+                  }}
+                />
+                <button
+                  className={styles.faqAskBtn}
+                  onClick={() => {
+                    if (faqQuestion.trim()) {
+                      window.location.href = `/demo?q=${encodeURIComponent(faqQuestion.trim())}`
+                    } else {
+                      window.location.href = '/demo'
+                    }
+                  }}
+                >
+                  Go ↗
+                </button>
+              </div>
             </div>
           </section>
         </div>
