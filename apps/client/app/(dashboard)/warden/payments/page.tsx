@@ -1,5 +1,5 @@
 'use client';
-import { Banknote, ClipboardList } from 'lucide-react';
+import { Banknote, ClipboardList, Bell } from 'lucide-react';
 
 import { useEffect, useState, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -444,7 +444,7 @@ export default function WardenPaymentsPage() {
                   className="btn-ghost"
                   style={{ ...buttonGhost, whiteSpace: 'nowrap', opacity: sendingReminders ? 0.5 : 1 }}
                 >
-                  {sendingReminders ? 'Sending...' : '🔔 Send Due Reminders'}
+                  {sendingReminders ? 'Sending...' : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Bell size={14} /> Send Due Reminders</span>}
                 </button>
                 {lastReminder && (
                   <p style={{ fontSize: '11px', color: ui.textMuted, marginTop: '4px' }}>

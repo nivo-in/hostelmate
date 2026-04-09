@@ -1,5 +1,5 @@
 'use client';
-import { X, Check } from 'lucide-react';
+import { X, Check, Plane } from 'lucide-react';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -158,7 +158,7 @@ export default function ParentTrack() {
       return (
         <div className="flex flex-col items-center justify-center p-8 border border-yellow-100 bg-yellow-50 rounded-xl mb-8">
           <div className="w-24 h-24 rounded-full bg-yellow-100 flex items-center justify-center mb-4">
-            <span className="text-3xl text-yellow-600">✈</span>
+            <span className="text-3xl text-yellow-600 flex items-center justify-center"><Plane size={32} strokeWidth={1.5} /></span>
           </div>
           <h2 className="text-lg font-medium text-gray-900">On Leave</h2>
         </div>

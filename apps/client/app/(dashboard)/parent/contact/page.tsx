@@ -1,5 +1,5 @@
 'use client';
-
+import { Phone } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -71,9 +71,9 @@ export default function ParentContact() {
 
           <a
             href={`tel:${warden.phone}`}
-            className="block w-full text-center bg-red-500 text-white rounded-lg px-4 py-3 font-medium hover:bg-red-600 transition-colors"
+            className="flex items-center justify-center gap-2 w-full bg-red-500 text-white rounded-lg px-4 py-3 font-medium hover:bg-red-600 transition-colors"
           >
-            📞 Call Warden Now
+            <Phone size={18} /> Call Warden Now
           </a>
         </div>
       ) : (

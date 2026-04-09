@@ -8,8 +8,9 @@ import { useSocket } from '@/hooks/useSocket';
 import { Notification } from '@/types';
 import { toast } from 'sonner';
 import { 
-  Bell, Check, Trash2, X, AlertCircle, Info, 
-  Calendar, FileText, CheckCircle2, ShieldAlert
+  Bell, Check, Trash2, X, 
+  Palmtree, Wrench, Megaphone, Siren, ClipboardCheck,
+  CreditCard, UtensilsCrossed, PackageSearch
 } from 'lucide-react';
 
 function timeAgo(dateString: string) {
@@ -33,12 +34,16 @@ function timeAgo(dateString: string) {
 const getIconForType = (type: string, color: string) => {
   const props = { size: 16, color };
   switch (type) {
-    case 'leave': return <Calendar {...props} />;
-    case 'complaint': return <AlertCircle {...props} />;
-    case 'notice': return <FileText {...props} />;
-    case 'emergency': return <ShieldAlert {...props} />;
-    case 'attendance': return <CheckCircle2 {...props} />;
-    default: return <Info {...props} />;
+    case 'leave': return <Palmtree {...props} />;
+    case 'complaint': return <Wrench {...props} />;
+    case 'notice': return <Megaphone {...props} />;
+    case 'emergency': return <Siren {...props} />;
+    case 'attendance': return <ClipboardCheck {...props} />;
+    case 'payment':
+    case 'fee': return <CreditCard {...props} />;
+    case 'mess': return <UtensilsCrossed {...props} />;
+    case 'lost-found': return <PackageSearch {...props} />;
+    default: return <Bell {...props} />;
   }
 };
 

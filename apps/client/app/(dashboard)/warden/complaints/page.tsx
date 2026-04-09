@@ -1,5 +1,5 @@
 'use client';
-import { Wrench } from 'lucide-react';
+import { Wrench, Bot, Lightbulb } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -219,7 +219,7 @@ export default function WardenComplaints() {
                             borderRadius: '9999px',
                           }}
                         >
-                          🤖 AI
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Bot size={12} /> AI</span>
                         </span>
                       )}
                     </div>
@@ -264,8 +264,8 @@ export default function WardenComplaints() {
                       border: ui.border,
                     }}
                   >
-                    <div style={{ fontSize: '11px', fontWeight: 500, color: ui.textSoft, marginBottom: '6px' }}>
-                      💡 Suggested Action
+                    <div style={{ fontSize: '11px', fontWeight: 500, color: ui.textSoft, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Lightbulb size={12} /> Suggested Action
                     </div>
                     <div style={{ fontSize: '12px', color: ui.textSoft, lineHeight: 1.5 }}>
                       {c.ai_suggested_action}

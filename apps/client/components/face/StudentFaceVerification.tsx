@@ -1,5 +1,5 @@
 'use client';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Camera, Search } from 'lucide-react';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import {
@@ -318,7 +318,7 @@ export default function StudentFaceVerification({
           alignItems: 'center', justifyContent: 'center', gap: '10px', background: '#080810',
           zIndex: 6, padding: '24px', textAlign: 'center',
         }}>
-          <span style={{ fontSize: '26px' }}>{status === 'camera-denied' ? '📷' : status === 'no-face-data' ? '🔍' : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={14} strokeWidth={2.5} />️</span>}</span>
+          <span style={{ fontSize: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{status === 'camera-denied' ? <Camera size={26} strokeWidth={1.5} /> : status === 'no-face-data' ? <Search size={26} strokeWidth={1.5} /> : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={14} strokeWidth={2.5} /></span>}</span>
           <p style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', margin: 0 }}>
             {status === 'camera-denied' ? 'Camera access required' : status === 'no-face-data' ? 'No face data found' : 'Something went wrong'}
           </p>
