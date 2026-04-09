@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useApi } from '@/hooks/useApi';
 
 interface AiAnalysisCardProps {
-  type: 'complaints' | 'leaves' | 'visitors';
+  type: 'complaints' | 'leaves' | 'visitors' | 'mess';
   themeColor?: string;
   themeRgb?: string;
 }
@@ -17,7 +17,7 @@ export function AiAnalysisCard({ type, themeColor = '#a78bfa', themeRgb = '167,1
   const analyze = async () => {
     setLoading(true);
     try {
-      const res = await apiGet(`/api/v1/ai/analyze?type=${type}`);
+      const res = await apiGet(`/api/v1/ai/analysis/${type}`);
       if (res.success) {
         setData(res.data);
       }

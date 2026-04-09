@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
+import { AiAnalysisCard } from '@/components/ui/AiAnalysisCard';
 import { useRouter } from 'next/navigation';
 import { container } from '@/lib/ui';
 import { Complaint } from '@/types';
@@ -146,6 +147,9 @@ export default function StudentComplaints() {
       <PageHeader title="Complaints" showBack onSignOut={handleSignOut} />
 
       <div style={container}>
+        <div style={{ marginBottom: 24 }}>
+          <AiAnalysisCard type="complaints" themeColor="#fb923c" themeRgb="251,146,60" />
+        </div>
         <div style={{ ...panelStyle, padding: '24px', marginBottom: '28px' }}>
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '480px' }}>
             <div>

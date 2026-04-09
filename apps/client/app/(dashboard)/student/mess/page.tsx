@@ -5,6 +5,7 @@ import { PageShell } from '@/components/ui/PageShell';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
+import { AiAnalysisCard } from '@/components/ui/AiAnalysisCard';
 import { useRouter } from 'next/navigation';
 import { container } from '@/lib/ui';
 import { MessMenu } from '@/types';
@@ -87,6 +88,9 @@ export default function StudentMess() {
       <PageHeader title="Mess" showBack onSignOut={handleSignOut} />
 
       <div style={container}>
+        <div style={{ marginBottom: 24 }}>
+          <AiAnalysisCard type="mess" themeColor="#fb923c" themeRgb="251,146,60" />
+        </div>
         {/* ── DAY TABS ── */}
         <div style={{ marginBottom: '28px' }}>
           <div

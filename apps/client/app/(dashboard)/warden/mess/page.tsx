@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageShell } from '@/components/ui/PageShell';
+import { AiAnalysisCard } from '@/components/ui/AiAnalysisCard';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
@@ -109,6 +110,9 @@ export default function WardenMess() {
       <PageHeader title="Mess Management" showBack onSignOut={handleSignOut} />
 
       <div style={container}>
+        <div style={{ marginBottom: 24 }}>
+          <AiAnalysisCard type="mess" themeColor="#7c5cfc" themeRgb="124,92,252" />
+        </div>
         <div
           style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}
           className="mess-grid"

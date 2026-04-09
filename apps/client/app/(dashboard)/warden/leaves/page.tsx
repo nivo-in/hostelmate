@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { PageShell } from '@/components/ui/PageShell';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { AiAnalysisCard } from '@/components/ui/AiAnalysisCard';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
@@ -76,6 +77,9 @@ export default function WardenLeaves() {
       <PageHeader title="Leave Management" showBack onSignOut={handleSignOut} />
 
       <div style={container}>
+        <div style={{ marginBottom: 24 }}>
+          <AiAnalysisCard type="leaves" themeColor="#7c5cfc" themeRgb="124,92,252" />
+        </div>
         {message && (
           <div
             style={{
