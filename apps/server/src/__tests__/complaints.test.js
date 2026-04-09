@@ -64,6 +64,10 @@ jest.unstable_mockModule('../config/openai.js', () => ({
     patterns: [],
     summary: 'No major patterns detected',
   }),
+  processWardenChat: jest.fn().mockResolvedValue({ response: 'Mock warden chat' }),
+  processStudentChat: jest.fn().mockResolvedValue({ response: 'Mock student chat' }),
+  analyzeGeneric: jest.fn().mockResolvedValue({ summary: 'Mock summary', insights: [], recommendation: '' }),
+  default: {},
 }));
 
 jest.unstable_mockModule('../config/notify.js', () => ({
