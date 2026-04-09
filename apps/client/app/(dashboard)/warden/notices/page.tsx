@@ -1,4 +1,5 @@
 'use client';
+import { Megaphone } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -140,7 +141,7 @@ export default function WardenNotices() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {notices.length === 0 ? (
               <div style={panel}>
-                <EmptyState message="No notices found" icon="📢" />
+                <EmptyState message="No notices found" icon={<Megaphone strokeWidth={1.5} />} />
               </div>
             ) : (
               notices.map((notice) => (

@@ -1,4 +1,5 @@
 'use client';
+import { ClipboardList } from 'lucide-react';
 
 import { useEffect, useState, useCallback } from 'react';
 import QRCode from 'qrcode';
@@ -181,7 +182,7 @@ export default function WardenAttendance() {
               {records.length === 0 ? (
                 <tr>
                   <td colSpan={5}>
-                    <EmptyState message="No attendance records for this date" icon="📋" />
+                    <EmptyState message="No attendance records for this date" icon={<ClipboardList strokeWidth={1.5} />} />
                   </td>
                 </tr>
               ) : (

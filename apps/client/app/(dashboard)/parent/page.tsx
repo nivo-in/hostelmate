@@ -1,3 +1,4 @@
+import { MapPin } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
@@ -32,7 +33,7 @@ export default async function ParentDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[
           {
-            emoji: '📍',
+            emoji: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><MapPin size={14} strokeWidth={2.5} /></span>,
             title: 'Track Student',
             desc: 'View student location and attendance',
             href: null,
