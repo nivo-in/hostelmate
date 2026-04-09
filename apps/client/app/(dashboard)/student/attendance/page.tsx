@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import { container } from '@/lib/ui';
 
 // Lazy-load face components so face-api.js is not bundled in the initial chunk
-const FaceRegistration = lazy(() => import('@/components/face/FaceRegistration'));
+const FaceEnrollment = lazy(() => import('@/components/face/FaceEnrollment'));
 const StudentFaceVerification = lazy(() => import('@/components/face/StudentFaceVerification'));
 
 const ORANGE = '#fb923c';
@@ -273,10 +273,11 @@ export default function StudentAttendance() {
         {view === 'face-registration' && (
           <div style={{ ...panelStyle, overflow: 'hidden', background: 'rgba(255,255,255,0.97)' }}>
             <Suspense fallback={<div style={{ padding: '32px', textAlign: 'center', fontSize: '13px', color: '#9ca3af' }}>Loading…</div>}>
-              <FaceRegistration
-                studentId={profile?.id ?? ''}
+              <FaceEnrollment
+                subjectId={profile?.id ?? ''}
+                role="student"
                 onSuccess={() => setView('main')}
-                onSkip={() => setView('main')}
+                onCancel={() => setView('main')}
               />
             </Suspense>
           </div>
@@ -454,13 +455,14 @@ export default function StudentAttendance() {
             ) : (
               <div style={{ ...panelStyle, overflow: 'hidden', background: 'rgba(255,255,255,0.97)' }}>
                 <Suspense fallback={<div style={{ padding: '32px', textAlign: 'center', fontSize: '13px', color: '#9ca3af' }}>Loading…</div>}>
-                  <FaceRegistration
-                    studentId={profile?.id ?? ''}
+                  <FaceEnrollment
+                    subjectId={profile?.id ?? ''}
+                    role="student"
                     onSuccess={() => {
                       setShowReRegister(false);
                       setMode('choose');
                     }}
-                    onSkip={() => setShowReRegister(false)}
+                    onCancel={() => setShowReRegister(false)}
                   />
                 </Suspense>
               </div>

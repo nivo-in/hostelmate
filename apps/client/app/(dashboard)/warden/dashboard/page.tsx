@@ -8,6 +8,8 @@ import dynamic from 'next/dynamic';
 import { Reveal } from '@/components/ui/Reveal';
 import { TiltCard } from '@/components/ui/TiltCard';
 import { CursorGlow } from '@/components/ui/CursorGlow';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
+import { AnimatedProgress } from '@/components/ui/AnimatedProgress';
 import { AiAssistant } from '@/components/ui/AiAssistant';
 import {
   ClipboardList,
@@ -24,7 +26,7 @@ import {
   Banknote,
 } from 'lucide-react';
 
-const WardenFaceRegistration = dynamic(() => import('@/components/face/WardenFaceRegistration'), {
+const FaceEnrollment = dynamic(() => import('@/components/face/FaceEnrollment'), {
   ssr: false,
 });
 
@@ -172,8 +174,8 @@ export default function WardenDashboard() {
         }
         .dash-card { transition: all 0.3s ease; }
         .dash-card:hover {
-          background: radial-gradient(circle at top left, rgba(124,92,252,0.13) 0%, rgba(255,255,255,0.03) 100%) !important;
-          border-color: rgba(124,92,252,0.28) !important;
+          background: radial-gradient(circle at top left, rgba(124,92,252,0.07) 0%, rgba(255,255,255,0.015) 100%) !important;
+          border-color: rgba(124,92,252,0.16) !important;
         }
         .dash-card .arrow-icon { transition: all 0.3s ease; color: rgba(255,255,255,0.2); transform: translateX(0); }
         .dash-card:hover .arrow-icon { transform: translateX(6px); color: rgba(124,92,252,0.85); }
@@ -232,15 +234,15 @@ export default function WardenDashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '12px' }}>
           <div style={{ background: 'rgba(255,255,255,0.08)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>Attendance Today</div>
-            <div style={{ fontSize: '28px', fontWeight: 500, color: '#4ade80' }}>{stats.attendanceToday}%</div>
+            <div style={{ fontSize: '28px', fontWeight: 500, color: '#4ade80' }}><AnimatedNumber value={stats.attendanceToday} />%</div>
           </div>
           <div style={{ background: 'rgba(255,255,255,0.08)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>Pending Leaves</div>
-            <div style={{ fontSize: '28px', fontWeight: 500, color: '#fbbf24' }}>{stats.pendingLeaves}</div>
+            <div style={{ fontSize: '28px', fontWeight: 500, color: '#fbbf24' }}><AnimatedNumber value={stats.pendingLeaves} /></div>
           </div>
           <div style={{ background: 'rgba(255,255,255,0.08)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>Open Complaints</div>
-            <div style={{ fontSize: '28px', fontWeight: 500, color: '#f87171' }}>{stats.openComplaints}</div>
+            <div style={{ fontSize: '28px', fontWeight: 500, color: '#f87171' }}><AnimatedNumber value={stats.openComplaints} /></div>
           </div>
         </div>
         </Reveal>
@@ -252,14 +254,14 @@ export default function WardenDashboard() {
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>Mess rating</div>
             <div style={{ fontSize: '18px', fontWeight: 500, color: 'rgba(255,255,255,0.85)' }}>4.2 / 5.0</div>
             <div style={{ marginTop: '12px', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
-              <div style={{ width: '84%', height: '100%', background: '#4ade80' }} />
+              <AnimatedProgress value={84} color="#4ade80" />
             </div>
           </div>
           <div style={{ background: 'rgba(255,255,255,0.07)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>Curfew violations</div>
             <div style={{ fontSize: '18px', fontWeight: 500, color: 'rgba(255,255,255,0.85)' }}>12 Active</div>
             <div style={{ marginTop: '12px', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
-              <div style={{ width: '24%', height: '100%', background: '#f87171' }} />
+              <AnimatedProgress value={24} color="#f87171" />
             </div>
           </div>
         </div>
@@ -380,13 +382,14 @@ export default function WardenDashboard() {
 
             {showFaceRegister && wardenId && (
               <div style={{ border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: '14px', overflow: 'hidden', background: 'rgba(0,0,0,0.2)', marginTop: '16px' }}>
-                <WardenFaceRegistration
-                  wardenId={wardenId}
+                <FaceEnrollment
+                  subjectId={wardenId}
+                  role="warden"
                   onSuccess={() => {
                     setShowFaceRegister(false);
                     setFaceRegistered(true);
                   }}
-                  onSkip={() => setShowFaceRegister(false)}
+                  onCancel={() => setShowFaceRegister(false)}
                 />
               </div>
             )}

@@ -254,7 +254,7 @@ export default function Home() {
       // Small delay to ensure browser doesn't override us, then reset scroll behavior
       requestAnimationFrame(() => {
         window.scrollTo(0, loginCardTop)
-        document.documentElement.style.scrollBehavior = 'smooth'
+        document.documentElement.style.scrollBehavior = ''
         
         // We also need to hide the cylinder immediately to prevent visual glitches
         if (cylinderSceneRef.current) {
@@ -457,10 +457,10 @@ export default function Home() {
       // Snap to target instantly when the gap is huge (e.g. after a BFCache
       // restore where scroll position was teleported) to avoid a slow spin
       // back through 300+ degrees of rotation that looks like jitter.
-      if (Math.abs(targetRot.current - currentRot.current) > 30) {
+      if (Math.abs(targetRot.current - currentRot.current) > 180) {
         currentRot.current = targetRot.current
       } else {
-        currentRot.current += (targetRot.current - currentRot.current) * 0.025
+        currentRot.current += (targetRot.current - currentRot.current) * 0.035
       }
     }
     const RADIUS = window.innerWidth > 1024 ? 445 : 335
@@ -820,7 +820,17 @@ export default function Home() {
       })
 
       const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-      const adjacent = Math.abs(destIdx - srcIdx) <= 1
+
+      // Features (0) <-> Howitworks (1) always get the cinematic blackout even though
+      // they are adjacent by index — the visual shift is dramatic enough to warrant it.
+      // Howitworks <-> Pricing and Pricing <-> FAQ stay as plain smooth scroll.
+      const featuresIdx = NAV_TARGET_IDS.indexOf('features')
+      const howitworksIdx = NAV_TARGET_IDS.indexOf('howitworks')
+      const isFeaturesHowitworksJump =
+        (srcIdx === featuresIdx && destIdx === howitworksIdx) ||
+        (srcIdx === howitworksIdx && destIdx === featuresIdx)
+
+      const adjacent = Math.abs(destIdx - srcIdx) <= 1 && !isFeaturesHowitworksJump
 
       // Adjacent tabs (or reduced motion / mid-animation): keep the plain scroll.
       if (adjacent || reduce || navAnimatingRef.current) {
@@ -968,6 +978,14 @@ export default function Home() {
           window.dispatchEvent(new Event('scroll'))
         }
       }, 50)
+      
+      const abortInterval = () => clearInterval(interval)
+      window.addEventListener('wheel', abortInterval, { once: true })
+      window.addEventListener('touchstart', abortInterval, { once: true })
+      setTimeout(() => {
+        window.removeEventListener('wheel', abortInterval)
+        window.removeEventListener('touchstart', abortInterval)
+      }, 1050)
     }
 
     const handleReturnFromLogin = () => {

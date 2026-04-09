@@ -1,4 +1,5 @@
 'use client';
+import { Lock, MapPin, Eye } from 'lucide-react';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import {
@@ -317,8 +318,8 @@ export default function FaceVerification({
 
   const livenessColor = blinkDetected ? '#16a34a' : '#f59e0b';
   const livenessText = blinkDetected
-    ? '👁 Liveness: ✓ Confirmed'
-    : "👁 Blink once to verify you're real";
+    ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Eye size={14} strokeWidth={2.5} />Liveness: ✓ Confirmed</span>
+    : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Eye size={14} strokeWidth={2.5} />Blink once to verify you&apos;re real</span>;
 
   return (
     <div className="flex flex-col items-center gap-5 p-6">
@@ -500,7 +501,7 @@ export default function FaceVerification({
       {status === 'liveness-failed' && (
         <div className="flex flex-col items-center gap-2">
           <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center">
-            <span className="text-2xl">👁</span>
+            <span className="text-2xl"><Eye size={16} strokeWidth={1.5} /></span>
           </div>
           <p className="text-sm font-medium text-orange-600">Liveness check failed</p>
           <p className="text-xs text-gray-400 text-center max-w-xs">
@@ -558,12 +559,17 @@ export default function FaceVerification({
 
       {/* Security badges */}
       <div className="flex items-center gap-2 flex-wrap justify-center mt-1">
-        {['🔒 5-Angle Scan', '👁 Liveness Check', '📍 Geofenced'].map((badge) => (
+        {[
+          { icon: <Lock size={14} strokeWidth={2.5} />, label: '5-Angle Scan' },
+          { icon: <Eye size={14} strokeWidth={2.5} />, label: 'Liveness Check' },
+          { icon: <MapPin size={14} strokeWidth={2.5} />, label: 'Geofenced' },
+        ].map(({ icon, label }, idx) => (
           <span
-            key={badge}
+            key={idx}
             className="text-xs text-gray-400 border border-gray-200 rounded-full px-2 py-0.5"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
           >
-            {badge}
+            {icon}{label}
           </span>
         ))}
       </div>
