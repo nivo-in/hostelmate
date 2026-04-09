@@ -149,11 +149,9 @@ if (process.env.NODE_ENV !== 'test') {
 
     try {
       await redis.ping();
-      let redisStatus = 'connected';
       logger.info('Redis connected successfully');
       startCurfewJob();
     } catch (err) {
-      let redisStatus = 'disconnected';
       logger.warn('Redis connection failed — caching disabled');
     }
   });
