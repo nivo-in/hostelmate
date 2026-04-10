@@ -170,6 +170,13 @@ describe('Leaves API', () => {
       expect(res.body.data).toEqual([]);
     });
 
+    it('should handle DB errors gracefully', async () => {
+      supabaseMock.order.mockResolvedValueOnce({ data: null, error: new Error('DB error') });
+      const res = await request(app).get('/api/v1/leaves/my');
+      expect(res.status).toBe(500);
+      expect(res.body.error).toMatch(/internal/i);
+    });
+
     it('should return 401 without auth', async () => {
       currentProfile = null;
       const res = await request(app).get('/api/v1/leaves/my');
