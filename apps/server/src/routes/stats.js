@@ -117,6 +117,7 @@ router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => 
     res.json({
       success: true,
       data: statsData,
+      generated_at: new Date().toISOString(),
     });
   } catch (error) {
     next(error);
