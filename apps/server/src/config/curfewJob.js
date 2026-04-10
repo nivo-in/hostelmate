@@ -3,9 +3,12 @@ import { redis } from './redis.js';
 import logger from './logger.js';
 import { createNotification } from './notify.js';
 
+let curfewInterval = null;
+
 export const startCurfewJob = () => {
+  if (curfewInterval) return;
   // Check every minute
-  setInterval(async () => {
+  curfewInterval = setInterval(async () => {
     try {
       const now = new Date();
       // Use IST for curfew checking
@@ -77,4 +80,11 @@ export const startCurfewJob = () => {
       logger.error('Error in curfew job:', err);
     }
   }, 60 * 1000); // 1 minute
+};
+
+export const stopCurfewJob = () => {
+  if (curfewInterval) {
+    clearInterval(curfewInterval);
+    curfewInterval = null;
+  }
 };
