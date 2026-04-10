@@ -40,6 +40,7 @@ export default function StudentVisitors() {
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const { apiGet, apiPost } = useApi();
   const supabase = createClient();
@@ -60,9 +61,13 @@ export default function StudentVisitors() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+    
     if (!visitorName.trim() || !visitorPhone.trim() || !purpose.trim() || !expectedDate) {
       return setError('All fields are required');
     }
+
+    setLoading(true);
 
     try {
       const res = await apiPost('/api/v1/visitors', {
@@ -88,6 +93,8 @@ export default function StudentVisitors() {
       }
     } catch (err: unknown) {
       setError((err as Error).message || 'Failed to submit request');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -226,8 +233,9 @@ export default function StudentVisitors() {
                 transition: 'filter 0.2s',
               }}
               className="btn-primary"
+              disabled={loading}
             >
-              Submit Request
+              {loading ? 'Submitting...' : 'Submit Request'}
             </button>
           </form>
         </div>

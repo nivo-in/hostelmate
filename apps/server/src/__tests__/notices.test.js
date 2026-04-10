@@ -164,20 +164,20 @@ describe('Notices API', () => {
   describe('GET /api/notices - Any authenticated user', () => {
     it('should return notices for student (filtered)', async () => {
       currentProfile = mockStudentProfile;
-      supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
+      supabaseMock.limit.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/notices');
       expect(res.status).toBe(200);
     });
 
     it('should return all notices for warden', async () => {
-      supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
+      supabaseMock.limit.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/notices');
       expect(res.status).toBe(200);
     });
 
     it('should return notices for parent (filtered)', async () => {
       currentProfile = { id: 'parent-id', role: 'parent', email: 'parent@test.com' };
-      supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
+      supabaseMock.limit.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/notices');
       expect(res.status).toBe(200);
     });
