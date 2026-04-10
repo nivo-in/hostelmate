@@ -11,6 +11,15 @@ jest.unstable_mockModule('../config/redis.js', () => ({
   redis: {},
 }));
 
+// Mock config/supabase.js
+jest.unstable_mockModule('../config/supabase.js', () => ({
+  supabaseAdmin: {
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+  },
+}));
+
 // Mock config/logger.js
 jest.unstable_mockModule('../config/logger.js', () => ({
   default: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), http: jest.fn() },
@@ -65,6 +74,14 @@ describe('Institutions API', () => {
 
       const res = await request(app).get('/api/v1/institutions/search?q=XYZ123Bizarre');
       expect(res.status).toBe(200); // Should still succeed, just without hipo supplements
+    });
+
+    it('should handle internal errors gracefully', async () => {
+      getCache.mockRejectedValueOnce(new Error('Redis died'));
+
+      const res = await request(app).get('/api/v1/institutions/search?q=XYZ123Bizarre');
+      expect(res.status).toBe(500);
+      expect(res.body.success).toBe(false);
     });
   });
 });

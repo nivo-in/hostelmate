@@ -17,6 +17,18 @@ jest.unstable_mockModule('../config/redis.js', () => ({
   },
 }));
 
+// Mock config/supabase.js
+jest.unstable_mockModule('../config/supabase.js', () => ({
+  supabaseAdmin: {
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
+    delete: jest.fn().mockReturnThis(),
+  },
+}));
+
 // Mock config/email.js
 jest.unstable_mockModule('../config/email.js', () => ({
   sendEmail: jest.fn().mockResolvedValue(true),
@@ -163,6 +175,24 @@ describe('Demo API', () => {
         .send({ email: 'test@example.com', token: 'valid-token' });
       expect(res.status).toBe(500);
     });
+
+    it('should skip email if no recipient is configured', async () => {
+      redis.get.mockResolvedValueOnce('valid-token');
+      const originalDemoEmail = process.env.DEMO_RECIPIENT_EMAIL;
+      const originalGmail = process.env.GMAIL_USER;
+      delete process.env.DEMO_RECIPIENT_EMAIL;
+      delete process.env.GMAIL_USER;
+
+      const res = await request(app)
+        .post('/api/v1/demo/submit')
+        .send({ email: 'test@example.com', token: 'valid-token', query: 'Help' });
+      
+      expect(res.status).toBe(200);
+      expect(sendEmail).not.toHaveBeenCalled();
+
+      process.env.DEMO_RECIPIENT_EMAIL = originalDemoEmail;
+      process.env.GMAIL_USER = originalGmail;
+    });
   });
 
   describe('POST /api/demo/faq', () => {
@@ -201,6 +231,25 @@ describe('Demo API', () => {
         query: 'What is the pricing?',
       });
       expect(res.status).toBe(500);
+    });
+
+    it('should skip FAQ email if no recipient is configured', async () => {
+      const originalDemoEmail = process.env.DEMO_RECIPIENT_EMAIL;
+      const originalGmail = process.env.GMAIL_USER;
+      delete process.env.DEMO_RECIPIENT_EMAIL;
+      delete process.env.GMAIL_USER;
+
+      const res = await request(app).post('/api/v1/demo/faq').send({
+        name: 'Tester',
+        email: 'test@example.com',
+        query: 'What is the pricing?',
+      });
+      
+      expect(res.status).toBe(200);
+      expect(sendEmail).not.toHaveBeenCalled();
+
+      process.env.DEMO_RECIPIENT_EMAIL = originalDemoEmail;
+      process.env.GMAIL_USER = originalGmail;
     });
   });
 });
