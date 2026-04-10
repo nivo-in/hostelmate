@@ -59,6 +59,35 @@ describe('Demo API', () => {
       expect(res.body.success).toBe(true);
       expect(sendEmail).toHaveBeenCalled();
     });
+
+    it('should hit IP rate limit', async () => {
+      redis.incr.mockResolvedValueOnce(20); // triggers MAX_OTP_REQUESTS_PER_IP
+      const res = await request(app)
+        .post('/api/v1/demo/send-otp')
+        .send({ email: 'test2@example.com' });
+      expect(res.status).toBe(429);
+      expect(res.body.error).toMatch(/network/i);
+    });
+
+    it('should hit email rate limit', async () => {
+      redis.incr.mockResolvedValueOnce(1); // IP limit pass
+      redis.incr.mockResolvedValueOnce(10); // triggers MAX_OTP_REQUESTS_PER_EMAIL
+      const res = await request(app)
+        .post('/api/v1/demo/send-otp')
+        .send({ email: 'test3@example.com' });
+      expect(res.status).toBe(429);
+      expect(res.body.error).toMatch(/Too many codes/i);
+    });
+
+    it('should handle internal errors gracefully', async () => {
+      redis.incr.mockRejectedValueOnce(new Error('Redis died'));
+      // rateLimited catches the error and returns false, so it proceeds to redis.set
+      redis.set.mockRejectedValueOnce(new Error('Redis died'));
+      const res = await request(app)
+        .post('/api/v1/demo/send-otp')
+        .send({ email: 'test4@example.com' });
+      expect(res.status).toBe(500);
+    });
   });
 
   describe('POST /api/demo/verify-otp', () => {
@@ -76,6 +105,37 @@ describe('Demo API', () => {
         .send({ email: 'test@example.com', otp: '123456' });
       expect(res.status).toBe(400);
     });
+
+    it('should fail if too many verify attempts', async () => {
+      redis.incr.mockResolvedValueOnce(10);
+      const res = await request(app)
+        .post('/api/v1/demo/verify-otp')
+        .send({ email: 'test@example.com', otp: '123456' });
+      expect(res.status).toBe(429);
+    });
+
+    it('should succeed with valid otp', async () => {
+      redis.incr.mockResolvedValueOnce(1);
+      // We mock redis.get to return a valid hash for '123456'
+      // Provide a hash of length 64 so safeEqual passes a.length === b.length check
+      // It uses timingSafeEqual which we mocked to return true.
+      redis.get.mockResolvedValueOnce('9b03e7d3032b24bf87c4fb138fe0a43be6c711f15908886a3509d70f872feb86');
+
+      const res = await request(app)
+        .post('/api/v1/demo/verify-otp')
+        .send({ email: 'test@example.com', otp: '123456' });
+      expect(res.status).toBe(200);
+      expect(res.body.verified).toBe(true);
+      expect(res.body.token).toBeDefined();
+    });
+
+    it('should handle internal errors gracefully', async () => {
+      redis.incr.mockRejectedValueOnce(new Error('Redis died'));
+      const res = await request(app)
+        .post('/api/v1/demo/verify-otp')
+        .send({ email: 'test@example.com', otp: '123456' });
+      expect(res.status).toBe(500);
+    });
   });
 
   describe('POST /api/demo/submit', () => {
@@ -85,6 +145,23 @@ describe('Demo API', () => {
         .post('/api/v1/demo/submit')
         .send({ email: 'test@example.com', token: 'fake-token' });
       expect(res.status).toBe(403);
+    });
+
+    it('should submit successfully if token matches', async () => {
+      redis.get.mockResolvedValueOnce('valid-token');
+      const res = await request(app)
+        .post('/api/v1/demo/submit')
+        .send({ email: 'test@example.com', token: 'valid-token', query: 'Help' });
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+    });
+
+    it('should handle internal errors gracefully', async () => {
+      redis.get.mockRejectedValueOnce(new Error('Redis died'));
+      const res = await request(app)
+        .post('/api/v1/demo/submit')
+        .send({ email: 'test@example.com', token: 'valid-token' });
+      expect(res.status).toBe(500);
     });
   });
 
@@ -102,6 +179,28 @@ describe('Demo API', () => {
       });
       expect(res.status).toBe(200);
       expect(sendEmail).toHaveBeenCalled();
+    });
+
+    it('should hit FAQ rate limit', async () => {
+      redis.incr.mockResolvedValueOnce(20);
+      const res = await request(app).post('/api/v1/demo/faq').send({
+        name: 'Tester',
+        email: 'test@example.com',
+        query: 'What is the pricing?',
+      });
+      expect(res.status).toBe(429);
+    });
+
+    it('should handle internal errors gracefully in FAQ', async () => {
+      redis.incr.mockRejectedValueOnce(new Error('Redis died'));
+      // rateLimited catches the error and returns false, so it proceeds to sendEmail
+      sendEmail.mockRejectedValueOnce(new Error('Mail died'));
+      const res = await request(app).post('/api/v1/demo/faq').send({
+        name: 'Tester',
+        email: 'test@example.com',
+        query: 'What is the pricing?',
+      });
+      expect(res.status).toBe(500);
     });
   });
 });

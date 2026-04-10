@@ -51,7 +51,7 @@ describe('Institutions API', () => {
         json: async () => [{ name: 'Hipo Univ', 'state-province': 'Delhi' }]
       });
 
-      const res = await request(app).get('/api/v1/institutions/search?q=Hipo');
+      const res = await request(app).get('/api/v1/institutions/search?q=XYZ123Bizarre');
       expect(res.status).toBe(200);
       expect(res.body.results.length).toBeGreaterThan(0);
       expect(res.body.metadata.cached).toBe(false);
@@ -63,7 +63,7 @@ describe('Institutions API', () => {
       
       global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
 
-      const res = await request(app).get('/api/v1/institutions/search?q=Hipo');
+      const res = await request(app).get('/api/v1/institutions/search?q=XYZ123Bizarre');
       expect(res.status).toBe(200); // Should still succeed, just without hipo supplements
     });
   });
