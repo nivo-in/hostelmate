@@ -35,9 +35,7 @@
       "src/config/geofence.js",
       "src/config/matcher.js",
       "src/config/validation.js",
-      "!src/**/*.test.js",
-      "!src/routes/demo.js",
-      "!src/routes/institutions.js"
+      "!src/**/*.test.js"
     ]
   },
   "dependencies": {

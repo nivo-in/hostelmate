@@ -159,7 +159,8 @@ describe('Complaints API', () => {
         description: 'valid description',
       });
       expect(res.status).toBe(200);
-      expect(classifyComplaint).toHaveBeenCalled();
+      expect(res.body.ai).toBeDefined();
+      expect(res.body.ai.classified).toBe(true);
     });
 
     it('should work even if AI classification fails', async () => {
