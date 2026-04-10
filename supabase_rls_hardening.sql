@@ -75,6 +75,11 @@ CREATE POLICY "Students can insert own visitor requests"
 ON visitors FOR INSERT 
 WITH CHECK (student_id = auth.uid() AND auth.get_user_role() = 'student');
 
+CREATE POLICY "Students can update own pending visitor requests" 
+ON visitors FOR UPDATE 
+USING (student_id = auth.uid() AND auth.get_user_role() = 'student' AND status = 'pending')
+WITH CHECK (student_id = auth.uid() AND auth.get_user_role() = 'student' AND status = 'pending');
+
 -- ==============================================================================
 -- END OF HARDENING SCRIPT
 -- ==============================================================================
