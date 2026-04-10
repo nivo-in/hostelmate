@@ -1,5 +1,5 @@
 'use client';
-import { Banknote, ClipboardList, Bell } from 'lucide-react';
+import { Banknote, ClipboardList, Bell, CheckCircle, AlertCircle, X } from 'lucide-react';
 
 import { useEffect, useState, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -374,12 +374,18 @@ export default function WardenPaymentsPage() {
         {/* Alerts */}
         {error && (
           <div style={{ marginBottom: '16px', padding: '12px 16px', background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.25)', borderRadius: ui.radiusXs, fontSize: '13px', color: ui.red, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            {error}
-            <button onClick={() => setError('')} style={{ background: 'transparent', border: 'none', color: ui.red, cursor: 'pointer' }}>✕</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertCircle size={16} />
+              {error}
+            </div>
+            <button onClick={() => setError('')} style={{ background: 'transparent', border: 'none', color: ui.red, cursor: 'pointer', display: 'flex', padding: '4px' }} aria-label="Dismiss error">
+              <X size={14} />
+            </button>
           </div>
         )}
         {success && (
-          <div style={{ marginBottom: '16px', padding: '12px 16px', background: 'rgba(74,222,128,0.1)', border: '0.5px solid rgba(74,222,128,0.25)', borderRadius: ui.radiusXs, fontSize: '13px', color: ui.green, fontWeight: 500 }}>
+          <div style={{ marginBottom: '16px', padding: '12px 16px', background: 'rgba(74,222,128,0.1)', border: '0.5px solid rgba(74,222,128,0.25)', borderRadius: ui.radiusXs, fontSize: '13px', color: ui.green, fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CheckCircle size={16} />
             {success}
           </div>
         )}
@@ -739,7 +745,8 @@ export default function WardenPaymentsPage() {
               </button>
 
               {genResult && (
-                <div style={{ background: 'rgba(74,222,128,0.1)', border: '0.5px solid rgba(74,222,128,0.25)', borderRadius: ui.radius, padding: '16px' }}>
+                <div style={{ background: 'rgba(74,222,128,0.1)', border: '0.5px solid rgba(74,222,128,0.25)', borderRadius: ui.radius, padding: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CheckCircle size={16} color={ui.green} />
                   <p style={{ fontSize: '13px', color: ui.green, fontWeight: 500, margin: 0 }}>
                     Generated {genResult.generated} bills, Skipped {genResult.skipped} (already exist)
                   </p>
