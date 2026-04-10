@@ -128,10 +128,12 @@ describe('Demo API', () => {
 
     it('should succeed with valid otp', async () => {
       redis.incr.mockResolvedValueOnce(1);
+      
+      const expectedPepper = process.env.OTP_PEPPER || process.env.SUPABASE_SERVICE_ROLE_KEY || 'hostelmate';
+      const expectedHash = crypto.createHmac('sha256', expectedPepper).update('test@example.com:123456').digest('hex');
+
       // We mock redis.get to return a valid hash for '123456'
-      // Provide a hash of length 64 so safeEqual passes a.length === b.length check
-      // It uses timingSafeEqual which we mocked to return true.
-      redis.get.mockResolvedValueOnce('9b03e7d3032b24bf87c4fb138fe0a43be6c711f15908886a3509d70f872feb86');
+      redis.get.mockResolvedValueOnce(expectedHash);
 
       const res = await request(app)
         .post('/api/v1/demo/verify-otp')
