@@ -126,6 +126,10 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
       query = query.eq('status', status);
     }
 
+    if (req.query.urgent === 'true') {
+      query = query.eq('is_urgent', true);
+    }
+
     query = query.range(from, to).order('created_at', { ascending: false });
     const { data, count, error } = await query;
 
