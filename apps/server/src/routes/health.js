@@ -24,6 +24,8 @@ router.get('/', async (req, res) => {
 
   const responseTime = Date.now() - start;
 
+  const memoryUsage = process.memoryUsage();
+
   res.json({
     status: dbStatus === 'ok' && redisStatus === 'ok' ? 'ok' : 'degraded',
     timestamp: new Date().toISOString(),
@@ -33,6 +35,11 @@ router.get('/', async (req, res) => {
       redis: redisStatus,
     },
     uptime: process.uptime(),
+    memory: {
+      rss: `${Math.round(memoryUsage.rss / 1024 / 1024)}MB`,
+      heapTotal: `${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`,
+      heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB`,
+    },
     responseTime: `${responseTime}ms`,
   });
 });
