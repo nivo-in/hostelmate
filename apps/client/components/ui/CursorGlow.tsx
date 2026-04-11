@@ -30,8 +30,8 @@ export function CursorGlow({ color = 'rgba(124,92,252,0.07)', size = 600 }: Curs
     let raf: number | null = null;
 
     const tick = () => {
-      cur.x += (tgt.x - cur.x) * 0.1;
-      cur.y += (tgt.y - cur.y) * 0.1;
+      cur.x += (tgt.x - cur.x) * 0.15;
+      cur.y += (tgt.y - cur.y) * 0.15;
       const el = ref.current;
       if (el) el.style.transform = `translate3d(${cur.x}px, ${cur.y}px, 0)`;
       if (Math.abs(tgt.x - cur.x) > 0.5 || Math.abs(tgt.y - cur.y) > 0.5) {
