@@ -91,6 +91,10 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
       // .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
+    if (req.query.status) {
+      query = query.eq('status', req.query.status);
+    }
+
     query = query.range(from, to);
 
     const { data, count, error } = await query;
