@@ -32,6 +32,7 @@ export const authenticate = async (req, res, next) => {
     logger.info(`Auth Success - user: ${user.id}, profile role: ${profile.role}`);
     req.user = user;
     req.profile = profile;
+    res.setHeader('X-User-Id', user.id);
     next();
   } catch (err) {
     res.status(500).json({ success: false, error: 'Internal server error' });
