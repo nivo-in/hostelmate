@@ -94,6 +94,9 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
     if (req.query.status) {
       query = query.eq('status', req.query.status);
     }
+    if (req.query.student_id) {
+      query = query.eq('student_id', req.query.student_id);
+    }
 
     query = query.range(from, to);
 
