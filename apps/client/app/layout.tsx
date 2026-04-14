@@ -1,6 +1,10 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Toaster } from 'sonner';
 import './globals.css';
+
+export const viewport: Viewport = {
+  themeColor: '#080810',
+};
 
 export const metadata: Metadata = {
   title: 'HostelMate',
