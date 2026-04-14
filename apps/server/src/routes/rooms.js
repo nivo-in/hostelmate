@@ -86,6 +86,12 @@ router.get('/available', authenticate, requireStudent, async (req, res, next) =>
       available = available.filter((r) => r.block_name.toLowerCase() === block.toLowerCase());
     }
 
+    available.sort((a, b) => {
+      const blockCompare = a.block_name.localeCompare(b.block_name);
+      if (blockCompare !== 0) return blockCompare;
+      return String(a.room_number).localeCompare(String(b.room_number), undefined, { numeric: true });
+    });
+
     res.json({ success: true, data: available });
   } catch (error) {
     next(error);
