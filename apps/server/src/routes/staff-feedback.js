@@ -57,6 +57,8 @@ router.get('/', authenticate, async (req, res, next) => {
       };
     });
 
+    summary.sort((a, b) => b.average_rating - a.average_rating);
+
     res.json({ success: true, data: summary });
   } catch (error) {
     next(error);
