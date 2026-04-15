@@ -108,6 +108,7 @@ router.get('/', authenticate, async (req, res, next) => {
         { count: 'exact' }
       )
       // .is('deleted_at', null)
+      .order('status', { ascending: false })
       .order('created_at', { ascending: false });
 
     if (status) {
