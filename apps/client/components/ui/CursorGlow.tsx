@@ -33,7 +33,10 @@ export function CursorGlow({ color = 'rgba(124,92,252,0.07)', size = 600 }: Curs
       cur.x += (tgt.x - cur.x) * 0.15;
       cur.y += (tgt.y - cur.y) * 0.15;
       const el = ref.current;
-      if (el) el.style.transform = `translate3d(${cur.x}px, ${cur.y}px, 0)`;
+      if (el) {
+        el.style.transform = `translate3d(${cur.x}px, ${cur.y}px, 0)`;
+        el.style.opacity = '1';
+      }
       if (Math.abs(tgt.x - cur.x) > 0.5 || Math.abs(tgt.y - cur.y) > 0.5) {
         raf = requestAnimationFrame(tick);
       } else {
@@ -67,7 +70,9 @@ export function CursorGlow({ color = 'rgba(124,92,252,0.07)', size = 600 }: Curs
         background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
         pointerEvents: 'none',
         zIndex: 0,
-        willChange: 'transform',
+        opacity: 0,
+        transition: 'opacity 1.5s ease-out',
+        willChange: 'transform, opacity',
         mixBlendMode: 'plus-lighter',
       }}
     />
