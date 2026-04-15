@@ -188,7 +188,7 @@ export default function WardenLeaves() {
                       {l.students?.profiles?.id?.substring(0, 8) || '-'}
                     </td>
                     <td style={{ padding: '12px 18px', color: ui.textSoft, whiteSpace: 'nowrap' }}>
-                      {l.start_date} to {l.end_date}
+                      {new Date(l.start_date).toLocaleDateString()} to {new Date(l.end_date).toLocaleDateString()}
                     </td>
                     <td
                       style={{
