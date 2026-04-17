@@ -27,7 +27,7 @@ export function PageHeader({ title, showBack, backHref, onSignOut: _onSignOut }:
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const executeSignOut = async () => {
-    if (isSigningOut) return;
+    if (isSigningOut) {return;}
     setIsSigningOut(true);
     
     try {
