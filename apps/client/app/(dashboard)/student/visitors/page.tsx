@@ -265,7 +265,7 @@ export default function StudentVisitors() {
                     {getStatusBadge(v.status)}
                   </div>
                   <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '8px' }}>{v.purpose}</p>
-                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>Date: {v.expected_visit_date}</div>
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>Date: {new Date(v.expected_visit_date).toLocaleDateString()}</div>
 
                   {v.status === 'approved' && (
                     <div style={{ marginTop: '14px', fontSize: '12px', fontWeight: 500, color: '#4ade80' }}>Approved ✓</div>
