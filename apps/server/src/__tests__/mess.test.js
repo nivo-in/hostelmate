@@ -212,6 +212,14 @@ describe('Mess API', () => {
       expect(res.status).toBe(200);
     });
 
+    it('should respect the limit query parameter', async () => {
+      currentProfile = mockWardenProfile;
+      supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
+      const res = await request(app).get('/api/v1/mess/reviews?limit=5');
+      expect(res.status).toBe(200);
+      expect(supabaseMock.limit).toHaveBeenCalledWith(5);
+    });
+
     it('should return 403 for student', async () => {
       const res = await request(app).get('/api/v1/mess/reviews');
       expect(res.status).toBe(403);
