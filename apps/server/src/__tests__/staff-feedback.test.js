@@ -108,6 +108,15 @@ describe('Staff Feedback API Integration', () => {
       expect(res.body.success).toBe(true);
       expect(res.body.data.average_rating).toBe(4);
     });
+
+    it('should respect the limit query parameter for staff feedback details', async () => {
+      queryResults = [{ data: [], error: null }];
+
+      const res = await request(app).get('/api/v1/staff-feedback/staff-1?limit=5');
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(supabaseMock.limit).toHaveBeenCalledWith(5);
+    });
   });
 
   describe('POST /api/staff-feedback', () => {
