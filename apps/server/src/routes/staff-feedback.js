@@ -69,6 +69,7 @@ router.get('/', authenticate, async (req, res, next) => {
 router.get('/:staffId', authenticate, async (req, res, next) => {
   try {
     const { staffId } = req.params;
+    const limit = parseInt(req.query.limit) || 100;
 
     const { data: feedbackData, error } = await supabaseAdmin
       .from('staff_feedback')
@@ -83,6 +84,7 @@ router.get('/:staffId', authenticate, async (req, res, next) => {
   `
       )
       .eq('staff_id', staffId)
+      .limit(limit)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
