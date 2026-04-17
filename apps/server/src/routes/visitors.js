@@ -71,10 +71,12 @@ router.post('/', authenticate, requireStudent, validate(visitorSchema), async (r
 
 router.get('/my', authenticate, requireStudent, async (req, res, next) => {
   try {
+    const limit = parseInt(req.query.limit) || 50;
     const { data, error } = await supabaseAdmin
       .from('visitors')
       .select('*')
       .eq('student_id', req.user.id)
+      .limit(limit)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
