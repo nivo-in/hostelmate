@@ -11,7 +11,7 @@ export async function createNotification(userId, title, message, type, relatedId
       related_id: relatedId,
     });
 
-    if (error) throw error;
+    if (error) {throw error;}
     logger.info(`Notification created for user ${userId}: ${title}`);
   } catch (err) {
     logger.error('Failed to create notification:', err);

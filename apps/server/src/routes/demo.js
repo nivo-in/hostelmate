@@ -50,7 +50,7 @@ function hashOtp(email, otp) {
 function safeEqual(a, b) {
   const ba = Buffer.from(String(a));
   const bb = Buffer.from(String(b));
-  if (ba.length !== bb.length) return false;
+  if (ba.length !== bb.length) {return false;}
   return crypto.timingSafeEqual(ba, bb);
 }
 
@@ -62,7 +62,7 @@ function safeEqual(a, b) {
 async function rateLimited(key, max, windowSeconds) {
   try {
     const count = await redis.incr(key);
-    if (count === 1) await redis.expire(key, windowSeconds);
+    if (count === 1) {await redis.expire(key, windowSeconds);}
     return count > max;
   } catch (err) {
     logger.warn(`Rate-limit check failed (${key}): ${err.message}`);
@@ -71,7 +71,7 @@ async function rateLimited(key, max, windowSeconds) {
 }
 
 function clamp(value, maxLen) {
-  if (value === null || value === undefined) return '';
+  if (value === null || value === undefined) {return '';}
   return String(value).slice(0, maxLen).trim();
 }
 
@@ -141,7 +141,7 @@ router.post('/verify-otp', async (req, res) => {
 
     // Cap verification attempts per code to block brute force (10^6 space).
     const attempts = await redis.incr(`demo:verify:${email}`);
-    if (attempts === 1) await redis.expire(`demo:verify:${email}`, OTP_TTL_SECONDS);
+    if (attempts === 1) {await redis.expire(`demo:verify:${email}`, OTP_TTL_SECONDS);}
     if (attempts > MAX_VERIFY_ATTEMPTS) {
       return res
         .status(429)

@@ -21,7 +21,7 @@ router.get('/menu', authenticate, async (req, res, next) => {
 
     const { data, error } = await supabaseAdmin.from('mess_menu').select('*').order('day_of_week');
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     await setCache(cacheKey, data, 3600);
     res.json({ success: true, data });
@@ -45,7 +45,7 @@ router.put(
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {throw error;}
 
       logger.info(`Mess menu updated for ${day_of_week} ${meal_type} by ${req.user.id}`);
 
@@ -83,7 +83,7 @@ router.post(
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {throw error;}
 
       logger.info(`Mess review submitted by ${req.user.id} for ${meal_type} on ${date}`);
 
@@ -124,7 +124,7 @@ router.get('/reviews', authenticate, requireWarden, async (req, res, next) => {
       .limit(limit)
       .order('date', { ascending: false });
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     // Calculate averages
     const averages = data.reduce((acc, review) => {

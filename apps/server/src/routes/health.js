@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
 
   try {
     const { error } = await supabaseAdmin.from('profiles').select('id').limit(1);
-    if (error) dbStatus = 'degraded';
+    if (error) {dbStatus = 'degraded';}
   } catch (err) {
     dbStatus = 'degraded';
   }

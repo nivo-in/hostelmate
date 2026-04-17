@@ -40,7 +40,7 @@ router.post('/', authenticate, requireStudent, validate(leaveSchema), async (req
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     logger.info(`Leave request submitted by user ${req.user.id}`);
     await deleteCache('stats:dashboard');
@@ -61,7 +61,7 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
       .limit(limit)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     res.json({ success: true, data });
   } catch (error) {
@@ -104,7 +104,7 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
 
     const { data, count, error } = await query;
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     const totalPages = Math.ceil(count / limit);
 
@@ -136,8 +136,8 @@ router.patch('/:id/approve', authenticate, requireWarden, async (req, res, next)
       .select()
       .single();
 
-    if (error) throw error;
-    if (!data) return res.status(404).json({ success: false, error: 'Leave request not found' });
+    if (error) {throw error;}
+    if (!data) {return res.status(404).json({ success: false, error: 'Leave request not found' });}
 
     logger.info(`Leave request ${id} approved by ${req.user.id}`);
 
@@ -170,8 +170,8 @@ router.patch('/:id/reject', authenticate, requireWarden, async (req, res, next) 
       .select()
       .single();
 
-    if (error) throw error;
-    if (!data) return res.status(404).json({ success: false, error: 'Leave request not found' });
+    if (error) {throw error;}
+    if (!data) {return res.status(404).json({ success: false, error: 'Leave request not found' });}
 
     logger.info(`Leave request ${id} rejected by ${req.user.id}`);
 
@@ -205,7 +205,7 @@ router.delete('/:id', authenticate, requireStudent, async (req, res, next) => {
       .eq('id', id)
       .eq('student_id', req.user.id);
 
-    if (error) throw error;
+    if (error) {throw error;}
     res.json({ success: true });
   } catch (err) {
     next(err);

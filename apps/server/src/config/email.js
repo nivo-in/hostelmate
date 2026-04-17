@@ -27,7 +27,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 let cachedResendKey;
 function getResendKey() {
-  if (cachedResendKey !== undefined) return cachedResendKey;
+  if (cachedResendKey !== undefined) {return cachedResendKey;}
   // 1) env var, 2) local key file — extract the first re_… token so any format
   // (bare key, "RESEND_API_KEY=re_…", with comments) works.
   let raw = process.env.RESEND_API_KEY || '';
@@ -47,9 +47,9 @@ const RESEND_FROM = process.env.RESEND_FROM || 'HostelMate <onboarding@resend.de
 
 let cachedResend = null;
 function getResend() {
-  if (cachedResend) return cachedResend;
+  if (cachedResend) {return cachedResend;}
   const key = getResendKey();
-  if (!key) return null;
+  if (!key) {return null;}
   cachedResend = new Resend(key);
   return cachedResend;
 }
@@ -65,7 +65,7 @@ export function isEmailConfigured() {
 }
 
 function getTransporter() {
-  if (cachedTransporter) return cachedTransporter;
+  if (cachedTransporter) {return cachedTransporter;}
   cachedTransporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -81,7 +81,7 @@ function getTransporter() {
  * Prevents HTML/content injection in the inbox of whoever reads the lead email.
  */
 export function escapeHtml(value) {
-  if (value === null || value === undefined) return '';
+  if (value === null || value === undefined) {return '';}
   return String(value)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -106,13 +106,13 @@ export async function sendEmail({ to, subject, html, replyTo }) {
         html,
         ...(replyTo ? { replyTo } : {}),
       });
-      if (error) throw new Error(error.message || 'Resend error');
+      if (error) {throw new Error(error.message || 'Resend error');}
       return { sent: true, provider: 'resend' };
     } catch (error) {
       // Common cause: sending to a non-account address before a domain is
       // verified. Fall through to Gmail if it's configured.
       logger.error(`Resend send failed (${subject}): ${error.message}`);
-      if (!gmailConfigured()) return { sent: false, reason: 'send_error' };
+      if (!gmailConfigured()) {return { sent: false, reason: 'send_error' };}
     }
   }
 

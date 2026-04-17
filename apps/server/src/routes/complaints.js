@@ -60,7 +60,7 @@ router.post(
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {throw error;}
 
       logger.info(`Complaint submitted by user ${req.user.id}`);
       await deleteCache('stats:dashboard');
@@ -95,7 +95,7 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
       .limit(limit)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     res.json({ success: true, data });
   } catch (error) {
@@ -139,7 +139,7 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
     query = query.range(from, to).order('created_at', { ascending: false });
     const { data, count, error } = await query;
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     const totalPages = Math.ceil(count / limit);
 
@@ -183,7 +183,7 @@ router.patch('/:id/status', authenticate, requireWarden, async (req, res, next) 
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     logger.info(`Complaint ${id} status updated to ${status} by ${req.user.id}`);
     await auditLog(req.user.id, 'update_complaint', 'complaint', id);
@@ -222,7 +222,7 @@ router.get('/analytics', authenticate, requireWarden, async (req, res, next) => 
       .select('*')
       .gte('created_at', thirtyDaysAgo.toISOString());
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     const result = await generateMaintenanceSuggestion(complaints);
     if (!result) {
@@ -252,7 +252,7 @@ router.get('/stats', authenticate, requireWarden, async (req, res, next) => {
       .from('complaints')
       .select('category, status, is_urgent, created_at, resolution_date');
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     const stats = {
       by_category: {},
@@ -302,7 +302,7 @@ router.delete('/:id', authenticate, requireStudent, async (req, res, next) => {
       .eq('id', id)
       .eq('student_id', req.user.id);
 
-    if (error) throw error;
+    if (error) {throw error;}
     res.json({ success: true });
   } catch (err) {
     next(err);

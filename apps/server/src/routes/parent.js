@@ -34,7 +34,7 @@ router.get('/my-student', authenticate, requireParent, async (req, res, next) =>
       .eq('id', student_id)
       .single();
 
-    if (profileErr) throw profileErr;
+    if (profileErr) {throw profileErr;}
 
     // Fetch student roll number & room
     const { data: studentRow } = await supabaseAdmin

@@ -1,5 +1,5 @@
 export function extractKeywords(text) {
-  if (!text) return [];
+  if (!text) {return [];}
 
   const stopWords = new Set([
     'a',
@@ -46,11 +46,11 @@ export function extractKeywords(text) {
   const keywords = words
     .filter((word) => word.length > 2 && !stopWords.has(word))
     .map((word) => {
-      if (word.endsWith('ies')) return word.slice(0, -3) + 'y';
-      if (word.endsWith('es')) return word.slice(0, -2);
-      if (word.endsWith('s') && !word.endsWith('ss')) return word.slice(0, -1);
-      if (word.endsWith('ing')) return word.slice(0, -3);
-      if (word.endsWith('ed')) return word.slice(0, -2);
+      if (word.endsWith('ies')) {return word.slice(0, -3) + 'y';}
+      if (word.endsWith('es')) {return word.slice(0, -2);}
+      if (word.endsWith('s') && !word.endsWith('ss')) {return word.slice(0, -1);}
+      if (word.endsWith('ing')) {return word.slice(0, -3);}
+      if (word.endsWith('ed')) {return word.slice(0, -2);}
       return word;
     });
 
@@ -59,7 +59,7 @@ export function extractKeywords(text) {
 }
 
 export function calculateSimilarity(keywords1, keywords2) {
-  if (keywords1.length === 0 || keywords2.length === 0) return 0;
+  if (keywords1.length === 0 || keywords2.length === 0) {return 0;}
 
   const set1 = new Set(keywords1);
   const set2 = new Set(keywords2);

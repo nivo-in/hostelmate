@@ -27,15 +27,15 @@ router.post('/', authenticate, requireWarden, validate(noticeSchema), async (req
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     logger.info(`Notice "${title}" posted by ${req.user.id}`);
     await auditLog(req.user.id, 'post_notice', 'notice', record.id);
 
     let targetRoles = [];
-    if (target_audience === 'all') targetRoles = ['student', 'parent'];
-    else if (target_audience === 'students') targetRoles = ['student'];
-    else if (target_audience === 'parents') targetRoles = ['parent'];
+    if (target_audience === 'all') {targetRoles = ['student', 'parent'];}
+    else if (target_audience === 'students') {targetRoles = ['student'];}
+    else if (target_audience === 'parents') {targetRoles = ['parent'];}
 
     if (targetRoles.length > 0) {
       const { data: users } = await supabaseAdmin
@@ -92,7 +92,7 @@ router.get('/', authenticate, async (req, res, next) => {
 
     const { data, error } = await query.order('created_at', { ascending: false }).limit(50);
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     if (!search) {
       await setCache(cacheKey, data, 180);

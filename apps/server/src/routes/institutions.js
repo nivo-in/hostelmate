@@ -38,7 +38,7 @@ router.get('/search', async (req, res) => {
           const existingNames = new Set(results.map((r) => r.name.toLowerCase()));
           
           for (const item of hipoData) {
-            if (results.length >= limit) break;
+            if (results.length >= limit) {break;}
             if (!existingNames.has(item.name.toLowerCase())) {
               results.push({
                 name: item.name,

@@ -29,7 +29,7 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
       )
       .order('created_at', { ascending: true });
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     let students = (data || []).map((s) => ({
       id: s.id,

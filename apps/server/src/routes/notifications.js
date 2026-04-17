@@ -126,7 +126,7 @@ router.delete('/:id', authenticate, async (req, res) => {
 
     await deleteCache(`notifications:${req.user.id}:p1`).catch(() => {});
 
-    if (error) return res.json({ success: true });
+    if (error) {return res.json({ success: true });}
     res.json({ success: true });
   } catch {
     res.json({ success: true });

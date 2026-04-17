@@ -51,7 +51,7 @@ function deriveAcronym(name) {
 function isSubsequence(needle, haystack) {
   let i = 0;
   for (let j = 0; j < haystack.length && i < needle.length; j++) {
-    if (haystack[j] === needle[i]) i++;
+    if (haystack[j] === needle[i]) {i++;}
   }
   return i === needle.length;
 }
@@ -98,34 +98,34 @@ function buildIndex() {
 function score(rec, nq, cq) {
   let best = 0;
   const consider = (s) => {
-    if (s > best) best = s;
+    if (s > best) {best = s;}
   };
 
   // Exact full-name or alias match.
-  if (rec._name === nq) consider(100);
-  if (rec._aliases.includes(nq)) consider(98);
+  if (rec._name === nq) {consider(100);}
+  if (rec._aliases.includes(nq)) {consider(98);}
 
   // Derived acronym (e.g. "iitd", "rvce", "nitk").
-  if (rec._acronym && rec._acronym === cq) consider(95);
-  if (rec._acronym && cq.length >= 2 && rec._acronym.startsWith(cq)) consider(88);
-  if (rec._acronym && cq.length >= 2 && rec._acronym.includes(cq)) consider(85);
-  if (rec._acronym && cq.length >= 3 && isSubsequence(cq, rec._acronym)) consider(75);
+  if (rec._acronym && rec._acronym === cq) {consider(95);}
+  if (rec._acronym && cq.length >= 2 && rec._acronym.startsWith(cq)) {consider(88);}
+  if (rec._acronym && cq.length >= 2 && rec._acronym.includes(cq)) {consider(85);}
+  if (rec._acronym && cq.length >= 3 && isSubsequence(cq, rec._acronym)) {consider(75);}
 
   // Prefix match on the compact name or an alias.
-  if (rec._nameCompact.startsWith(cq)) consider(80);
-  if (rec._aliasCompact.some((a) => a.startsWith(cq))) consider(78);
+  if (rec._nameCompact.startsWith(cq)) {consider(80);}
+  if (rec._aliasCompact.some((a) => a.startsWith(cq))) {consider(78);}
 
   // Any individual word of the name starts with the query.
-  if (rec._name.split(' ').some((t) => t.startsWith(nq))) consider(70);
+  if (rec._name.split(' ').some((t) => t.startsWith(nq))) {consider(70);}
 
   // Substring match on name / city / alias.
-  if (rec._nameCompact.includes(cq)) consider(60);
-  if (rec._city && rec._city.startsWith(nq)) consider(55);
-  if (rec._aliasCompact.some((a) => a.includes(cq))) consider(52);
+  if (rec._nameCompact.includes(cq)) {consider(60);}
+  if (rec._city && rec._city.startsWith(nq)) {consider(55);}
+  if (rec._aliasCompact.some((a) => a.includes(cq))) {consider(52);}
 
   // Fuzzy subsequence fallback (typo tolerance) for longer queries only.
-  if (cq.length >= 3 && isSubsequence(cq, rec._nameCompact)) consider(40);
-  if (cq.length >= 3 && rec._aliasCompact.some((a) => isSubsequence(cq, a))) consider(38);
+  if (cq.length >= 3 && isSubsequence(cq, rec._nameCompact)) {consider(40);}
+  if (cq.length >= 3 && rec._aliasCompact.some((a) => isSubsequence(cq, a))) {consider(38);}
 
   return best;
 }
@@ -137,12 +137,12 @@ function score(rec, nq, cq) {
 export function searchInstitutions(query, limit = 8) {
   const nq = normalize(query);
   const cq = nq.replace(/ /g, '');
-  if (cq.length < 1) return [];
+  if (cq.length < 1) {return [];}
 
   const scored = [];
   for (const rec of INDEX) {
     const s = score(rec, nq, cq);
-    if (s > 0) scored.push({ rec, s });
+    if (s > 0) {scored.push({ rec, s });}
   }
 
   scored.sort(

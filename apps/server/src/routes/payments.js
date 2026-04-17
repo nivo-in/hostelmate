@@ -23,7 +23,7 @@ router.get('/fee-structures', authenticate, async (req, res, next) => {
       .eq('is_active', true)
       .order('billing_period');
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     const grouped = {
       yearly: (data || []).filter((f) => f.billing_period === 'yearly'),
@@ -61,7 +61,7 @@ router.post(
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {throw error;}
 
       res.status(201).json({ success: true, data });
     } catch (error) {
@@ -113,7 +113,7 @@ router.get('/my', authenticate, async (req, res, next) => {
       .eq('student_id', studentId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     const today = new Date().toISOString().split('T')[0];
     const payments = (data || []).map((p) => ({
@@ -168,9 +168,9 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
       { count: 'exact' }
     );
 
-    if (status) query = query.eq('status', status);
-    if (billing_period) query = query.eq('billing_period', billing_period);
-    if (period_label) query = query.eq('period_label', period_label);
+    if (status) {query = query.eq('status', status);}
+    if (billing_period) {query = query.eq('billing_period', billing_period);}
+    if (period_label) {query = query.eq('period_label', period_label);}
     if (fee_type) {
       const { data: feeStructureIds } = await supabaseAdmin
         .from('fee_structures')
@@ -186,7 +186,7 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
 
     query = query.range(from, to).order('created_at', { ascending: false });
     const { data, count, error } = await query;
-    if (error) throw error;
+    if (error) {throw error;}
 
     const totalPages = Math.ceil(count / limit);
 
@@ -253,7 +253,7 @@ router.post('/create-order', authenticate, async (req, res, next) => {
         .eq('id', req.user.id)
         .single();
       if (!parentRecord)
-        return res.status(404).json({ success: false, error: 'No linked student' });
+        {return res.status(404).json({ success: false, error: 'No linked student' });}
       ownerStudentId = parentRecord.student_id;
     }
 
@@ -282,7 +282,7 @@ router.post('/create-order', authenticate, async (req, res, next) => {
       .update({ razorpay_order_id: order.id, status: 'processing' })
       .eq('id', fee_payment_id);
 
-    if (updateError) throw updateError;
+    if (updateError) {throw updateError;}
 
     res.json({
       success: true,
@@ -338,7 +338,7 @@ router.post('/verify', authenticate, validate(verifySchema), async (req, res, ne
         .eq('id', req.user.id)
         .single();
       if (!parentRecord)
-        return res.status(404).json({ success: false, error: 'No linked student' });
+        {return res.status(404).json({ success: false, error: 'No linked student' });}
       studentId = parentRecord.student_id;
     }
 
@@ -356,8 +356,8 @@ router.post('/verify', authenticate, validate(verifySchema), async (req, res, ne
       .select('*, fee_structures(name)')
       .single();
 
-    if (error) throw error;
-    if (!payment) return res.status(404).json({ success: false, error: 'Payment not found' });
+    if (error) {throw error;}
+    if (!payment) {return res.status(404).json({ success: false, error: 'Payment not found' });}
 
     const feeName = payment.fee_structures?.name || 'Fee';
     const amountFormatted = `₹${payment.amount.toLocaleString('en-IN')}`;
@@ -415,7 +415,7 @@ router.post('/cancel', authenticate, async (req, res, next) => {
         .eq('id', req.user.id)
         .single();
       if (!parentRecord)
-        return res.status(404).json({ success: false, error: 'No linked student' });
+        {return res.status(404).json({ success: false, error: 'No linked student' });}
       ownerStudentId = parentRecord.student_id;
     }
 
@@ -426,7 +426,7 @@ router.post('/cancel', authenticate, async (req, res, next) => {
       .eq('student_id', ownerStudentId)
       .eq('status', 'processing');
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     res.json({ success: true });
   } catch (error) {
@@ -471,7 +471,7 @@ router.post(
       }
 
       const { data: students, error: studentsError } = await query;
-      if (studentsError) throw studentsError;
+      if (studentsError) {throw studentsError;}
 
       const bills = (students || []).map((student) => ({
         student_id: student.id,
@@ -556,7 +556,7 @@ router.get('/students-list', authenticate, requireWarden, async (req, res, next)
       .order('roll_number');
 
     const { data, error } = await query;
-    if (error) throw error;
+    if (error) {throw error;}
 
     let students = data || [];
 
@@ -599,7 +599,7 @@ router.post('/send-reminders', authenticate, requireWarden, async (req, res, nex
       .in('status', ['pending', 'processing'])
       .lte('due_date', cutoff);
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     let remindersSent = 0;
 
@@ -684,8 +684,8 @@ router.patch('/:id/mark-paid', authenticate, requireWarden, async (req, res, nex
       .select('*, fee_structures(name)')
       .single();
 
-    if (error) throw error;
-    if (!data) return res.status(404).json({ success: false, error: 'Payment not found' });
+    if (error) {throw error;}
+    if (!data) {return res.status(404).json({ success: false, error: 'Payment not found' });}
 
     const feeName = data.fee_structures?.name || 'Fee';
     await createNotification(

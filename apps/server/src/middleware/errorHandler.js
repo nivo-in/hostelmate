@@ -31,7 +31,7 @@ export const errorHandler = (err, req, res, next) => {
 
   if (isDev) {
     response.stack = err.stack;
-    if (err.details) response.details = err.details;
+    if (err.details) {response.details = err.details;}
   }
 
   res.status(statusCode).json(response);

@@ -77,7 +77,7 @@ router.post('/chat', authenticate, async (req, res, next) => {
       };
 
       const reply = await processWardenChat(messages, context, req.user.id);
-      if (reply.error) return res.status(500).json({ success: false, error: reply.error });
+      if (reply.error) {return res.status(500).json({ success: false, error: reply.error });}
       return res.json({ success: true, data: { message: reply.response } });
 
     } else if (req.profile.role === 'student') {
@@ -103,7 +103,7 @@ router.post('/chat', authenticate, async (req, res, next) => {
       };
 
       const reply = await processStudentChat(messages, context, req.user.id);
-      if (reply.error) return res.status(500).json({ success: false, error: reply.error });
+      if (reply.error) {return res.status(500).json({ success: false, error: reply.error });}
       return res.json({ success: true, data: { message: reply.response } });
       
     } else {
@@ -122,13 +122,13 @@ router.get('/analysis/:type', authenticate, async (req, res, next) => {
     let query;
     if (type === 'complaints') {
       query = supabaseAdmin.from('complaints').select('category, description, status, is_urgent').order('created_at', { ascending: false }).limit(20);
-      if (isStudent) query = query.eq('student_id', req.user.id);
+      if (isStudent) {query = query.eq('student_id', req.user.id);}
     } else if (type === 'leaves') {
       query = supabaseAdmin.from('leave_requests').select('start_date, end_date, reason, status').order('created_at', { ascending: false }).limit(20);
-      if (isStudent) query = query.eq('student_id', req.user.id);
+      if (isStudent) {query = query.eq('student_id', req.user.id);}
     } else if (type === 'visitors') {
       query = supabaseAdmin.from('visitors').select('visitor_name, purpose, status').order('created_at', { ascending: false }).limit(20);
-      if (isStudent) query = query.eq('student_id', req.user.id);
+      if (isStudent) {query = query.eq('student_id', req.user.id);}
     } else if (type === 'mess') {
       if (isStudent) {
         query = supabaseAdmin.from('mess_reviews').select('meal_type, rating, comments').eq('student_id', req.user.id).order('created_at', { ascending: false }).limit(10);

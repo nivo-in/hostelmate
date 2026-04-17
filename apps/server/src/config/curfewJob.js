@@ -6,7 +6,7 @@ import { createNotification } from './notify.js';
 let curfewInterval = null;
 
 export const startCurfewJob = () => {
-  if (curfewInterval) return;
+  if (curfewInterval) {return;}
   // Check every minute
   curfewInterval = setInterval(async () => {
     try {
@@ -22,12 +22,12 @@ export const startCurfewJob = () => {
       let settings = { curfew_time: '22:00', enabled: true };
       try {
         const cached = await redis.get('curfew:settings');
-        if (cached) settings = JSON.parse(cached);
+        if (cached) {settings = JSON.parse(cached);}
       } catch (e) {
         // ignore
       }
 
-      if (!settings.enabled) return;
+      if (!settings.enabled) {return;}
 
       const today = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }); // YYYY-MM-DD
       const cacheKey = `curfew_notified:${today}:${settings.curfew_time}`;
@@ -35,7 +35,7 @@ export const startCurfewJob = () => {
       // If we are past curfew and haven't notified today
       if (currentTimeStr >= settings.curfew_time) {
         const alreadyNotified = await redis.get(cacheKey);
-        if (alreadyNotified) return;
+        if (alreadyNotified) {return;}
 
         // Mark as notified for today (expires in 24 hours)
         await redis.set(cacheKey, 'true', { ex: 86400 });
@@ -46,7 +46,7 @@ export const startCurfewJob = () => {
           .from('students')
           .select('id, profiles!students_id_fkey(full_name)');
 
-        if (studentsError) throw studentsError;
+        if (studentsError) {throw studentsError;}
 
         const { data: attendance, error: attendanceError } = await supabaseAdmin
           .from('attendance')
@@ -54,7 +54,7 @@ export const startCurfewJob = () => {
           .eq('date', today)
           .eq('status', 'present');
 
-        if (attendanceError) throw attendanceError;
+        if (attendanceError) {throw attendanceError;}
 
         const presentStudentIds = new Set(attendance.map((a) => a.student_id));
         const violations = students.filter((s) => !presentStudentIds.has(s.id));

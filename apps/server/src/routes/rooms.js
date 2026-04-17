@@ -24,7 +24,7 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
       .eq('id', req.user.id)
       .single();
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     let roommates = [];
     if (student?.room_id) {
@@ -60,14 +60,14 @@ router.get('/available', authenticate, requireStudent, async (req, res, next) =>
       .select('id, room_number, capacity, blocks!rooms_block_id_fkey(name)')
       .order('room_number');
 
-    if (roomsError) throw roomsError;
+    if (roomsError) {throw roomsError;}
 
     const { data: studentsData, error: studentsError } = await supabaseAdmin
       .from('students')
       .select('room_id')
       .not('room_id', 'is', null);
 
-    if (studentsError) throw studentsError;
+    if (studentsError) {throw studentsError;}
 
     let available = roomsData
       .map((room) => {
@@ -95,7 +95,7 @@ router.get('/available', authenticate, requireStudent, async (req, res, next) =>
 
     available.sort((a, b) => {
       const blockCompare = a.block_name.localeCompare(b.block_name);
-      if (blockCompare !== 0) return blockCompare;
+      if (blockCompare !== 0) {return blockCompare;}
       return String(a.room_number).localeCompare(String(b.room_number), undefined, { numeric: true });
     });
 
@@ -114,14 +114,14 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
         blocks!rooms_block_id_fkey(name)
       `);
 
-    if (roomsError) throw roomsError;
+    if (roomsError) {throw roomsError;}
 
     const { data: studentsData, error: studentsError } = await supabaseAdmin
       .from('students')
       .select('id, roll_number, room_id, profiles!students_id_fkey(full_name)')
       .not('room_id', 'is', null);
 
-    if (studentsError) throw studentsError;
+    if (studentsError) {throw studentsError;}
 
     const rooms = roomsData.map((room) => {
       const occupants = studentsData.filter((s) => s.room_id === room.id);
@@ -157,7 +157,7 @@ router.post('/', authenticate, requireWarden, async (req, res, next) => {
       .eq('name', block_name.trim())
       .limit(1);
 
-    if (searchErr) throw searchErr;
+    if (searchErr) {throw searchErr;}
 
     if (existingBlocks && existingBlocks.length > 0) {
       blockId = existingBlocks[0].id;
@@ -168,7 +168,7 @@ router.post('/', authenticate, requireWarden, async (req, res, next) => {
         .select('id')
         .single();
 
-      if (insertBlockErr) throw insertBlockErr;
+      if (insertBlockErr) {throw insertBlockErr;}
       blockId = newBlock.id;
     }
 
@@ -183,7 +183,7 @@ router.post('/', authenticate, requireWarden, async (req, res, next) => {
       .select()
       .single();
 
-    if (roomErr) throw roomErr;
+    if (roomErr) {throw roomErr;}
 
     await auditLog(req.user.id, 'create_room', 'room', newRoom.id);
 
@@ -200,7 +200,7 @@ router.get('/unassigned', authenticate, requireWarden, async (req, res, next) =>
       .select('id, roll_number, profiles!students_id_fkey(full_name)')
       .is('room_id', null);
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     const unassignedStudents = data.map((d) => ({
       id: d.id,
@@ -224,14 +224,14 @@ router.post('/assign', authenticate, requireWarden, async (req, res, next) => {
       .eq('id', room_id)
       .single();
 
-    if (roomError) throw roomError;
+    if (roomError) {throw roomError;}
 
     const { count, error: countError } = await supabaseAdmin
       .from('students')
       .select('*', { count: 'exact', head: true })
       .eq('room_id', room_id);
 
-    if (countError) throw countError;
+    if (countError) {throw countError;}
 
     if (count >= room.capacity) {
       return res.status(400).json({ success: false, error: 'Room is full' });
@@ -243,7 +243,7 @@ router.post('/assign', authenticate, requireWarden, async (req, res, next) => {
       .eq('id', student_id)
       .select();
 
-    if (updateError) throw updateError;
+    if (updateError) {throw updateError;}
 
     const blockName = room.blocks?.name || '';
     await createNotification(
@@ -272,7 +272,7 @@ router.post('/transfer-request', authenticate, requireStudent, async (req, res, 
       .eq('id', req.user.id)
       .single();
 
-    if (studentError) throw studentError;
+    if (studentError) {throw studentError;}
 
     const { error: insertError } = await supabaseAdmin
       .from('room_transfer_requests')
@@ -285,7 +285,7 @@ router.post('/transfer-request', authenticate, requireStudent, async (req, res, 
       })
       .select();
 
-    if (insertError) throw insertError;
+    if (insertError) {throw insertError;}
 
     res.json({ success: true });
   } catch (error) {
@@ -310,7 +310,7 @@ router.get('/transfer-requests', authenticate, requireWarden, async (req, res, n
       )
       .eq('status', 'pending');
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     res.json({ success: true, data });
   } catch (error) {
@@ -332,7 +332,7 @@ router.patch(
         .eq('id', id)
         .single();
 
-      if (requestError) throw requestError;
+      if (requestError) {throw requestError;}
 
       const { error: updateStudentError } = await supabaseAdmin
         .from('students')
@@ -340,7 +340,7 @@ router.patch(
         .eq('id', request.student_id)
         .select();
 
-      if (updateStudentError) throw updateStudentError;
+      if (updateStudentError) {throw updateStudentError;}
 
       const { error: updateRequestError } = await supabaseAdmin
         .from('room_transfer_requests')
@@ -348,7 +348,7 @@ router.patch(
         .eq('id', id)
         .select();
 
-      if (updateRequestError) throw updateRequestError;
+      if (updateRequestError) {throw updateRequestError;}
 
       await createNotification(
         request.student_id,
@@ -380,7 +380,7 @@ router.patch(
         .select()
         .single();
 
-      if (requestError) throw requestError;
+      if (requestError) {throw requestError;}
 
       await createNotification(
         request.student_id,
