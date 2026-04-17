@@ -52,11 +52,13 @@ router.post('/', authenticate, requireStudent, validate(leaveSchema), async (req
 
 router.get('/my', authenticate, requireStudent, async (req, res, next) => {
   try {
+    const limit = parseInt(req.query.limit) || 50;
     const { data, error } = await supabaseAdmin
       .from('leave_requests')
       .select('*')
       .eq('student_id', req.user.id)
       // .is('deleted_at', null)
+      .limit(limit)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
