@@ -193,6 +193,13 @@ describe('Complaints API', () => {
       expect(res.status).toBe(200);
     });
 
+    it('should respect the limit query parameter for student complaints', async () => {
+      supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
+      const res = await request(app).get('/api/v1/complaints/my?limit=5');
+      expect(res.status).toBe(200);
+      expect(supabaseMock.limit).toHaveBeenCalledWith(5);
+    });
+
     it('should return 401 without auth', async () => {
       currentProfile = null;
       const res = await request(app).get('/api/v1/complaints/my');
