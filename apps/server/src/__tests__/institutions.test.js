@@ -41,6 +41,13 @@ describe('Institutions API', () => {
       expect(res.body.results).toEqual([]);
     });
 
+    it('should return empty results when query parameter is missing', async () => {
+      const res = await request(app).get('/api/v1/institutions/search');
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.results).toEqual([]);
+    });
+
     it('should return cached results if available', async () => {
       const mockCached = [{ name: 'Cached Univ', city: 'Test' }];
       getCache.mockResolvedValueOnce(mockCached);
