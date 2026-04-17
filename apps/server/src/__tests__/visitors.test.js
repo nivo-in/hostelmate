@@ -232,6 +232,13 @@ describe('Visitors API', () => {
       expect(res.body.data).toEqual([]);
     });
 
+    it('should respect the limit query parameter for student visitors', async () => {
+      queryResults = [{ data: [], error: null }];
+      const res = await request(app).get('/api/v1/visitors/my?limit=5');
+      expect(res.status).toBe(200);
+      expect(supabaseMock.limit).toHaveBeenCalledWith(5);
+    });
+
     it('should return 401 without auth', async () => {
       authEnabled = false;
       const res = await request(app).get('/api/v1/visitors/my');
