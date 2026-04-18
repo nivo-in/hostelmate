@@ -48,7 +48,7 @@ export default function StudentVisitors() {
   const fetchVisitors = async () => {
     try {
       const res = await apiGet('/api/v1/visitors/my');
-      if (res.success) setVisitors(res.data || []);
+      if (res.success) {setVisitors(res.data || []);}
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error(e);
@@ -61,7 +61,7 @@ export default function StudentVisitors() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return;
+    if (loading) {return;}
     
     if (!visitorName.trim() || !visitorPhone.trim() || !purpose.trim() || !expectedDate) {
       return setError('All fields are required');
@@ -105,7 +105,7 @@ export default function StudentVisitors() {
 
   const getStatusBadge = (status: string) => {
     const s = STATUS_STYLES[status];
-    if (!s) return null;
+    if (!s) {return null;}
     return (
       <span
         style={{

@@ -88,7 +88,7 @@ export default function StudentComplaints() {
   const fetchComplaints = async () => {
     try {
       const res = await apiGet('/api/v1/complaints/my');
-      if (res.success) setComplaints(res.data || []);
+      if (res.success) {setComplaints(res.data || []);}
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error(e);
@@ -101,7 +101,7 @@ export default function StudentComplaints() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!description.trim()) return setError('Description required');
+    if (!description.trim()) {return setError('Description required');}
 
     try {
       const res = await apiPost('/api/v1/complaints', {
