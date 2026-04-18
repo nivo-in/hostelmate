@@ -198,6 +198,13 @@ describe('Lost and Found API', () => {
       expect(res.status).toBe(200);
     });
 
+    it('should respect the limit and page query parameters', async () => {
+      supabaseMock.range.mockResolvedValueOnce({ data: [], error: null });
+      const res = await request(app).get('/api/v1/lost-found?limit=15&page=2');
+      expect(res.status).toBe(200);
+      expect(supabaseMock.range).toHaveBeenCalledWith(15, 29);
+    });
+
     it('should return 401 without auth', async () => {
       currentProfile = null;
       const res = await request(app).get('/api/v1/lost-found');
