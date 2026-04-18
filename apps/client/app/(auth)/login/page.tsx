@@ -101,10 +101,10 @@ function GooglyEyes({ isHidden, onToggle, cursorX, cursorY }: {
   const eye2Ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (isHidden) return
-    ;[eye1Ref, eye2Ref].forEach(eyeRef => {
+    if (isHidden) {return
+    ;}[eye1Ref, eye2Ref].forEach(eyeRef => {
       const eye = eyeRef.current
-      if (!eye) return
+      if (!eye) {return}
       const rect = eye.getBoundingClientRect()
       const eyeCX = rect.left + rect.width / 2
       const eyeCY = rect.top + rect.height / 2
@@ -264,7 +264,7 @@ export default function LoginPage() {
       }
 
       const route = routes[userRole || 'student']
-      if (route) router.push(route)
+      if (route) {router.push(route)}
       else {
         setError('No role assigned.')
         setIsLoading(false)
@@ -287,7 +287,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video) {return;}
 
     const src = "https://stream.mux.com/8wrHPCX2dC3msyYU9ObwqNdm00u3ViXvOSHUMRYSEe5Q.m3u8";
     let hlsInstance: Hls | null = null;
@@ -356,7 +356,7 @@ export default function LoginPage() {
   }, [])
 
   useEffect(() => {
-    if (role === bgRole) return
+    if (role === bgRole) {return}
     setBgDimmed(true)
     const timer = setTimeout(() => {
       setBgRole(role)
