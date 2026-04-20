@@ -229,46 +229,55 @@ export default function LoginPage() {
     setIsLoading(true)
     setError(null)
 
-    const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
 
-    if (signInError) {
-      setError(signInError.message)
-      setIsLoading(false)
-      return
-    }
-
-    if (data.user) {
-      let userRole = data.user.app_metadata?.role || data.user.user_metadata?.role;
-      
-      // Only fetch from profiles if role is not in the JWT metadata (saves ~1-1.5s)
-      if (!userRole) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .single()
-        userRole = profile?.role;
-      }
-
-      if (userRole === 'warden') {
-        setAuthenticatedUserId(data.user.id)
-        setShowFaceVerification(true)
+      if (signInError) {
+        setError(signInError.message)
         setIsLoading(false)
         return
       }
 
-      const routes: Record<string, string> = {
-        student: '/student/dashboard',
-        warden: '/warden/dashboard',
-        parent: '/parent/dashboard'
-      }
+      if (data.user) {
+        let userRole = data.user.app_metadata?.role || data.user.user_metadata?.role;
+        
+        // Only fetch from profiles if role is not in the JWT metadata (saves ~1-1.5s)
+        if (!userRole) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', data.user.id)
+            .single()
+          userRole = profile?.role;
+        }
 
-      const route = routes[userRole || 'student']
-      if (route) {router.push(route)}
-      else {
-        setError('No role assigned.')
-        setIsLoading(false)
+        if (userRole === 'warden') {
+          setAuthenticatedUserId(data.user.id)
+          setShowFaceVerification(true)
+          setIsLoading(false)
+          return
+        }
+
+        const routes: Record<string, string> = {
+          student: '/student/dashboard',
+          warden: '/warden/dashboard',
+          parent: '/parent/dashboard'
+        }
+
+        const route = routes[userRole || 'student']
+        if (route) {router.push(route)}
+        else {
+          setError('No role assigned.')
+          setIsLoading(false)
+        }
       }
+    } catch (err: unknown) {
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        setError('Network error: Failed to connect to server. If you are using a free Supabase instance, it might be paused.')
+      } else {
+        setError('An unexpected error occurred during login.')
+      }
+      setIsLoading(false)
     }
   }
 
