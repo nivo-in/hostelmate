@@ -62,13 +62,13 @@ export default function WardenLostFound() {
   };
 
   const getStatusVariant = (status: string) => {
-    if (status === 'claimed') return 'success';
-    if (status === 'lost') return 'danger';
+    if (status === 'claimed') {return 'success';}
+    if (status === 'lost') {return 'danger';}
     return 'warning';
   };
 
   const filteredItems = items.filter((i) => {
-    if (activeTab === 'All') return true;
+    if (activeTab === 'All') {return true;}
     return i.status.toLowerCase() === activeTab.toLowerCase();
   });
 
@@ -124,10 +124,10 @@ export default function WardenLostFound() {
                   transition: 'all 0.2s',
                 }}
                 onMouseEnter={(e) => {
-                  if (!active) e.currentTarget.style.color = ui.textSoft;
+                  if (!active) {e.currentTarget.style.color = ui.textSoft;}
                 }}
                 onMouseLeave={(e) => {
-                  if (!active) e.currentTarget.style.color = ui.textMuted;
+                  if (!active) {e.currentTarget.style.color = ui.textMuted;}
                 }}
               >
                 {tab}

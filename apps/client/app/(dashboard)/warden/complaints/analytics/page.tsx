@@ -41,7 +41,7 @@ export default function ComplaintsAnalytics() {
     const fetchStats = async () => {
       try {
         const res = await apiGet('/api/v1/complaints/stats');
-        if (res.success) setStats(res.data);
+        if (res.success) {setStats(res.data);}
       } catch {}
     };
     fetchStats();
@@ -51,7 +51,7 @@ export default function ComplaintsAnalytics() {
     setLoadingAi(true);
     try {
       const res = await apiGet('/api/v1/complaints/analytics');
-      if (res.success) setAiAnalysis(res.data);
+      if (res.success) {setAiAnalysis(res.data);}
     } catch {
     } finally {
       setLoadingAi(false);

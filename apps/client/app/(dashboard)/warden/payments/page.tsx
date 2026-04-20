@@ -76,13 +76,13 @@ const statusBadge = (status: string) => {
 
 // --- Fuzzy Search Helpers ---
 function levenshteinDistance(a: string, b: string): number {
-  if (a.length === 0) return b.length;
-  if (b.length === 0) return a.length;
+  if (a.length === 0) {return b.length;}
+  if (b.length === 0) {return a.length;}
   const matrix = Array(b.length + 1)
     .fill(null)
     .map(() => Array(a.length + 1).fill(null));
-  for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
-  for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
+  for (let i = 0; i <= a.length; i++) {matrix[0][i] = i;}
+  for (let j = 0; j <= b.length; j++) {matrix[j][0] = j;}
   for (let j = 1; j <= b.length; j++) {
     for (let i = 1; i <= a.length; i++) {
       const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
@@ -100,8 +100,8 @@ function fuzzyMatch(query: string, target: string, maxDistance: number = 2): boo
   const q = query.toLowerCase().trim();
   const t = target.toLowerCase();
 
-  if (!q) return true;
-  if (t.includes(q)) return true;
+  if (!q) {return true;}
+  if (t.includes(q)) {return true;}
 
   const words = t.split(/[\s-]+/);
   for (const word of words) {
@@ -169,10 +169,10 @@ export default function WardenPaymentsPage() {
     async (currentPage = 1) => {
       try {
         const params = new URLSearchParams();
-        if (filterStatus) params.set('status', filterStatus);
-        if (filterFeeType) params.set('fee_type', filterFeeType);
-        if (filterBilling) params.set('billing_period', filterBilling);
-        if (filterPeriod) params.set('period_label', filterPeriod);
+        if (filterStatus) {params.set('status', filterStatus);}
+        if (filterFeeType) {params.set('fee_type', filterFeeType);}
+        if (filterBilling) {params.set('billing_period', filterBilling);}
+        if (filterPeriod) {params.set('period_label', filterPeriod);}
         params.set('page', currentPage.toString());
         params.set('limit', '20');
         const res = await apiGet(`/api/v1/payments/all?${params.toString()}`);
@@ -213,7 +213,7 @@ export default function WardenPaymentsPage() {
   const fetchStudentsList = useCallback(async () => {
     try {
       const res = await apiGet('/api/v1/payments/students-list');
-      if (res.success) setAllStudents(res.data);
+      if (res.success) {setAllStudents(res.data);}
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error(e);
@@ -230,7 +230,7 @@ export default function WardenPaymentsPage() {
     // Fetch last reminder timestamp
     apiGet('/api/v1/payments/last-reminder')
       .then((res) => {
-        if (res.success && res.last_reminder) setLastReminder(res.last_reminder);
+        if (res.success && res.last_reminder) {setLastReminder(res.last_reminder);}
       })
       .catch(() => {});
   }, []);
@@ -717,8 +717,8 @@ export default function WardenPaymentsPage() {
                               type="checkbox"
                               checked={isSelected}
                               onChange={(e) => {
-                                if (e.target.checked) setTargetStudents([...targetStudents, s.id!]);
-                                else setTargetStudents(targetStudents.filter((id) => id !== s.id));
+                                if (e.target.checked) {setTargetStudents([...targetStudents, s.id!]);}
+                                else {setTargetStudents(targetStudents.filter((id) => id !== s.id));}
                               }}
                               style={{ accentColor: ui.accent }}
                             />

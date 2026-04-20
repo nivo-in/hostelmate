@@ -27,7 +27,7 @@ export default function WardenNotices() {
   const fetchNotices = async () => {
     try {
       const res = await apiGet('/api/v1/notices');
-      if (res.success) setNotices(res.data || []);
+      if (res.success) {setNotices(res.data || []);}
     } catch {
       // Silently fail
     }
@@ -39,7 +39,7 @@ export default function WardenNotices() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !content.trim()) return setError('All fields required');
+    if (!title.trim() || !content.trim()) {return setError('All fields required');}
 
     // Optimistic UI update
     setNotices((prev) => [

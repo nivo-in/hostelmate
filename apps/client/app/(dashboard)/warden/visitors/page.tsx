@@ -103,11 +103,11 @@ export default function WardenVisitors() {
   ).length;
 
   const filteredVisitors = visitors.filter((v) => {
-    if (filter === 'All') return true;
-    if (filter === 'Pending') return v.status === 'pending';
-    if (filter === 'Approved') return v.status === 'approved';
-    if (filter === 'Checked In') return v.status === 'checked_in';
-    if (filter === 'Today') return v.expected_visit_date === todayStr;
+    if (filter === 'All') {return true;}
+    if (filter === 'Pending') {return v.status === 'pending';}
+    if (filter === 'Approved') {return v.status === 'approved';}
+    if (filter === 'Checked In') {return v.status === 'checked_in';}
+    if (filter === 'Today') {return v.expected_visit_date === todayStr;}
     return true;
   });
 
@@ -218,10 +218,10 @@ export default function WardenVisitors() {
                     transition: 'all 0.2s',
                   }}
                   onMouseEnter={(e) => {
-                    if (!active) e.currentTarget.style.color = ui.textSoft;
+                    if (!active) {e.currentTarget.style.color = ui.textSoft;}
                   }}
                   onMouseLeave={(e) => {
-                    if (!active) e.currentTarget.style.color = ui.textMuted;
+                    if (!active) {e.currentTarget.style.color = ui.textMuted;}
                   }}
                 >
                   {tab}

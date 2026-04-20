@@ -30,7 +30,7 @@ export default function WardenMess() {
   const fetchMenu = async () => {
     try {
       const res = await apiGet('/api/v1/mess/menu');
-      if (res.success) setMenu(res.data || []);
+      if (res.success) {setMenu(res.data || []);}
     } catch {
       // Silently fail
     }
@@ -39,7 +39,7 @@ export default function WardenMess() {
   const fetchReviews = async () => {
     try {
       const res = await apiGet('/api/v1/mess/reviews');
-      if (res.success) setReviews(res.data?.reviews || []);
+      if (res.success) {setReviews(res.data?.reviews || []);}
     } catch {
       // Silently fail
     }
@@ -52,7 +52,7 @@ export default function WardenMess() {
 
   const handleSaveMenu = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!items.trim()) return setError('Items are required');
+    if (!items.trim()) {return setError('Items are required');}
 
     const itemsList = items
       .split(',')
@@ -101,7 +101,7 @@ export default function WardenMess() {
 
   const getAverageRating = (meal: string) => {
     const mealReviews = reviews.filter((r) => r.meal_type === meal);
-    if (mealReviews.length === 0) return 0;
+    if (mealReviews.length === 0) {return 0;}
     const sum = mealReviews.reduce((acc, curr) => acc + Number(curr.rating), 0);
     return (sum / mealReviews.length).toFixed(1);
   };

@@ -92,9 +92,9 @@ export default function WardenDashboard() {
         data: { session },
       } = await supabase.auth.getSession();
       const user = session?.user;
-      if (!user) return;
+      if (!user) {return;}
 
-      if (!cached) setWardenId(user.id);
+      if (!cached) {setWardenId(user.id);}
 
       // All fetches run in parallel
       const [profileResult, statsResult, faceResult] = await Promise.all([

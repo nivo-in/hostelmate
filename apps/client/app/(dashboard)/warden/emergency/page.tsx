@@ -74,7 +74,7 @@ export default function EmergencyAlert() {
   };
 
   const handleSendAlert = () => {
-    if (!message.trim()) return;
+    if (!message.trim()) {return;}
     if (!confirming) {
       setConfirming(true);
     } else {
@@ -86,9 +86,9 @@ export default function EmergencyAlert() {
     const date = new Date(dateStr);
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    if (diffInSeconds < 60) return `${diffInSeconds} seconds ago`;
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    if (diffInSeconds < 60) {return `${diffInSeconds} seconds ago`;}
+    if (diffInSeconds < 3600) {return `${Math.floor(diffInSeconds / 60)} minutes ago`;}
+    if (diffInSeconds < 86400) {return `${Math.floor(diffInSeconds / 3600)} hours ago`;}
     return `${Math.floor(diffInSeconds / 86400)} days ago`;
   };
 
@@ -255,7 +255,7 @@ export default function EmergencyAlert() {
               }}
               onMouseEnter={(e) => {
                 if (!(confirming || sending || !message.trim()))
-                  e.currentTarget.style.background = 'rgba(248,113,113,0.25)';
+                  {e.currentTarget.style.background = 'rgba(248,113,113,0.25)';}
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'rgba(248,113,113,0.15)';

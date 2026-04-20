@@ -56,13 +56,13 @@ type TransferApiItem = {
 
 // --- Fuzzy Search Helpers ---
 function levenshteinDistance(a: string, b: string): number {
-  if (a.length === 0) return b.length;
-  if (b.length === 0) return a.length;
+  if (a.length === 0) {return b.length;}
+  if (b.length === 0) {return a.length;}
   const matrix = Array(b.length + 1)
     .fill(null)
     .map(() => Array(a.length + 1).fill(null));
-  for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
-  for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
+  for (let i = 0; i <= a.length; i++) {matrix[0][i] = i;}
+  for (let j = 0; j <= b.length; j++) {matrix[j][0] = j;}
   for (let j = 1; j <= b.length; j++) {
     for (let i = 1; i <= a.length; i++) {
       const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
@@ -80,8 +80,8 @@ function fuzzyMatch(query: string, target: string, maxDistance: number = 2): boo
   const q = query.toLowerCase().trim();
   const t = target.toLowerCase();
 
-  if (!q) return true;
-  if (t.includes(q)) return true;
+  if (!q) {return true;}
+  if (t.includes(q)) {return true;}
 
   const words = t.split(/[\s-]+/);
   for (const word of words) {
@@ -237,7 +237,7 @@ export default function WardenRoomsPage() {
   };
 
   const handleAssignSubmit = async () => {
-    if (!selectedStudentId || !assignRoomId) return;
+    if (!selectedStudentId || !assignRoomId) {return;}
     setAssigning(true);
     try {
       const res = await apiPostRef.current('/api/v1/rooms/assign', {
@@ -259,7 +259,7 @@ export default function WardenRoomsPage() {
   const handleTransfer = async (id: string, action: 'approve' | 'reject') => {
     try {
       const res = await apiPatchRef.current(`/api/v1/rooms/transfer-requests/${id}/${action}`, {});
-      if (res.success) fetchData();
+      if (res.success) {fetchData();}
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error('Transfer error:', err);

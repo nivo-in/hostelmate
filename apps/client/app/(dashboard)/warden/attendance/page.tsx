@@ -88,8 +88,8 @@ export default function WardenAttendance() {
         apiGet('/api/v1/attendance/stats'),
         apiGet(`/api/v1/attendance/today?date=${date}`),
       ]);
-      if (statsRes.success) setStats(statsRes.data);
-      if (recordsRes.success) setRecords(recordsRes.data || []);
+      if (statsRes.success) {setStats(statsRes.data);}
+      if (recordsRes.success) {setRecords(recordsRes.data || []);}
     } catch {
       /* silently fail */
     }
@@ -105,8 +105,8 @@ export default function WardenAttendance() {
   };
 
   const getStatusVariant = (status: string) => {
-    if (status === 'present') return 'success';
-    if (status === 'absent') return 'danger';
+    if (status === 'present') {return 'success';}
+    if (status === 'absent') {return 'danger';}
     return 'warning';
   };
 
