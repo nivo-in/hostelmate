@@ -428,7 +428,7 @@ export default function StudentAttendance() {
                             {item.status.toUpperCase()}
                           </span>
                         </td>
-                        <td style={{ ...tdStyle, color: 'rgba(255,255,255,0.5)' }}>
+                        <td suppressHydrationWarning style={{ ...tdStyle, color: 'rgba(255,255,255,0.5)' }}>
                           {item.scan_time ? new Date(item.scan_time).toLocaleTimeString() : '—'}
                         </td>
                       </tr>
