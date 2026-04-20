@@ -463,10 +463,10 @@ export default function WardenFaceVerification({
       {/* Scanning frame corner overlays */}
       {showVideo && !isVerified && (
         <>
-          <div style={{ position: 'absolute', top: '16px', left: '16px', width: '24px', height: '24px', borderTop: '3.5px solid rgba(131,75,241,0.95)', borderLeft: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '4px 0 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', top: '16px', right: '16px', width: '24px', height: '24px', borderTop: '3.5px solid rgba(131,75,241,0.95)', borderRight: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '0 4px 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', bottom: '16px', left: '16px', width: '24px', height: '24px', borderBottom: '3.5px solid rgba(131,75,241,0.95)', borderLeft: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '0 0 0 4px', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', bottom: '16px', right: '16px', width: '24px', height: '24px', borderBottom: '3.5px solid rgba(131,75,241,0.95)', borderRight: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '0 0 4px 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', top: '16px', left: '16px', width: '24px', height: '24px', borderBottom: '3.5px solid rgba(131,75,241,0.95)', borderRight: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '0 0 4px 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', top: '16px', right: '16px', width: '24px', height: '24px', borderBottom: '3.5px solid rgba(131,75,241,0.95)', borderLeft: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '0 0 0 4px', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', bottom: '16px', left: '16px', width: '24px', height: '24px', borderTop: '3.5px solid rgba(131,75,241,0.95)', borderRight: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '0 4px 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', bottom: '16px', right: '16px', width: '24px', height: '24px', borderTop: '3.5px solid rgba(131,75,241,0.95)', borderLeft: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '4px 0 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
         </>
       )}
 

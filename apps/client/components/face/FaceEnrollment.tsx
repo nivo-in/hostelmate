@@ -131,9 +131,10 @@ export default function FaceEnrollment({ subjectId, role, onSuccess, onCancel }:
        return -1; // Looking straight, not rotating
     }
     
-    // Calculate angle (-yaw because video is mirrored horizontally)
-    let angle = Math.atan2(pitch, -yaw) * 180 / Math.PI; 
-    if (angle < 0) {angle += 360;}
+    // Calculate angle correctly matching physical head rotation to UI ring
+    // (+180 degrees compensates for both the atan2 axis and the SVG's -90deg rotation)
+    let angle = (Math.atan2(pitch, yaw) * 180 / Math.PI) + 180;
+    if (angle < 0) { angle += 360; }
     
     return Math.floor((angle / 360) * TICKS) % TICKS;
   };

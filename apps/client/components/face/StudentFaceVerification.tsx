@@ -435,10 +435,10 @@ export default function StudentFaceVerification({
       {/* Scanning frame corner overlays (orange) */}
       {showVideo && !isVerified && (
         <>
-          <div style={{ position: 'absolute', top: '16px', left: '16px', width: '24px', height: '24px', borderTop: `3.5px solid ${ORANGE}`, borderLeft: `3.5px solid ${ORANGE}`, borderRadius: '4px 0 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', top: '16px', right: '16px', width: '24px', height: '24px', borderTop: `3.5px solid ${ORANGE}`, borderRight: `3.5px solid ${ORANGE}`, borderRadius: '0 4px 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', bottom: '16px', left: '16px', width: '24px', height: '24px', borderBottom: `3.5px solid ${ORANGE}`, borderLeft: `3.5px solid ${ORANGE}`, borderRadius: '0 0 0 4px', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', bottom: '16px', right: '16px', width: '24px', height: '24px', borderBottom: `3.5px solid ${ORANGE}`, borderRight: `3.5px solid ${ORANGE}`, borderRadius: '0 0 4px 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', top: '16px', left: '16px', width: '24px', height: '24px', borderBottom: `3.5px solid ${ORANGE}`, borderRight: `3.5px solid ${ORANGE}`, borderRadius: '0 0 4px 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', top: '16px', right: '16px', width: '24px', height: '24px', borderBottom: `3.5px solid ${ORANGE}`, borderLeft: `3.5px solid ${ORANGE}`, borderRadius: '0 0 0 4px', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', bottom: '16px', left: '16px', width: '24px', height: '24px', borderTop: `3.5px solid ${ORANGE}`, borderRight: `3.5px solid ${ORANGE}`, borderRadius: '0 4px 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', bottom: '16px', right: '16px', width: '24px', height: '24px', borderTop: `3.5px solid ${ORANGE}`, borderLeft: `3.5px solid ${ORANGE}`, borderRadius: '4px 0 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
         </>
       )}
 
