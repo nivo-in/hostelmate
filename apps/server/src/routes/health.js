@@ -26,6 +26,10 @@ router.get('/', async (req, res) => {
 
   const memoryUsage = process.memoryUsage();
 
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
   res.json({
     status: dbStatus === 'ok' && redisStatus === 'ok' ? 'ok' : 'degraded',
     timestamp: new Date().toISOString(),
