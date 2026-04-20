@@ -318,7 +318,8 @@ export default function FaceEnrollment({ subjectId, role, onSuccess, onCancel }:
 
       <div className="flex flex-col items-center gap-5 z-10">
         <div className="px-5 py-2 rounded-full bg-black/50 border border-white/10 text-[#d4d4d8] text-[13px] font-medium backdrop-blur-md">
-          {status === 'guiding' ? 'Rotate your head slowly' : 
+          {status === 'loading' ? 'Initializing secure environment...' :
+           status === 'guiding' ? 'Rotate your head slowly' : 
            status === 'no-face' ? 'Bring your face into view' :
            status === 'processing' ? 'Saving biometric data...' : 
            'Position your face in the circle'}
