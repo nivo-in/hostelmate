@@ -59,7 +59,7 @@ const fmt = (n: number) => '₹' + n.toLocaleString('en-IN');
 
 const statusBadge = (status: string, isOverdue: boolean) => {
   const base = 'text-xs px-2.5 py-1 rounded-full font-medium';
-  if (isOverdue) return <span className={`${base} bg-red-100 text-red-700`}>OVERDUE</span>;
+  if (isOverdue) {return <span className={`${base} bg-red-100 text-red-700`}>OVERDUE</span>;}
   switch (status) {
     case 'paid':
       return <span className={`${base} bg-green-50 text-green-700`}>Paid</span>;
@@ -101,7 +101,7 @@ export default function ParentPaymentsPage() {
   const fetchPayments = useCallback(async () => {
     try {
       const res = await apiGet('/api/v1/payments/my');
-      if (res.success) setPaymentsData(res.data);
+      if (res.success) {setPaymentsData(res.data);}
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error(e);
@@ -118,7 +118,7 @@ export default function ParentPaymentsPage() {
           .eq('id', session.user.id)
           .single()
           .then(({ data }) => {
-            if (data) setParentProfile(data);
+            if (data) {setParentProfile(data);}
           });
       }
     });
@@ -142,7 +142,7 @@ export default function ParentPaymentsPage() {
       const orderRes = await apiPost('/api/v1/payments/create-order', {
         fee_payment_id: payment.id,
       });
-      if (!orderRes.success) throw new Error(orderRes.error || 'Failed to create order');
+      if (!orderRes.success) {throw new Error(orderRes.error || 'Failed to create order');}
       const orderData = orderRes.data;
       const studentName = paymentsData?.student_name || 'Ward';
 
@@ -221,7 +221,7 @@ export default function ParentPaymentsPage() {
   const handleViewReceipt = async (paymentId: string) => {
     try {
       const res = await apiGet(`/api/v1/payments/receipt/${paymentId}`);
-      if (res.success) setReceiptModal(res.data);
+      if (res.success) {setReceiptModal(res.data);}
     } catch (e) {
       setError((e as Error).message);
     }

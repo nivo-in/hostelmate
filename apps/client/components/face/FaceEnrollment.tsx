@@ -85,7 +85,7 @@ export default function FaceEnrollment({ subjectId, role, onSuccess, onCancel }:
       };
 
       const { error } = await supabase.from(cfg.table).upsert(payload, { onConflict: cfg.idCol });
-      if (error) throw error;
+      if (error) {throw error;}
       
       setStatus('registered');
       setTimeout(() => onSuccessRef.current(), 1500);
@@ -133,7 +133,7 @@ export default function FaceEnrollment({ subjectId, role, onSuccess, onCancel }:
     
     // Calculate angle (-yaw because video is mirrored horizontally)
     let angle = Math.atan2(pitch, -yaw) * 180 / Math.PI; 
-    if (angle < 0) angle += 360;
+    if (angle < 0) {angle += 360;}
     
     return Math.floor((angle / 360) * TICKS) % TICKS;
   };
@@ -156,7 +156,7 @@ export default function FaceEnrollment({ subjectId, role, onSuccess, onCancel }:
       const currentFilled = new Set<number>();
       
       intervalRef.current = setInterval(async () => {
-        if (!videoRef.current) return;
+        if (!videoRef.current) {return;}
         const detection = await getFaceDetection(videoRef.current);
         
         if (!detection) {
@@ -198,9 +198,9 @@ export default function FaceEnrollment({ subjectId, role, onSuccess, onCancel }:
            const len = descsArray[0].length;
            const mean = new Array<number>(len).fill(0);
            for (const d of descsArray) {
-             for (let j = 0; j < len; j++) mean[j] += d[j];
+             for (let j = 0; j < len; j++) {mean[j] += d[j];}
            }
-           for (let j = 0; j < len; j++) mean[j] /= descsArray.length;
+           for (let j = 0; j < len; j++) {mean[j] /= descsArray.length;}
            
            // Also pick 4 evenly-spaced angle snapshots for multi-angle matching
            const finalDescs: number[][] = [mean]; // index 0 = mean (descriptor_straight)
@@ -218,7 +218,7 @@ export default function FaceEnrollment({ subjectId, role, onSuccess, onCancel }:
       }, 150);
 
     } catch (err: unknown) {
-      if ((err as Error).name === 'NotAllowedError') setStatus('camera-denied');
+      if ((err as Error).name === 'NotAllowedError') {setStatus('camera-denied');}
       else {
         setStatus('error');
         setErrorMsg((err as Error).message);

@@ -52,7 +52,7 @@ test.describe('Warden – Leave Management', () => {
 
   test('shows leave table or empty state', async ({ page }) => {
     await page.goto('/warden/leaves');
-    if (page.url().includes('/login')) return;
+    if (page.url().includes('/login')) {return;}
 
     const content = page.locator('table, [data-testid="empty-state"], p').first();
     await expect(content).toBeVisible({ timeout: 8000 });
@@ -84,7 +84,7 @@ test.describe('Warden – Notices', () => {
 
   test('notice form has title input and submit button', async ({ page }) => {
     await page.goto('/warden/notices');
-    if (page.url().includes('/login')) return;
+    if (page.url().includes('/login')) {return;}
 
     await expect(page.locator('input[type="text"]').first()).toBeVisible();
     await expect(page.locator('textarea')).toBeVisible();
@@ -117,7 +117,7 @@ test.describe('Warden – Fee Management', () => {
 
   test('fee page shows content section', async ({ page }) => {
     await page.goto('/warden/payments');
-    if (page.url().includes('/login')) return;
+    if (page.url().includes('/login')) {return;}
 
     const content = page.locator('table, form, button, [data-testid="empty-state"]').first();
     await expect(content).toBeVisible({ timeout: 8000 });
@@ -131,7 +131,7 @@ test.describe('Warden – Visitor Management', () => {
 
   test('visitor page shows table or empty state', async ({ page }) => {
     await page.goto('/warden/visitors');
-    if (page.url().includes('/login')) return;
+    if (page.url().includes('/login')) {return;}
 
     const content = page.locator('table, [data-testid="empty-state"], p').first();
     await expect(content).toBeVisible({ timeout: 8000 });

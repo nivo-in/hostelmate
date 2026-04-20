@@ -100,10 +100,10 @@ export default function StudentFaceVerification({
     }, 10000);
 
     const tick = async () => {
-      if (!runningRef.current || !videoRef.current || !storedDescriptorsRef.current) return;
+      if (!runningRef.current || !videoRef.current || !storedDescriptorsRef.current) {return;}
       try {
         const detection = await getFaceDetection(videoRef.current);
-        if (!runningRef.current) return;
+        if (!runningRef.current) {return;}
 
         if (!detection) {
           if (faceDetectedRef.current) {
@@ -119,7 +119,7 @@ export default function StudentFaceVerification({
           const { descriptor, landmarks } = detection;
 
           // ── Face match FIRST ───────────────────────────────────────────
-          if (!storedDescriptorsRef.current) return;
+          if (!storedDescriptorsRef.current) {return;}
           const { match } = isSamePerson(descriptor, storedDescriptorsRef.current);
 
           if (!match) {
@@ -166,7 +166,7 @@ export default function StudentFaceVerification({
       } catch {
         setStatus('scanning');
       }
-      if (runningRef.current) setTimeout(tick, 50);
+      if (runningRef.current) {setTimeout(tick, 50);}
     };
 
     tick();
@@ -249,7 +249,7 @@ export default function StudentFaceVerification({
         setStatus('scanning');
         startVerificationLoop();
       } catch (err: unknown) {
-        if (cancelled) return;
+        if (cancelled) {return;}
         const msg = err instanceof Error ? err.message : String(err);
         if (
           msg.toLowerCase().includes('permission') ||
@@ -474,7 +474,7 @@ export default function StudentFaceVerification({
           {failedAttempts >= 3 && (
             <button
               onClick={() => {
-                if (onSkipRef.current) onSkipRef.current();
+                if (onSkipRef.current) {onSkipRef.current();}
               }}
               style={{
                 fontSize: '12px',

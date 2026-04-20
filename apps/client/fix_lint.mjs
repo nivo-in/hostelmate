@@ -8,7 +8,7 @@ const walkSync = (dir, filelist = []) => {
   fs.readdirSync(dir).forEach(file => {
     const dirFile = path.join(dir, file)
     try { filelist = walkSync(dirFile, filelist) }
-    catch (err) { if (err.code === 'ENOTDIR' || err.code === 'EBADF') filelist.push(dirFile) }
+    catch (err) { if (err.code === 'ENOTDIR' || err.code === 'EBADF') {filelist.push(dirFile)} }
   })
   return filelist
 }

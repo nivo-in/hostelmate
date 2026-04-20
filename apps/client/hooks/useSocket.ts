@@ -23,7 +23,7 @@ export function useSocket(handlers: SocketHandlers) {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user || !mounted) return;
+      if (!user || !mounted) {return;}
 
       connectSocket(user.id);
       const socket = getSocket();

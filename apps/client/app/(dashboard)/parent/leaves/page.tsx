@@ -23,7 +23,7 @@ export default function ParentLeaves() {
 
   useEffect(() => {
     const fetchLeaves = async () => {
-      if (!profile?.id) return;
+      if (!profile?.id) {return;}
 
       const { data: parentData } = await supabase
         .from('parents')
@@ -63,17 +63,17 @@ export default function ParentLeaves() {
   };
 
   const getStatusVariant = (status: string) => {
-    if (status === 'approved') return 'success';
-    if (status === 'rejected') return 'danger';
+    if (status === 'approved') {return 'success';}
+    if (status === 'rejected') {return 'danger';}
     return 'warning';
   };
 
   if (profileLoading || loading)
-    return (
+    {return (
       <div className="min-h-screen bg-white px-6 py-10">
         <LoadingSpinner />
       </div>
-    );
+    );}
 
   return (
     <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">

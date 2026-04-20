@@ -18,7 +18,7 @@ export default function ParentNotices() {
     const fetchNotices = async () => {
       try {
         const res = await apiGet('/api/v1/notices');
-        if (res.success) setNotices(res.data);
+        if (res.success) {setNotices(res.data);}
       } catch {
         // Silently fail
       }

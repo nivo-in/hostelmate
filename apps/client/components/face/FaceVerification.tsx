@@ -115,11 +115,11 @@ export default function FaceVerification({
     // This is faster than setInterval which waits the full interval even when
     // the detection took longer than expected.
     const tick = async () => {
-      if (!runningRef.current || !videoRef.current || !storedDescriptorsRef.current) return;
+      if (!runningRef.current || !videoRef.current || !storedDescriptorsRef.current) {return;}
       try {
         setStatus('verifying');
         const detection = await getFaceDetection(videoRef.current);
-        if (!runningRef.current) return; // stopped while awaiting
+        if (!runningRef.current) {return;} // stopped while awaiting
 
         if (!detection) {
           setStatus('scanning');
@@ -178,7 +178,7 @@ export default function FaceVerification({
         setStatus('scanning');
       }
       // Schedule next tick immediately after this one finishes
-      if (runningRef.current) setTimeout(tick, 50);
+      if (runningRef.current) {setTimeout(tick, 50);}
     };
 
     tick();
@@ -264,7 +264,7 @@ export default function FaceVerification({
         setStatus('scanning');
         startVerificationLoop();
       } catch (err: unknown) {
-        if (cancelled) return;
+        if (cancelled) {return;}
         const msg = err instanceof Error ? err.message : String(err);
         if (
           msg.toLowerCase().includes('permission') ||
