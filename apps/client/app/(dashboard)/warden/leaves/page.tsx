@@ -111,6 +111,10 @@ export default function WardenLeaves() {
         >
           {['All', 'Pending', 'Approved', 'Rejected'].map((tab) => {
             const active = activeTab === tab;
+            const count = tab === 'All'
+              ? leaves.length
+              : leaves.filter((l) => l.status?.toLowerCase() === tab.toLowerCase()).length;
+
             return (
               <button
                 key={tab}
@@ -126,6 +130,9 @@ export default function WardenLeaves() {
                   color: active ? ui.text : ui.textMuted,
                   cursor: 'pointer',
                   transition: 'all 0.2s',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
                 }}
                 onMouseEnter={(e) => {
                   if (!active) {e.currentTarget.style.color = ui.textSoft;}
@@ -134,7 +141,19 @@ export default function WardenLeaves() {
                   if (!active) {e.currentTarget.style.color = ui.textMuted;}
                 }}
               >
-                {tab}
+                <span>{tab}</span>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    padding: '2px 7px',
+                    borderRadius: '10px',
+                    background: active ? 'rgba(124,92,252,0.25)' : 'rgba(255,255,255,0.06)',
+                    color: active ? '#a78bfa' : 'rgba(255,255,255,0.4)',
+                  }}
+                >
+                  {count}
+                </span>
               </button>
             );
           })}
