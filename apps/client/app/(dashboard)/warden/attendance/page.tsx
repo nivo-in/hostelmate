@@ -1,5 +1,5 @@
 'use client';
-import { ClipboardList } from 'lucide-react';
+import { ClipboardList, Search } from 'lucide-react';
 
 import { useEffect, useState, useCallback } from 'react';
 import QRCode from 'qrcode';
@@ -44,6 +44,8 @@ export default function WardenAttendance() {
   const [stats, setStats] = useState<AttendanceStats>({});
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const { apiGet } = useApi();
   const router = useRouter();
@@ -119,6 +121,15 @@ export default function WardenAttendance() {
     { label: 'Attendance %', value: `${s?.today_percentage ?? s?.percentage ?? 0}%`, color: ui.text },
   ];
 
+  const filteredRecords = records.filter((r) => {
+    const name = (r.full_name || r.profiles?.full_name || '').toLowerCase();
+    const roll = (r.roll_number || '').toLowerCase();
+    const q = searchQuery.toLowerCase().trim();
+    const matchesSearch = !q || name.includes(q) || roll.includes(q);
+    const matchesStatus = statusFilter === 'all' || r.status.toLowerCase() === statusFilter.toLowerCase();
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <PageShell>
       <PageHeader title="Attendance Management" showBack onSignOut={handleSignOut} />
@@ -157,16 +168,57 @@ export default function WardenAttendance() {
           </div>
         </div>
 
-        {/* Attendance list */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+        {/* Attendance list control bar */}
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
           <h2 style={{ fontSize: '15px', fontWeight: 500, color: ui.text, margin: 0 }}>Attendance List</h2>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="hm-input"
-            style={{ ...input, width: 'auto', colorScheme: 'dark' }}
-          />
+
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+            {/* Search Input */}
+            <div style={{ position: 'relative', minWidth: '240px' }}>
+              <Search strokeWidth={1.5} size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: ui.textMuted }} />
+              <input
+                type="text"
+                placeholder="Search student name or roll no..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="hm-input"
+                style={{
+                  ...input,
+                  paddingLeft: '34px',
+                  width: '100%',
+                  fontSize: '13px',
+                }}
+              />
+            </div>
+
+            {/* Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="hm-input"
+              style={{
+                ...input,
+                width: 'auto',
+                fontSize: '13px',
+                colorScheme: 'dark',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="all">All Statuses</option>
+              <option value="present">Present</option>
+              <option value="absent">Absent</option>
+              <option value="late">Late</option>
+            </select>
+
+            {/* Date Picker */}
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="hm-input"
+              style={{ ...input, width: 'auto', colorScheme: 'dark' }}
+            />
+          </div>
         </div>
 
         <div style={{ ...panel, overflow: 'hidden' }}>
@@ -179,14 +231,17 @@ export default function WardenAttendance() {
               </tr>
             </thead>
             <tbody>
-              {records.length === 0 ? (
+              {filteredRecords.length === 0 ? (
                 <tr>
                   <td colSpan={5}>
-                    <EmptyState message="No attendance records for this date" icon={<ClipboardList strokeWidth={1.5} />} />
+                    <EmptyState
+                      message={records.length === 0 ? "No attendance records for this date" : "No matching student attendance records found"}
+                      icon={<ClipboardList strokeWidth={1.5} />}
+                    />
                   </td>
                 </tr>
               ) : (
-                records.map((r, i) => (
+                filteredRecords.map((r, i) => (
                   <tr key={i} className="row-hover" style={{ borderBottom: '0.5px solid rgba(255,255,255,0.04)' }}>
                     <td style={{ padding: '12px 18px', color: ui.text, fontWeight: 500 }}>{r.full_name || r.profiles?.full_name || 'Unknown'}</td>
                     <td style={{ padding: '12px 18px', color: ui.textMuted }}>{r.roll_number || '-'}</td>
