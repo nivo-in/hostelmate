@@ -14,7 +14,7 @@ type CursorGlowProps = {
  * Spring-smoothed in a single rAF loop, transform-only, and disabled on
  * coarse/touch pointers and prefers-reduced-motion. Purely decorative.
  */
-export function CursorGlow({ color = 'rgba(124,92,252,0.07)', size = 600 }: CursorGlowProps) {
+export function CursorGlow({ color = 'rgba(124,92,252,0.08)', size = 600 }: CursorGlowProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
