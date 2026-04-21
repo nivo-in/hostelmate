@@ -116,15 +116,17 @@ router.post('/notify', authenticate, requireWarden, async (req, res, next) => {
         .eq('student_id', student_id);
 
       if (parentRows && parentRows.length > 0) {
-        for (const p of parentRows) {
-          await createNotification(
-            p.id,
-            'Curfew Alert',
-            `Your ward ${name} has not checked in by curfew time. Please contact the hostel immediately.`,
-            'notice',
-            student_id
-          );
-        }
+        await Promise.all(
+          parentRows.map((p) =>
+            createNotification(
+              p.id,
+              'Curfew Alert',
+              `Your ward ${name} has not checked in by curfew time. Please contact the hostel immediately.`,
+              'notice',
+              student_id
+            )
+          )
+        );
       }
 
       // Mark as notified today
