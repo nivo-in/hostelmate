@@ -159,14 +159,14 @@ export default function StudentFaceVerification({
               recentPositionsRef.current.shift();
             }
 
-            if (recentPositionsRef.current.length >= 3) {
+            if (recentPositionsRef.current.length >= 2) {
               let totalDelta = 0;
               for (let i = 1; i < recentPositionsRef.current.length; i++) {
                 const prev = recentPositionsRef.current[i - 1];
                 const curr = recentPositionsRef.current[i];
                 totalDelta += Math.sqrt((curr.x - prev.x) ** 2 + (curr.y - prev.y) ** 2);
               }
-              if (totalDelta >= 0.3) {
+              if (totalDelta >= 0.05) {
                 microMovementDetectedRef.current = true;
               }
             }
