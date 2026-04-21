@@ -8,7 +8,7 @@ import { useSocket } from '@/hooks/useSocket';
 import { Notification } from '@/types';
 import { toast } from 'sonner';
 import { 
-  Bell, Check, Trash2, X, 
+  Bell, Check, Trash2, X, Search,
   Palmtree, Wrench, Megaphone, Siren, ClipboardCheck,
   CreditCard, UtensilsCrossed, PackageSearch
 } from 'lucide-react';
@@ -93,6 +93,7 @@ export function NotificationBell() {
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   
   useEffect(() => setMounted(true), []);
 
@@ -380,6 +381,30 @@ export function NotificationBell() {
               </div>
             </div>
 
+            {/* Quick Search Filter */}
+            {notifications.length > 0 && (
+              <div className="px-5 pt-3 pb-1 z-10 shrink-0">
+                <div className="relative flex items-center">
+                  <Search size={14} className="absolute left-3 text-white/30" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search notifications…"
+                    className="w-full bg-white/[0.04] border border-white/10 rounded-xl py-1.5 pl-9 pr-7 text-xs text-white placeholder-white/30 outline-none focus:border-white/25 transition-all"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-2.5 text-white/40 hover:text-white/80"
+                    >
+                      <X size={12} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Content List */}
             <div className="notif-scrollbar flex-1 overflow-y-auto relative z-10 p-4 space-y-3">
               {loading ? (
@@ -409,7 +434,27 @@ export function NotificationBell() {
                   </p>
                 </div>
               ) : (
-                notifications.map((notification) => (
+                (() => {
+                  const filtered = notifications.filter((n) => {
+                    if (!searchQuery.trim()) {return true;}
+                    const q = searchQuery.toLowerCase();
+                    return (
+                      n.title?.toLowerCase().includes(q) ||
+                      n.message?.toLowerCase().includes(q) ||
+                      n.type?.toLowerCase().includes(q)
+                    );
+                  });
+
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="flex flex-col items-center justify-center py-12 text-center px-6 opacity-60">
+                        <p className="text-xs font-medium text-white/70">No matching notifications</p>
+                        <p className="text-[11px] text-white/40 mt-1">Try searching for a different keyword</p>
+                      </div>
+                    );
+                  }
+
+                  return filtered.map((notification) => (
                   <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification.id, notification.is_read)}
@@ -479,7 +524,8 @@ export function NotificationBell() {
                       <Trash2 size={14} />
                     </button>
                   </div>
-                ))
+                ));
+                })()
               )}
 
               {hasNext && !loading && (
