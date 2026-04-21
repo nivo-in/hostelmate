@@ -187,7 +187,7 @@ export default function StudentFaceVerification({
           if (blinkStageRef.current === 0) {
             if (ear >= targetBaseline * 0.85) {
               openFramesRef.current += 1;
-              if (openFramesRef.current >= 2) {
+              if (openFramesRef.current >= 1) {
                 blinkStageRef.current = 1; // Open confirmed
               }
             }
@@ -197,22 +197,22 @@ export default function StudentFaceVerification({
             }
           } else if (blinkStageRef.current === 2) {
             if (ear >= targetBaseline * 0.85) {
-              blinkStageRef.current = 3; // Re-opened! Blink verified.
+              // ── Instant Redirect on First Blink! ───────────────────────
+              blinkStageRef.current = 3;
               blinkDetectedRef.current = true;
               setBlinkDetected(true);
+              runningRef.current = false;
+              stopCamera();
+              setStatus('verified');
+              if (onVerifiedRef.current) {
+                onVerifiedRef.current();
+              }
+              return;
             }
           }
 
-          // ── 4. Verification Gate ──────────────────────────────────────────
-          if (!blinkDetectedRef.current || !microMovementDetectedRef.current) {
-            setStatus('verifying');
-          } else {
-            runningRef.current = false;
-            stopCamera();
-            setStatus('verified');
-            onVerifiedRef.current();
-            return;
-          }
+          // ── 4. Prompt state while waiting for blink ───────────────────────
+          setStatus('verifying');
         }
       } catch {
         setStatus('scanning');
