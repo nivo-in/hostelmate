@@ -39,8 +39,8 @@ export default function StaffDirectory() {
   interface ReportData extends StaffMember {
     daysPresent: number;
     daysAbsent: number;
-    attendancePercent: number;
     totalDaysInPeriod: number;
+    attendancePercent: number;
     average_rating: number;
     total_reviews: number;
     this_month_reviews: number;
@@ -222,8 +222,8 @@ export default function StaffDirectory() {
                 ...staff,
                 daysPresent,
                 daysAbsent,
-                attendancePercent,
                 totalDaysInPeriod,
+                attendancePercent,
                 ...feedbackData,
                 hasData: true,
               };
@@ -721,17 +721,10 @@ export default function StaffDirectory() {
                             })()}
                             )
                           </p>
-                          <p style={{ color: ui.textSoft, margin: 0 }}>
-                            Days Present: <strong style={{ color: ui.green }}>{staff.daysPresent}</strong> / {staff.totalDaysInPeriod} days
-                          </p>
-                          <p style={{ color: ui.textSoft, margin: 0 }}>
-                            Days Absent: <strong style={{ color: ui.red }}>{staff.daysAbsent}</strong> / {staff.totalDaysInPeriod} days
-                          </p>
+                          <p style={{ color: ui.textSoft, margin: 0 }}>Days Present: <strong style={{ color: ui.green }}>{staff.daysPresent}</strong></p>
+                          <p style={{ color: ui.textSoft, margin: 0 }}>Days Absent: <strong style={{ color: ui.red }}>{staff.daysAbsent}</strong></p>
                           <p style={{ color: ui.text, fontWeight: 500, margin: '4px 0 0' }}>
-                            Attendance Rate: {staff.attendancePercent}%{' '}
-                            <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: 400 }}>
-                              ({staff.daysPresent} of {staff.totalDaysInPeriod} days)
-                            </span>
+                            Attendance Rate: {staff.daysPresent}/{staff.totalDaysInPeriod} ({staff.attendancePercent}%)
                           </p>
                         </div>
                         <div>
