@@ -120,52 +120,65 @@ export default function StaffDirectory() {
         try {
           let currentStaff = staffList;
           if (currentStaff.length === 0) {
-            const [{ data: staffMembers }, { data: wardenProfiles }] = await Promise.all([
-              supabase.from('staff_members').select('*').order('created_at', { ascending: false }),
-              supabase.from('profiles').select('id, full_name, email, phone, role').eq('role', 'warden'),
-            ]);
-            const wardens: StaffMember[] = (wardenProfiles || []).map((w) => ({
-              id: w.id,
-              full_name: w.full_name,
-              email: w.email,
-              phone: w.phone,
-              staff_role: 'warden',
-              is_present: false,
-              created_at: new Date().toISOString(),
-              isWarden: true,
-            }));
-            const members: StaffMember[] = (staffMembers || []).map((s) => ({
-              ...s,
-              is_present: s.is_present ?? false,
-            }));
-            currentStaff = [...wardens, ...members];
+            try {
+              const [{ data: staffMembers }, { data: wardenProfiles }] = await Promise.all([
+                supabase.from('staff_members').select('*').order('created_at', { ascending: false }),
+                supabase.from('profiles').select('id, full_name, email, phone, role').eq('role', 'warden'),
+              ]);
+              const wardens: StaffMember[] = (wardenProfiles || []).map((w) => ({
+                id: w.id,
+                full_name: w.full_name,
+                email: w.email,
+                phone: w.phone,
+                staff_role: 'warden',
+                is_present: false,
+                created_at: new Date().toISOString(),
+                isWarden: true,
+              }));
+              const members: StaffMember[] = (staffMembers || []).map((s) => ({
+                ...s,
+                is_present: s.is_present ?? false,
+              }));
+              currentStaff = [...wardens, ...members];
+            } catch {
+              currentStaff = [];
+            }
           }
 
-          const [yearStr, monthStr] = selectedMonth.split('-');
-          const year = parseInt(yearStr, 10);
-          const month = parseInt(monthStr, 10);
+          const targetMonth = selectedMonth || new Date().toISOString().slice(0, 7);
+          const [yearStr, monthStr] = targetMonth.split('-');
+          const year = parseInt(yearStr, 10) || new Date().getFullYear();
+          const month = parseInt(monthStr, 10) || (new Date().getMonth() + 1);
           const lastDayNum = new Date(year, month, 0).getDate();
-          const startDate = `${selectedMonth}-01`;
-          const endDate = `${selectedMonth}-${String(lastDayNum).padStart(2, '0')}`;
+          const startDate = `${targetMonth}-01`;
+          const endDate = `${targetMonth}-${String(lastDayNum).padStart(2, '0')}`;
 
           const data = await Promise.all(
             currentStaff.map(async (staff) => {
-              let attendanceQuery = supabase
-                .from('staff_attendance')
-                .select('*')
-                .gte('date', startDate)
-                .lte('date', endDate);
+              let attendance: { is_present: boolean }[] = [];
+              try {
+                let attendanceQuery = supabase
+                  .from('staff_attendance')
+                  .select('*')
+                  .gte('date', startDate)
+                  .lte('date', endDate);
 
-              if (staff.isWarden) {
-                attendanceQuery = attendanceQuery.eq('profile_id', staff.id);
-              } else {
-                attendanceQuery = attendanceQuery.eq('staff_id', staff.id);
+                if (staff.isWarden) {
+                  attendanceQuery = attendanceQuery.eq('profile_id', staff.id);
+                } else {
+                  attendanceQuery = attendanceQuery.eq('staff_id', staff.id);
+                }
+
+                const { data: attData } = await attendanceQuery;
+                if (attData) {
+                  attendance = attData;
+                }
+              } catch {
+                /* fallback to empty array on RLS/query error */
               }
 
-              const { data: attendance } = await attendanceQuery;
-
-              const daysPresent = attendance?.filter((a) => a.is_present).length || 0;
-              const daysAbsent = attendance?.filter((a) => !a.is_present).length || 0;
+              const daysPresent = attendance.filter((a) => a.is_present).length;
+              const daysAbsent = attendance.filter((a) => !a.is_present).length;
               const totalDays = daysPresent + daysAbsent;
               const attendancePercent =
                 totalDays > 0 ? Math.round((daysPresent / totalDays) * 100) : 0;
@@ -173,17 +186,21 @@ export default function StaffDirectory() {
               let feedbackData = { average_rating: 0, total_reviews: 0, this_month_reviews: 0 };
 
               if (!staff.isWarden) {
-                const res = await apiGet(`/api/v1/staff-feedback/${staff.id}`);
-                if (res.success && res.data) {
-                  const allFeedback = res.data.feedback || [];
-                  const thisMonthReviews = allFeedback.filter((f: { created_at: string }) =>
-                    f.created_at.startsWith(selectedMonth)
-                  ).length;
-                  feedbackData = {
-                    average_rating: res.data.average_rating || 0,
-                    total_reviews: res.data.total_reviews || 0,
-                    this_month_reviews: thisMonthReviews,
-                  };
+                try {
+                  const res = await apiGet(`/api/v1/staff-feedback/${staff.id}`);
+                  if (res && res.success && res.data) {
+                    const allFeedback = res.data.feedback || [];
+                    const thisMonthReviews = allFeedback.filter((f: { created_at?: string }) =>
+                      f.created_at ? f.created_at.startsWith(targetMonth) : false
+                    ).length;
+                    feedbackData = {
+                      average_rating: res.data.average_rating || 0,
+                      total_reviews: res.data.total_reviews || 0,
+                      this_month_reviews: thisMonthReviews,
+                    };
+                  }
+                } catch {
+                  /* fallback to default zero feedback */
                 }
               }
 
@@ -216,7 +233,7 @@ export default function StaffDirectory() {
     return () => {
       isCancelled = true;
     };
-  }, [activeTab, selectedMonth]);
+  }, [activeTab, selectedMonth, staffList, supabase, apiGet]);
 
   // ── Sign out ─────────────────────────────────────────────────────────
   const handleSignOut = async () => {
