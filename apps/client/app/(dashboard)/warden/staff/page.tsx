@@ -233,7 +233,7 @@ export default function StaffDirectory() {
     return () => {
       isCancelled = true;
     };
-  }, [activeTab, selectedMonth, staffList, supabase, apiGet]);
+  }, [activeTab, selectedMonth]);
 
   // ── Sign out ─────────────────────────────────────────────────────────
   const handleSignOut = async () => {
