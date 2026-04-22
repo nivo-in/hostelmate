@@ -40,6 +40,7 @@ export default function StaffDirectory() {
     daysPresent: number;
     daysAbsent: number;
     attendancePercent: number;
+    totalDaysInPeriod: number;
     average_rating: number;
     total_reviews: number;
     this_month_reviews: number;
@@ -222,6 +223,7 @@ export default function StaffDirectory() {
                 daysPresent,
                 daysAbsent,
                 attendancePercent,
+                totalDaysInPeriod,
                 ...feedbackData,
                 hasData: true,
               };
@@ -719,10 +721,17 @@ export default function StaffDirectory() {
                             })()}
                             )
                           </p>
-                          <p style={{ color: ui.textSoft, margin: 0 }}>Days Present: <strong style={{ color: ui.green }}>{staff.daysPresent}</strong></p>
-                          <p style={{ color: ui.textSoft, margin: 0 }}>Days Absent: <strong style={{ color: ui.red }}>{staff.daysAbsent}</strong></p>
+                          <p style={{ color: ui.textSoft, margin: 0 }}>
+                            Days Present: <strong style={{ color: ui.green }}>{staff.daysPresent}</strong> / {staff.totalDaysInPeriod} days
+                          </p>
+                          <p style={{ color: ui.textSoft, margin: 0 }}>
+                            Days Absent: <strong style={{ color: ui.red }}>{staff.daysAbsent}</strong> / {staff.totalDaysInPeriod} days
+                          </p>
                           <p style={{ color: ui.text, fontWeight: 500, margin: '4px 0 0' }}>
-                            Attendance Rate: {staff.attendancePercent}%
+                            Attendance Rate: {staff.attendancePercent}%{' '}
+                            <span style={{ fontSize: '11px', color: ui.textMuted, fontWeight: 400 }}>
+                              ({staff.daysPresent} of {staff.totalDaysInPeriod} days)
+                            </span>
                           </p>
                         </div>
                         <div>
