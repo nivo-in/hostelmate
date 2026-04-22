@@ -114,21 +114,42 @@ export default function StaffDirectory() {
   useEffect(() => {
     let isCancelled = false;
 
-    if (activeTab === 'report' && staffList.length > 0) {
+    if (activeTab === 'report') {
       const fetchReport = async () => {
         setLoadingReport(true);
-        const staffToReport = staffList;
-
-        const [yearStr, monthStr] = selectedMonth.split('-');
-        const year = parseInt(yearStr, 10);
-        const month = parseInt(monthStr, 10);
-        const lastDayNum = new Date(year, month, 0).getDate();
-        const startDate = `${selectedMonth}-01`;
-        const endDate = `${selectedMonth}-${String(lastDayNum).padStart(2, '0')}`;
-
         try {
+          let currentStaff = staffList;
+          if (currentStaff.length === 0) {
+            const [{ data: staffMembers }, { data: wardenProfiles }] = await Promise.all([
+              supabase.from('staff_members').select('*').order('created_at', { ascending: false }),
+              supabase.from('profiles').select('id, full_name, email, phone, role').eq('role', 'warden'),
+            ]);
+            const wardens: StaffMember[] = (wardenProfiles || []).map((w) => ({
+              id: w.id,
+              full_name: w.full_name,
+              email: w.email,
+              phone: w.phone,
+              staff_role: 'warden',
+              is_present: false,
+              created_at: new Date().toISOString(),
+              isWarden: true,
+            }));
+            const members: StaffMember[] = (staffMembers || []).map((s) => ({
+              ...s,
+              is_present: s.is_present ?? false,
+            }));
+            currentStaff = [...wardens, ...members];
+          }
+
+          const [yearStr, monthStr] = selectedMonth.split('-');
+          const year = parseInt(yearStr, 10);
+          const month = parseInt(monthStr, 10);
+          const lastDayNum = new Date(year, month, 0).getDate();
+          const startDate = `${selectedMonth}-01`;
+          const endDate = `${selectedMonth}-${String(lastDayNum).padStart(2, '0')}`;
+
           const data = await Promise.all(
-            staffToReport.map(async (staff) => {
+            currentStaff.map(async (staff) => {
               let attendanceQuery = supabase
                 .from('staff_attendance')
                 .select('*')
@@ -166,15 +187,13 @@ export default function StaffDirectory() {
                 }
               }
 
-              const hasData = totalDays > 0 || feedbackData.this_month_reviews > 0;
-
               return {
                 ...staff,
                 daysPresent,
                 daysAbsent,
                 attendancePercent,
                 ...feedbackData,
-                hasData,
+                hasData: true,
               };
             })
           );
@@ -197,7 +216,7 @@ export default function StaffDirectory() {
     return () => {
       isCancelled = true;
     };
-  }, [activeTab, selectedMonth, staffList.length]);
+  }, [activeTab, selectedMonth, staffList, supabase, apiGet]);
 
   // ── Sign out ─────────────────────────────────────────────────────────
   const handleSignOut = async () => {
