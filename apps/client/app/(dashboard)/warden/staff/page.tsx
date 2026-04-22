@@ -153,6 +153,18 @@ export default function StaffDirectory() {
           const startDate = `${targetMonth}-01`;
           const endDate = `${targetMonth}-${String(lastDayNum).padStart(2, '0')}`;
 
+          const now = new Date();
+          const currentYear = now.getFullYear();
+          const currentMonth = now.getMonth() + 1; // 1-indexed (1..12)
+          const currentDay = now.getDate(); // e.g. 22
+
+          let totalDaysInPeriod = lastDayNum;
+          if (year === currentYear && month === currentMonth) {
+            totalDaysInPeriod = currentDay;
+          } else if (year > currentYear || (year === currentYear && month > currentMonth)) {
+            totalDaysInPeriod = 0;
+          }
+
           const data = await Promise.all(
             currentStaff.map(async (staff) => {
               let attendance: { is_present: boolean }[] = [];
@@ -178,10 +190,11 @@ export default function StaffDirectory() {
               }
 
               const daysPresent = attendance.filter((a) => a.is_present).length;
-              const daysAbsent = attendance.filter((a) => !a.is_present).length;
-              const totalDays = daysPresent + daysAbsent;
+              const daysAbsent = Math.max(0, totalDaysInPeriod - daysPresent);
               const attendancePercent =
-                totalDays > 0 ? Math.round((daysPresent / totalDays) * 100) : 0;
+                totalDaysInPeriod > 0
+                  ? Math.min(100, Math.round((daysPresent / totalDaysInPeriod) * 100))
+                  : 0;
 
               let feedbackData = { average_rating: 0, total_reviews: 0, this_month_reviews: 0 };
 
@@ -693,7 +706,19 @@ export default function StaffDirectory() {
 
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', fontSize: '13px' }}>
                         <div>
-                          <p style={{ ...label, margin: '0 0 6px' }}>Attendance ({selectedMonth})</p>
+                          <p style={{ ...label, margin: '0 0 6px' }}>
+                            Attendance (
+                            {(() => {
+                              try {
+                                const [y, mon] = selectedMonth.split('-');
+                                const date = new Date(parseInt(y, 10), parseInt(mon, 10) - 1, 1);
+                                return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+                              } catch {
+                                return selectedMonth;
+                              }
+                            })()}
+                            )
+                          </p>
                           <p style={{ color: ui.textSoft, margin: 0 }}>Days Present: <strong style={{ color: ui.green }}>{staff.daysPresent}</strong></p>
                           <p style={{ color: ui.textSoft, margin: 0 }}>Days Absent: <strong style={{ color: ui.red }}>{staff.daysAbsent}</strong></p>
                           <p style={{ color: ui.text, fontWeight: 500, margin: '4px 0 0' }}>

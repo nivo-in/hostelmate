@@ -105,14 +105,17 @@ export default function StudentDashboard() {
       // Attendance
       if (attendanceRes?.success && Array.isArray(attendanceRes.data)) {
         const records: { date: string; status: string }[] = attendanceRes.data;
-        const present = records.filter((r) => r.status === 'present').length;
-        newStats.attendanceRate = records.length
-          ? Math.round((present / records.length) * 100)
-          : 0;
-        const ym = new Date().toISOString().slice(0, 7); // YYYY-MM
-        const month = records.filter((r) => (r.date || '').startsWith(ym));
-        newStats.monthTotal = month.length;
-        newStats.monthPresent = month.filter((r) => r.status === 'present').length;
+        const now = new Date();
+        const ym = now.toISOString().slice(0, 7); // YYYY-MM
+        const currentDay = now.getDate(); // e.g. 22
+
+        const monthRecords = records.filter((r) => (r.date || '').startsWith(ym));
+        const monthPresent = monthRecords.filter((r) => r.status === 'present').length;
+
+        newStats.monthPresent = monthPresent;
+        newStats.monthTotal = currentDay;
+        newStats.attendanceRate =
+          currentDay > 0 ? Math.min(100, Math.round((monthPresent / currentDay) * 100)) : 0;
       }
 
       // Leaves
