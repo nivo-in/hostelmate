@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useApi } from '@/hooks/useApi';
@@ -23,6 +23,10 @@ import {
   UserCheck,
   ArrowLeftRight,
 } from 'lucide-react';
+
+const FaceEnrollment = dynamic(() => import('@/components/face/FaceEnrollment'), {
+  ssr: false,
+});
 
 const NotificationBell = dynamic(
   () => import('@/components/ui/NotificationBell').then((m) => ({ default: m.NotificationBell })),
@@ -53,8 +57,10 @@ export default function StudentDashboard() {
   const router = useRouter();
   const { apiGet } = useApi();
   const [firstName, setFirstName] = useState('');
+  const [studentId, setStudentId] = useState('');
   const [loading, setLoading] = useState(true);
   const [faceRegistered, setFaceRegistered] = useState<boolean | null>(null);
+  const [showFaceScanner, setShowFaceScanner] = useState(false);
   const [stats, setStats] = useState<StudentStats>(EMPTY_STATS);
 
   useEffect(() => {
@@ -83,6 +89,7 @@ export default function StudentDashboard() {
         setLoading(false);
         return;
       }
+      setStudentId(user.id);
 
       const [profileResult, attendanceRes, leavesRes, complaintsRes, paymentsRes, faceResult] =
         await Promise.all([
@@ -371,15 +378,32 @@ export default function StudentDashboard() {
                   </span>
                 )}
                 <button
-                  onClick={() => router.push(faceRegistered ? '/student/attendance?updateFace=true' : '/student/attendance')}
+                  onClick={() => setShowFaceScanner(!showFaceScanner)}
                   style={{ minWidth: '110px', display: 'flex', justifyContent: 'center', fontSize: '11px', color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', transition: 'all 0.2s' }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; e.currentTarget.style.borderColor = 'rgba(251,146,60,0.4)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
                 >
-                  {faceRegistered ? 'Update Face' : 'Set up Face'}
+                  {showFaceScanner ? 'Close Scanner' : faceRegistered ? 'Update Face' : 'Set up Face'}
                 </button>
               </div>
             </div>
+
+            {/* Inline Face Scanner */}
+            {showFaceScanner && (
+              <div style={{ marginTop: '20px', borderRadius: '16px', overflow: 'hidden', background: 'rgba(255,255,255,0.97)', padding: '16px' }}>
+                <Suspense fallback={<div style={{ padding: '32px', textAlign: 'center', fontSize: '13px', color: '#9ca3af' }}>Loading face scanner…</div>}>
+                  <FaceEnrollment
+                    subjectId={studentId}
+                    role="student"
+                    onSuccess={() => {
+                      setShowFaceScanner(false);
+                      setFaceRegistered(true);
+                    }}
+                    onCancel={() => setShowFaceScanner(false)}
+                  />
+                </Suspense>
+              </div>
+            )}
           </div>
           </Reveal>
         )}
