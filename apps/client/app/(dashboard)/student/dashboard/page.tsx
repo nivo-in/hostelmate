@@ -262,8 +262,9 @@ export default function StudentDashboard() {
         <Reveal>
         <div style={{ marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div>
-            <div suppressHydrationWarning style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>{greeting}</div>
-            <h1 style={{ fontSize: '26px', fontWeight: 500, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>{loading && !firstName ? 'Student' : firstName || 'Student'}</h1>
+            <h1 suppressHydrationWarning style={{ fontSize: '26px', fontWeight: 500, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>
+              {greeting} {loading && !firstName ? 'Student' : firstName || 'Student'}
+            </h1>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <AiAssistant />
