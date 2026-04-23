@@ -2,9 +2,11 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { PageShell } from '@/components/ui/PageShell';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Reveal } from '@/components/ui/Reveal';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
+import { useRouter } from 'next/navigation';
 import { FileText } from 'lucide-react';
 
 interface RazorpayInstance {
@@ -55,6 +57,7 @@ interface ParentProfile {
 const fmt = (n: number) => '₹' + n.toLocaleString('en-IN');
 
 export default function ParentPaymentsPage() {
+  const router = useRouter();
   const [paymentsData, setPaymentsData] = useState<PaymentsData | null>(null);
   const [parentProfile, setParentProfile] = useState<ParentProfile | null>(null);
   const [receiptModal, setReceiptModal] = useState<ReceiptData | null>(null);
@@ -64,6 +67,11 @@ export default function ParentPaymentsPage() {
 
   const { apiGet, apiPost } = useApi();
   const supabase = createClient();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
 
   const fetchPayments = useCallback(async () => {
     try {
@@ -203,7 +211,14 @@ export default function ParentPaymentsPage() {
   const studentName = paymentsData?.student_name || 'Ward';
 
   return (
-    <PageShell title="Fee Payments" subtitle={`Fee status for ${studentName}`}>
+    <PageShell spotlight="rgba(96,165,250,0.12)">
+      <PageHeader title="Fee Payments" showBack onSignOut={handleSignOut} />
+
+      <div style={{ padding: '24px 32px', maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <div style={{ marginBottom: '16px' }}>
+          <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>Fee status for </span>
+          <span style={{ fontSize: '14px', fontWeight: 500, color: '#ffffff' }}>{studentName}</span>
+        </div>
       {/* Alerts */}
       {error && (
         <div style={{ marginBottom: '16px', padding: '12px 16px', background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', borderRadius: '12px', fontSize: '13px', color: '#f87171', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -406,6 +421,7 @@ export default function ParentPaymentsPage() {
           </div>
         </div>
       )}
+      </div>
     </PageShell>
   );
 }
