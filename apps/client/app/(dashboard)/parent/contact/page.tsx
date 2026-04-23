@@ -56,7 +56,7 @@ export default function ParentContact() {
               backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(251,146,60,0.1)', border: '0.5px solid rgba(251,146,60,0.25)', color: '#fb923c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(96,165,250,0.1)', border: '0.5px solid rgba(96,165,250,0.25)', color: '#60a5fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <ShieldCheck size={18} />
                 </div>
                 <div>
@@ -77,7 +77,7 @@ export default function ParentContact() {
                     </div>
                     <div>
                       <h3 style={{ fontSize: '16px', fontWeight: 500, color: '#ffffff', margin: 0 }}>{warden.full_name}</h3>
-                      <p style={{ fontSize: '12px', color: '#fb923c', margin: '2px 0 0 0', fontWeight: 500 }}>Chief Hostel Warden</p>
+                      <p style={{ fontSize: '12px', color: '#60a5fa', margin: '2px 0 0 0', fontWeight: 500 }}>Chief Hostel Warden</p>
                     </div>
                   </div>
 
@@ -102,8 +102,8 @@ export default function ParentContact() {
                       style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                         width: '100%', padding: '12px 16px', borderRadius: '12px',
-                        background: 'rgba(251,146,60,0.15)', border: '0.5px solid rgba(251,146,60,0.35)',
-                        color: '#fb923c', fontWeight: 500, fontSize: '13px', textDecoration: 'none',
+                        background: 'rgba(96,165,250,0.15)', border: '0.5px solid rgba(96,165,250,0.35)',
+                        color: '#60a5fa', fontWeight: 500, fontSize: '13px', textDecoration: 'none',
                         transition: 'all 0.2s ease'
                       }}
                     >
