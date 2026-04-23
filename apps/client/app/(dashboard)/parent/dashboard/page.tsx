@@ -68,6 +68,7 @@ export default function ParentDashboard() {
         }
         .dash-card .arrow-icon { transition: all 0.3s ease; color: rgba(255,255,255,0.2); transform: translateX(0); }
         .dash-card:hover .arrow-icon { transform: translateX(6px); color: rgba(255,255,255,0.6); }
+        .dash-card:hover .icon-tile { border-color: rgba(255,255,255,0.3) !important; background: rgba(255,255,255,0.15) !important; color: #ffffff !important; }
         .signout-btn .signout-arrow { transition: transform 0.2s ease; }
         .signout-btn:hover .signout-arrow { transform: translateX(3px); }
       `}</style>
@@ -130,10 +131,14 @@ export default function ParentDashboard() {
               className="dash-card group"
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{
-                  width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '10px', fontSize: '18px'
-                }}>
+                <div
+                  className="icon-tile"
+                  style={{
+                    width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '10px',
+                    color: '#ffffff', transition: 'all 0.3s ease'
+                  }}
+                >
                   {item.icon}
                 </div>
                 <div className="flex mt-1">
