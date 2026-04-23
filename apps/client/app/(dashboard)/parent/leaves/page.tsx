@@ -131,7 +131,7 @@ export default function ParentLeaves() {
                   </thead>
                   <tbody>
                     {leaves.map((l) => (
-                      <tr key={l.id} style={{ borderBottom: '0.5px solid rgba(255,255,255,0.04)' }}>
+                      <tr key={l.id} className="row-hover" style={{ borderBottom: '0.5px solid rgba(255,255,255,0.04)', transition: 'background 0.15s ease' }}>
                         <td style={{ ...tdStyle, color: 'rgba(255,255,255,0.85)' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
                             <Calendar size={13} color="rgba(255,255,255,0.4)" />

@@ -333,6 +333,7 @@ export default function ParentPaymentsPage() {
               {paidPayments.map((payment) => (
                 <div
                   key={payment.id}
+                  className="glass-card"
                   style={{
                     background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)',
                     borderRadius: '16px', padding: '18px 22px',
