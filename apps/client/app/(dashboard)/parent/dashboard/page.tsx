@@ -410,8 +410,8 @@ export default function ParentDashboard() {
                   className="icon-tile"
                   style={{
                     width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '10px',
-                    color: '#ffffff', transition: 'all 0.3s ease'
+                    background: 'rgba(96,165,250,0.1)', border: '0.5px solid rgba(96,165,250,0.25)', borderRadius: '10px',
+                    color: '#60a5fa', transition: 'all 0.3s ease'
                   }}
                 >
                   {item.icon}
