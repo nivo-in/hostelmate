@@ -2,6 +2,12 @@
 
 import { Palmtree, Megaphone, Phone, CreditCard, Check, X, Plane, Calendar as CalendarIcon } from 'lucide-react';
 import { useEffect, useState, useCallback, useRef } from 'react';
+import dynamic from 'next/dynamic';
+
+const NotificationBell = dynamic(
+  () => import('@/components/ui/NotificationBell').then((m) => ({ default: m.NotificationBell })),
+  { ssr: false, loading: () => <div style={{ width: 18, height: 18 }} /> }
+);
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useApi } from '@/hooks/useApi';
@@ -265,6 +271,7 @@ export default function ParentDashboard() {
           <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>BY NIVO</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <NotificationBell />
           <button
             onClick={handleSignOut}
             className="signout-btn"
