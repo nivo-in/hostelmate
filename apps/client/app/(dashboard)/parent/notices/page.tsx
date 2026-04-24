@@ -59,10 +59,13 @@ export default function ParentNotices() {
                 placeholder="Search announcements..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Search notices and announcements"
+                className="hm-input hm-input-blue"
                 style={{
                   width: '100%', padding: '8px 12px 8px 34px', borderRadius: '10px',
                   background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)',
-                  color: '#ffffff', fontSize: '13px', outline: 'none'
+                  color: '#ffffff', fontSize: '13px', outline: 'none',
+                  transition: 'border-color 0.15s ease'
                 }}
               />
             </div>
