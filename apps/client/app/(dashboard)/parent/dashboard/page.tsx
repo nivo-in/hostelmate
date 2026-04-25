@@ -303,7 +303,14 @@ export default function ParentDashboard() {
             <h1 suppressHydrationWarning style={{ fontSize: '24px', fontWeight: 500, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>
               {greeting} {parentDisplayName}
             </h1>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>Tracking your ward</div>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Parent Portal</span>
+              <span style={{ opacity: 0.4 }}>·</span>
+              <span suppressHydrationWarning>{new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+            </div>
+          </div>
+          <div style={{ fontSize: '11px', fontWeight: 600, color: '#60a5fa', background: 'rgba(96,165,250,0.1)', border: '0.5px solid rgba(96,165,250,0.25)', borderRadius: '6px', padding: '4px 10px', letterSpacing: '0.5px' }}>
+            PARENT
           </div>
         </div>
         </Reveal>
