@@ -129,8 +129,15 @@ export default function ParentLeaves() {
             </div>
 
             {loading ? (
-              <div style={{ padding: '40px', textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
-                Loading leave records...
+              <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr 1fr', gap: '16px', alignItems: 'center' }}>
+                    <div className="skeleton" style={{ height: '16px', width: '80%' }} />
+                    <div className="skeleton" style={{ height: '16px', width: '70%' }} />
+                    <div className="skeleton" style={{ height: '20px', width: '60px', borderRadius: '6px' }} />
+                    <div className="skeleton" style={{ height: '16px', width: '50%' }} />
+                  </div>
+                ))}
               </div>
             ) : filteredLeaves.length === 0 ? (
               <div style={{ padding: '48px 24px', textAlign: 'center' }}>
