@@ -136,24 +136,31 @@ export default function ParentContact() {
           </Reveal>
 
           <Reveal delay={60}>
-            <div style={{
-              background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)',
-              borderRadius: '16px', padding: '24px',
-              backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)'
-            }}>
+            <div
+              className="glass-card"
+              style={{
+                background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)',
+                borderRadius: '16px', padding: '24px',
+                backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)'
+              }}
+            >
               <h3 style={{ fontSize: '15px', fontWeight: 500, color: '#ffffff', margin: '0 0 16px 0' }}>Hostel Office & Location</h3>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                  <MapPin size={16} color="#60a5fa" style={{ marginTop: '2px', flexShrink: 0 }} />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(96,165,250,0.1)', border: '0.5px solid rgba(96,165,250,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <MapPin size={15} color="#60a5fa" />
+                  </div>
                   <div>
                     <strong style={{ color: '#ffffff', display: 'block', marginBottom: '2px' }}>Campus Address</strong>
                     Hostel Management Office, Block B, Main University Campus
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                  <Clock size={16} color="#4ade80" style={{ marginTop: '2px', flexShrink: 0 }} />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(74,222,128,0.1)', border: '0.5px solid rgba(74,222,128,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Clock size={15} color="#4ade80" />
+                  </div>
                   <div>
                     <strong style={{ color: '#ffffff', display: 'block', marginBottom: '2px' }}>Office Visiting Hours</strong>
                     09:00 AM – 06:00 PM (Monday to Saturday)
