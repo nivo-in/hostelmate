@@ -73,9 +73,18 @@ export default function ParentNotices() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {loading ? (
-              <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '40px', textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
-                Loading announcements...
-              </div>
+              <>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px 24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                      <div className="skeleton" style={{ width: '32px', height: '32px', borderRadius: '8px' }} />
+                      <div className="skeleton" style={{ height: '16px', width: '40%' }} />
+                    </div>
+                    <div className="skeleton" style={{ height: '13px', width: '90%', marginBottom: '6px' }} />
+                    <div className="skeleton" style={{ height: '13px', width: '70%' }} />
+                  </div>
+                ))}
+              </>
             ) : filteredNotices.length === 0 ? (
               <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '48px 24px', textAlign: 'center' }}>
                 <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', color: 'rgba(255,255,255,0.3)' }}>
