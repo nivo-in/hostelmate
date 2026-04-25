@@ -6,6 +6,8 @@
 
 [![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![CHANGELOG](https://img.shields.io/badge/Changelog-Keep_a_Changelog-blue?style=for-the-badge)](CHANGELOG.md)
+[![Contributing](https://img.shields.io/badge/Contributing-Guide-6c3eff?style=for-the-badge)](CONTRIBUTING.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://supabase.com/)
 [![Redis](https://img.shields.io/badge/Redis-Upstash-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://upstash.com/)
@@ -18,7 +20,7 @@
 
 **HostelMate replaces manual hostel registers, WhatsApp complaint groups, and paper-based leave forms with a secure, real-time platform — built for scale.**
 
-[Getting Started](#-getting-started) · [Architecture](#-architecture) · [API Docs](#-api-documentation) · [Contributing](#-contributing)
+[Getting Started](#-getting-started) · [Architecture](#-architecture) · [API Docs](#-api-documentation) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [Security](SECURITY.md)
 
 ---
 
@@ -141,7 +143,7 @@ HostelMate provides a **role-based platform** where students, wardens, and paren
 | **Containers** | Docker + Docker Compose | Multi-service containerization with layer caching |
 | **API Docs** | Swagger / OpenAPI 3.0 | Interactive documentation at `/api/docs` |
 | **Monorepo** | Turborepo + pnpm 10 | Workspace management and parallel build orchestration |
-| **Unit Tests** | Jest 30 + Supertest | 23 suites · 261 tests · ≥80% coverage enforced |
+| **Unit Tests** | Jest 30 + Supertest | 23 suites · 261 tests · ≥80% line/function coverage enforced |
 | **E2E Tests** | Playwright | Browser automation with auto-started dev servers |
 | **Git Hooks** | Husky v9 | Pre-commit: lint client → run server tests |
 | **Linting** | ESLint 9 (Next.js config) | TypeScript-aware linting with Core Web Vitals rules |
@@ -399,11 +401,12 @@ Each role project uses **saved auth storage state** from the setup project — l
 ### 👨‍👩‍👧 Parent
 | Feature | Description |
 |---|---|
-| Student Tracking | Real-time attendance and leave status of linked ward |
-| Leave Visibility | Track child's leave requests and approvals |
-| Notices | View parent-targeted announcements |
-| Contact Warden | Direct communication channel |
-| **Fee Payments** | **Pay ward's fees via Razorpay; view payment history and receipts** |
+| **Ward Dashboard** | **3-column real-time ward tracking: profile, monthly attendance rate, calendar heatmap** |
+| **Leave Status (Filtered)** | **View ward's leaves with status filter chips: All / Approved / Pending / Rejected** |
+| **Notices (Searchable)** | **Live search bar across parent-targeted announcements and hostel bulletins** |
+| **Contact Warden** | **Dual action buttons: Call Warden + Send Email with office hours info** |
+| **Fee Payments** | **Pay ward's hostel fees via Razorpay; colored summary cards; view receipts** |
+| **Notification Bell** | **Real-time push notifications with Parent Blue (#60a5fa) themed panel** |
 | **Curfew Alerts** | **Receive notification if ward hasn't checked in by curfew time** |
 
 ---
@@ -856,7 +859,7 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | ✅ | **GitHub Actions CI/CD** | Lint → build → server tests → security audit → Docker verify on every push |
 | ✅ | **Husky Pre-commit Hooks** | Client lint + server tests enforced before every `git commit` |
 | ✅ | **E2E Tests (Playwright)** | Browser-level login flow tests with auto-started dev servers |
-| ✅ | **Jest Integration Tests** | 20 suites, 214 tests — ≥80% line/function threshold enforced |
+| ✅ | **Jest Integration Tests** | 23 suites, 261 tests — ≥80% line/function threshold enforced |
 | ✅ | **ESLint 9 Flat Config** | Next.js Core Web Vitals + TypeScript rules across the client |
 | ✅ | **Redis Caching** | Tiered TTL caching (2–60 min) with smart pattern-based invalidation |
 | ✅ | **Redis Pub/Sub** | Real-time event propagation via Upstash Redis channels |
@@ -887,7 +890,15 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | ✅ | **Login page** | Role detection, animated spotlight, 3D card tilt, googly eyes password toggle |
 | ✅ | **Apple liquid glass navigation** | visionOS-style backdrop blur, multi-layer refraction, inner highlights |
 | ✅ | **Cinematic login card transition** | Card fly-to-centre + overlay fade from landing page to /login |
-| ✅ | **Notification Bell** | Apple notification center style slide-in panel with unread badge |
+| ✅ | **Notification Bell** | Apple notification center–style slide-in panel, role-themed colors, search, real-time push |
+| ✅ | **Parent Leave Filter** | Interactive status chips (All / Approved / Pending / Rejected) on Parent Leaves page |
+| ✅ | **Parent Notices Search** | Live search bar filtering announcements by title and content |
+| ✅ | **Skeleton Shimmer** | Global `.skeleton` CSS class for consistent animated loading placeholders |
+| ✅ | **CHANGELOG** | Full release history following Keep a Changelog format |
+| ✅ | **CONTRIBUTING guide** | Branching, commit conventions, testing, and PR submission guide |
+| ✅ | **SECURITY policy** | Responsible disclosure, supported versions, and security architecture |
+| ✅ | **EditorConfig** | Cross-editor formatting consistency (.editorconfig) |
+| ✅ | **Makefile** | Developer convenience targets: dev, lint, test, build, docker, clean |
 | 🔲 | **Mobile App** | React Native cross-platform app for students and parents |
 | 🔲 | **Multi-tenancy** | Support multiple hostels under one instance with tenant isolation |
 
