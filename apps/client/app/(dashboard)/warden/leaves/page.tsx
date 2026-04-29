@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageShell } from '@/components/ui/PageShell';
 import { Badge } from '@/components/ui/Badge';
@@ -11,7 +11,7 @@ import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { LeaveWithStudent } from '@/types';
 import { ui, panel, buttonGhost, container } from '@/lib/ui';
-import { Calendar } from 'lucide-react';
+import { Calendar, Search } from 'lucide-react';
 
 export default function WardenLeaves() {
   const [activeTab, setActiveTab] = useState('All');
@@ -19,6 +19,7 @@ export default function WardenLeaves() {
   const [message, setMessage] = useState('');
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { apiGet, apiPatch } = useApi();
   const router = useRouter();
@@ -65,13 +66,26 @@ export default function WardenLeaves() {
   const getStatusVariant = (status: string) => {
     if (status === 'approved') {return 'success';}
     if (status === 'rejected') {return 'danger';}
+    if (status === 'on_leave') {return 'orange';}
     return 'warning';
-  };
+  } as (status: string) => 'success' | 'danger' | 'warning' | 'orange';
 
-  const filteredLeaves = leaves.filter((l) => {
-    if (activeTab === 'All') {return true;}
-    return l.status.toLowerCase() === activeTab.toLowerCase();
-  });
+  const filteredLeaves = useMemo(() => {
+    let result = leaves.filter((l) => {
+      if (activeTab === 'All') {return true;}
+      return l.status.toLowerCase() === activeTab.toLowerCase();
+    });
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (l) =>
+          l.profiles?.full_name?.toLowerCase().includes(q) ||
+          l.reason?.toLowerCase().includes(q) ||
+          l.roll_number?.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [leaves, activeTab, searchQuery]);
 
   return (
     <PageShell>
@@ -97,6 +111,24 @@ export default function WardenLeaves() {
             {message}
           </div>
         )}
+
+        {/* Search */}
+        <div style={{ position: 'relative', marginBottom: '16px' }}>
+          <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
+          <input
+            type="text"
+            placeholder="Search by student name, roll number, or reason…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search leave requests"
+            style={{
+              width: '100%', padding: '8px 12px 8px 34px', borderRadius: '10px',
+              background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)',
+              color: '#ffffff', fontSize: '13px', outline: 'none',
+              transition: 'border-color 0.15s ease', boxSizing: 'border-box'
+            }}
+          />
+        </div>
 
         {/* Tabs */}
         <div
