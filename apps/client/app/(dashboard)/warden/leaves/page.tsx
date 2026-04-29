@@ -63,12 +63,12 @@ export default function WardenLeaves() {
     router.push('/login');
   };
 
-  const getStatusVariant = (status: string) => {
+  const getStatusVariant = (status: string): 'success' | 'danger' | 'warning' | 'orange' => {
     if (status === 'approved') {return 'success';}
     if (status === 'rejected') {return 'danger';}
     if (status === 'on_leave') {return 'orange';}
     return 'warning';
-  } as (status: string) => 'success' | 'danger' | 'warning' | 'orange';
+  };
 
   const filteredLeaves = useMemo(() => {
     let result = leaves.filter((l) => {
