@@ -3,6 +3,11 @@ import logger from '../config/logger.js';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
+/**
+ * General API rate limiter applied to all routes.
+ * Production: 100 requests per 15 minutes per IP.
+ * Development: 2000 requests per 15 minutes (permissive for hot-reload).
+ */
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isDev ? 2000 : 100,
@@ -20,6 +25,11 @@ export const generalLimiter = rateLimit({
   },
 });
 
+/**
+ * Strict auth limiter applied to login/register routes.
+ * Production: 10 requests per 15 minutes per IP (brute-force protection).
+ * Development: 200 requests per 15 minutes.
+ */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isDev ? 200 : 10,
@@ -36,6 +46,12 @@ export const authLimiter = rateLimit({
   },
 });
 
+/**
+ * Notification limiter applied to notification read/update endpoints.
+ * Keyed by IP + user ID to allow parallel sessions.
+ * Production: 30 requests per 2 minutes per user.
+ * Development: 100 requests per 2 minutes.
+ */
 export const notificationLimiter = rateLimit({
   windowMs: 2 * 60 * 1000,
   max: isDev ? 100 : 30,
