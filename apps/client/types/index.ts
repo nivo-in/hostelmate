@@ -1,8 +1,26 @@
+/**
+ * @file types/index.ts
+ * Shared TypeScript types and interfaces for the HostelMate client.
+ * These mirror the Supabase database schema and are used across all
+ * dashboard pages (Student, Warden, Parent) to ensure type safety.
+ */
+
+/** The three user roles in the HostelMate system */
 export type UserRole = 'student' | 'warden' | 'parent';
+
+/** Whether a student was present, absent, or on approved leave */
 export type AttendanceStatus = 'present' | 'absent' | 'leave';
+
+/** Workflow states for leave requests */
 export type LeaveStatus = 'pending' | 'approved' | 'rejected';
+
+/** Workflow states for maintenance/hostel complaints */
 export type ComplaintStatus = 'open' | 'in_progress' | 'resolved';
+
+/** Meal slots served in the hostel mess */
 export type MealType = 'breakfast' | 'lunch' | 'snacks' | 'dinner';
+
+/** Days of the week — used in MessMenu scheduling */
 export type DayOfWeek =
   | 'monday'
   | 'tuesday'
@@ -11,9 +29,17 @@ export type DayOfWeek =
   | 'friday'
   | 'saturday'
   | 'sunday';
+
+/** Roles assigned to hostel staff members */
 export type StaffRole = 'warden' | 'admin' | 'cleaner' | 'security';
+
+/** Lost & Found item workflow states */
 export type ItemStatus = 'lost' | 'found' | 'claimed';
+
+/** Who a notice is published to */
 export type TargetAudience = 'students' | 'parents' | 'all';
+
+/** Family relationship between parent and student */
 export type Relation = 'father' | 'mother' | 'guardian';
 
 export interface Profile {
