@@ -79,9 +79,9 @@ export default function WardenLeaves() {
       const q = searchQuery.toLowerCase();
       result = result.filter(
         (l) =>
-          l.profiles?.full_name?.toLowerCase().includes(q) ||
+          l.students?.profiles?.full_name?.toLowerCase().includes(q) ||
           l.reason?.toLowerCase().includes(q) ||
-          l.roll_number?.toLowerCase().includes(q)
+          l.students?.roll_number?.toLowerCase().includes(q)
       );
     }
     return result;
