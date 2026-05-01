@@ -9,6 +9,12 @@ const MAX_MESSAGES = 30;
 const MAX_TOTAL_CHARS = 12000;
 const VALID_ROLES = new Set(['user', 'assistant', 'system']);
 
+/**
+ * POST /api/v1/ai/chat
+ * Conversations handler for AI Assistant (Student and Warden roles).
+ * Limits input size to prevent prompt flood abuse. Merges database state (leaves,
+ * complaints, attendance) as contextual parameters before querying the LLM.
+ */
 router.post('/chat', authenticate, async (req, res, next) => {
   try {
     const { messages } = req.body;
@@ -114,6 +120,12 @@ router.post('/chat', authenticate, async (req, res, next) => {
   }
 });
 
+/**
+ * GET /api/v1/ai/analysis/:type
+ * Returns structured AI analysis (summary, insights) for recent database items.
+ * Supports complaints, leaves, visitors, and mess review data, limiting queries
+ * to the authenticated student's owned scope if role is 'student'.
+ */
 router.get('/analysis/:type', authenticate, async (req, res, next) => {
   try {
     const { type } = req.params;
