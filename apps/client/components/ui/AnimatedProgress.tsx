@@ -2,11 +2,22 @@
 
 import { useEffect, useState } from 'react';
 
+/**
+ * Props for the AnimatedProgress component.
+ */
 interface AnimatedProgressProps {
-  value: number; // percentage (0 to 100)
+  /** Target percentage fill value (0 to 100) */
+  value: number;
+  /** Fill background CSS color value (e.g. '#60a5fa' or a theme gradient) */
   color: string;
+  /** Transition sweep duration in milliseconds (default: 1200ms) */
   duration?: number;
 }
+
+/**
+ * Animated linear horizontal progress bar indicator.
+ * Animates its width towards the target percentage using a custom easeOut cubic-bezier transition.
+ */
 
 export function AnimatedProgress({ value, color, duration = 1200 }: AnimatedProgressProps) {
   const [width, setWidth] = useState(0);
