@@ -13,12 +13,25 @@ const NotificationBell = dynamic(
   }
 );
 
+/**
+ * Props for the PageHeader component.
+ */
 type PageHeaderProps = {
+  /** The text title of the page */
   title: string;
+  /** Whether to show the back arrow button (default: false) */
   showBack?: boolean;
+  /** Custom destination path for back button (falls back to dashboard role) */
   backHref?: string;
+  /** Callback function to invoke when user executes Sign Out */
   onSignOut: () => void;
 };
+
+/**
+ * Sticky global page header used across all portal subpages.
+ * Displays page title, back button with path inference, unread notification
+ * badge/bell panel, and sign-out confirmation dialog.
+ */
 
 export function PageHeader({ title, showBack, backHref, onSignOut: _onSignOut }: PageHeaderProps) {
   const pathname = usePathname();
