@@ -7,8 +7,18 @@ import { messMenuSchema, messReviewSchema } from '../config/validation.js';
 import logger from '../config/logger.js';
 import { getCache, setCache, deleteCache } from '../config/redis.js';
 
-const router = Router();
+/**
+ * @file routes/mess.js
+ * Express routes handling mess menu retrieval, warden updates,
+ * student feedback reviews, and aggregate ratings.
+ */
 
+/**
+ * GET /api/v1/mess/menu
+ * Returns the full weekly mess menu.
+ * Uses a Redis cached copy ('mess:menu') with 1-hour TTL to bypass
+ * database reads. Falls back to database and updates cache on miss.
+ */
 router.get('/menu', authenticate, async (req, res, next) => {
   try {
     const cacheKey = 'mess:menu';
@@ -30,6 +40,11 @@ router.get('/menu', authenticate, async (req, res, next) => {
   }
 });
 
+/**
+ * PUT /api/v1/mess/menu
+ * Upserts a meal slot entry (breakfast, lunch, etc.) for a specific day of the week.
+ * Restricted to Wardens. Invalidates the 'mess:menu' and dashboard cache keys on success.
+ */
 router.put(
   '/menu',
   authenticate,
