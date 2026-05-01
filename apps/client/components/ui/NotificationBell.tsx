@@ -13,6 +13,13 @@ import {
   CreditCard, UtensilsCrossed, PackageSearch
 } from 'lucide-react';
 
+/**
+ * Computes a human-readable relative time string (e.g. '3m ago', '2h ago')
+ * from a past ISO date string.
+ *
+ * @param {string} dateString - Past timestamp in ISO format
+ * @returns {string} Relative time difference string
+ */
 function timeAgo(dateString: string) {
   const date = new Date(dateString);
   const now = new Date();
@@ -31,6 +38,14 @@ function timeAgo(dateString: string) {
   return Math.floor(seconds) + 's ago';
 }
 
+/**
+ * Returns a React Lucide icon element configured with custom color
+ * and size appropriate for the notification classification category.
+ *
+ * @param {string} type - Notification category type
+ * @param {string} color - SVG stroke color code
+ * @returns {React.ReactElement}
+ */
 const getIconForType = (type: string, color: string) => {
   const props = { size: 16, color };
   switch (type) {
