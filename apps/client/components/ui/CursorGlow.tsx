@@ -3,9 +3,9 @@
 import { useEffect, useRef } from 'react';
 
 type CursorGlowProps = {
-  /** Full rgba() glow colour. Keep it faint — it sits behind the content. */
+  /** Full rgba() glow colour. Keep it faint — it sits behind the page content. (default: 'rgba(124,92,252,0.08)') */
   color?: string;
-  /** Diameter of the glow in px. */
+  /** Diameter of the glow sphere in pixels. (default: 600px) */
   size?: number;
 };
 
