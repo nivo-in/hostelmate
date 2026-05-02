@@ -12,6 +12,12 @@ import { emitToUser } from '../config/socket.js';
 
 const router = Router();
 
+/**
+ * POST /api/v1/leaves
+ * Submits a new leave request for the authenticated student.
+ * Validates start and end dates relative to today, inserts entry as pending,
+ * and clears dashboard statistics cache.
+ */
 router.post('/', authenticate, requireStudent, validate(leaveSchema), async (req, res, next) => {
   try {
     const { start_date, end_date, reason } = req.body;
@@ -50,6 +56,11 @@ router.post('/', authenticate, requireStudent, validate(leaveSchema), async (req
   }
 });
 
+/**
+ * GET /api/v1/leaves/my
+ * Retrieves a list of leave requests owned by the authenticated student.
+ * Filters by student_id context.
+ */
 router.get('/my', authenticate, requireStudent, async (req, res, next) => {
   try {
     const limit = parseInt(req.query.limit) || 50;
