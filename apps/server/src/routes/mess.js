@@ -13,6 +13,8 @@ import { getCache, setCache, deleteCache } from '../config/redis.js';
  * student feedback reviews, and aggregate ratings.
  */
 
+const router = Router();
+
 /**
  * GET /api/v1/mess/menu
  * Returns the full weekly mess menu.
