@@ -5,6 +5,13 @@ import { requireWarden } from '../middleware/rbac.js';
 
 const router = Router();
 
+/**
+ * GET /api/v1/audit
+ * Retrieves a paginated list of system audit logs.
+ * Includes related user profiles through a nested table join, and supports
+ * optional filtering by resource category or action type.
+ * Restricted to Wardens.
+ */
 router.get('/', authenticate, requireWarden, async (req, res, next) => {
   try {
     const { resource, action } = req.query;
