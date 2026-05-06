@@ -1,6 +1,11 @@
 import { describe, it, expect } from '@jest/globals';
 import { calculateDistance, isWithinGeofence } from '../config/geofence.js';
 
+/**
+ * @file __tests__/geofence.test.js
+ * Integration/unit tests for geolocation distance and geofence verification logic.
+ * Asserts Haversine formula distance computations and custom geofence radius checks.
+ */
 describe('Geofence Utilities', () => {
   const HOSTEL_LAT = 12.9394941;
   const HOSTEL_LNG = 77.5669014;
