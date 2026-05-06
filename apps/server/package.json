@@ -8,5 +8,10 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js"
   },
-  "packageManager": "pnpm@10.33.2"
+  "packageManager": "pnpm@10.33.2",
+  "dependencies": {
+    "express-rate-limit": "^8.5.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  }
 }

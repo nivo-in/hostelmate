@@ -1,0 +1,93 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { Header } from '@/components/ui/Header'
+import { Card } from '@/components/ui/Card'
+
+export default function WardenDashboard() {
+  const [firstName, setFirstName] = useState('')
+  const router = useRouter()
+  const supabase = createClient()
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single()
+        
+        if (profile?.full_name) {
+          setFirstName(profile.full_name.split(' ')[0])
+        }
+      }
+    }
+    fetchProfile()
+  }, [supabase])
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
+
+  return (
+    <div className="min-h-screen bg-white p-8 max-w-5xl mx-auto">
+      <Header title={`Hello ${firstName} 👋`} onSignOut={handleSignOut} />
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Card 
+          emoji="📋" 
+          title="Attendance" 
+          description="View and manage attendance" 
+          href="/warden/attendance" 
+        />
+        <Card 
+          emoji="✅" 
+          title="Leave Management" 
+          description="Approve or reject leaves" 
+          href="/warden/leaves" 
+        />
+        <Card 
+          emoji="🔧" 
+          title="Complaints" 
+          description="Track and resolve issues" 
+          href="/warden/complaints" 
+        />
+        <Card 
+          emoji="🍽️" 
+          title="Mess Management" 
+          description="Update weekly menu" 
+          href="/warden/mess" 
+        />
+        <Card 
+          emoji="📢" 
+          title="Notices" 
+          description="Post announcements" 
+          href="/warden/notices" 
+        />
+        <Card 
+          emoji="👥" 
+          title="Staff Directory" 
+          description="Manage staff contacts" 
+          href="/warden/staff" 
+        />
+        <Card 
+          emoji="🔍" 
+          title="Lost & Found" 
+          description="Oversee item directory" 
+          href="/warden/lost-found" 
+        />
+        <Card 
+          emoji="🚨" 
+          title="Emergency" 
+          description="Send emergency alerts" 
+          href="/warden/emergency" 
+        />
+      </div>
+    </div>
+  )
+}
