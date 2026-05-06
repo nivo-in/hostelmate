@@ -49,12 +49,15 @@ describe('Health API', () => {
     expect(res.body.services.redis).toBe('ok');
     expect(res.body.uptime).toBeDefined();
     expect(res.body.responseTime).toBeDefined();
+    expect(res.body.nodeVersion).toBeDefined();
+    expect(res.body.environment).toBeDefined();
+    expect(res.body.version).toBeDefined();
   });
 
   it('should return degraded when DB is down', async () => {
     supabaseError = new Error('DB down');
     const res = await request(app).get('/health');
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(503);
     expect(res.body.status).toBe('degraded');
     expect(res.body.services.database).toBe('degraded');
     expect(res.body.services.redis).toBe('ok');
@@ -63,7 +66,7 @@ describe('Health API', () => {
   it('should return degraded when DB select throws', async () => {
     supabaseMock.limit.mockRejectedValueOnce(new Error('DB exception'));
     const res = await request(app).get('/health');
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(503);
     expect(res.body.status).toBe('degraded');
     expect(res.body.services.database).toBe('degraded');
   });
@@ -71,7 +74,7 @@ describe('Health API', () => {
   it('should return degraded when Redis is down', async () => {
     redisPingThrows = true;
     const res = await request(app).get('/health');
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(503);
     expect(res.body.status).toBe('degraded');
     expect(res.body.services.database).toBe('ok');
     expect(res.body.services.redis).toBe('degraded');
