@@ -1,89 +1,129 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { Header } from '@/components/ui/Header'
-import { createClient } from '@/lib/supabase/client'
-import { useApi } from '@/hooks/useApi'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { createClient } from '@/lib/supabase/client';
+import { useApi } from '@/hooks/useApi';
+import { useRouter } from 'next/navigation';
 
 export default function WardenLostFound() {
-  const [filter, setFilter] = useState('All')
-  const [items, setItems] = useState<any[]>([])
-  const { apiGet, apiPatch } = useApi()
-  const router = useRouter()
-  const supabase = createClient()
+  const [activeTab, setActiveTab] = useState('All');
+  const [items, setItems] = useState<any[]>([]);
+  const [message, setMessage] = useState('');
+  
+  const { apiGet, apiPatch } = useApi();
+  const router = useRouter();
+  const supabase = createClient();
 
   const fetchItems = async () => {
-    const url = filter === 'All' ? '/api/lost-found' : `/api/lost-found?status=${filter.toLowerCase()}`
-    const res = await apiGet(url)
-    if (res.success) setItems(res.data)
-  }
+    try {
+      // The API endpoint can take status as query param or we filter client-side. We filter client side for smooth UI.
+      const res = await apiGet('/api/lost-found');
+      if (res.success) setItems(res.data || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
-    fetchItems()
-  }, [filter])
+    fetchItems();
+  }, []);
 
   const handleClaim = async (id: string) => {
-    const res = await apiPatch(`/api/lost-found/${id}/claim`, {})
-    if (res.success) fetchItems()
-  }
+    try {
+      const res = await apiPatch(`/api/lost-found/${id}/claim`, {});
+      if (res.success) {
+        setMessage('Item marked as claimed');
+        fetchItems();
+        setTimeout(() => setMessage(''), 3000);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
+
+  const getStatusVariant = (status: string) => {
+    if (status === 'claimed') return 'success';
+    if (status === 'lost') return 'danger';
+    return 'warning';
+  };
+
+  const filteredItems = items.filter(i => {
+    if (activeTab === 'All') return true;
+    return i.status.toLowerCase() === activeTab.toLowerCase();
+  });
 
   return (
-    <div className="min-h-screen bg-white p-8 max-w-5xl mx-auto">
-      <Header title="Lost & Found" onSignOut={handleSignOut} />
+    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
+      <PageHeader title="Lost & Found" showBack onSignOut={handleSignOut} />
       
-      <div className="flex gap-4 mb-6">
-        {['All', 'Lost', 'Found', 'Claimed'].map(f => (
-          <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 rounded-lg text-sm ${filter === f ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}>
-            {f}
+      {message && <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm font-medium">{message}</div>}
+
+      <div className="flex gap-4 border-b border-gray-100 mb-8 pb-2 overflow-x-auto no-scrollbar">
+        {['All', 'Lost', 'Found', 'Claimed'].map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-1 py-1 text-sm font-medium whitespace-nowrap transition-colors ${activeTab === tab ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            {tab}
           </button>
         ))}
       </div>
 
-      <div className="border border-gray-100 rounded-xl overflow-hidden">
+      <div className="overflow-x-auto border border-gray-100 rounded-xl">
         <table className="w-full text-left text-sm">
-          <thead className="bg-gray-50">
-            <tr className="text-gray-400">
-              <th className="px-6 py-3 font-medium">Item</th>
-              <th className="px-6 py-3 font-medium">Description</th>
-              <th className="px-6 py-3 font-medium">Status</th>
-              <th className="px-6 py-3 font-medium">Location</th>
-              <th className="px-6 py-3 font-medium">Reported By</th>
-              <th className="px-6 py-3 font-medium">Date</th>
-              <th className="px-6 py-3 font-medium">Actions</th>
+          <thead className="bg-gray-50 border-b border-gray-100">
+            <tr>
+              <th className="px-4 py-3 font-medium text-xs text-gray-500">Item Name</th>
+              <th className="px-4 py-3 font-medium text-xs text-gray-500">Description</th>
+              <th className="px-4 py-3 font-medium text-xs text-gray-500">Status</th>
+              <th className="px-4 py-3 font-medium text-xs text-gray-500">Location</th>
+              <th className="px-4 py-3 font-medium text-xs text-gray-500">Reported By</th>
+              <th className="px-4 py-3 font-medium text-xs text-gray-500">Date</th>
+              <th className="px-4 py-3 font-medium text-xs text-gray-500">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {items.map(item => (
-              <tr key={item.id} className="border-t border-gray-100">
-                <td className="px-6 py-4 text-gray-900 font-medium">{item.item_name}</td>
-                <td className="px-6 py-4 text-gray-600 max-w-[200px] truncate" title={item.description}>{item.description}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded text-[10px] uppercase tracking-wider font-medium ${item.status === 'lost' ? 'bg-red-50 text-red-700' : item.status === 'found' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                    {item.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-gray-600">{item.location_found}</td>
-                <td className="px-6 py-4 text-gray-900">{item.profiles?.full_name || 'N/A'}</td>
-                <td className="px-6 py-4 text-gray-500">{new Date(item.created_at).toLocaleDateString()}</td>
-                <td className="px-6 py-4">
-                  {item.status !== 'claimed' && (
-                    <button onClick={() => handleClaim(item.id)} className="px-3 py-1 bg-gray-900 text-white rounded text-xs hover:bg-gray-700">Mark Claimed</button>
-                  )}
+            {filteredItems.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-4 py-3 text-center border-b border-gray-50">
+                  <EmptyState message={`No ${activeTab !== 'All' ? activeTab.toLowerCase() : ''} items found`} />
                 </td>
               </tr>
-            ))}
-            {items.length === 0 && (
-              <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-500">No items found</td></tr>
+            ) : (
+              filteredItems.map(item => (
+                <tr key={item.id} className="border-b border-gray-50">
+                  <td className="px-4 py-3 text-gray-900 font-medium">{item.item_name}</td>
+                  <td className="px-4 py-3 text-gray-600 max-w-[150px] truncate" title={item.description}>{item.description}</td>
+                  <td className="px-4 py-3">
+                    <Badge variant={getStatusVariant(item.status)}>
+                      {item.status.toUpperCase()}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-gray-900">{item.location_found || '-'}</td>
+                  <td className="px-4 py-3 text-gray-500">{item.profiles?.full_name || 'Unknown'}</td>
+                  <td className="px-4 py-3 text-gray-500">{new Date(item.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-3">
+                    {item.status !== 'claimed' && (
+                      <button onClick={() => handleClaim(item.id)} className="bg-gray-900 text-white rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-gray-700 transition-colors">
+                        Mark Claimed
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
       </div>
     </div>
-  )
+  );
 }

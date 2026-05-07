@@ -1,97 +1,129 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { Header } from '@/components/ui/Header'
-import { createClient } from '@/lib/supabase/client'
-import { useApi } from '@/hooks/useApi'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { createClient } from '@/lib/supabase/client';
+import { useApi } from '@/hooks/useApi';
+import { useRouter } from 'next/navigation';
 
 export default function WardenLeaves() {
-  const [filter, setFilter] = useState('All')
-  const [leaves, setLeaves] = useState<any[]>([])
-  const { apiGet, apiPatch } = useApi()
-  const router = useRouter()
-  const supabase = createClient()
+  const [activeTab, setActiveTab] = useState('All');
+  const [leaves, setLeaves] = useState<any[]>([]);
+  const [message, setMessage] = useState('');
+  
+  const { apiGet, apiPatch } = useApi();
+  const router = useRouter();
+  const supabase = createClient();
 
   const fetchLeaves = async () => {
-    const res = await apiGet('/api/leaves/pending') 
-    if (res.success) {
-      setLeaves(res.data)
+    try {
+      const res = await apiGet('/api/leaves/all');
+      if (res.success) setLeaves(res.data || []);
+    } catch (e) {
+      console.error(e);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchLeaves()
-  }, [])
+    fetchLeaves();
+  }, []);
 
   const handleAction = async (id: string, action: 'approve' | 'reject') => {
-    const res = await apiPatch(`/api/leaves/${id}/${action}`, {})
-    if (res.success) {
-      fetchLeaves()
+    try {
+      const res = await apiPatch(`/api/leaves/${id}/${action}`, {});
+      if (res.success) {
+        setMessage(`Leave request ${action}d successfully`);
+        fetchLeaves();
+        setTimeout(() => setMessage(''), 3000);
+      }
+    } catch (e) {
+      console.error(e);
     }
-  }
-
-  const filteredLeaves = leaves.filter(l => filter === 'All' || l.status.toLowerCase() === filter.toLowerCase())
+  };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
+
+  const getStatusVariant = (status: string) => {
+    if (status === 'approved') return 'success';
+    if (status === 'rejected') return 'danger';
+    return 'warning';
+  };
+
+  const filteredLeaves = leaves.filter(l => {
+    if (activeTab === 'All') return true;
+    return l.status.toLowerCase() === activeTab.toLowerCase();
+  });
 
   return (
-    <div className="min-h-screen bg-white p-8 max-w-5xl mx-auto">
-      <Header title="Leave Management" onSignOut={handleSignOut} />
+    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
+      <PageHeader title="Leave Management" showBack onSignOut={handleSignOut} />
       
-      <div className="flex gap-4 mb-6">
-        {['All', 'Pending', 'Approved', 'Rejected'].map(f => (
-          <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 rounded-lg text-sm ${filter === f ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}>
-            {f}
+      {message && <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm font-medium">{message}</div>}
+
+      <div className="flex gap-4 border-b border-gray-100 mb-8 pb-2 overflow-x-auto no-scrollbar">
+        {['All', 'Pending', 'Approved', 'Rejected'].map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-1 py-1 text-sm font-medium whitespace-nowrap transition-colors ${activeTab === tab ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            {tab}
           </button>
         ))}
       </div>
 
-      <div className="border border-gray-100 rounded-xl overflow-hidden">
+      <div className="overflow-x-auto border border-gray-100 rounded-xl">
         <table className="w-full text-left text-sm">
-          <thead className="bg-gray-50">
-            <tr className="text-gray-400">
-              <th className="px-6 py-3 font-medium">Student Name</th>
-              <th className="px-6 py-3 font-medium">Roll No</th>
-              <th className="px-6 py-3 font-medium">Start</th>
-              <th className="px-6 py-3 font-medium">End</th>
-              <th className="px-6 py-3 font-medium">Reason</th>
-              <th className="px-6 py-3 font-medium">Status</th>
-              <th className="px-6 py-3 font-medium">Actions</th>
+          <thead className="bg-gray-50 border-b border-gray-100">
+            <tr>
+              <th className="px-4 py-3 font-medium text-xs text-gray-500">Student Name</th>
+              <th className="px-4 py-3 font-medium text-xs text-gray-500">Roll No</th>
+              <th className="px-4 py-3 font-medium text-xs text-gray-500">Duration</th>
+              <th className="px-4 py-3 font-medium text-xs text-gray-500">Reason</th>
+              <th className="px-4 py-3 font-medium text-xs text-gray-500">Status</th>
+              <th className="px-4 py-3 font-medium text-xs text-gray-500">Applied On</th>
+              <th className="px-4 py-3 font-medium text-xs text-gray-500">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredLeaves.map(l => (
-              <tr key={l.id} className="border-t border-gray-100">
-                <td className="px-6 py-4 text-gray-900">{l.students?.profiles?.full_name || 'N/A'}</td>
-                <td className="px-6 py-4 text-gray-500">{l.students?.roll_number || 'N/A'}</td>
-                <td className="px-6 py-4 text-gray-900">{l.start_date}</td>
-                <td className="px-6 py-4 text-gray-900">{l.end_date}</td>
-                <td className="px-6 py-4 text-gray-600 max-w-[200px] truncate" title={l.reason}>{l.reason}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded text-xs ${l.status === 'approved' ? 'bg-green-50 text-green-700' : l.status === 'rejected' ? 'bg-red-50 text-red-700' : 'bg-yellow-50 text-yellow-700'}`}>
-                    {l.status.toUpperCase()}
-                  </span>
-                </td>
-                <td className="px-6 py-4 space-x-2">
-                  {l.status === 'pending' && (
-                    <>
-                      <button onClick={() => handleAction(l.id, 'approve')} className="px-3 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600">Approve</button>
-                      <button onClick={() => handleAction(l.id, 'reject')} className="px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600">Reject</button>
-                    </>
-                  )}
+            {filteredLeaves.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-4 py-3 text-center border-b border-gray-50">
+                  <EmptyState message={`No ${activeTab !== 'All' ? activeTab.toLowerCase() : ''} leave requests`} />
                 </td>
               </tr>
-            ))}
-            {filteredLeaves.length === 0 && (
-              <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-500">No leaves found</td></tr>
+            ) : (
+              filteredLeaves.map(l => (
+                <tr key={l.id} className="border-b border-gray-50">
+                  <td className="px-4 py-3 text-gray-900 font-medium">{l.profiles?.full_name || 'Unknown'}</td>
+                  <td className="px-4 py-3 text-gray-500">{l.profiles?.id?.substring(0, 8) || '-'}</td>
+                  <td className="px-4 py-3 text-gray-900 whitespace-nowrap">{l.start_date} to {l.end_date}</td>
+                  <td className="px-4 py-3 text-gray-600 max-w-[150px] truncate" title={l.reason}>{l.reason}</td>
+                  <td className="px-4 py-3">
+                    <Badge variant={getStatusVariant(l.status)}>
+                      {l.status.toUpperCase()}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-gray-500">{new Date(l.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-3">
+                    {l.status === 'pending' && (
+                      <div className="flex gap-2">
+                        <button onClick={() => handleAction(l.id, 'approve')} className="bg-green-500 text-white rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-green-600 transition-colors">Approve</button>
+                        <button onClick={() => handleAction(l.id, 'reject')} className="bg-red-500 text-white rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-red-600 transition-colors">Reject</button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
       </div>
     </div>
-  )
+  );
 }

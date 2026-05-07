@@ -1,96 +1,129 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { Header } from '@/components/ui/Header'
-import { createClient } from '@/lib/supabase/client'
-import { useApi } from '@/hooks/useApi'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { createClient } from '@/lib/supabase/client';
+import { useApi } from '@/hooks/useApi';
+import { useRouter } from 'next/navigation';
 
 export default function WardenComplaints() {
-  const [filter, setFilter] = useState('All')
-  const [complaints, setComplaints] = useState<any[]>([])
-  const { apiGet, apiPatch } = useApi()
-  const router = useRouter()
-  const supabase = createClient()
+  const [activeTab, setActiveTab] = useState('All');
+  const [complaints, setComplaints] = useState<any[]>([]);
+  const [message, setMessage] = useState('');
+  
+  const { apiGet, apiPatch } = useApi();
+  const router = useRouter();
+  const supabase = createClient();
 
   const fetchComplaints = async () => {
-    const url = filter === 'All' ? '/api/complaints/all' : `/api/complaints/all?status=${filter.toLowerCase().replace(' ', '_')}`
-    const res = await apiGet(url)
-    if (res.success) setComplaints(res.data)
-  }
+    try {
+      const res = await apiGet('/api/complaints/all');
+      if (res.success) setComplaints(res.data || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
-    fetchComplaints()
-  }, [filter])
+    fetchComplaints();
+  }, []);
 
-  const handleStatusChange = async (id: string, status: string) => {
-    const res = await apiPatch(`/api/complaints/${id}/status`, { status })
-    if (res.success) fetchComplaints()
-  }
+  const handleStatusUpdate = async (id: string, status: string) => {
+    try {
+      const res = await apiPatch(`/api/complaints/${id}/status`, { status });
+      if (res.success) {
+        setMessage('Status updated successfully');
+        fetchComplaints();
+        setTimeout(() => setMessage(''), 3000);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
+
+  const getStatusVariant = (status: string) => {
+    if (status === 'resolved') return 'success';
+    if (status === 'open') return 'danger';
+    return 'warning';
+  };
+
+  const filteredComplaints = complaints.filter(c => {
+    if (activeTab === 'All') return true;
+    if (activeTab === 'In Progress') return c.status === 'in_progress';
+    return c.status.toLowerCase() === activeTab.toLowerCase();
+  });
 
   return (
-    <div className="min-h-screen bg-white p-8 max-w-5xl mx-auto">
-      <Header title="Complaints" onSignOut={handleSignOut} />
+    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
+      <PageHeader title="Complaints" showBack onSignOut={handleSignOut} />
       
-      <div className="flex gap-4 mb-6">
-        {['All', 'Open', 'In Progress', 'Resolved'].map(f => (
-          <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 rounded-lg text-sm ${filter === f ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}>
-            {f}
+      {message && <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm font-medium">{message}</div>}
+
+      <div className="flex gap-4 border-b border-gray-100 mb-8 pb-2 overflow-x-auto no-scrollbar">
+        {['All', 'Open', 'In Progress', 'Resolved'].map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-1 py-1 text-sm font-medium whitespace-nowrap transition-colors ${activeTab === tab ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            {tab}
           </button>
         ))}
       </div>
 
-      <div className="border border-gray-100 rounded-xl overflow-hidden">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-gray-50">
-            <tr className="text-gray-400">
-              <th className="px-6 py-3 font-medium">Date</th>
-              <th className="px-6 py-3 font-medium">Student</th>
-              <th className="px-6 py-3 font-medium">Category</th>
-              <th className="px-6 py-3 font-medium">Description</th>
-              <th className="px-6 py-3 font-medium">Status</th>
-              <th className="px-6 py-3 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {complaints.map(c => (
-              <tr key={c.id} className="border-t border-gray-100">
-                <td className="px-6 py-4 text-gray-500">{new Date(c.created_at).toLocaleDateString()}</td>
-                <td className="px-6 py-4 text-gray-900">
-                  {c.students?.profiles?.full_name || 'N/A'}<br/>
-                  <span className="text-xs text-gray-400">{c.students?.roll_number}</span>
-                </td>
-                <td className="px-6 py-4 text-gray-900 capitalize">{c.category}</td>
-                <td className="px-6 py-4 text-gray-600 max-w-[200px]">
-                  {c.is_urgent && <span className="block mb-1 text-[10px] font-bold bg-red-100 text-red-700 px-1 rounded w-fit">URGENT</span>}
-                  <p className="truncate" title={c.description}>{c.description}</p>
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded text-xs ${c.status === 'resolved' ? 'bg-green-50 text-green-700' : c.status === 'in_progress' ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
-                    {c.status.replace('_', ' ').toUpperCase()}
-                  </span>
-                </td>
-                <td className="px-6 py-4 space-y-2">
+      <div className="space-y-4">
+        {filteredComplaints.length === 0 ? (
+          <div className="border border-gray-100 rounded-xl p-8">
+            <EmptyState message={`No ${activeTab !== 'All' ? activeTab.toLowerCase() : ''} complaints found`} />
+          </div>
+        ) : (
+          filteredComplaints.map(c => (
+            <div key={c.id} className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors bg-white">
+              <div className="flex justify-between items-start mb-4 border-b border-gray-50 pb-4">
+                <div>
+                  <h3 className="font-medium text-gray-900">{c.profiles?.full_name || 'Unknown Student'}</h3>
+                  <p className="text-xs text-gray-500 mb-2">Roll No: {c.profiles?.id?.substring(0, 8) || '-'}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="capitalize text-xs font-medium text-gray-600 border border-gray-200 px-2 py-0.5 rounded-full">{c.category}</span>
+                    {c.is_urgent && <Badge variant="danger">URGENT</Badge>}
+                  </div>
+                </div>
+                <span className="text-xs text-gray-400">{new Date(c.created_at).toLocaleDateString()}</span>
+              </div>
+              <p className="text-sm text-gray-700 mb-4 whitespace-pre-wrap">{c.description}</p>
+              
+              <div className="flex justify-between items-center bg-gray-50 -mx-6 -mb-6 px-6 py-4 rounded-b-xl border-t border-gray-100">
+                <Badge variant={getStatusVariant(c.status)}>
+                  {c.status.replace('_', ' ').toUpperCase()}
+                </Badge>
+                
+                <div className="flex gap-2">
                   {c.status === 'open' && (
-                    <button onClick={() => handleStatusChange(c.id, 'in_progress')} className="block w-full px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600">In Progress</button>
+                    <button onClick={() => handleStatusUpdate(c.id, 'in_progress')} className="bg-gray-900 text-white rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-gray-700 transition-colors">
+                      Mark In Progress
+                    </button>
                   )}
-                  {c.status !== 'resolved' && (
-                    <button onClick={() => handleStatusChange(c.id, 'resolved')} className="block w-full px-3 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600">Resolve</button>
+                  {c.status === 'in_progress' && (
+                    <button onClick={() => handleStatusUpdate(c.id, 'resolved')} className="bg-green-500 text-white rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-green-600 transition-colors">
+                      Mark Resolved
+                    </button>
                   )}
-                </td>
-              </tr>
-            ))}
-            {complaints.length === 0 && (
-              <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">No complaints found</td></tr>
-            )}
-          </tbody>
-        </table>
+                  {c.status === 'resolved' && (
+                    <span className="text-xs text-gray-500">Resolved on {new Date(c.updated_at || c.created_at).toLocaleDateString()}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
-  )
+  );
 }

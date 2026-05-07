@@ -1,65 +1,94 @@
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/middleware'
-
-const PUBLIC_ROUTES = ['/login']
 
 export async function middleware(request: NextRequest) {
-  const { supabase, response } = createClient(request, NextResponse.next({ request }))
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  const isPublicRoute = PUBLIC_ROUTES.includes(request.nextUrl.pathname)
-
-  if (!session) {
-    if (!isPublicRoute) {
-      const redirectUrl = request.nextUrl.clone()
-      redirectUrl.pathname = '/login'
-      return NextResponse.redirect(redirectUrl)
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+        },
+      },
     }
-    return response
+  )
+
+  const { data: { session } } = await supabase.auth.getSession()
+
+  const path = request.nextUrl.pathname
+  const isPublicPath = path === '/login' || path === '/'
+
+  if (!session && !isPublicPath) {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', session.user.id)
-    .single()
-
-  const role = profile?.role
-
-  if (isPublicRoute && role) {
-    const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = `/${role}/dashboard`
-    return NextResponse.redirect(redirectUrl)
+  if (session && isPublicPath) {
+    // Determine redirect based on role
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single()
+    const role = profile?.role || 'student'
+    return NextResponse.redirect(new URL(`/${role}`, request.url))
   }
 
-  const pathname = request.nextUrl.pathname
-
-  if (pathname.startsWith('/student') && role !== 'student') {
-    const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = role ? `/${role}/dashboard` : '/login'
-    return NextResponse.redirect(redirectUrl)
-  }
-
-  if (pathname.startsWith('/warden') && role !== 'warden') {
-    const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = role ? `/${role}/dashboard` : '/login'
-    return NextResponse.redirect(redirectUrl)
-  }
-
-  if (pathname.startsWith('/parent') && role !== 'parent') {
-    const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = role ? `/${role}/dashboard` : '/login'
-    return NextResponse.redirect(redirectUrl)
+  if (session && !isPublicPath) {
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single()
+    const role = profile?.role || 'student'
+    
+    // Check path permissions
+    if (path.startsWith('/student') && role !== 'student') {
+      return NextResponse.redirect(new URL(`/${role}`, request.url))
+    }
+    if (path.startsWith('/warden') && role !== 'warden') {
+      return NextResponse.redirect(new URL(`/${role}`, request.url))
+    }
+    if (path.startsWith('/parent') && role !== 'parent') {
+      return NextResponse.redirect(new URL(`/${role}`, request.url))
+    }
   }
 
   return response
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }

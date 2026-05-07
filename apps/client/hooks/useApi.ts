@@ -6,17 +6,25 @@ export function useApi() {
   const getToken = async () => {
     const supabase = createClient()
     const { data: { session } } = await supabase.auth.getSession()
-    return session?.access_token
+    return session?.access_token || null
+  }
+
+  const handleResponse = async (res: Response) => {
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      throw new Error(data.error || data.message || 'API request failed')
+    }
+    return data
   }
 
   const apiGet = async (path: string) => {
     const token = await getToken()
     const res = await fetch(`${baseUrl}${path}`, {
       headers: {
-        'Authorization': `Bearer ${token}`
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
       }
     })
-    return res.json()
+    return handleResponse(res)
   }
 
   const apiPost = async (path: string, body: any) => {
@@ -24,12 +32,12 @@ export function useApi() {
     const res = await fetch(`${baseUrl}${path}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
       },
       body: JSON.stringify(body)
     })
-    return res.json()
+    return handleResponse(res)
   }
 
   const apiPatch = async (path: string, body: any) => {
@@ -37,26 +45,24 @@ export function useApi() {
     const res = await fetch(`${baseUrl}${path}`, {
       method: 'PATCH',
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
       },
       body: JSON.stringify(body)
     })
-    return res.json()
+    return handleResponse(res)
   }
 
-  const apiPut = async (path: string, body: any) => {
+  const apiDelete = async (path: string) => {
     const token = await getToken()
     const res = await fetch(`${baseUrl}${path}`, {
-      method: 'PUT',
+      method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      }
     })
-    return res.json()
+    return handleResponse(res)
   }
 
-  return { apiGet, apiPost, apiPatch, apiPut }
+  return { apiGet, apiPost, apiPatch, apiDelete }
 }

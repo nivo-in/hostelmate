@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Header } from '@/components/ui/Header'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
@@ -99,7 +99,7 @@ export default function EmergencyAlert() {
 
   return (
     <div className="min-h-screen bg-white p-8 max-w-5xl mx-auto">
-      <Header title="Emergency" onSignOut={handleSignOut} />
+      <PageHeader title="Emergency" showBack onSignOut={handleSignOut} />
       
       <div className="mb-12 mt-8">
         <div className="border border-red-200 rounded-xl p-8 bg-red-50/30">

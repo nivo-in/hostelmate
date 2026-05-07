@@ -1,112 +1,154 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { Header } from '@/components/ui/Header'
-import { createClient } from '@/lib/supabase/client'
-import { useApi } from '@/hooks/useApi'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { createClient } from '@/lib/supabase/client';
+import { useApi } from '@/hooks/useApi';
+import { useRouter } from 'next/navigation';
+import { useProfile } from '@/hooks/useProfile';
 
 export default function ParentTrack() {
-  const [history, setHistory] = useState<any[]>([])
-  const [todayStatus, setTodayStatus] = useState<any>(null)
-  const [studentId, setStudentId] = useState<string | null>(null)
-  const { apiGet } = useApi()
-  const router = useRouter()
-  const supabase = createClient()
+  const router = useRouter();
+  const supabase = createClient();
+  const { apiGet } = useApi();
+  const { profile, loading: profileLoading } = useProfile();
+  
+  const [student, setStudent] = useState<any>(null);
+  const [todayRecord, setTodayRecord] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStudent = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: parent } = await supabase.from('parents').select('student_id').eq('id', user.id).single()
-        if (parent?.student_id) {
-          setStudentId(parent.student_id)
+      if (!profile?.id) return;
+      
+      const { data: parentData } = await supabase
+        .from('parents')
+        .select('student_id')
+        .eq('profile_id', profile.id)
+        .single();
+        
+      if (parentData?.student_id) {
+        const { data: studentData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', parentData.student_id)
+          .single();
+          
+        setStudent(studentData);
+        
+        try {
+          const res = await apiGet(`/api/attendance/student/${parentData.student_id}?month=current`);
+          if (res.success) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const today = res.data.find((r: any) => r.date === todayStr);
+            setTodayRecord(today || null);
+          }
+        } catch (e) {
+          console.error(e);
         }
       }
+      setLoading(false);
+    };
+    
+    if (!profileLoading) {
+      fetchStudent();
     }
-    fetchStudent()
-  }, [])
-
-  useEffect(() => {
-    if (studentId) {
-      apiGet(`/api/attendance/student/${studentId}`).then(res => {
-        if (res.success) {
-          setHistory(res.data)
-          const today = new Date().toISOString().split('T')[0]
-          const todayRec = res.data.find((r: any) => r.date === today)
-          setTodayStatus(todayRec || { status: 'absent' })
-        }
-      })
-    }
-  }, [studentId])
+  }, [profile, profileLoading]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
 
-  const today = new Date()
-  const days = Array.from({ length: 30 }, (_, i) => {
-    const d = new Date(today)
-    d.setDate(d.getDate() - (29 - i))
-    return d.toISOString().split('T')[0]
-  })
+  if (profileLoading || loading) return <div className="min-h-screen bg-white px-6 py-10"><LoadingSpinner /></div>;
+
+  const renderTodayStatus = () => {
+    if (!todayRecord) {
+      return (
+        <div className="flex flex-col items-center justify-center p-8 border border-gray-100 rounded-xl mb-8">
+          <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+            <span className="text-3xl text-gray-400">?</span>
+          </div>
+          <h2 className="text-lg font-medium text-gray-900">Not marked yet</h2>
+        </div>
+      );
+    }
+    
+    if (todayRecord.status === 'present') {
+      return (
+        <div className="flex flex-col items-center justify-center p-8 border border-gray-100 rounded-xl mb-8">
+          <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mb-4">
+            <span className="text-3xl text-green-600">✓</span>
+          </div>
+          <h2 className="text-lg font-medium text-gray-900">Present Today</h2>
+          {todayRecord.scan_time && <p className="text-sm text-gray-500 mt-1">Scanned at {new Date(todayRecord.scan_time).toLocaleTimeString()}</p>}
+        </div>
+      );
+    }
+    
+    if (todayRecord.status === 'absent') {
+      return (
+        <div className="flex flex-col items-center justify-center p-8 border border-gray-100 rounded-xl mb-8">
+          <div className="w-24 h-24 rounded-full bg-red-100 flex items-center justify-center mb-4">
+            <span className="text-3xl text-red-600">✗</span>
+          </div>
+          <h2 className="text-lg font-medium text-gray-900">Not marked today</h2>
+        </div>
+      );
+    }
+    
+    if (todayRecord.status === 'leave') {
+      return (
+        <div className="flex flex-col items-center justify-center p-8 border border-gray-100 rounded-xl mb-8">
+          <div className="w-24 h-24 rounded-full bg-yellow-100 flex items-center justify-center mb-4">
+            <span className="text-3xl text-yellow-600">✈</span>
+          </div>
+          <h2 className="text-lg font-medium text-gray-900">On Leave</h2>
+        </div>
+      );
+    }
+  };
+
+  // Calendar logic mockup
+  const renderCalendar = () => {
+    const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    const cells = Array.from({ length: 30 }).map((_, i) => i + 1);
+    const today = new Date().getDate();
+
+    return (
+      <div className="border border-gray-100 rounded-xl p-6">
+        <h3 className="text-sm font-medium text-gray-900 mb-4">30-day Calendar</h3>
+        <div className="grid grid-cols-7 gap-2">
+          {days.map((d, i) => <div key={i} className="text-center text-xs text-gray-500 font-medium pb-2">{d}</div>)}
+          {cells.map(day => (
+            <div 
+              key={day} 
+              className={`aspect-square flex items-center justify-center text-xs rounded-md ${
+                day === today ? 'ring-2 ring-gray-900' : ''
+              } bg-gray-50 text-gray-600`}
+            >
+              {day}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-white p-8 max-w-5xl mx-auto">
-      <Header title="Track Student" onSignOut={handleSignOut} />
+    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
+      <PageHeader title="Track Student" showBack onSignOut={handleSignOut} />
       
-      <div className="mb-10 flex flex-col items-center justify-center p-10 border border-gray-100 rounded-xl bg-gray-50/50">
-        <h2 className="font-medium tracking-tight text-gray-900 mb-6 text-xl">Today's Status</h2>
-        {todayStatus?.status === 'present' ? (
-          <div className="flex flex-col items-center">
-            <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
-              <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <p className="text-xl font-medium text-green-700">Present Today</p>
-            <p className="text-sm text-gray-500 mt-2">Scanned at: {new Date(todayStatus.scan_time).toLocaleTimeString()}</p>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center">
-            <div className="w-24 h-24 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
-              <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </div>
-            <p className="text-xl font-medium text-red-700">Not marked today</p>
-          </div>
-        )}
-      </div>
-
-      <div>
-        <h2 className="font-medium tracking-tight text-gray-900 mb-4">30-Day History</h2>
-        <div className="grid grid-cols-7 gap-2">
-          {days.map(dateStr => {
-            const rec = history.find(h => h.date === dateStr)
-            const status = rec?.status || 'none'
-            const dNum = new Date(dateStr).getDate()
-            
-            let bgClass = 'bg-gray-100 text-gray-400'
-            if (status === 'present') bgClass = 'bg-green-100 text-green-700 font-medium'
-            if (status === 'absent') bgClass = 'bg-red-100 text-red-700 font-medium'
-            if (status === 'leave') bgClass = 'bg-yellow-100 text-yellow-700 font-medium'
-
-            return (
-              <div key={dateStr} className={`aspect-square flex items-center justify-center rounded-lg text-sm ${bgClass}`} title={`${dateStr} - ${status}`}>
-                {dNum}
-              </div>
-            )
-          })}
+      {student && (
+        <div className="mb-8">
+          <h2 className="text-xl font-medium text-gray-900">{student.full_name}</h2>
+          <p className="text-sm text-gray-500">Student ID: {student.id}</p>
         </div>
-        <div className="flex gap-4 mt-4 text-xs text-gray-500 justify-center">
-          <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-green-100"></div> Present</div>
-          <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-red-100"></div> Absent</div>
-          <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-yellow-100"></div> Leave</div>
-          <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-gray-100"></div> No Record</div>
-        </div>
-      </div>
+      )}
+
+      {renderTodayStatus()}
+      {renderCalendar()}
     </div>
-  )
+  );
 }
