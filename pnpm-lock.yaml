@@ -72,6 +72,9 @@ importers:
 
   apps/server:
     dependencies:
+      '@supabase/supabase-js':
+        specifier: ^2.105.3
+        version: 2.105.3
       express-rate-limit:
         specifier: ^8.5.1
         version: 8.5.1(express@5.2.1)
