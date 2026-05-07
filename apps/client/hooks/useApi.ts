@@ -45,5 +45,18 @@ export function useApi() {
     return res.json()
   }
 
-  return { apiGet, apiPost, apiPatch }
+  const apiPut = async (path: string, body: any) => {
+    const token = await getToken()
+    const res = await fetch(`${baseUrl}${path}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    })
+    return res.json()
+  }
+
+  return { apiGet, apiPost, apiPatch, apiPut }
 }

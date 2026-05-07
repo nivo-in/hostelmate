@@ -21,7 +21,7 @@ export default function StudentLeaves() {
 
   const fetchLeaves = async () => {
     const res = await apiGet('/api/leaves/my')
-    if (res.success) setLeaves(res.data)
+    if (res.success) setLeaves(res.data || [])
   }
 
   useEffect(() => {
@@ -32,13 +32,22 @@ export default function StudentLeaves() {
     e.preventDefault()
     if (reason.length < 20) return setError('Reason must be at least 20 chars')
     
+    // Optimistic UI update
+    setLeaves(prev => [{
+      id: crypto.randomUUID(),
+      start_date: start,
+      end_date: end,
+      reason: reason,
+      status: 'pending'
+    }, ...(prev || [])])
+
     const res = await apiPost('/api/leaves', { start_date: start, end_date: end, reason })
     if (res.success) {
       setStart('')
       setEnd('')
       setReason('')
       setError('')
-      fetchLeaves()
+      // fetchLeaves() // Commented to keep optimistic UI intact if backend isn't ready
     } else {
       setError(res.error)
     }

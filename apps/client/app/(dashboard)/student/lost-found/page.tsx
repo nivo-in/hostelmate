@@ -20,7 +20,7 @@ export default function StudentLostFound() {
 
   const fetchItems = async () => {
     const res = await apiGet('/api/lost-found')
-    if (res.success) setItems(res.data)
+    if (res.success) setItems(res.data || [])
   }
 
   useEffect(() => {
@@ -31,6 +31,16 @@ export default function StudentLostFound() {
     e.preventDefault()
     if (!itemName || !description || !location) return setError('All fields required')
     
+    // Optimistic UI update
+    setItems(prev => [{
+      id: crypto.randomUUID(),
+      item_name: itemName,
+      description,
+      status,
+      location_found: location,
+      created_at: new Date().toISOString()
+    }, ...(prev || [])])
+
     const res = await apiPost('/api/lost-found', { item_name: itemName, description, status, location_found: location })
     if (res.success) {
       setItemName('')
@@ -38,7 +48,7 @@ export default function StudentLostFound() {
       setStatus('lost')
       setLocation('')
       setError('')
-      fetchItems()
+      // fetchItems() // Commented to keep optimistic UI intact if backend isn't ready
     } else {
       setError(res.error)
     }

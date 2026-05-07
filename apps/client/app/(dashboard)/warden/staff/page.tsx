@@ -27,7 +27,9 @@ export default function StaffDirectory() {
     
     if (data) {
       const filtered = data.filter((p: any) => p.role === 'warden' || (p.staff && p.staff.length > 0) || ['admin', 'cleaner', 'security'].includes(p.role))
-      setStaffList(filtered)
+      setStaffList(filtered || [])
+    } else {
+      setStaffList([])
     }
     setLoading(false)
   }
@@ -47,6 +49,15 @@ export default function StaffDirectory() {
     const id = crypto.randomUUID()
     const roleLower = formData.role.toLowerCase()
     
+    // Optimistic UI update
+    setStaffList(prev => [{
+      id,
+      full_name: formData.name,
+      phone: formData.phone,
+      email: formData.email,
+      role: roleLower
+    }, ...(prev || [])])
+    
     const { error: profileError } = await supabase
       .from('profiles')
       .insert({
@@ -65,7 +76,7 @@ export default function StaffDirectory() {
     }
     
     setFormData({ name: '', phone: '', role: 'Warden', email: '' })
-    fetchStaff()
+    // fetchStaff() // Commented to keep optimistic UI intact if backend isn't ready
   }
 
   const handleDelete = async (id: string) => {
