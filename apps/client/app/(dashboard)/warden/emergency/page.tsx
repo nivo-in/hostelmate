@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { Header } from '@/components/ui/Header'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { AlertTriangle, Clock } from 'lucide-react'
 
 export default function EmergencyAlert() {
   const router = useRouter()
@@ -94,7 +93,7 @@ export default function EmergencyAlert() {
       <div className="mb-12 mt-8">
         <div className="border border-red-200 rounded-xl p-8 bg-red-50/30">
           <div className="flex items-center gap-3 mb-6">
-            <AlertTriangle className="w-6 h-6 text-red-600" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-red-600"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
             <h2 className="text-xl font-medium tracking-tight text-gray-900">Broadcast Emergency Alert</h2>
           </div>
           
@@ -143,7 +142,7 @@ export default function EmergencyAlert() {
                     <h3 className="font-medium text-gray-900">{notice.title}</h3>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                    <Clock className="w-3.5 h-3.5" />
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                     {timeAgo(notice.created_at)}
                   </div>
                 </div>
