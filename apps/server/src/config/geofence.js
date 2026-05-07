@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/config/geofence.js
+ * Server configuration and helper utilities for geofence operations.
+ */
+
 import dotenv from 'dotenv';
 dotenv.config();
 
