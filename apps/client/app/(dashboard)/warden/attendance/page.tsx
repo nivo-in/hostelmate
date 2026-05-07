@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 export default function WardenAttendance() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
   const [countdown, setCountdown] = useState(60);
-  const [stats, setStats] = useState({ present: 0, absent: 0, total: 0, percentage: 0 });
+  const [stats, setStats] = useState<any>({ present: 0, absent: 0, total: 0, percentage: 0 });
   const [records, setRecords] = useState<any[]>([]);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   
@@ -95,19 +95,19 @@ export default function WardenAttendance() {
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-gray-50 p-4 rounded-xl">
               <p className="text-xs text-gray-500 mb-1">Present</p>
-              <p className="text-2xl font-medium text-green-600">{stats.present}</p>
+              <p className="text-2xl font-medium text-green-600">{stats?.data?.today_present ?? stats?.today_present ?? stats?.present_today ?? stats?.present ?? 0}</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-xl">
               <p className="text-xs text-gray-500 mb-1">Absent</p>
-              <p className="text-2xl font-medium text-red-600">{stats.absent}</p>
+              <p className="text-2xl font-medium text-red-600">{stats?.data?.today_absent ?? stats?.today_absent ?? stats?.absent_today ?? stats?.absent ?? 0}</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-xl">
               <p className="text-xs text-gray-500 mb-1">Total</p>
-              <p className="text-2xl font-medium text-gray-900">{stats.total}</p>
+              <p className="text-2xl font-medium text-gray-900">{stats?.data?.total_students ?? stats?.total_students ?? stats?.total ?? 0}</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-xl">
               <p className="text-xs text-gray-500 mb-1">Attendance %</p>
-              <p className="text-2xl font-medium text-gray-900">{stats.percentage}%</p>
+              <p className="text-2xl font-medium text-gray-900">{stats?.data?.today_percentage ?? stats?.today_percentage ?? stats?.percentage ?? 0}%</p>
             </div>
           </div>
         </div>
@@ -142,8 +142,8 @@ export default function WardenAttendance() {
             ) : (
               records.map((r, i) => (
                 <tr key={i} className="border-b border-gray-50">
-                  <td className="px-4 py-3 text-gray-900 font-medium">{r.profiles?.full_name || 'Unknown'}</td>
-                  <td className="px-4 py-3 text-gray-500">{r.profiles?.id?.substring(0, 8) || '-'}</td>
+                  <td className="px-4 py-3 text-gray-900 font-medium">{r.full_name || r.profiles?.full_name || 'Unknown'}</td>
+                  <td className="px-4 py-3 text-gray-500">{r.roll_number || r.profiles?.id?.substring(0, 8) || '-'}</td>
                   <td className="px-4 py-3">
                     <Badge variant={getStatusVariant(r.status)}>
                       {r.status.toUpperCase()}
