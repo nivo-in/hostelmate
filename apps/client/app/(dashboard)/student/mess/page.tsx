@@ -109,7 +109,7 @@ export default function StudentMess() {
       </div>
 
       <div className="border border-gray-100 rounded-xl p-6 mb-8">
-        <h2 className="text-lg font-medium text-gray-900 mb-2">Rate Today's Meals</h2>
+        <h2 className="text-xl font-medium tracking-tight text-gray-900 mb-6">Today&apos;s Menu</h2>
         <p className="text-xs text-gray-500 mb-6">{new Date().toLocaleDateString()}</p>
         
         <div className="space-y-6">

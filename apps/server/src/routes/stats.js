@@ -76,6 +76,23 @@ router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => 
       .from('notices')
       .select('*', { count: 'exact', head: true })
 
+    // Lost and found stats
+    const { data: lostFoundData } = await supabaseAdmin
+      .from('lost_and_found')
+      .select('status')
+
+    let totalLost = 0
+    let totalFound = 0
+    let totalClaimed = 0
+
+    if (lostFoundData) {
+      for (const item of lostFoundData) {
+        if (item.status === 'lost') totalLost++
+        else if (item.status === 'found') totalFound++
+        else if (item.status === 'claimed') totalClaimed++
+      }
+    }
+
     const statsData = {
       attendance: {
         today_present: present,
@@ -94,6 +111,11 @@ router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => 
       },
       notices: {
         total_active: totalActiveNotices || 0
+      },
+      lost_found: {
+        total_lost: totalLost,
+        total_found: totalFound,
+        total_claimed: totalClaimed
       }
     }
 
