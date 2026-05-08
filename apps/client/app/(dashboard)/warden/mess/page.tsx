@@ -7,7 +7,6 @@ import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { MessMenu, MessReview } from '@/types'
 
-
 export default function WardenMess() {
   const [day, setDay] = useState('monday');
   const [mealType, setMealType] = useState('breakfast');
