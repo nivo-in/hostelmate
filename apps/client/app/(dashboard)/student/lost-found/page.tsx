@@ -18,6 +18,7 @@ export default function StudentLostFound() {
   const [filter, setFilter] = useState('All');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [matchData, setMatchData] = useState<{ found: boolean; item?: LostAndFound; confidence?: number } | null>(null);
   
   const { apiGet, apiPost } = useApi();
   const router = useRouter();
@@ -45,10 +46,12 @@ export default function StudentLostFound() {
       id: crypto.randomUUID(),
       item_name: itemName,
       description,
-      status,
+      status: status as 'lost' | 'found' | 'claimed',
       location_found: location,
+      reported_by: 'pending',
+      date_reported: new Date().toISOString().split('T')[0],
       created_at: new Date().toISOString()
-    }, ...(prev || [])]);
+    } as LostAndFound, ...(prev || [])]);
 
     try {
       const res = await apiPost('/api/lost-found', { item_name: itemName, description, status, location_found: location });
@@ -59,7 +62,15 @@ export default function StudentLostFound() {
         setLocation('');
         setError('');
         setSuccess('Report submitted successfully');
+        
+        if (res.match && res.match.found) {
+          setMatchData(res.match);
+        } else {
+          setMatchData(null);
+        }
+        
         setTimeout(() => setSuccess(''), 3000);
+        fetchItems();
       } else {
         setError(res.error || 'Failed to submit report');
       }
@@ -107,6 +118,21 @@ export default function StudentLostFound() {
           {success && <p className="text-xs text-green-600">{success}</p>}
           <button type="submit" className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors">Submit Report</button>
         </form>
+
+        {matchData && matchData.found && (
+          <div className="border border-yellow-200 bg-yellow-50 rounded-xl p-4 mt-4 relative">
+            <button 
+              type="button"
+              onClick={() => setMatchData(null)}
+              className="absolute top-4 right-4 text-yellow-600 hover:text-yellow-800"
+            >
+              ✕
+            </button>
+            <h3 className="font-medium text-yellow-800 mb-1">🎯 Potential Match Found! ({matchData.confidence}% confidence)</h3>
+            <p className="text-sm text-yellow-700">Someone reported {matchData.item?.status === 'found' ? 'finding' : 'losing'}: <strong>{matchData.item?.item_name}</strong></p>
+            <p className="text-sm text-yellow-700 mt-2">Check your notices for details.</p>
+          </div>
+        )}
       </div>
 
       <div>

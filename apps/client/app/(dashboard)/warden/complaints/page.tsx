@@ -89,8 +89,8 @@ export default function WardenComplaints() {
             <div key={c.id} className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors bg-white">
               <div className="flex justify-between items-start mb-4 border-b border-gray-50 pb-4">
                 <div>
-                  <h3 className="font-medium text-gray-900">{c.profiles?.full_name || 'Unknown Student'}</h3>
-                  <p className="text-xs text-gray-500 mb-2">Roll No: {c.profiles?.id?.substring(0, 8) || '-'}</p>
+                  <h3 className="font-medium text-gray-900">{c.students?.profiles?.full_name || 'Unknown Student'}</h3>
+                  <p className="text-xs text-gray-500 mb-2">Roll No: {c.students?.profiles?.id?.substring(0, 8) || '-'}</p>
                   <div className="flex items-center gap-2">
                     <span className="capitalize text-xs font-medium text-gray-600 border border-gray-200 px-2 py-0.5 rounded-full">{c.category}</span>
                     {c.is_urgent && <Badge variant="danger">URGENT</Badge>}
@@ -117,7 +117,7 @@ export default function WardenComplaints() {
                     </button>
                   )}
                   {c.status === 'resolved' && (
-                    <span className="text-xs text-gray-500">Resolved on {new Date(c.updated_at || c.created_at).toLocaleDateString()}</span>
+                    <span className="text-xs text-gray-500">Resolved on {new Date(c.resolution_date || c.created_at).toLocaleDateString()}</span>
                   )}
                 </div>
               </div>

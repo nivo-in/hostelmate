@@ -110,7 +110,7 @@ export default function WardenLostFound() {
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-gray-900">{item.location_found || '-'}</td>
-                  <td className="px-4 py-3 text-gray-500">{item.profiles?.full_name || 'Unknown'}</td>
+                  <td className="px-4 py-3 text-gray-500">{(item as unknown as { students?: { profiles?: { full_name?: string } } }).students?.profiles?.full_name || 'Unknown'}</td>
                   <td className="px-4 py-3 text-gray-500">{new Date(item.created_at).toLocaleDateString()}</td>
                   <td className="px-4 py-3">
                     {item.status !== 'claimed' && (
