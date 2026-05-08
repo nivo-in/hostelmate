@@ -2,11 +2,23 @@ import { Router } from 'express'
 import { supabaseAdmin } from '../config/supabase.js'
 import { authenticate } from '../middleware/auth.js'
 import { requireStudent, requireWarden } from '../middleware/rbac.js'
+import { validate } from '../middleware/validate.js'
+import { messMenuSchema, messReviewSchema } from '../config/validation.js'
+import logger from '../config/logger.js'
+import { getCache, setCache, deleteCache } from '../config/redis.js'
 
 const router = Router()
 
 router.get('/menu', authenticate, async (req, res, next) => {
   try {
+    const cacheKey = 'mess:menu'
+    const cached = await getCache(cacheKey)
+    if (cached) {
+      logger.info('Cache hit: mess menu')
+      return res.json({ success: true, data: cached })
+    }
+    logger.info('Cache miss: mess menu')
+
     const { data, error } = await supabaseAdmin
       .from('mess_menu')
       .select('*')
@@ -14,19 +26,16 @@ router.get('/menu', authenticate, async (req, res, next) => {
 
     if (error) throw error
 
+    await setCache(cacheKey, data, 3600)
     res.json({ success: true, data })
   } catch (error) {
     next(error)
   }
 })
 
-router.put('/menu', authenticate, requireWarden, async (req, res, next) => {
+router.put('/menu', authenticate, requireWarden, validate(messMenuSchema), async (req, res, next) => {
   try {
     const { day_of_week, meal_type, items } = req.body
-
-    if (!day_of_week || !meal_type || !items) {
-      return res.status(400).json({ success: false, error: 'day_of_week, meal_type, and items are required' })
-    }
 
     const { data, error } = await supabaseAdmin
       .from('mess_menu')
@@ -39,23 +48,20 @@ router.put('/menu', authenticate, requireWarden, async (req, res, next) => {
 
     if (error) throw error
 
+    logger.info(`Mess menu updated for ${day_of_week} ${meal_type} by ${req.user.id}`)
+    
+    await deleteCache('mess:menu')
+    await deleteCache('stats:dashboard')
+    
     res.json({ success: true, data })
   } catch (error) {
     next(error)
   }
 })
 
-router.post('/review', authenticate, requireStudent, async (req, res, next) => {
+router.post('/review', authenticate, requireStudent, validate(messReviewSchema), async (req, res, next) => {
   try {
-    const { meal_type, date, rating, feedback } = req.body
-
-    if (!meal_type || !date || rating === undefined) {
-      return res.status(400).json({ success: false, error: 'meal_type, date, and rating are required' })
-    }
-
-    if (rating < 1 || rating > 5) {
-      return res.status(400).json({ success: false, error: 'rating must be between 1 and 5' })
-    }
+    const { meal_type, date, rating, comments } = req.body
 
     const { data, error } = await supabaseAdmin
       .from('mess_reviews')
@@ -65,7 +71,7 @@ router.post('/review', authenticate, requireStudent, async (req, res, next) => {
           meal_type,
           date,
           rating,
-          feedback
+          feedback: comments
         },
         { onConflict: 'student_id,date,meal_type' }
       )
@@ -74,6 +80,11 @@ router.post('/review', authenticate, requireStudent, async (req, res, next) => {
 
     if (error) throw error
 
+    logger.info(`Mess review submitted by ${req.user.id} for ${meal_type} on ${date}`)
+    
+    await deleteCache('mess:reviews')
+    await deleteCache('stats:dashboard')
+    
     res.json({ success: true, data })
   } catch (error) {
     next(error)
@@ -82,19 +93,26 @@ router.post('/review', authenticate, requireStudent, async (req, res, next) => {
 
 router.get('/reviews', authenticate, requireWarden, async (req, res, next) => {
   try {
+    const cacheKey = 'mess:reviews'
+    const cached = await getCache(cacheKey)
+    if (cached) {
+      logger.info('Cache hit: mess reviews')
+      return res.json({ success: true, data: cached })
+    }
+    logger.info('Cache miss: mess reviews')
+
     const { data, error } = await supabaseAdmin
-      .from('mess_reviews')
-      .select(`
-        *,
-        student:student_id (
-          id,
-          roll_number,
-          profile:id (
-            full_name
-          )
-        )
-      `)
-      .order('date', { ascending: false })
+  .from('mess_reviews')
+  .select(`
+    *,
+    students!mess_reviews_student_id_fkey (
+      roll_number,
+      profiles!students_id_fkey (
+        full_name
+      )
+    )
+  `)
+  .order('date', { ascending: false })
 
     if (error) throw error
 
@@ -112,7 +130,9 @@ router.get('/reviews', authenticate, requireWarden, async (req, res, next) => {
       averages[meal_type] = averages[meal_type].totalRating / averages[meal_type].count
     })
 
-    res.json({ success: true, data: { reviews: data, averages } })
+    const responseData = { reviews: data, averages }
+    await setCache(cacheKey, responseData, 300)
+    res.json({ success: true, data: responseData })
   } catch (error) {
     next(error)
   }

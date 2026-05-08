@@ -10,6 +10,9 @@ import swaggerUi from 'swagger-ui-express'
 
 import { generalLimiter } from './middleware/rateLimit.js'
 import { errorHandler } from './middleware/errorHandler.js'
+import requestLogger from './middleware/requestLogger.js'
+import logger from './config/logger.js'
+import { redis } from './config/redis.js'
 
 import attendanceRoutes from './routes/attendance.js'
 import leavesRoutes from './routes/leaves.js'
@@ -49,8 +52,20 @@ app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:5173'] }))
 app.use(morgan('dev'))
 app.use(express.json())
 app.use(generalLimiter)
+app.use(requestLogger)
 
 // Health check
+let redisStatus = 'disconnected'
+
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date(),
+    redis: redisStatus
+  })
+})
+
 app.get('/', (req, res) => {
   res.json({
     status: 'ok',
@@ -78,12 +93,21 @@ app.use((req, res) => {
 app.use(errorHandler)
 
 // Start server
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`HostelMate server running on http://localhost:${PORT}`)
+const server = app.listen(PORT, '0.0.0.0', async () => {
+  logger.info(`HostelMate server running on port ${PORT}`)
+  
+  try {
+    await redis.ping()
+    redisStatus = 'connected'
+    logger.info('Redis connected successfully')
+  } catch (err) {
+    redisStatus = 'disconnected'
+    logger.warn('Redis connection failed — caching disabled')
+  }
 })
 
 server.on('error', (err) => {
-  console.error('Server error:', err)
+  logger.error('Server error:', err)
 })
 
 export default app

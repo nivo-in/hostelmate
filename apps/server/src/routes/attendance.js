@@ -2,16 +2,17 @@ import { Router } from 'express'
 import { supabaseAdmin } from '../config/supabase.js'
 import { authenticate } from '../middleware/auth.js'
 import { requireStudent, requireWarden, requireStaff } from '../middleware/rbac.js'
+import { validate } from '../middleware/validate.js'
+import { attendanceSchema } from '../config/validation.js'
+import { isWithinGeofence } from '../config/geofence.js'
+import logger from '../config/logger.js'
+import { getCache, setCache, deleteCache } from '../config/redis.js'
 
 const router = Router()
 
-router.post('/mark', authenticate, requireStudent, async (req, res, next) => {
+router.post('/mark', authenticate, requireStudent, validate(attendanceSchema), async (req, res, next) => {
   try {
     const { qr_data, lat, lng } = req.body
-    
-    if (!qr_data) {
-      return res.status(400).json({ success: false, error: 'qr_data is required' })
-    }
 
     let parsedQr
     try {
@@ -21,10 +22,20 @@ router.post('/mark', authenticate, requireStudent, async (req, res, next) => {
     }
 
     const today = new Date().toISOString().split('T')[0]
-    const expectedToken = `${today}-secret123`
 
-    if (parsedQr.token !== expectedToken) {
+    if (parsedQr.date !== today || !parsedQr.token.startsWith(`${today}-secret123`)) {
       return res.status(400).json({ success: false, error: 'Invalid or expired QR code' })
+    }
+
+    if (lat !== undefined && lng !== undefined) {
+      const hostelLat = parseFloat(process.env.HOSTEL_LAT || '28.6139')
+      const hostelLng = parseFloat(process.env.HOSTEL_LNG || '77.2090')
+      const { allowed, distance } = isWithinGeofence(lat, lng, hostelLat, hostelLng)
+      if (!allowed) {
+        return res.status(403).json({ success: false, error: `You are ${Math.round(distance)}m away from hostel. Must be within 100m to mark attendance.` })
+      }
+    } else {
+      logger.warn(`Attendance marked without location verification for user ${req.user.id}`)
     }
 
     const { data: existing, error: checkError } = await supabaseAdmin
@@ -54,6 +65,12 @@ router.post('/mark', authenticate, requireStudent, async (req, res, next) => {
 
     if (insertError) throw insertError
 
+    logger.info(`Attendance marked successfully for user ${req.user.id}`)
+    
+    await deleteCache('attendance:stats:today')
+    await deleteCache(`attendance:today:${today}`)
+    logger.info('Cache invalidated after attendance mark')
+    
     res.json({ success: true, data: record })
   } catch (error) {
     next(error)
@@ -63,6 +80,14 @@ router.post('/mark', authenticate, requireStudent, async (req, res, next) => {
 router.get('/today', authenticate, requireWarden, async (req, res, next) => {
   try {
     const today = new Date().toISOString().split('T')[0]
+    const cacheKey = `attendance:today:${today}`
+    
+    const cached = await getCache(cacheKey)
+    if (cached) {
+      logger.info('Cache hit: attendance today')
+      return res.json({ success: true, data: cached })
+    }
+    logger.info('Cache miss: attendance today')
     
     const { data, error } = await supabaseAdmin
       .from('attendance')
@@ -79,6 +104,7 @@ router.get('/today', authenticate, requireWarden, async (req, res, next) => {
       scan_time: item.scan_time
     }))
 
+    await setCache(cacheKey, formattedData, 120)
     res.json({ success: true, data: formattedData })
   } catch (error) {
     next(error)
@@ -115,6 +141,14 @@ router.get('/student/:studentId', authenticate, requireStaff, async (req, res, n
 router.get('/stats', authenticate, requireWarden, async (req, res, next) => {
   try {
     const today = new Date().toISOString().split('T')[0]
+    const cacheKey = 'attendance:stats:today'
+    
+    const cached = await getCache(cacheKey)
+    if (cached) {
+      logger.info('Cache hit: attendance stats')
+      return res.json({ success: true, data: cached })
+    }
+    logger.info('Cache miss: attendance stats')
 
     const { count: totalStudents, error: studentsError } = await supabaseAdmin
       .from('students')
@@ -135,14 +169,17 @@ router.get('/stats', authenticate, requireWarden, async (req, res, next) => {
     const absent = total - present
     const percentage = total > 0 ? ((present / total) * 100).toFixed(2) : 0
 
+    const statsData = {
+      total_students: total,
+      present_today: present,
+      absent_today: absent,
+      percentage: Number(percentage)
+    }
+
+    await setCache(cacheKey, statsData, 300)
     res.json({
       success: true,
-      data: {
-        total_students: total,
-        present_today: present,
-        absent_today: absent,
-        percentage: Number(percentage)
-      }
+      data: statsData
     })
   } catch (error) {
     next(error)

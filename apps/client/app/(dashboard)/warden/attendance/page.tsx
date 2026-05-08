@@ -24,8 +24,7 @@ export default function WardenAttendance() {
     try {
       const today = new Date().toISOString().split('T')[0];
       // Generate a slightly changing token so users can't share static QR codes easily
-      const timestamp = new Date().getTime();
-      const payload = JSON.stringify({ hostel: 'hostelmate', date: today, token: `${today}-secret123-${timestamp}` });
+      const payload = JSON.stringify({ hostel: 'hostelmate', date: today, token: `${today}-secret123` });
       const dataUrl = await QRCode.toDataURL(payload, { width: 256, margin: 2, color: { dark: '#111827', light: '#ffffff' } });
       setQrCodeDataUrl(dataUrl);
       setCountdown(60);

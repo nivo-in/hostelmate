@@ -2,6 +2,8 @@ import { Router } from 'express'
 import { supabaseAdmin } from '../config/supabase.js'
 import { authenticate } from '../middleware/auth.js'
 import { requireWarden } from '../middleware/rbac.js'
+import { getCache, setCache } from '../config/redis.js'
+import logger from '../config/logger.js'
 
 const router = Router()
 
@@ -9,6 +11,14 @@ router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => 
   try {
     const today = new Date().toISOString().split('T')[0]
     const startOfMonth = `${today.substring(0, 7)}-01`
+
+    const cacheKey = 'stats:dashboard'
+    const cached = await getCache(cacheKey)
+    if (cached) {
+      logger.info('Cache hit: stats dashboard')
+      return res.json({ success: true, data: cached })
+    }
+    logger.info('Cache miss: stats dashboard')
 
     // Attendance stats
     const { count: totalStudents } = await supabaseAdmin
@@ -66,28 +76,31 @@ router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => 
       .from('notices')
       .select('*', { count: 'exact', head: true })
 
+    const statsData = {
+      attendance: {
+        today_present: present,
+        today_absent: absent,
+        today_percentage: Number(percentage)
+      },
+      leaves: {
+        pending_count: pendingLeaves || 0,
+        approved_this_month: approvedLeavesMonth || 0,
+        rejected_this_month: rejectedLeavesMonth || 0
+      },
+      complaints: {
+        open_count: openComplaints || 0,
+        in_progress_count: inProgressComplaints || 0,
+        resolved_this_month: resolvedComplaintsMonth || 0
+      },
+      notices: {
+        total_active: totalActiveNotices || 0
+      }
+    }
+
+    await setCache(cacheKey, statsData, 180)
     res.json({
       success: true,
-      data: {
-        attendance: {
-          today_present: present,
-          today_absent: absent,
-          today_percentage: Number(percentage)
-        },
-        leaves: {
-          pending_count: pendingLeaves || 0,
-          approved_this_month: approvedLeavesMonth || 0,
-          rejected_this_month: rejectedLeavesMonth || 0
-        },
-        complaints: {
-          open_count: openComplaints || 0,
-          in_progress_count: inProgressComplaints || 0,
-          resolved_this_month: resolvedComplaintsMonth || 0
-        },
-        notices: {
-          total_active: totalActiveNotices || 0
-        }
-      }
+      data: statsData
     })
   } catch (error) {
     next(error)

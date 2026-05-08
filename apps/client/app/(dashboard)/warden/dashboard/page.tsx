@@ -37,20 +37,20 @@ export default function WardenDashboard() {
     };
     
     const fetchStats = async () => {
-      try {
-        const res = await apiGet('/api/stats/dashboard');
-        if (res.success && res.data) {
-          setStats({
-            attendanceToday: res.data.attendance || 0,
-            pendingLeaves: res.data.pendingLeaves || 0,
-            openComplaints: res.data.openComplaints || 0,
-            activeNotices: res.data.activeNotices || 0
-          });
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    };
+  try {
+    const res = await apiGet('/api/stats/dashboard')
+    if (res.success && res.data) {
+      setStats({
+        attendanceToday: res.data.attendance?.today_percentage ?? 0,
+        pendingLeaves: res.data.leaves?.pending_count ?? 0,
+        openComplaints: res.data.complaints?.open_count ?? 0,
+        activeNotices: res.data.notices?.total_active ?? 0
+      })
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
 
     fetchProfile();
     fetchStats();

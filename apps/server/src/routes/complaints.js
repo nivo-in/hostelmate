@@ -2,29 +2,24 @@ import { Router } from 'express'
 import { supabaseAdmin } from '../config/supabase.js'
 import { authenticate } from '../middleware/auth.js'
 import { requireStudent, requireWarden } from '../middleware/rbac.js'
+import { validate } from '../middleware/validate.js'
+import { complaintSchema } from '../config/validation.js'
+import logger from '../config/logger.js'
+import { deleteCache } from '../config/redis.js'
 
 const router = Router()
 
-router.post('/', authenticate, requireStudent, async (req, res, next) => {
+router.post('/', authenticate, requireStudent, validate(complaintSchema), async (req, res, next) => {
   try {
-    const { category, title, description } = req.body
-
-    const allowedCategories = ['electrical', 'plumbing', 'furniture', 'cleaning', 'other']
-    if (!category || !allowedCategories.includes(category)) {
-      return res.status(400).json({ success: false, error: 'Invalid or missing category' })
-    }
-
-    if (!title || !description) {
-      return res.status(400).json({ success: false, error: 'title and description are required' })
-    }
+    const { category, description, is_urgent } = req.body
 
     const { data: record, error } = await supabaseAdmin
       .from('complaints')
       .insert({
         student_id: req.user.id,
         category,
-        title,
         description,
+        is_urgent: is_urgent || false,
         status: 'open'
       })
       .select()
@@ -32,6 +27,8 @@ router.post('/', authenticate, requireStudent, async (req, res, next) => {
 
     if (error) throw error
 
+    logger.info(`Complaint submitted by user ${req.user.id}`)
+    await deleteCache('stats:dashboard')
     res.json({ success: true, data: record })
   } catch (error) {
     next(error)
@@ -59,18 +56,17 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
     const { status } = req.query
 
     let query = supabaseAdmin
-      .from('complaints')
-      .select(`
-        *,
-        student:student_id (
-          id,
-          roll_number,
-          profile:id (
-            full_name
-          )
-        )
-      `)
-      .order('created_at', { ascending: false })
+  .from('complaints')
+  .select(`
+    *,
+    students!complaints_student_id_fkey (
+      roll_number,
+      profiles!students_id_fkey (
+        full_name
+      )
+    )
+  `)
+  .order('created_at', { ascending: false })
 
     if (status) {
       query = query.eq('status', status)
@@ -111,6 +107,8 @@ router.patch('/:id/status', authenticate, requireWarden, async (req, res, next) 
 
     if (error) throw error
 
+    logger.info(`Complaint ${id} status updated to ${status} by ${req.user.id}`)
+    await deleteCache('stats:dashboard')
     res.json({ success: true, data })
   } catch (error) {
     next(error)

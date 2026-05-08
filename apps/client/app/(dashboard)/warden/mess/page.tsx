@@ -32,13 +32,13 @@ export default function WardenMess() {
   };
 
   const fetchReviews = async () => {
-    try {
-      const res = await apiGet('/api/mess/reviews');
-      if (res.success) setReviews(res.data || []);
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  try {
+    const res = await apiGet('/api/mess/reviews');
+    if (res.success) setReviews(res.data?.reviews || []);
+  } catch (e) {
+    console.error(e);
+  }
+};
 
   useEffect(() => {
     fetchMenu();
