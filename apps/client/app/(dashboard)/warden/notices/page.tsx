@@ -7,12 +7,13 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { Notice } from '@/types'
 
 export default function WardenNotices() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [audience, setAudience] = useState('all');
-  const [notices, setNotices] = useState<any[]>([]);
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
@@ -58,8 +59,8 @@ export default function WardenNotices() {
       } else {
         setError(res.error || 'Failed to post notice');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to post notice');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to post notice');
     }
   };
 

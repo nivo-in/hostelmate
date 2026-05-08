@@ -9,11 +9,26 @@ import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 
+interface AttendanceStats {
+  present?: number; absent?: number; total?: number; percentage?: number;
+  today_present?: number; today_absent?: number; total_students?: number; today_percentage?: number;
+  present_today?: number; absent_today?: number;
+  data?: AttendanceStats;
+}
+
+interface AttendanceRecord {
+  full_name?: string;
+  roll_number?: string;
+  status: string;
+  scan_time: string | null;
+  profiles?: { full_name?: string; id?: string };
+}
+
 export default function WardenAttendance() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
   const [countdown, setCountdown] = useState(60);
-  const [stats, setStats] = useState<any>({ present: 0, absent: 0, total: 0, percentage: 0 });
-  const [records, setRecords] = useState<any[]>([]);
+  const [stats, setStats] = useState<AttendanceStats>({ present: 0, absent: 0, total: 0, percentage: 0 });
+  const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   
   const { apiGet } = useApi();
@@ -90,7 +105,7 @@ export default function WardenAttendance() {
         </div>
 
         <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
-          <h2 className="text-sm font-medium text-gray-900 mb-4">Today's Stats</h2>
+          <h2 className="text-sm font-medium text-gray-900 mb-4">Today&apos;s Stats</h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-gray-50 p-4 rounded-xl">
               <p className="text-xs text-gray-500 mb-1">Present</p>

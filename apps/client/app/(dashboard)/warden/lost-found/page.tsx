@@ -7,10 +7,11 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { LostAndFound } from '@/types'
 
 export default function WardenLostFound() {
   const [activeTab, setActiveTab] = useState('All');
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<LostAndFound[]>([]);
   const [message, setMessage] = useState('');
   
   const { apiGet, apiPatch } = useApi();

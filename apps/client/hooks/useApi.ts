@@ -27,7 +27,7 @@ export function useApi() {
     return handleResponse(res)
   }
 
-  const apiPost = async (path: string, body: any) => {
+  const apiPost = async (path: string, body: unknown) => {
     const token = await getToken()
     const res = await fetch(`${baseUrl}${path}`, {
       method: 'POST',
@@ -40,7 +40,7 @@ export function useApi() {
     return handleResponse(res)
   }
 
-  const apiPatch = async (path: string, body: any) => {
+  const apiPatch = async (path: string, body: unknown) => {
     const token = await getToken()
     const res = await fetch(`${baseUrl}${path}`, {
       method: 'PATCH',
@@ -64,7 +64,7 @@ export function useApi() {
     return handleResponse(res)
   }
 
-  const apiPut = async (path: string, body: any) => {
+  const apiPut = async (path: string, body: unknown) => {
     const token = await getToken()
     const res = await fetch(`${baseUrl}${path}`, {
       method: 'PUT',

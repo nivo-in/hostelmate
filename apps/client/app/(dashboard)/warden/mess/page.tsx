@@ -5,16 +5,18 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { MessMenu, MessReview } from '@/types'
+
 
 export default function WardenMess() {
   const [day, setDay] = useState('monday');
   const [mealType, setMealType] = useState('breakfast');
   const [items, setItems] = useState('');
-  const [menu, setMenu] = useState<any[]>([]);
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [menu, setMenu] = useState<MessMenu[]>([]);
+  const [reviews, setReviews] = useState<MessReview[]>([]);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  
+
   const { apiGet, apiPut } = useApi();
   const router = useRouter();
   const supabase = createClient();
@@ -32,13 +34,13 @@ export default function WardenMess() {
   };
 
   const fetchReviews = async () => {
-  try {
-    const res = await apiGet('/api/mess/reviews');
-    if (res.success) setReviews(res.data?.reviews || []);
-  } catch (e) {
-    console.error(e);
-  }
-};
+    try {
+      const res = await apiGet('/api/mess/reviews');
+      if (res.success) setReviews(res.data?.reviews || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     fetchMenu();
@@ -48,14 +50,20 @@ export default function WardenMess() {
   const handleSaveMenu = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!items.trim()) return setError('Items are required');
-    
+
     const itemsList = items.split(',').map(i => i.trim()).filter(Boolean);
-    
+
     // Optimistic UI update
     setMenu(prev => {
       const current = prev || [];
       const existing = current.filter(m => !(m.day_of_week === day && m.meal_type === mealType));
-      return [...existing, { day_of_week: day, meal_type: mealType, items: itemsList }];
+      return [...existing, {
+        id: crypto.randomUUID(),
+        day_of_week: day as MessMenu['day_of_week'],
+        meal_type: mealType as MessMenu['meal_type'],
+        items: itemsList,
+        created_at: new Date().toISOString()
+      }] as MessMenu[];
     });
 
     try {
@@ -68,8 +76,8 @@ export default function WardenMess() {
       } else {
         setError(res.error || 'Failed to update menu');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to update menu');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to update menu');
     }
   };
 
@@ -88,7 +96,7 @@ export default function WardenMess() {
   return (
     <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
       <PageHeader title="Mess Management" showBack onSignOut={handleSignOut} />
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
         <div className="p-6 border border-gray-100 rounded-xl hover:border-gray-300 transition-colors">
           <h2 className="font-medium tracking-tight text-gray-900 mb-4">Update Menu</h2>

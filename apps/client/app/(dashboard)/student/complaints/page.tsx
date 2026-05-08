@@ -7,12 +7,13 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { Complaint } from '@/types'
 
 export default function StudentComplaints() {
   const [category, setCategory] = useState('electrical');
   const [description, setDescription] = useState('');
   const [urgent, setUrgent] = useState(false);
-  const [complaints, setComplaints] = useState<any[]>([]);
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
@@ -59,8 +60,8 @@ export default function StudentComplaints() {
       } else {
         setError(res.error || 'Failed to submit complaint');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to submit complaint');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to submit complaint');
     }
   };
 

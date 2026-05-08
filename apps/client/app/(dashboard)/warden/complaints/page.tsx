@@ -7,10 +7,11 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { ComplaintWithStudent } from '@/types'
 
 export default function WardenComplaints() {
   const [activeTab, setActiveTab] = useState('All');
-  const [complaints, setComplaints] = useState<any[]>([]);
+  const [complaints, setComplaints] = useState<ComplaintWithStudent[]>([]);
   const [message, setMessage] = useState('');
   
   const { apiGet, apiPatch } = useApi();

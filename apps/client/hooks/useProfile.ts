@@ -37,8 +37,8 @@ export function useProfile() {
 
       if (profileError) throw profileError
       setProfile(data as Profile)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError((err as Error).message)
       setProfile(null)
     } finally {
       setLoading(false)
@@ -47,6 +47,7 @@ export function useProfile() {
 
   useEffect(() => {
     fetchProfile()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return { profile, loading, error, refetch: fetchProfile }
