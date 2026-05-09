@@ -6,7 +6,11 @@ export function useApi() {
   const getToken = async () => {
     const supabase = createClient()
     const { data: { session } } = await supabase.auth.getSession()
-    return session?.access_token || null
+    if (session?.access_token) return session.access_token
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+    const { data: refreshed } = await supabase.auth.refreshSession()
+    return refreshed.session?.access_token || null
   }
 
   const handleResponse = async (res: Response) => {
