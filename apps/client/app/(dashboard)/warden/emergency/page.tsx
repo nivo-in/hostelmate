@@ -76,7 +76,6 @@ export default function EmergencyAlert() {
       if (response.ok) {
         setSuccess('Alert sent to all students')
         setMessage('')
-        // fetchNotices() // Commented to keep optimistic UI intact if backend isn't ready
       } else {
         alert('Failed to send alert.')
       }
