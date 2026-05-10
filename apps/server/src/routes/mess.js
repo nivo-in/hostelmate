@@ -49,10 +49,10 @@ router.put('/menu', authenticate, requireWarden, validate(messMenuSchema), async
     if (error) throw error
 
     logger.info(`Mess menu updated for ${day_of_week} ${meal_type} by ${req.user.id}`)
-    
+
     await deleteCache('mess:menu')
     await deleteCache('stats:dashboard')
-    
+
     res.json({ success: true, data })
   } catch (error) {
     next(error)
@@ -71,7 +71,7 @@ router.post('/review', authenticate, requireStudent, validate(messReviewSchema),
           meal_type,
           date,
           rating,
-          feedback: comments
+          comments
         },
         { onConflict: 'student_id,date,meal_type' }
       )
@@ -81,10 +81,10 @@ router.post('/review', authenticate, requireStudent, validate(messReviewSchema),
     if (error) throw error
 
     logger.info(`Mess review submitted by ${req.user.id} for ${meal_type} on ${date}`)
-    
+
     await deleteCache('mess:reviews')
     await deleteCache('stats:dashboard')
-    
+
     res.json({ success: true, data })
   } catch (error) {
     next(error)
@@ -102,8 +102,8 @@ router.get('/reviews', authenticate, requireWarden, async (req, res, next) => {
     logger.info('Cache miss: mess reviews')
 
     const { data, error } = await supabaseAdmin
-  .from('mess_reviews')
-  .select(`
+      .from('mess_reviews')
+      .select(`
     *,
     students!mess_reviews_student_id_fkey (
       roll_number,
@@ -112,7 +112,7 @@ router.get('/reviews', authenticate, requireWarden, async (req, res, next) => {
       )
     )
   `)
-  .order('date', { ascending: false })
+      .order('date', { ascending: false })
 
     if (error) throw error
 
