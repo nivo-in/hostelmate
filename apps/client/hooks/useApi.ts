@@ -6,11 +6,22 @@ export function useApi() {
   const getToken = async () => {
     const supabase = createClient()
     const { data: { session } } = await supabase.auth.getSession()
-    if (session?.access_token) return session.access_token
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return null
-    const { data: refreshed } = await supabase.auth.refreshSession()
-    return refreshed.session?.access_token || null
+
+    if (session?.access_token) {
+      // Check if token expires in next 60 seconds
+      const expiresAt = session.expires_at ?? 0
+      const now = Math.floor(Date.now() / 1000)
+
+      if (expiresAt - now < 60) {
+        // Refresh token proactively
+        const { data: refreshed } = await supabase.auth.refreshSession()
+        return refreshed.session?.access_token || null
+      }
+
+      return session.access_token
+    }
+
+    return null
   }
 
   const handleResponse = async (res: Response) => {
