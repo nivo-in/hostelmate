@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useApi } from '@/hooks/useApi'
 
 interface StaffMember {
   id: string
@@ -26,7 +27,11 @@ export default function StaffDirectory() {
 
   // ── Modal state ──────────────────────────────────────────────────────
   const [modalOpen, setModalOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'add' | 'remove'>('add')
+  const [activeTab, setActiveTab] = useState<'add' | 'remove' | 'report'>('add')
+  const { apiGet } = useApi()
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
+  const [reportData, setReportData] = useState<any[]>([])
+  const [loadingReport, setLoadingReport] = useState(false)
 
   // ── Add-staff form ───────────────────────────────────────────────────
   const [formData, setFormData] = useState({
@@ -85,6 +90,57 @@ export default function StaffDirectory() {
   useEffect(() => {
     fetchStaff()
   }, [])
+
+  useEffect(() => {
+    if (activeTab === 'report') {
+      const fetchReport = async () => {
+        setLoadingReport(true)
+        const staffToReport = staffList.filter(s => !s.isWarden)
+        
+        const data = await Promise.all(staffToReport.map(async (staff) => {
+          const { data: attendance } = await supabase
+            .from('staff_attendance')
+            .select('*')
+            .eq('staff_id', staff.id)
+            .gte('date', `${selectedMonth}-01`)
+            .lte('date', `${selectedMonth}-31`)
+            
+          const daysPresent = attendance?.filter(a => a.is_present).length || 0
+          const daysAbsent = attendance?.filter(a => !a.is_present).length || 0
+          const totalDays = daysPresent + daysAbsent
+          const attendancePercent = totalDays > 0 ? Math.round((daysPresent / totalDays) * 100) : 0
+
+          const res = await apiGet(`/api/staff-feedback/${staff.id}`)
+          let feedbackData = { average_rating: 0, total_reviews: 0, this_month_reviews: 0 }
+          
+          if (res.success && res.data) {
+            const allFeedback = res.data.feedback || []
+            const thisMonthReviews = allFeedback.filter((f: any) => f.created_at.startsWith(selectedMonth)).length
+            feedbackData = {
+              average_rating: res.data.average_rating || 0,
+              total_reviews: res.data.total_reviews || 0,
+              this_month_reviews: thisMonthReviews
+            }
+          }
+          
+          const hasData = totalDays > 0 || feedbackData.this_month_reviews > 0
+          
+          return {
+            ...staff,
+            daysPresent,
+            daysAbsent,
+            attendancePercent,
+            ...feedbackData,
+            hasData
+          }
+        }))
+        
+        setReportData(data)
+        setLoadingReport(false)
+      }
+      fetchReport()
+    }
+  }, [activeTab, selectedMonth, staffList])
 
   // ── Sign out ─────────────────────────────────────────────────────────
   const handleSignOut = async () => {
@@ -278,6 +334,15 @@ export default function StaffDirectory() {
               >
                 Remove Staff
               </button>
+              <button
+                onClick={() => setActiveTab('report')}
+                className={`pb-3 text-sm transition-colors ${activeTab === 'report'
+                    ? 'border-b-2 border-gray-900 text-gray-900 font-medium'
+                    : 'text-gray-400 hover:text-gray-600'
+                  }`}
+              >
+                Monthly Report
+              </button>
             </div>
 
             {/* ── Tab: Add Staff ── */}
@@ -388,6 +453,56 @@ export default function StaffDirectory() {
                               <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
                             </svg>
                           </button>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* ── Tab: Monthly Report ── */}
+            {activeTab === 'report' && (
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                <input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-gray-500 outline-none w-full"
+                />
+
+                {loadingReport ? (
+                  <p className="text-sm text-gray-400">Loading report...</p>
+                ) : reportData.length === 0 ? (
+                  <p className="text-sm text-gray-400">No staff members found.</p>
+                ) : (
+                  reportData.map((staff) => (
+                    <div key={staff.id} className="border border-gray-100 rounded-xl p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <p className="text-sm font-medium text-gray-900">{staff.full_name}</p>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getRoleBadgeColor(staff.staff_role)}`}>
+                          {staff.staff_role.charAt(0).toUpperCase() + staff.staff_role.slice(1)}
+                        </span>
+                      </div>
+
+                      {!staff.hasData ? (
+                        <p className="text-xs text-gray-400">No data for this month</p>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="text-xs text-gray-400 mb-1">Attendance</p>
+                            <p className="text-gray-900">Days Present: {staff.daysPresent}</p>
+                            <p className="text-gray-900">Days Absent: {staff.daysAbsent}</p>
+                            <p className="text-gray-900 font-medium mt-1">Attendance %: {staff.attendancePercent}%</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-400 mb-1">Feedback</p>
+                            <p className="text-gray-900 flex items-center gap-1">
+                              {Number(staff.average_rating || 0).toFixed(1)} <span className="text-yellow-400">★</span>
+                            </p>
+                            <p className="text-gray-500 text-xs mt-1">{staff.total_reviews} total reviews</p>
+                            <p className="text-gray-500 text-xs">{staff.this_month_reviews} this month reviews</p>
+                          </div>
                         </div>
                       )}
                     </div>

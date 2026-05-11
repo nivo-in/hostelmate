@@ -21,7 +21,7 @@ import messRoutes from './routes/mess.js'
 import noticesRoutes from './routes/notices.js'
 import lostFoundRoutes from './routes/lost-found.js'
 import statsRoutes from './routes/stats.js'
-
+import staffFeedbackRoutes from './routes/staff-feedback.js'
 const app = express()
 const PORT = process.env.PORT || 3001
 
@@ -83,7 +83,7 @@ app.use('/api/mess', messRoutes)
 app.use('/api/notices', noticesRoutes)
 app.use('/api/lost-found', lostFoundRoutes)
 app.use('/api/stats', statsRoutes)
-
+app.use('/api/staff-feedback', staffFeedbackRoutes)
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ success: false, error: 'Route not found' })
