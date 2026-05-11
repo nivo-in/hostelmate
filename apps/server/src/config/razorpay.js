@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/config/razorpay.js
+ * Server configuration and helper utilities for razorpay operations.
+ */
+
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import logger from './logger.js';
