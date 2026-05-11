@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/config/openai.js
+ * Server configuration and helper utilities for openai operations.
+ */
+
 import OpenAI from 'openai';
 import { supabaseAdmin } from './supabase.js';
 import logger from './logger.js';
