@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/config/supabase.js
+ * Server configuration and helper utilities for supabase operations.
+ */
+
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 dotenv.config();
