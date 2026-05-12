@@ -17,110 +17,201 @@ interface AttendanceRecord {
   scan_time: string | null;
 }
 
+function SuccessAnimation({ onDone }: { onDone: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onDone, 3000)
+    return () => clearTimeout(timer)
+  }, [onDone])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm">
+      <div className="flex flex-col items-center gap-4">
+        {/* Animated circle */}
+        <div className="relative w-24 h-24">
+          <svg viewBox="0 0 100 100" className="w-full h-full">
+            <circle
+              cx="50" cy="50" r="45"
+              fill="none"
+              stroke="#E5E7EB"
+              strokeWidth="6"
+            />
+            <circle
+              cx="50" cy="50" r="45"
+              fill="none"
+              stroke="#111827"
+              strokeWidth="6"
+              strokeLinecap="round"
+              strokeDasharray="283"
+              strokeDashoffset="283"
+              style={{
+                animation: 'drawCircle 0.6s ease-out forwards',
+                transformOrigin: 'center',
+                transform: 'rotate(-90deg)',
+              }}
+            />
+          </svg>
+          {/* Checkmark */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <svg
+              viewBox="0 0 24 24"
+              className="w-10 h-10"
+              fill="none"
+              stroke="#111827"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ animation: 'fadeInScale 0.3s ease-out 0.5s both' }}
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+        </div>
+
+        <div style={{ animation: 'fadeInUp 0.4s ease-out 0.4s both' }}>
+          <p className="text-xl font-medium tracking-tight text-gray-900 text-center">
+            Attendance Marked
+          </p>
+          <p className="text-sm text-gray-400 text-center mt-1">
+            You&apos;re all set for today
+          </p>
+        </div>
+
+        <style>{`
+          @keyframes drawCircle {
+            to { stroke-dashoffset: 0; }
+          }
+          @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+          }
+          @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
+      </div>
+    </div>
+  )
+}
+
 export default function StudentAttendance() {
-  const [scanning, setScanning] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-  const [history, setHistory] = useState<AttendanceRecord[]>([]);
-  
-  const { profile } = useProfile();
-  const { apiGet, apiPost } = useApi();
-  const router = useRouter();
-  const supabase = createClient();
+  const [scanning, setScanning] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [error, setError] = useState('')
+  const [history, setHistory] = useState<AttendanceRecord[]>([])
+
+  const { profile } = useProfile()
+  const { apiGet, apiPost } = useApi()
+  const router = useRouter()
+  const supabase = createClient()
 
   const fetchHistory = async () => {
-    if (!profile?.id) return;
+    if (!profile?.id) return
     try {
-      const res = await apiGet(`/api/attendance/student/${profile.id}`);
-      if (res.success) setHistory(res.data.slice(0, 30) || []);
-    } catch (e) {
-      console.error(e);
-    }
-  };
+      const res = await apiGet(`/api/attendance/student/${profile.id}`)
+      if (res.success) setHistory(res.data.slice(0, 30) || [])
+    } catch {}
+  }
 
   useEffect(() => {
-    if (profile?.id) {
-      fetchHistory();
-    }
-  }, [profile?.id]);
+    if (profile?.id) fetchHistory()
+  }, [profile?.id])
 
   const startScanner = () => {
-    setScanning(true);
-    setMessage('');
-    setError('');
+    setScanning(true)
+    setError('')
     setTimeout(() => {
-      const scanner = new Html5QrcodeScanner('qr-reader', { fps: 10, qrbox: 250 }, false);
+      const scanner = new Html5QrcodeScanner('qr-reader', { fps: 10, qrbox: 250 }, false)
       scanner.render(async (text) => {
-        scanner.clear();
-        setScanning(false);
-        document.getElementById('qr-reader')!.innerHTML = '';
-        
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(async (pos) => {
+        scanner.clear()
+        setScanning(false)
+        const el = document.getElementById('qr-reader')
+        if (el) el.innerHTML = ''
+
+        if (!navigator.geolocation) {
+          setError('Geolocation not supported by this browser.')
+          return
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
             try {
               const res = await apiPost('/api/attendance/mark', {
                 qr_data: text,
                 lat: pos.coords.latitude,
                 lng: pos.coords.longitude
-              });
+              })
               if (res.success) {
-                setMessage('✓ Attendance marked successfully!');
-                fetchHistory();
+                setShowSuccess(true)
+                fetchHistory()
               } else {
-                setError(res.error || 'Failed to mark attendance');
+                setError(res.error || 'Failed to mark attendance')
               }
             } catch (err: unknown) {
-              setError((err as Error).message || 'Failed to mark attendance');
+              setError((err as Error).message || 'Failed to mark attendance')
             }
-          }, (err) => {
-            setError('Camera access denied or geolocation required: ' + err.message);
-          });
-        } else {
-          setError('Geolocation not supported by this browser.');
-        }
-      }, (err) => {
-        // ignore scan errors
-      });
-    }, 100);
-  };
+          },
+          (err) => {
+            setError('Location access required: ' + err.message)
+          }
+        )
+      }, () => {})
+    }, 100)
+  }
 
   const stopScanner = () => {
-    setScanning(false);
-    const el = document.getElementById('qr-reader');
-    if (el) el.innerHTML = '';
-  };
+    setScanning(false)
+    const el = document.getElementById('qr-reader')
+    if (el) el.innerHTML = ''
+  }
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
 
   const getStatusVariant = (status: string) => {
-    if (status === 'present') return 'success';
-    if (status === 'absent') return 'danger';
-    return 'warning';
-  };
+    if (status === 'present') return 'success'
+    if (status === 'absent') return 'danger'
+    return 'warning'
+  }
 
   return (
     <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
+      {showSuccess && (
+        <SuccessAnimation onDone={() => setShowSuccess(false)} />
+      )}
+
       <PageHeader title="Mark Attendance" showBack onSignOut={handleSignOut} />
-      
+
       <div className="mb-8 p-6 border border-gray-100 rounded-xl hover:border-gray-300 transition-colors">
         {!scanning ? (
-          <button onClick={startScanner} className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors">
+          <button
+            onClick={startScanner}
+            className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors"
+          >
             Start Scanner
           </button>
         ) : (
           <div>
-            <div id="qr-reader" className="w-full max-w-sm mx-auto mb-4 border border-gray-200 rounded-lg overflow-hidden"></div>
-            <button onClick={stopScanner} className="bg-red-500 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-red-600 transition-colors">
+            <div
+              id="qr-reader"
+              className="w-full max-w-sm mx-auto mb-4 border border-gray-200 rounded-lg overflow-hidden"
+            />
+            <button
+              onClick={stopScanner}
+              className="border border-gray-200 text-gray-600 rounded-lg px-4 py-2.5 text-sm hover:border-gray-400 transition-colors"
+            >
               Stop Scanner
             </button>
           </div>
         )}
 
-        {message && <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm font-medium">{message}</div>}
-        {error && <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm font-medium">{error}</div>}
+        {error && (
+          <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm font-medium">
+            {error}
+          </div>
+        )}
       </div>
 
       <div>
@@ -148,7 +239,9 @@ export default function StudentAttendance() {
                       {item.status.toUpperCase()}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-gray-500">{item.scan_time ? new Date(item.scan_time).toLocaleTimeString() : '-'}</td>
+                  <td className="px-4 py-3 text-gray-500">
+                    {item.scan_time ? new Date(item.scan_time).toLocaleTimeString() : '-'}
+                  </td>
                 </tr>
               ))
             )}
@@ -156,5 +249,5 @@ export default function StudentAttendance() {
         </table>
       </div>
     </div>
-  );
+  )
 }

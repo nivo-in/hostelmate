@@ -42,11 +42,11 @@ router.post('/', authenticate, requireStudent, validate(lostFoundSchema), async 
 
       if (existingItems && existingItems.length > 0) {
         const matches = findMatches(record, existingItems, 0.25)
-        
+
         if (matches.length > 0) {
           const bestMatch = matches[0]
           logger.info(`Lost & Found match found — Score: ${Math.round(bestMatch.score * 100)}%`)
-          
+
           await notifyLostFoundMatch(
             record.reported_by,
             bestMatch.item.reported_by,
@@ -54,10 +54,10 @@ router.post('/', authenticate, requireStudent, validate(lostFoundSchema), async 
             bestMatch.item,
             bestMatch.score
           )
-          
+
           await deleteCache('lost-found:all')
-          return res.json({ 
-            success: true, 
+          return res.json({
+            success: true,
             data: record,
             match: {
               found: true,
@@ -81,7 +81,7 @@ router.post('/', authenticate, requireStudent, validate(lostFoundSchema), async 
 router.get('/', authenticate, async (req, res, next) => {
   try {
     const { status } = req.query
-    
+
     if (!status) {
       const cacheKey = 'lost-found:all'
       const cached = await getCache(cacheKey)
@@ -129,10 +129,7 @@ router.patch('/:id/claim', authenticate, async (req, res, next) => {
 
     const { data, error } = await supabaseAdmin
       .from('lost_and_found')
-      .update({
-        status: 'claimed',
-        resolved_at: new Date().toISOString()
-      })
+      .update({ status: 'claimed' })
       .eq('id', id)
       .select()
       .single()
