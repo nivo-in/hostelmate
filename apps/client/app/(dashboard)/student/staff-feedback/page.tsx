@@ -69,8 +69,8 @@ export default function StaffFeedbackPage() {
       } else {
         setErrorMsg(res.error || 'Failed to submit feedback');
       }
-    } catch (e: any) {
-      setErrorMsg(e.message || 'An error occurred');
+    } catch (e: unknown) {
+      setErrorMsg((e as Error).message || 'An error occurred');
     }
   };
 
@@ -123,7 +123,7 @@ export default function StaffFeedbackPage() {
                     ✕
                   </button>
                 </div>
-                
+
                 <div className="flex gap-1 text-2xl mb-4 cursor-pointer">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <span
