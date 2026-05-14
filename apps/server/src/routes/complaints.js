@@ -6,6 +6,8 @@ import { validate } from '../middleware/validate.js'
 import { complaintSchema } from '../config/validation.js'
 import logger from '../config/logger.js'
 import { deleteCache } from '../config/redis.js'
+import { createNotification } from '../config/notify.js'
+import { auditLog } from '../config/audit.js'
 
 const router = Router()
 
@@ -108,6 +110,12 @@ router.patch('/:id/status', authenticate, requireWarden, async (req, res, next) 
     if (error) throw error
 
     logger.info(`Complaint ${id} status updated to ${status} by ${req.user.id}`)
+    await auditLog(req.user.id, 'update_complaint', 'complaint', id)
+    
+    if (status === 'resolved') {
+      await createNotification(data.student_id, 'Complaint Resolved', 'Your complaint has been resolved', 'complaint', id)
+    }
+    
     await deleteCache('stats:dashboard')
     res.json({ success: true, data })
   } catch (error) {
