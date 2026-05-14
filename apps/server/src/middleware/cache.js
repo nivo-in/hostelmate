@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/middleware/cache.js
+ * Express middleware for cache request preprocessing and validation.
+ */
+
 import { getCache } from '../config/redis.js';
 import logger from '../config/logger.js';
 
