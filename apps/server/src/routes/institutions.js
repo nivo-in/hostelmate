@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/routes/institutions.js
+ * Express route handlers managing institutions operations and database queries.
+ */
+
 import { Router } from 'express';
 import { searchInstitutions, institutionCount } from '../config/institutions.js';
 import { getCache, setCache } from '../config/redis.js';
