@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/middleware/rbac.js
+ * Express middleware for rbac request preprocessing and validation.
+ */
+
 import logger from '../config/logger.js';
 
 /**
