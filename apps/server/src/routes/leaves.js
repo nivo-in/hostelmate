@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/routes/leaves.js
+ * Express route handlers managing leaves operations and database queries.
+ */
+
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 import { authenticate } from '../middleware/auth.js';
