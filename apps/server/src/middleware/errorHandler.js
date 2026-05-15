@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/middleware/errorHandler.js
+ * Express middleware for errorHandler request preprocessing and validation.
+ */
+
 import logger from '../config/logger.js';
 
 // eslint-disable-next-line no-unused-vars
