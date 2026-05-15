@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/middleware/rateLimit.js
+ * Express middleware for rateLimit request preprocessing and validation.
+ */
+
 import rateLimit from 'express-rate-limit';
 import logger from '../config/logger.js';
 
