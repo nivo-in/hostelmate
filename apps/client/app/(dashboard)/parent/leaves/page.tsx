@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/parent/leaves/page.tsx
+ * Parent portal leaves monitoring page rendering ward status and payment options.
+ */
+
 'use client';
 
 import { useEffect, useState } from 'react';
