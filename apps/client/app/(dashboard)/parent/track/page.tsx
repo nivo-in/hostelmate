@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/parent/track/page.tsx
+ * Parent portal track monitoring page rendering ward status and payment options.
+ */
+
 'use client';
 
 import { useEffect } from 'react';
