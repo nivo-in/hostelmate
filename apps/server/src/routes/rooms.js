@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/routes/rooms.js
+ * Express route handlers managing rooms operations and database queries.
+ */
+
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 import { authenticate } from '../middleware/auth.js';
