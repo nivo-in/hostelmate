@@ -22,8 +22,8 @@ export default function WardenLeaves() {
     try {
       const res = await apiGet('/api/leaves/all');
       if (res.success) setLeaves(res.data || []);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // Silently fail
     }
   };
 
@@ -39,8 +39,8 @@ export default function WardenLeaves() {
         fetchLeaves();
         setTimeout(() => setMessage(''), 3000);
       }
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // Silently fail
     }
   };
 

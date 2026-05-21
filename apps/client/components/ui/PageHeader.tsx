@@ -2,6 +2,12 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
+const NotificationBell = dynamic(() => import('./NotificationBell').then(m => ({ default: m.NotificationBell })), {
+  ssr: false,
+  loading: () => <div className="w-6 h-6" />,
+})
 
 type PageHeaderProps = {
   title: string;
@@ -25,12 +31,15 @@ export function PageHeader({ title, showBack, onSignOut }: PageHeaderProps) {
         )}
         <h1 className="text-2xl font-medium tracking-tight text-gray-900">{title}</h1>
       </div>
-      <button 
-        onClick={onSignOut}
-        className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-      >
-        Sign Out
-      </button>
+      <div className="flex items-center gap-4">
+        <NotificationBell />
+        <button 
+          onClick={onSignOut}
+          className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
+        >
+          Sign Out
+        </button>
+      </div>
     </div>
   );
 }

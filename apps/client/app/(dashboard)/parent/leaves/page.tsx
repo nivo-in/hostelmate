@@ -45,8 +45,8 @@ export default function ParentLeaves() {
           if (res.success) {
             setLeaves(res.data);
           }
-        } catch (e) {
-          console.error(e);
+        } catch {
+          // Silently fail
         }
       }
       setLoading(false);

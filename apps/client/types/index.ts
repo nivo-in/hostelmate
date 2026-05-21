@@ -129,3 +129,15 @@ export interface LostAndFound {
 export type AttendanceWithStudent = Attendance & { students: Student & { profiles: Profile } }
 export type LeaveWithStudent = LeaveRequest & { students: Student & { profiles: Profile } }
 export type ComplaintWithStudent = Complaint & { students: Student & { profiles: Profile } }
+
+export interface Notification {
+  id: string
+  user_id: string
+  title: string
+  message: string
+  type: 'leave' | 'complaint' | 'notice' | 'curfew' | 'emergency' | 'attendance' | 'lost_found'
+  is_read: boolean
+  related_id?: string
+  created_at: string
+}
+
