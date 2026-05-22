@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/student/dashboard/page.tsx
+ * Student portal dashboard dashboard subpage rendering status and actions.
+ */
+
 'use client';
 
 import { useEffect, useState, useRef, Suspense } from 'react';
