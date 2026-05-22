@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/student/leaves/page.tsx
+ * Student portal leaves dashboard subpage rendering status and actions.
+ */
+
 'use client';
 
 import { useEffect, useState } from 'react';
