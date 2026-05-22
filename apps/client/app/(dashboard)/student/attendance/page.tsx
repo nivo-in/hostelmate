@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/student/attendance/page.tsx
+ * Student portal attendance dashboard subpage rendering status and actions.
+ */
+
 'use client';
 
 import { useEffect, useState, useCallback, useRef, lazy, Suspense } from 'react';
