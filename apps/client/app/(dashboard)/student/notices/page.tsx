@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/student/notices/page.tsx
+ * Student portal notices dashboard subpage rendering status and actions.
+ */
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
