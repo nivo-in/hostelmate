@@ -1,14 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { useApi } from '@/hooks/useApi';
 
+const WardenFaceRegistration = lazy(() => import('@/components/face/WardenFaceRegistration'));
+
 export default function WardenDashboard() {
   const [firstName, setFirstName] = useState('');
+  const [wardenId, setWardenId] = useState('');
+  const [showFaceRegister, setShowFaceRegister] = useState(false);
+  const [faceRegistered, setFaceRegistered] = useState(false);
   const [stats, setStats] = useState({
     attendanceToday: 0,
     pendingLeaves: 0,
@@ -25,6 +30,7 @@ export default function WardenDashboard() {
       const { data: { session } } = await supabase.auth.getSession();
       const user = session?.user;
       if (user) {
+        setWardenId(user.id);
         const { data: profile } = await supabase
           .from('profiles')
           .select('full_name')
@@ -34,6 +40,14 @@ export default function WardenDashboard() {
         if (profile?.full_name) {
           setFirstName(profile.full_name.split(' ')[0]);
         }
+
+        // Check if warden has face registered
+        const { data: faceData } = await supabase
+          .from('warden_face_descriptors')
+          .select('warden_id')
+          .eq('warden_id', user.id)
+          .single();
+        setFaceRegistered(!!faceData);
       }
     };
     
@@ -59,7 +73,7 @@ export default function WardenDashboard() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push('/login');
+    window.location.href = '/login';
   };
 
   return (
@@ -149,6 +163,56 @@ export default function WardenDashboard() {
           description="Send emergency alerts" 
           href="/warden/emergency" 
         />
+      </div>
+
+      {/* ── FACE SECURITY SECTION ── */}
+      <div className="mt-8 pt-6 border-t border-gray-100">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="text-sm font-medium text-gray-900">Login Face Security</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {faceRegistered
+                ? 'Face data registered — verified on each login'
+                : 'No face registered — add one to secure your login'}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {faceRegistered && (
+              <span className="inline-flex items-center gap-1 text-xs text-green-600 font-medium">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Active
+              </span>
+            )}
+            <button
+              id="warden-manage-face-btn"
+              onClick={() => setShowFaceRegister(!showFaceRegister)}
+              className="text-xs text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5 hover:border-gray-400 transition-colors"
+            >
+              {showFaceRegister ? 'Cancel' : faceRegistered ? 'Update Face' : 'Register Face'}
+            </button>
+          </div>
+        </div>
+
+        {showFaceRegister && wardenId && (
+          <div className="border border-gray-100 rounded-xl overflow-hidden">
+            <Suspense fallback={
+              <div className="p-8 text-center text-sm text-gray-400">
+                Loading face recognition...
+              </div>
+            }>
+              <WardenFaceRegistration
+                wardenId={wardenId}
+                onSuccess={() => {
+                  setShowFaceRegister(false);
+                  setFaceRegistered(true);
+                }}
+                onSkip={() => setShowFaceRegister(false)}
+              />
+            </Suspense>
+          </div>
+        )}
       </div>
     </div>
   );

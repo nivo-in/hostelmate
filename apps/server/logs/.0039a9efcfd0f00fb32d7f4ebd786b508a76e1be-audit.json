@@ -6,21 +6,6 @@
     "auditLog": "logs/.0039a9efcfd0f00fb32d7f4ebd786b508a76e1be-audit.json",
     "files": [
         {
-            "date": 1778224803267,
-            "name": "logs/hostelmate-2026-05-08.log",
-            "hash": "4d7b16d2cf8b7795d3f4ec462dff305292ab42b5403debfa28ac1e35deeb364a"
-        },
-        {
-            "date": 1778283793811,
-            "name": "logs/hostelmate-2026-05-09.log",
-            "hash": "b319ffe1acbc4c3eed2aa21bd80184b938cfc20ccb8b12a1087ff2d6a25ef242"
-        },
-        {
-            "date": 1778390344735,
-            "name": "logs/hostelmate-2026-05-10.log",
-            "hash": "96e1a1fe79a2b49297d17189c978bbeb754a140d6c8e41b762ade42dbba43924"
-        },
-        {
             "date": 1778439209367,
             "name": "logs/hostelmate-2026-05-11.log",
             "hash": "5d51b72d24545764426d3956ac5315e02948577e7191e1f356a7142f0ebcb435"
@@ -31,19 +16,19 @@
             "hash": "d5525eaf4c950c89ce8237cf70dd54350f3644d7525cc35e72e4e8eae46a881c"
         },
         {
-            "date": 1778612651546,
-            "name": "logs/hostelmate-2026-05-13.log",
-            "hash": "cabdbc5fa3d76dbd87c95e7f47aa17515cdb060fe04a10eb77f44a20651883d8"
-        },
-        {
-            "date": 1778747727139,
-            "name": "logs/hostelmate-2026-05-14.log",
-            "hash": "bdafb3a7e3d6c2151d32501cef92a05c56cab85996d0356efc0caa29b5319864"
-        },
-        {
-            "date": 1779312575951,
+            "date": 1779370653352,
             "name": "logs/hostelmate-2026-05-21.log",
-            "hash": "b27faebe109a1486af47d4d50781b497a52ffdf37bc811995bb2b0658f32a037"
+            "hash": "8a47033b91e86d4c27d5a62bd5f6f4a747c330109cb21c5fdc8b5ee0e0b2889d"
+        },
+        {
+            "date": 1779394722054,
+            "name": "logs/hostelmate-2026-05-22.log",
+            "hash": "9db2f538f808b94ef10772c46715a9c33b63ed90884a19a8019b00179e8f399d"
+        },
+        {
+            "date": 1779620786140,
+            "name": "logs/hostelmate-2026-05-24.log",
+            "hash": "d1b265da03bf9bf03802401b783f8ba37d8ca743a02bd45ae4c5d29a5a296739"
         }
     ],
     "hashType": "sha256"

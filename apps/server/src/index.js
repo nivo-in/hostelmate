@@ -53,7 +53,23 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 // Middleware
 app.use(helmet())
-app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:5173'] }))
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl)
+    if (!origin) return callback(null, true)
+    // Allow localhost and local network IPs
+    if (
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1') ||
+      origin.match(/^https?:\/\/192\.168\.\d+\.\d+/) ||
+      origin.match(/^https?:\/\/10\.\d+\.\d+\.\d+/)
+    ) {
+      return callback(null, true)
+    }
+    callback(new Error('Not allowed by CORS'))
+  },
+  credentials: true
+}))
 app.use(morgan('dev'))
 app.use(express.json())
 app.use(generalLimiter)

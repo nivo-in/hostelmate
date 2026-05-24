@@ -60,40 +60,45 @@ const [reportData, setReportData] = useState<ReportData[]>([])
     setLoading(true)
     const today = new Date().toISOString().split('T')[0]
 
-    const [
-      { data: staffMembers },
-      { data: wardenProfiles },
-      { data: todayAttendance }
-    ] = await Promise.all([
-      supabase.from('staff_members').select('*').order('created_at', { ascending: false }),
-      supabase.from('profiles').select('id, full_name, email, phone, role').eq('role', 'warden'),
-      supabase.from('staff_attendance').select('*').eq('date', today)
-    ])
+    try {
+      const [
+        { data: staffMembers },
+        { data: wardenProfiles },
+        { data: todayAttendance }
+      ] = await Promise.all([
+        supabase.from('staff_members').select('*').order('created_at', { ascending: false }),
+        supabase.from('profiles').select('id, full_name, email, phone, role').eq('role', 'warden'),
+        supabase.from('staff_attendance').select('*').eq('date', today)
+      ])
 
-    const wardens: StaffMember[] = (wardenProfiles || []).map(w => {
-      const attendanceRecord = todayAttendance?.find(a => a.profile_id === w.id)
-      return {
-        id: w.id,
-        full_name: w.full_name,
-        email: w.email,
-        phone: w.phone,
-        staff_role: 'warden',
-        is_present: attendanceRecord?.is_present ?? false,
-        created_at: new Date().toISOString(),
-        isWarden: true
-      }
-    })
+      const wardens: StaffMember[] = (wardenProfiles || []).map(w => {
+        const attendanceRecord = todayAttendance?.find(a => a.profile_id === w.id)
+        return {
+          id: w.id,
+          full_name: w.full_name,
+          email: w.email,
+          phone: w.phone,
+          staff_role: 'warden',
+          is_present: attendanceRecord?.is_present ?? false,
+          created_at: new Date().toISOString(),
+          isWarden: true
+        }
+      })
 
-    const staffWithAttendance: StaffMember[] = (staffMembers || []).map(s => {
-      const attendanceRecord = todayAttendance?.find(a => a.staff_id === s.id)
-      return {
-        ...s,
-        is_present: attendanceRecord?.is_present ?? s.is_present
-      }
-    })
+      const staffWithAttendance: StaffMember[] = (staffMembers || []).map(s => {
+        const attendanceRecord = todayAttendance?.find(a => a.staff_id === s.id)
+        return {
+          ...s,
+          is_present: attendanceRecord?.is_present ?? s.is_present
+        }
+      })
 
-    setStaffList([...wardens, ...staffWithAttendance])
-    setLoading(false)
+      setStaffList([...wardens, ...staffWithAttendance])
+    } catch {
+      setStaffList([])
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -106,46 +111,51 @@ const [reportData, setReportData] = useState<ReportData[]>([])
         setLoadingReport(true)
         const staffToReport = staffList.filter(s => !s.isWarden)
         
-        const data = await Promise.all(staffToReport.map(async (staff) => {
-          const { data: attendance } = await supabase
-            .from('staff_attendance')
-            .select('*')
-            .eq('staff_id', staff.id)
-            .gte('date', `${selectedMonth}-01`)
-            .lte('date', `${selectedMonth}-31`)
-            
-          const daysPresent = attendance?.filter(a => a.is_present).length || 0
-          const daysAbsent = attendance?.filter(a => !a.is_present).length || 0
-          const totalDays = daysPresent + daysAbsent
-          const attendancePercent = totalDays > 0 ? Math.round((daysPresent / totalDays) * 100) : 0
+        try {
+          const data = await Promise.all(staffToReport.map(async (staff) => {
+            const { data: attendance } = await supabase
+              .from('staff_attendance')
+              .select('*')
+              .eq('staff_id', staff.id)
+              .gte('date', `${selectedMonth}-01`)
+              .lte('date', `${selectedMonth}-31`)
+              
+            const daysPresent = attendance?.filter(a => a.is_present).length || 0
+            const daysAbsent = attendance?.filter(a => !a.is_present).length || 0
+            const totalDays = daysPresent + daysAbsent
+            const attendancePercent = totalDays > 0 ? Math.round((daysPresent / totalDays) * 100) : 0
 
-          const res = await apiGet(`/api/staff-feedback/${staff.id}`)
-          let feedbackData = { average_rating: 0, total_reviews: 0, this_month_reviews: 0 }
-          
-          if (res.success && res.data) {
-            const allFeedback = res.data.feedback || []
-            const thisMonthReviews = allFeedback.filter((f: { created_at: string }) => f.created_at.startsWith(selectedMonth)).length
-            feedbackData = {
-              average_rating: res.data.average_rating || 0,
-              total_reviews: res.data.total_reviews || 0,
-              this_month_reviews: thisMonthReviews
+            const res = await apiGet(`/api/staff-feedback/${staff.id}`)
+            let feedbackData = { average_rating: 0, total_reviews: 0, this_month_reviews: 0 }
+            
+            if (res.success && res.data) {
+              const allFeedback = res.data.feedback || []
+              const thisMonthReviews = allFeedback.filter((f: { created_at: string }) => f.created_at.startsWith(selectedMonth)).length
+              feedbackData = {
+                average_rating: res.data.average_rating || 0,
+                total_reviews: res.data.total_reviews || 0,
+                this_month_reviews: thisMonthReviews
+              }
             }
-          }
+            
+            const hasData = totalDays > 0 || feedbackData.this_month_reviews > 0
+            
+            return {
+              ...staff,
+              daysPresent,
+              daysAbsent,
+              attendancePercent,
+              ...feedbackData,
+              hasData
+            }
+          }))
           
-          const hasData = totalDays > 0 || feedbackData.this_month_reviews > 0
-          
-          return {
-            ...staff,
-            daysPresent,
-            daysAbsent,
-            attendancePercent,
-            ...feedbackData,
-            hasData
-          }
-        }))
-        
-        setReportData(data)
-        setLoadingReport(false)
+          setReportData(data)
+        } catch {
+          setReportData([])
+        } finally {
+          setLoadingReport(false)
+        }
       }
       fetchReport()
     }
@@ -154,7 +164,7 @@ const [reportData, setReportData] = useState<ReportData[]>([])
   // ── Sign out ─────────────────────────────────────────────────────────
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    router.push('/login')
+    window.location.href = '/login'
   }
 
   // ── Presence toggle ──────────────────────────────────────────────────
@@ -165,23 +175,28 @@ const [reportData, setReportData] = useState<ReportData[]>([])
     // Optimistic update
     setStaffList(prev => prev.map(s => s.id === id ? { ...s, is_present: newStatus } : s))
 
-    if (isWarden) {
-      await supabase.from('staff_attendance').upsert({
-        profile_id: id,
-        staff_type: 'warden',
-        date: today,
-        is_present: newStatus
-      }, { onConflict: 'profile_id,date' })
-    } else {
-      await supabase.from('staff_attendance').upsert({
-        staff_id: id,
-        staff_type: 'staff_member',
-        date: today,
-        is_present: newStatus
-      }, { onConflict: 'staff_id,date' })
+    try {
+      if (isWarden) {
+        await supabase.from('staff_attendance').upsert({
+          profile_id: id,
+          staff_type: 'warden',
+          date: today,
+          is_present: newStatus
+        }, { onConflict: 'profile_id,date' })
+      } else {
+        await supabase.from('staff_attendance').upsert({
+          staff_id: id,
+          staff_type: 'staff_member',
+          date: today,
+          is_present: newStatus
+        }, { onConflict: 'staff_id,date' })
 
-      // Also update staff_members table
-      await supabase.from('staff_members').update({ is_present: newStatus }).eq('id', id)
+        // Also update staff_members table
+        await supabase.from('staff_members').update({ is_present: newStatus }).eq('id', id)
+      }
+    } catch {
+      // Revert optimistic update on failure
+      setStaffList(prev => prev.map(s => s.id === id ? { ...s, is_present: currentStatus } : s))
     }
   }
 
@@ -191,32 +206,41 @@ const [reportData, setReportData] = useState<ReportData[]>([])
     setAddError('')
     setAddMessage('')
 
-    const { error: insertError } = await supabase
-      .from('staff_members')
-      .insert({
-        full_name: formData.full_name,
-        phone: formData.phone,
-        email: formData.email || null,
-        staff_role: formData.staff_role,
-        is_present: false
-      })
+    try {
+      const { error: insertError } = await supabase
+        .from('staff_members')
+        .insert({
+          full_name: formData.full_name,
+          phone: formData.phone,
+          email: formData.email || null,
+          staff_role: formData.staff_role,
+          is_present: false
+        })
 
-    if (insertError) {
+      if (insertError) {
+        setAddError('Failed to add staff member.')
+        return
+      }
+
+      setAddMessage('Added successfully')
+      setFormData({ full_name: '', phone: '', staff_role: 'cleaner', email: '' })
+      setTimeout(() => setAddMessage(''), 3000)
+      fetchStaff()
+    } catch {
       setAddError('Failed to add staff member.')
-      return
     }
-
-    setAddMessage('Added successfully')
-    setFormData({ full_name: '', phone: '', staff_role: 'cleaner', email: '' })
-    setTimeout(() => setAddMessage(''), 3000)
-    fetchStaff()
   }
 
   // ── Delete staff (modal only) ────────────────────────────────────────
   const handleDelete = async (id: string) => {
-    await supabase.from('staff_members').delete().eq('id', id)
-    setConfirmingDeleteId(null)
-    fetchStaff()
+    try {
+      await supabase.from('staff_members').delete().eq('id', id)
+    } catch {
+      // Silently fail
+    } finally {
+      setConfirmingDeleteId(null)
+      fetchStaff()
+    }
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────
