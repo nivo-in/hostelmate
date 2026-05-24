@@ -30,6 +30,12 @@ export default function WardenFaceRegistration({
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const currentDescriptorRef = useRef<Float32Array | null>(null);
 
+  // Store callbacks in refs so they never appear in dep arrays
+  const onSuccessRef = useRef(onSuccess);
+  const onSkipRef = useRef(onSkip);
+  onSuccessRef.current = onSuccess;
+  onSkipRef.current = onSkip;
+
   const [status, setStatus] = useState<Status>('loading-models');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -55,7 +61,7 @@ export default function WardenFaceRegistration({
         // Silently ignore transient detection errors
       }
     }, 500);
-  }, []);
+  }, []); // stable forever
 
   useEffect(() => {
     let cancelled = false;
@@ -117,7 +123,7 @@ export default function WardenFaceRegistration({
       );
       if (error) throw error;
       setStatus('registered');
-      setTimeout(onSuccess, 1200);
+      setTimeout(() => onSuccessRef.current(), 1200);
     } catch (err: unknown) {
       setStatus('error');
       setErrorMsg(err instanceof Error ? err.message : 'Failed to save face data');
@@ -213,7 +219,7 @@ export default function WardenFaceRegistration({
 
       <button
         id="skip-warden-face-registration-btn"
-        onClick={onSkip}
+        onClick={() => onSkipRef.current()}
         className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
       >
         Skip for now

@@ -34,6 +34,14 @@ export default function WardenFaceVerification({
   const storedDescriptorRef = useRef<number[] | null>(null);
   const failedAttemptsRef = useRef(0);
 
+  // Store callbacks in refs so they never appear in dep arrays
+  const onVerifiedRef = useRef(onVerified);
+  const onFailedRef = useRef(onFailed);
+  const onSkipRef = useRef(onSkip);
+  onVerifiedRef.current = onVerified;
+  onFailedRef.current = onFailed;
+  onSkipRef.current = onSkip;
+
   const [status, setStatus] = useState<Status>('loading-models');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -66,13 +74,13 @@ export default function WardenFaceVerification({
         if (match) {
           stopCamera();
           setStatus('verified');
-          setTimeout(onVerified, 1000);
+          setTimeout(() => onVerifiedRef.current(), 1000);
         } else {
           failedAttemptsRef.current += 1;
           if (failedAttemptsRef.current >= 5) {
             stopCamera();
             setStatus('failed');
-            onFailed('Face not recognized. Please try again.');
+            onFailedRef.current('Face not recognized. Please try again.');
           } else {
             setStatus('scanning');
           }
@@ -81,7 +89,7 @@ export default function WardenFaceVerification({
         setStatus('scanning');
       }
     }, 1000);
-  }, [stopCamera, onVerified, onFailed]);
+  }, [stopCamera]); // stable — no callback deps
 
   useEffect(() => {
     let cancelled = false;
@@ -104,7 +112,7 @@ export default function WardenFaceVerification({
 
         if (error || !data) {
           // No face registered for warden — skip
-          onSkip();
+          onSkipRef.current();
           return;
         }
 
@@ -144,7 +152,7 @@ export default function WardenFaceVerification({
       cancelled = true;
       stopCamera();
     };
-  }, [wardenId, startVerificationLoop, stopCamera, onSkip]);
+  }, [wardenId, startVerificationLoop, stopCamera]); // stable deps only
 
   const statusText: Record<Status, string> = {
     'loading-models': 'Loading face recognition...',
@@ -238,7 +246,7 @@ export default function WardenFaceVerification({
 
       <button
         id="skip-warden-face-verification-btn"
-        onClick={onSkip}
+        onClick={() => onSkipRef.current()}
         className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
       >
         Skip verification

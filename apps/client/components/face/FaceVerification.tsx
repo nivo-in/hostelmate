@@ -34,6 +34,14 @@ export default function FaceVerification({
   const storedDescriptorRef = useRef<number[] | null>(null);
   const failedAttemptsRef = useRef(0);
 
+  // Store callbacks in refs so they never cause useEffect/useCallback to re-run
+  const onVerifiedRef = useRef(onVerified);
+  const onFailedRef = useRef(onFailed);
+  const onSkipRef = useRef(onSkip);
+  onVerifiedRef.current = onVerified;
+  onFailedRef.current = onFailed;
+  onSkipRef.current = onSkip;
+
   const [status, setStatus] = useState<Status>('loading-models');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -46,33 +54,29 @@ export default function FaceVerification({
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
-  }, []);
+  }, []); // no deps — stable forever
 
   const startVerificationLoop = useCallback(() => {
     intervalRef.current = setInterval(async () => {
       if (!videoRef.current || !storedDescriptorRef.current) return;
-
       try {
         setStatus('verifying');
         const descriptor = await getFaceDescriptor(videoRef.current);
-
         if (!descriptor) {
           setStatus('scanning');
           return;
         }
-
         const match = await isSamePerson(descriptor, storedDescriptorRef.current);
-
         if (match) {
           stopCamera();
           setStatus('verified');
-          setTimeout(onVerified, 1000);
+          setTimeout(() => onVerifiedRef.current(), 1000);
         } else {
           failedAttemptsRef.current += 1;
           if (failedAttemptsRef.current >= 5) {
             stopCamera();
             setStatus('failed');
-            onFailed('Face not recognized. Please try again or use QR only.');
+            onFailedRef.current('Face not recognized. Please try again or use QR only.');
           } else {
             setStatus('scanning');
           }
@@ -81,7 +85,7 @@ export default function FaceVerification({
         setStatus('scanning');
       }
     }, 1000);
-  }, [stopCamera, onVerified, onFailed]);
+  }, [stopCamera]); // only stopCamera — which is also stable
 
   useEffect(() => {
     let cancelled = false;
@@ -92,7 +96,6 @@ export default function FaceVerification({
         await loadModels();
         if (cancelled) return;
 
-        // Fetch stored descriptor from Supabase
         setStatus('fetching-descriptor');
         const supabase = createClient();
         const { data, error } = await supabase
@@ -104,14 +107,12 @@ export default function FaceVerification({
         if (cancelled) return;
 
         if (error || !data) {
-          // No face registered — skip immediately
-          onSkip();
+          onSkipRef.current();
           return;
         }
 
         storedDescriptorRef.current = data.descriptor as number[];
 
-        // Start camera
         setStatus('requesting-camera');
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'user', width: 640, height: 480 },
@@ -146,7 +147,7 @@ export default function FaceVerification({
       cancelled = true;
       stopCamera();
     };
-  }, [studentId, startVerificationLoop, stopCamera, onSkip]);
+  }, [studentId, startVerificationLoop, stopCamera]); // callbacks are stable — no re-runs
 
   const statusText: Record<Status, string> = {
     'loading-models': 'Loading face recognition...',
@@ -188,7 +189,6 @@ export default function FaceVerification({
         </div>
       )}
 
-      {/* Camera feed with scanning overlay */}
       <div className="relative w-full max-w-sm">
         <video
           ref={videoRef}
@@ -197,21 +197,16 @@ export default function FaceVerification({
           className="rounded-xl border border-gray-200 w-full"
           style={{ display: showVideo ? 'block' : 'none' }}
         />
-
-        {/* Scanning animation ring */}
         {showVideo && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div
               className="w-32 h-32 rounded-full border-4 border-gray-900 opacity-70"
-              style={{
-                animation: 'scanPulse 1.5s ease-in-out infinite',
-              }}
+              style={{ animation: 'scanPulse 1.5s ease-in-out infinite' }}
             />
           </div>
         )}
       </div>
 
-      {/* Verified / Failed state icons */}
       {isVerified && (
         <div className="flex flex-col items-center gap-2">
           <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
@@ -243,7 +238,7 @@ export default function FaceVerification({
 
       <button
         id="skip-face-verification-btn"
-        onClick={onSkip}
+        onClick={() => onSkipRef.current()}
         className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
       >
         Skip verification
