@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { loadModels, getFaceDescriptor, isSamePerson } from '@/lib/faceRecognition';
+import { loadModels, getFaceDescriptor, isSamePerson, bestMatchDistance } from '@/lib/faceRecognition';
 import { createClient } from '@/lib/supabase/client';
 
 interface FaceVerificationProps {
@@ -31,10 +31,11 @@ export default function FaceVerification({
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const storedDescriptorRef = useRef<number[] | null>(null);
+  // Stored as number[][] — one descriptor per registered angle
+  const storedDescriptorsRef = useRef<number[][] | null>(null);
   const failedAttemptsRef = useRef(0);
+  const bestDistRef = useRef<number>(Infinity); // track best distance seen for UI feedback
 
-  // Store callbacks in refs so they never cause useEffect/useCallback to re-run
   const onVerifiedRef = useRef(onVerified);
   const onFailedRef = useRef(onFailed);
   const onSkipRef = useRef(onSkip);
@@ -44,21 +45,16 @@ export default function FaceVerification({
 
   const [status, setStatus] = useState<Status>('loading-models');
   const [errorMsg, setErrorMsg] = useState('');
+  const [bestDist, setBestDist] = useState<number | null>(null);
 
   const stopCamera = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-    }
-  }, []); // no deps — stable forever
+    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+    if (streamRef.current) { streamRef.current.getTracks().forEach((t) => t.stop()); streamRef.current = null; }
+  }, []);
 
   const startVerificationLoop = useCallback(() => {
     intervalRef.current = setInterval(async () => {
-      if (!videoRef.current || !storedDescriptorRef.current) return;
+      if (!videoRef.current || !storedDescriptorsRef.current) return;
       try {
         setStatus('verifying');
         const descriptor = await getFaceDescriptor(videoRef.current);
@@ -66,17 +62,24 @@ export default function FaceVerification({
           setStatus('scanning');
           return;
         }
-        const match = await isSamePerson(descriptor, storedDescriptorRef.current);
+
+        const dist = bestMatchDistance(descriptor, storedDescriptorsRef.current);
+        if (dist < bestDistRef.current) {
+          bestDistRef.current = dist;
+          setBestDist(Math.round(dist * 1000) / 1000);
+        }
+
+        const match = isSamePerson(descriptor, storedDescriptorsRef.current);
         if (match) {
           stopCamera();
           setStatus('verified');
           setTimeout(() => onVerifiedRef.current(), 1000);
         } else {
           failedAttemptsRef.current += 1;
-          if (failedAttemptsRef.current >= 5) {
+          if (failedAttemptsRef.current >= 10) {
             stopCamera();
             setStatus('failed');
-            onFailedRef.current('Face not recognized. Please try again or use QR only.');
+            onFailedRef.current('Face not recognized. Please use QR code attendance instead.');
           } else {
             setStatus('scanning');
           }
@@ -84,8 +87,8 @@ export default function FaceVerification({
       } catch {
         setStatus('scanning');
       }
-    }, 1000);
-  }, [stopCamera]); // only stopCamera — which is also stable
+    }, 800);
+  }, [stopCamera]);
 
   useEffect(() => {
     let cancelled = false;
@@ -111,16 +114,22 @@ export default function FaceVerification({
           return;
         }
 
-        storedDescriptorRef.current = data.descriptor as number[];
+        // descriptor is number[][] (multi-angle) — handle legacy number[] too
+        const raw = data.descriptor;
+        if (Array.isArray(raw) && raw.length > 0) {
+          storedDescriptorsRef.current = Array.isArray(raw[0])
+            ? (raw as number[][])           // new format: multi-angle
+            : [(raw as number[])];          // legacy: wrap single descriptor
+        } else {
+          onSkipRef.current();
+          return;
+        }
 
         setStatus('requesting-camera');
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: 640, height: 480 },
+          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
         });
-        if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
-          return;
-        }
+        if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
         streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -142,35 +151,16 @@ export default function FaceVerification({
     };
 
     init();
-
-    return () => {
-      cancelled = true;
-      stopCamera();
-    };
-  }, [studentId, startVerificationLoop, stopCamera]); // callbacks are stable — no re-runs
-
-  const statusText: Record<Status, string> = {
-    'loading-models': 'Loading face recognition...',
-    'requesting-camera': 'Requesting camera access...',
-    'fetching-descriptor': 'Fetching your face data...',
-    scanning: 'Scanning...',
-    verifying: 'Verifying...',
-    verified: 'Verified ✓',
-    failed: 'Face not recognized',
-    'camera-denied': 'Camera permission denied.',
-    error: errorMsg || 'An error occurred.',
-  };
+    return () => { cancelled = true; stopCamera(); };
+  }, [studentId, startVerificationLoop, stopCamera]);
 
   const isVerified = status === 'verified';
   const isFailed = status === 'failed';
   const isLoading = ['loading-models', 'requesting-camera', 'fetching-descriptor'].includes(status);
   const showVideo = !['loading-models', 'fetching-descriptor', 'camera-denied', 'error', 'verified', 'failed'].includes(status);
 
-  const statusColor = isVerified
-    ? '#16a34a'
-    : isFailed || status === 'camera-denied' || status === 'error'
-    ? '#dc2626'
-    : '#6b7280';
+  // Confidence bar: distance 0 = perfect, 0.42 = threshold, 0.6+ = no match
+  const confidence = bestDist !== null ? Math.max(0, Math.min(100, Math.round((1 - bestDist / 0.6) * 100))) : null;
 
   return (
     <div className="flex flex-col items-center gap-5 p-6">
@@ -185,27 +175,77 @@ export default function FaceVerification({
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
           </svg>
-          {statusText[status]}
+          {status === 'loading-models'
+            ? 'Loading face recognition...'
+            : status === 'fetching-descriptor'
+            ? 'Loading your face data...'
+            : 'Starting camera...'}
         </div>
       )}
 
+      {/* Camera */}
       <div className="relative w-full max-w-sm">
         <video
           ref={videoRef}
           muted
           playsInline
-          className="rounded-xl border border-gray-200 w-full"
-          style={{ display: showVideo ? 'block' : 'none' }}
+          className="rounded-2xl w-full"
+          style={{ display: showVideo ? 'block' : 'none', transform: 'scaleX(-1)' }}
         />
+
         {showVideo && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div
-              className="w-32 h-32 rounded-full border-4 border-gray-900 opacity-70"
-              style={{ animation: 'scanPulse 1.5s ease-in-out infinite' }}
-            />
-          </div>
+          <>
+            {/* Oval face guide */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="relative" style={{ width: '42%', paddingTop: '58%' }}>
+                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 136" fill="none">
+                  <ellipse
+                    cx="50" cy="68" rx="48" ry="66"
+                    stroke={status === 'verifying' ? '#3b82f6' : '#ffffff'}
+                    strokeWidth="3"
+                    style={{ filter: 'drop-shadow(0 0 6px rgba(0,0,0,0.5))', transition: 'stroke 0.2s ease' }}
+                  />
+                </svg>
+              </div>
+            </div>
+
+            {/* Status chip */}
+            <div className="absolute top-3 left-0 right-0 flex justify-center pointer-events-none">
+              <div
+                className="text-white text-xs font-medium px-3 py-1 rounded-full"
+                style={{
+                  background: status === 'verifying' ? 'rgba(59,130,246,0.75)' : 'rgba(0,0,0,0.55)',
+                  backdropFilter: 'blur(4px)',
+                }}
+              >
+                {status === 'verifying' ? 'Verifying…' : 'Hold still'}
+              </div>
+            </div>
+          </>
         )}
       </div>
+
+      {/* Confidence meter (shown during scanning) */}
+      {showVideo && confidence !== null && (
+        <div className="w-full max-w-sm">
+          <div className="flex justify-between text-xs text-gray-400 mb-1">
+            <span>Match confidence</span>
+            <span>{confidence}%</span>
+          </div>
+          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-300"
+              style={{
+                width: `${confidence}%`,
+                background:
+                  confidence >= 70 ? '#16a34a'
+                  : confidence >= 40 ? '#f59e0b'
+                  : '#ef4444',
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {isVerified && (
         <div className="flex flex-col items-center gap-2">
@@ -214,25 +254,37 @@ export default function FaceVerification({
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
+          <p className="text-sm font-medium text-green-700">Verified ✓</p>
         </div>
       )}
 
       {isFailed && (
-        <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
-          <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
+            <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </div>
+          <p className="text-sm font-medium text-red-600">Face not recognized</p>
+          <p className="text-xs text-gray-400 text-center max-w-xs">
+            Make sure you&apos;re in good lighting and looking directly at the camera.
+          </p>
         </div>
       )}
 
-      <p className="text-sm font-medium" style={{ color: statusColor }}>
-        {statusText[status]}
-      </p>
+      {status === 'camera-denied' && (
+        <p className="text-xs text-gray-500 text-center max-w-xs">
+          Camera access denied. Enable permissions in browser settings, then refresh.
+        </p>
+      )}
+
+      {status === 'error' && (
+        <p className="text-xs text-red-500 text-center max-w-xs">{errorMsg}</p>
+      )}
 
       {failedAttemptsRef.current > 0 && !isFailed && status === 'scanning' && (
         <p className="text-xs text-gray-400">
-          Attempt {failedAttemptsRef.current}/5 — hold still and look directly at the camera
+          Attempt {failedAttemptsRef.current}/10 — hold still and look directly at the camera
         </p>
       )}
 
