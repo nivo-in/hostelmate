@@ -28,7 +28,7 @@ export default function ParentNotices() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push('/login');
+    window.location.href = '/login';
   };
 
   return (

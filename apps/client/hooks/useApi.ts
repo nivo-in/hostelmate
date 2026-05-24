@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/client'
 
 export function useApi() {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+  const baseUrl = typeof window !== 'undefined' 
+    ? `${window.location.protocol}//${window.location.hostname}:3001`
+    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
   const getToken = async () => {
     const supabase = createClient()

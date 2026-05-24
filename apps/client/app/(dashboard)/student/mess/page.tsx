@@ -37,7 +37,7 @@ export default function StudentMess() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push('/login');
+    window.location.href = '/login';
   };
 
   const handleRatingChange = (meal: string, rating: number) => {

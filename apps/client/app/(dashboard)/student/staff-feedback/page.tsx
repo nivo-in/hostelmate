@@ -47,7 +47,7 @@ export default function StaffFeedbackPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push('/login');
+    window.location.href = '/login';
   };
 
   const handleSubmit = async (staff_id: string) => {

@@ -12,7 +12,7 @@ const router = Router()
 
 router.post('/mark', authenticate, requireStudent, validate(attendanceSchema), async (req, res, next) => {
   try {
-    const { qr_data, lat, lng } = req.body
+    const { qr_data, lat, lng, face_verified } = req.body
 
     let parsedQr
     try {
@@ -66,7 +66,8 @@ router.post('/mark', authenticate, requireStudent, validate(attendanceSchema), a
         scan_time: new Date().toISOString(),
         qr_data: parsedQr,
         lat,
-        lng
+        lng,
+        face_verified: face_verified ?? false
       })
       .select()
       .single()
@@ -107,7 +108,8 @@ router.get('/today', authenticate, requireWarden, async (req, res, next) => {
       full_name: item.students?.profiles?.full_name,
       roll_number: item.students?.roll_number,
       status: item.status,
-      scan_time: item.scan_time
+      scan_time: item.scan_time,
+      face_verified: item.face_verified ?? false
     }))
 
     await setCache(cacheKey, formattedData, 120)

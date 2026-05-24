@@ -21,82 +21,83 @@ interface AttendanceRecord {
   roll_number?: string;
   status: string;
   scan_time: string | null;
+  face_verified?: boolean;
   profiles?: { full_name?: string; id?: string };
 }
 
-const QR_INTERVAL = 30
+const QR_INTERVAL = 30;
 
 export default function WardenAttendance() {
-  const [qrCodeDataUrl, setQrCodeDataUrl] = useState('')
-  const [countdown, setCountdown] = useState(QR_INTERVAL)
-  const [stats, setStats] = useState<AttendanceStats>({})
-  const [records, setRecords] = useState<AttendanceRecord[]>([])
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
+  const [countdown, setCountdown] = useState(QR_INTERVAL);
+  const [stats, setStats] = useState<AttendanceStats>({});
+  const [records, setRecords] = useState<AttendanceRecord[]>([]);
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const { apiGet } = useApi()
-  const router = useRouter()
-  const supabase = createClient()
+  const { apiGet } = useApi();
+  const router = useRouter();
+  const supabase = createClient();
 
   const generateQR = useCallback(async () => {
-    const today = new Date().toISOString().split('T')[0]
-    const nonce = Date.now()
+    const today = new Date().toISOString().split('T')[0];
+    const nonce = Date.now();
     const payload = JSON.stringify({
       hostel: 'hostelmate',
       date: today,
       token: `${today}-secret123`,
-      nonce
-    })
+      nonce,
+    });
     const dataUrl = await QRCode.toDataURL(payload, {
       width: 256,
       margin: 2,
-      color: { dark: '#111827', light: '#ffffff' }
-    })
-    setQrCodeDataUrl(dataUrl)
-  }, [])
+      color: { dark: '#111827', light: '#ffffff' },
+    });
+    setQrCodeDataUrl(dataUrl);
+  }, []);
 
   useEffect(() => {
-    generateQR()
+    generateQR();
 
     const ticker = setInterval(() => {
-      setCountdown(prev => {
+      setCountdown((prev) => {
         if (prev <= 1) {
-          generateQR()
-          return QR_INTERVAL
+          generateQR();
+          return QR_INTERVAL;
         }
-        return prev - 1
-      })
-    }, 1000)
+        return prev - 1;
+      });
+    }, 1000);
 
-    return () => clearInterval(ticker)
-  }, [generateQR])
+    return () => clearInterval(ticker);
+  }, [generateQR]);
 
   const fetchData = useCallback(async () => {
     try {
       const [statsRes, recordsRes] = await Promise.all([
         apiGet('/api/attendance/stats'),
-        apiGet(`/api/attendance/today?date=${date}`)
-      ])
-      if (statsRes.success) setStats(statsRes.data)
-      if (recordsRes.success) setRecords(recordsRes.data || [])
-    } catch {}
-  }, [date])
+        apiGet(`/api/attendance/today?date=${date}`),
+      ]);
+      if (statsRes.success) setStats(statsRes.data);
+      if (recordsRes.success) setRecords(recordsRes.data || []);
+    } catch { /* silently fail */ }
+  }, [date, apiGet]);
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    fetchData();
+  }, [fetchData]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
+    await supabase.auth.signOut();
+    window.location.href = '/login';
+  };
 
   const getStatusVariant = (status: string) => {
-    if (status === 'present') return 'success'
-    if (status === 'absent') return 'danger'
-    return 'warning'
-  }
+    if (status === 'present') return 'success';
+    if (status === 'absent') return 'danger';
+    return 'warning';
+  };
 
-  const s = stats?.data ?? stats
+  const s = stats?.data ?? stats;
 
   return (
     <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
@@ -154,7 +155,7 @@ export default function WardenAttendance() {
           <input
             type="date"
             value={date}
-            onChange={e => setDate(e.target.value)}
+            onChange={(e) => setDate(e.target.value)}
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-500 transition-colors"
           />
         </div>
@@ -164,13 +165,14 @@ export default function WardenAttendance() {
               <th className="px-4 py-3 font-medium text-xs text-gray-500">Name</th>
               <th className="px-4 py-3 font-medium text-xs text-gray-500">Roll No</th>
               <th className="px-4 py-3 font-medium text-xs text-gray-500">Status</th>
+              <th className="px-4 py-3 font-medium text-xs text-gray-500">Verified</th>
               <th className="px-4 py-3 font-medium text-xs text-gray-500">Scan Time</th>
             </tr>
           </thead>
           <tbody>
             {records.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-3 text-center border-b border-gray-50">
+                <td colSpan={5} className="px-4 py-3 text-center border-b border-gray-50">
                   <EmptyState message="No attendance records for this date" />
                 </td>
               </tr>
@@ -180,13 +182,22 @@ export default function WardenAttendance() {
                   <td className="px-4 py-3 text-gray-900 font-medium">
                     {r.full_name || r.profiles?.full_name || 'Unknown'}
                   </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {r.roll_number || '-'}
-                  </td>
+                  <td className="px-4 py-3 text-gray-500">{r.roll_number || '-'}</td>
                   <td className="px-4 py-3">
                     <Badge variant={getStatusVariant(r.status)}>
                       {r.status.toUpperCase()}
                     </Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    {r.face_verified ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">
+                        ✓ Face
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                        QR Only
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-gray-500">
                     {r.scan_time ? new Date(r.scan_time).toLocaleTimeString() : '-'}
@@ -198,5 +209,5 @@ export default function WardenAttendance() {
         </table>
       </div>
     </div>
-  )
+  );
 }
