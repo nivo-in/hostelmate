@@ -1,4 +1,7 @@
 node_modules
 .env
+.env*
 logs
 .git
+*.log
+.DS_Store
