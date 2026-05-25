@@ -220,6 +220,30 @@ Every push to v2 and main triggers automated:
 
 Pipeline completes in ~55 seconds. No broken code reaches main.
 
+### 8. Face Recognition with Anti-Spoofing Liveness Detection
+
+HostelMate uses **client-side biometric verification** powered by `face-api.js` (SsdMobilenetv1 + 68-point landmarks). Registration captures **5 angles** (straight, left, right, up, down) — 24 frames total, averaged into 5 per-angle descriptors stored in Supabase.
+
+**Verification runs three hard gates before accepting a match:**
+
+```
+Gate 1: Blink detection (EAR falling-edge — mandatory, no bypass)
+   Eye Aspect Ratio = (||p2-p6|| + ||p3-p5||) / (2 × ||p1-p4||)
+   EAR < 0.25 on a falling edge → blink confirmed
+   → A photo on a phone screen cannot blink
+
+Gate 2: Frame-difference pixel analysis (secondary hard-block)
+   32×32 face patch sampled each frame, grayscale diff vs previous
+   Avg diff < 6/255 over 10 frames → static image → BLOCK
+   → Catches photos held still after a fake EAR dip
+
+Gate 3: Face match (threshold 0.52, best-of-5-angles)
+   Euclidean distance vs all stored angle descriptors → take minimum
+   → Front-facing match works without needing head rotation
+```
+
+**Performance:** Recursive async tick (not `setInterval`) — next detection fires 50ms after previous completes. Blink → verified in ~300ms total. EMA smoothing on confidence bar prevents jitter.
+
 ---
 
 ## 👥 Features by Role
@@ -228,6 +252,7 @@ Pipeline completes in ~55 seconds. No broken code reaches main.
 | Feature | Description |
 |---|---|
 | QR Attendance | Scan rotating QR code within geofenced zone |
+| **Face Recognition** | **Biometric attendance with blink-based liveness check** |
 | Leave Requests | Submit with date range and reason (20+ chars) |
 | Complaints | File categorized complaints with urgency flags |
 | Mess Reviews | Rate meals (1-5 stars) with comments |
@@ -239,6 +264,7 @@ Pipeline completes in ~55 seconds. No broken code reaches main.
 | Feature | Description |
 |---|---|
 | Analytics Dashboard | Redis-cached stats: attendance, leaves, complaints |
+| **Face Auth Login** | **5-angle biometric verification with liveness detection** |
 | Attendance Management | View today's attendance with student details |
 | Leave Approvals | Approve/reject with `approved_by` audit trail |
 | Complaint Tracking | Update status: open → in_progress → resolved |
@@ -294,6 +320,12 @@ hostelmate/
 │   │   │   ├── globals.css
 │   │   │   └── layout.tsx
 │   │   ├── components/ui/               # Shared UI components
+│   │   ├── components/face/             # Biometric components
+│   │   │   ├── FaceRegistration.tsx     # 5-angle guided enrolment (student)
+│   │   │   ├── FaceVerification.tsx     # Blink-gated liveness + match (student)
+│   │   │   ├── WardenFaceRegistration.tsx
+│   │   │   └── WardenFaceVerification.tsx
+│   │   ├── lib/faceRecognition.ts       # EAR, EMA, frame-diff, bestMatchDistance
 │   │   ├── hooks/                       # Custom React hooks
 │   │   ├── lib/supabase/                # Supabase client config
 │   │   ├── middleware.ts                # Auth + role routing
@@ -501,8 +533,8 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 
 | Status | Feature | Description |
 |---|---|---|
+| ✅ | **Face Recognition** | **5-angle biometric + EAR blink liveness + frame-diff anti-spoofing** |
 | 🔲 | WebSocket Notifications | Real-time push via Socket.io |
-| 🔲 | Face Recognition | Biometric attendance verification |
 | 🔲 | Redis Pub/Sub | Live updates across connected clients |
 | 🔲 | Test Suite | Jest + Supertest with ≥80% coverage |
 | ✅ | CI/CD Pipeline | GitHub Actions: lint → test → build → deploy |

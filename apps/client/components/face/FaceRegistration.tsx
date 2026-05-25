@@ -141,11 +141,17 @@ export default function FaceRegistration({
     setStatus('processing');
     try {
       const supabase = createClient();
-      // collectedDescriptorsRef.current is number[][] — one mean per angle
+      const descs = collectedDescriptorsRef.current;
+      // Store each angle in its own column (FIX 4) + keep full array for backward compat
       const { error } = await supabase.from('face_descriptors').upsert(
         {
           student_id: studentId,
-          descriptor: collectedDescriptorsRef.current,
+          descriptor: descs,                       // backward compat: full number[][]
+          descriptor_straight: descs[0] ?? null,   // phase 0: center
+          descriptor_left:     descs[1] ?? null,   // phase 1: left
+          descriptor_right:    descs[2] ?? null,   // phase 2: right
+          descriptor_up:       descs[3] ?? null,   // phase 3: up
+          descriptor_down:     descs[4] ?? null,   // phase 4: down
         },
         { onConflict: 'student_id' }
       );

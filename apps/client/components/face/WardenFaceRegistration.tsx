@@ -80,10 +80,16 @@ export default function WardenFaceRegistration({
     setStatus('processing');
     try {
       const supabase = createClient();
+      const descs = collectedDescriptorsRef.current;
       const { error } = await supabase.from('warden_face_descriptors').upsert(
         {
           warden_id: wardenId,
-          descriptor: collectedDescriptorsRef.current,
+          descriptor: descs,                       // backward compat
+          descriptor_straight: descs[0] ?? null,
+          descriptor_left:     descs[1] ?? null,
+          descriptor_right:    descs[2] ?? null,
+          descriptor_up:       descs[3] ?? null,
+          descriptor_down:     descs[4] ?? null,
         },
         { onConflict: 'warden_id' }
       );
