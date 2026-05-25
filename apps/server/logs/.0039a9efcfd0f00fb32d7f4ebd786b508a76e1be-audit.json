@@ -6,11 +6,6 @@
     "auditLog": "logs/.0039a9efcfd0f00fb32d7f4ebd786b508a76e1be-audit.json",
     "files": [
         {
-            "date": 1778439209367,
-            "name": "logs/hostelmate-2026-05-11.log",
-            "hash": "5d51b72d24545764426d3956ac5315e02948577e7191e1f356a7142f0ebcb435"
-        },
-        {
             "date": 1778536479611,
             "name": "logs/hostelmate-2026-05-12.log",
             "hash": "d5525eaf4c950c89ce8237cf70dd54350f3644d7525cc35e72e4e8eae46a881c"
@@ -29,6 +24,11 @@
             "date": 1779620786140,
             "name": "logs/hostelmate-2026-05-24.log",
             "hash": "d1b265da03bf9bf03802401b783f8ba37d8ca743a02bd45ae4c5d29a5a296739"
+        },
+        {
+            "date": 1779686230996,
+            "name": "logs/hostelmate-2026-05-25.log",
+            "hash": "8e49965f4d37ce96470631a7a6844735e03d750dc3f35d67e2cc73711a154d23"
         }
     ],
     "hashType": "sha256"

@@ -134,7 +134,7 @@ HostelMate provides a **role-based platform** where students, wardens, and paren
 
 ### 1. Rotating QR Codes — Eliminating Screenshot Fraud
 
-Students sharing QR screenshots is the #1 proxy attendance method. HostelMate generates QR codes that **rotate every 30 seconds** with embedded timestamps.
+Students sharing QR screenshots is the #1 proxy attendance method. HostelMate generates QR codes that **rotate every 60 seconds** with embedded timestamps.
 
 ```
 QR Payload: {
@@ -220,51 +220,53 @@ Every push to v2 and main triggers automated:
 
 Pipeline completes in ~55 seconds. No broken code reaches main.
 
-### 8. Staff Performance System
+### 8. Face Recognition with Anti-Spoofing Liveness Detection
 
-HostelMate tracks hostel staff (cleaners, security, admin) with:
+HostelMate uses **client-side biometric verification** powered by `face-api.js` (SsdMobilenetv1 + 68-point landmarks). Registration captures **5 angles** (straight, left, right, up, down) — 24 frames total, averaged into 5 per-angle descriptors stored in Supabase.
 
-- Daily present/absent toggle with persistent storage via `staff_attendance` table
-- Monthly attendance reports — days present, days absent, attendance %
-- Student feedback system — 1-5 star ratings with comments, one review per staff per day
-- Duplicate review prevention — enforced at database level
-- Warden analytics — average rating, total reviews, monthly breakdown per staff member
+**Verification runs three hard gates before accepting a match:**
+
+| Gate | Check | How it blocks spoofing |
+|---|---|---|
+| **1 — Blink (mandatory)** | Eye Aspect Ratio (EAR) falling-edge detection using 68-point landmarks. EAR = `(‖p2−p6‖ + ‖p3−p5‖) / (2 × ‖p1−p4‖)`. EAR < 0.25 on a falling edge = blink confirmed. | A static photo on a phone screen **cannot blink** — no real eye movement, no EAR drop. |
+| **2 — Frame-diff (hard-block)** | A 32×32 patch of the face region is sampled every tick, compared pixel-by-pixel (grayscale) to the previous frame. Avg diff < 6/255 over 10+ frames = static source. | Catches a photo held still after a fake EAR dip (e.g., tilting the phone). |
+| **3 — Face match** | Euclidean distance vs all 5 stored angle descriptors. Best (minimum) distance must be < 0.52. | Threshold set below face-api's default 0.6 — tight enough to reject strangers, loose enough to match front-facing without head rotation. |
+
+**Performance:** Recursive async tick instead of `setInterval` — next detection fires 50ms after the previous completes (~3× more detections/sec). Blink → verified in **~300ms total**. EMA smoothing on the confidence bar prevents jitter.
 
 ---
 
 ## 👥 Features by Role
 
 ### 🎓 Student
-
 | Feature | Description |
 |---|---|
 | QR Attendance | Scan rotating QR code within geofenced zone |
+| **Face Recognition** | **Biometric attendance with blink-based liveness check** |
 | Leave Requests | Submit with date range and reason (20+ chars) |
 | Complaints | File categorized complaints with urgency flags |
 | Mess Reviews | Rate meals (1-5 stars) with comments |
 | Lost & Found | Report or browse lost/found items |
 | Auto-Match Notifications | Instant alert when a matching found item is reported |
+| Staff Feedback | Rate hostel staff (1-5 stars) with optional comments |
 | Notices | View role-filtered announcements |
-| Staff Feedback | Rate hostel staff (cleaners, security) with 1-5 stars |
 
 ### 🏛 Warden
-
 | Feature | Description |
 |---|---|
 | Analytics Dashboard | Redis-cached stats: attendance, leaves, complaints |
+| **Face Auth Login** | **5-angle biometric verification with liveness detection** |
 | Attendance Management | View today's attendance with student details |
 | Leave Approvals | Approve/reject with `approved_by` audit trail |
 | Complaint Tracking | Update status: open → in_progress → resolved |
 | Mess Menu Management | CRUD menu items by day and meal type |
 | Notices Broadcast | Post to students, parents, or all |
 | Staff Directory | Manage hostel staff records |
+| Staff Feedback Aggregation | View per-staff average ratings from student reviews |
 | Emergency Alerts | System-wide emergency notifications |
 | Auto-Match Alerts | Notified when lost/found items match automatically |
-| Staff Feedback Analytics | View average ratings and monthly reports per staff |
-| Staff Attendance | Track daily present/absent for all hostel staff |
 
 ### 👨‍👩‍👧 Parent
-
 | Feature | Description |
 |---|---|
 | Student Tracking | Real-time attendance and leave status |
@@ -310,6 +312,12 @@ hostelmate/
 │   │   │   ├── globals.css
 │   │   │   └── layout.tsx
 │   │   ├── components/ui/               # Shared UI components
+│   │   ├── components/face/             # Biometric components
+│   │   │   ├── FaceRegistration.tsx     # 5-angle guided enrolment (student)
+│   │   │   ├── FaceVerification.tsx     # Blink-gated liveness + match (student)
+│   │   │   ├── WardenFaceRegistration.tsx
+│   │   │   └── WardenFaceVerification.tsx
+│   │   ├── lib/faceRecognition.ts       # EAR, EMA, frame-diff, bestMatchDistance
 │   │   ├── hooks/                       # Custom React hooks
 │   │   ├── lib/supabase/                # Supabase client config
 │   │   ├── middleware.ts                # Auth + role routing
@@ -517,30 +525,30 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 
 | Status | Feature | Description |
 |---|---|---|
-| ✅ | GitHub Actions CI/CD | Lint → build → security audit on every push |
-| ✅ | Redis Caching | Tiered TTL caching with smart invalidation |
-| ✅ | Docker | Multi-service containerization with docker-compose |
-| ✅ | Winston Logging | Structured logging with daily file rotation |
-| ✅ | Zod Validation | Type-safe request validation on all routes |
-| ✅ | RBAC Middleware | Role-based access control on every route |
-| ✅ | Geofencing | Haversine formula, 100m radius enforcement |
-| ✅ | Rotating QR Codes | 30-second rotation prevents screenshot sharing |
-| ✅ | Smart Lost & Found | Jaccard similarity auto-matching algorithm |
-| ✅ | Staff Management | Directory, attendance tracking, monthly reports |
-| ✅ | Staff Feedback | Student ratings for hostel staff |
-| ✅ | Jest Tests | 26 tests passing — attendance, validation, geofencing |
-| ✅ | Emergency Alerts | Instant broadcast to all students |
-| 🔲 | WebSocket Notifications | Real-time push via Socket.io |
-| 🔲 | Face Recognition | Biometric attendance — eliminates phone handover proxy |
-| 🔲 | Redis Pub/Sub | Live updates across connected clients |
-| 🔲 | Test Coverage ≥80% | Jest + Supertest full coverage |
-| 🔲 | Mobile App | React Native cross-platform app |
-| 🔲 | AI Complaint Classification | Auto-categorize complaints using NLP |
-| 🔲 | Predictive Maintenance | Predict issues from complaint patterns |
+| ✅ | **GitHub Actions CI/CD** | Lint → build → security audit → Docker verify on every push to v2/main |
+| ✅ | **Redis Caching** | Tiered TTL caching (2–60 min) with smart pattern-based invalidation |
+| ✅ | **Docker** | Multi-service containerisation with `docker-compose` (client + server) |
+| ✅ | **Winston Logging** | Structured logging with daily file rotation and 14-day retention |
+| ✅ | **Zod Validation** | Type-safe request validation schemas on every POST / PUT / PATCH |
+| ✅ | **RBAC Middleware** | `requireStudent` / `requireWarden` / `requireStaff` on every route |
+| ✅ | **Geofencing** | Haversine formula, 100 m radius enforcement with exact distance in error |
+| ✅ | **Rotating QR Codes** | 60-second rotation — screenshot sharing is invalid within 1 minute |
+| ✅ | **Smart Lost & Found** | Jaccard-similarity auto-matching with in-app notification on match |
+| ✅ | **Staff Management** | Directory, attendance tracking, and monthly staff reports |
+| ✅ | **Staff Feedback** | Student rating system (1–5★) per staff member with warden aggregate view |
+| ✅ | **Jest Tests** | Attendance, geofence & Zod validation tests with mocked Supabase / Redis |
+| ✅ | **Emergency Alerts** | Warden broadcasts instant system-wide emergency notice to all students |
+| ✅ | **Face Recognition** | 5-angle biometric (SsdMobilenetv1) + EAR blink liveness + frame-diff anti-spoofing |
+| 🔲 | WebSocket Notifications | Real-time push via Socket.io for instant alerts without polling |
+| 🔲 | Redis Pub/Sub | Live cross-client updates across browser tabs and devices |
+| 🔲 | Test Coverage ≥80% | Expand Jest suite to full route coverage with Supertest |
+| 🔲 | Mobile App | React Native cross-platform app for students and parents |
+| 🔲 | AI Complaint Classification | Auto-categorise complaints by type and urgency using NLP |
+| 🔲 | Predictive Maintenance | Predict recurring issues from historical complaint patterns |
 | 🔲 | Multi-tenancy | Support multiple hostels under one instance |
 | 🔲 | Payment Integration | Mess fees and hostel charges via Razorpay |
-| 🔲 | Visitor Management | Digital guest check-in system |
-| 🔲 | Room Allocation | Room assignment and transfer request system |
+| 🔲 | Visitor Management | Digital guest check-in / check-out with warden approval |
+| 🔲 | Room Allocation | Room assignment and transfer request workflow |
 | 🔲 | Night Curfew Alerts | Auto-notify parents if student not checked in by 10 PM |
 
 ---

@@ -1,7 +1,15 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { loadModels, getFaceDescriptor, isSamePerson, bestMatchDistance } from '@/lib/faceRecognition';
+import {
+  loadModels,
+  getFaceDetection,
+  isSamePerson,
+  bestMatchDistance,
+  calculateEAR,
+  EAR_BLINK_THRESHOLD,
+  applyEMA,
+} from '@/lib/faceRecognition';
 import { createClient } from '@/lib/supabase/client';
 
 interface WardenFaceVerificationProps {
@@ -20,7 +28,17 @@ type Status =
   | 'verified'
   | 'failed'
   | 'camera-denied'
+  | 'no-face-data'
+  | 'liveness-failed'
+  | 'max-attempts'
   | 'error';
+
+interface FacePosition { x: number; y: number; }
+
+const MAX_ATTEMPTS = 5;
+// Frame-diff: avg pixel change < this over MANY frames = photo spoof
+const FRAME_DIFF_LIVE_THRESHOLD = 6;   // out of 255
+const FRAME_DIFF_MIN_FRAMES = 10;      // need this many frames before hard-blocking
 
 export default function WardenFaceVerification({
   wardenId,
@@ -29,66 +47,175 @@ export default function WardenFaceVerification({
   onSkip,
 }: WardenFaceVerificationProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const runningRef = useRef(false); // controls recursive tick loop
   const storedDescriptorsRef = useRef<number[][] | null>(null);
+
+  // EMA smoothed distance
+  const smoothedDistRef = useRef<number>(1.0);
+
+  // Attempt tracking
   const failedAttemptsRef = useRef(0);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+
+  // Liveness
+  const blinkDetectedRef = useRef(false);
+  const lastEARRef = useRef<number>(1.0);
+  const facePositionHistoryRef = useRef<FacePosition[]>([]);
+  const prevFrameDataRef = useRef<Uint8ClampedArray | null>(null);
+  const frameDiffScoresRef = useRef<number[]>([]);
 
   const onVerifiedRef = useRef(onVerified);
   const onFailedRef = useRef(onFailed);
   const onSkipRef = useRef(onSkip);
-  onVerifiedRef.current = onVerified;
-  onFailedRef.current = onFailed;
-  onSkipRef.current = onSkip;
+  useEffect(() => {
+    onVerifiedRef.current = onVerified;
+    onFailedRef.current = onFailed;
+    onSkipRef.current = onSkip;
+  });
 
   const [status, setStatus] = useState<Status>('loading-models');
   const [errorMsg, setErrorMsg] = useState('');
-  const [bestDist, setBestDist] = useState<number | null>(null);
-  const bestDistRef = useRef<number>(Infinity);
+  const [smoothedDist, setSmoothedDist] = useState<number | null>(null);
+  const [blinkDetected, setBlinkDetected] = useState(false);
+  const [showBlinkPrompt, setShowBlinkPrompt] = useState(true);
 
   const stopCamera = useCallback(() => {
-    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+    runningRef.current = false;
     if (streamRef.current) { streamRef.current.getTracks().forEach((t) => t.stop()); streamRef.current = null; }
   }, []);
 
+  // ── Frame-difference liveness ─────────────────────────────────────────────
+  const computeFrameDiff = useCallback(
+    (box: { x: number; y: number; width: number; height: number }): number | null => {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      if (!video || !canvas) return null;
+
+      const SAMPLE = 32;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+
+      canvas.width = SAMPLE;
+      canvas.height = SAMPLE;
+      ctx.drawImage(
+        video,
+        Math.max(0, box.x), Math.max(0, box.y),
+        box.width, box.height,
+        0, 0, SAMPLE, SAMPLE
+      );
+
+      const current = ctx.getImageData(0, 0, SAMPLE, SAMPLE).data;
+      const prev = prevFrameDataRef.current;
+
+      let avgDiff = 0;
+      if (prev && prev.length === current.length) {
+        let totalDiff = 0;
+        const pixelCount = SAMPLE * SAMPLE;
+        for (let i = 0; i < current.length; i += 4) {
+          const curGray  = 0.299 * current[i] + 0.587 * current[i + 1] + 0.114 * current[i + 2];
+          const prevGray = 0.299 * prev[i]    + 0.587 * prev[i + 1]    + 0.114 * prev[i + 2];
+          totalDiff += Math.abs(curGray - prevGray);
+        }
+        avgDiff = totalDiff / pixelCount;
+      }
+
+      prevFrameDataRef.current = new Uint8ClampedArray(current);
+      return avgDiff;
+    },
+    []
+  );
+
   const startVerificationLoop = useCallback(() => {
-    intervalRef.current = setInterval(async () => {
-      if (!videoRef.current || !storedDescriptorsRef.current) return;
+    runningRef.current = true;
+    setShowBlinkPrompt(true);
+
+    const tick = async () => {
+      if (!runningRef.current || !videoRef.current || !storedDescriptorsRef.current) return;
       try {
         setStatus('verifying');
-        const descriptor = await getFaceDescriptor(videoRef.current);
+        const detection = await getFaceDetection(videoRef.current);
+        if (!runningRef.current) return;
 
-        if (!descriptor) {
+        if (!detection) {
           setStatus('scanning');
-          return;
-        }
-
-        const dist = bestMatchDistance(descriptor, storedDescriptorsRef.current);
-        if (dist < bestDistRef.current) {
-          bestDistRef.current = dist;
-          setBestDist(Math.round(dist * 1000) / 1000);
-        }
-
-        const match = isSamePerson(descriptor, storedDescriptorsRef.current);
-        if (match) {
-          stopCamera();
-          setStatus('verified');
-          setTimeout(() => onVerifiedRef.current(), 1000);
         } else {
-          failedAttemptsRef.current += 1;
-          if (failedAttemptsRef.current >= 10) {
-            stopCamera();
-            setStatus('failed');
-            onFailedRef.current('Face not recognized. Identity could not be verified.');
-          } else {
+          const { descriptor, landmarks, box } = detection;
+
+          // ── Blink detection ──────────────────────────────────────────────
+          const ear = calculateEAR(landmarks);
+          if (!blinkDetectedRef.current) {
+            if (lastEARRef.current >= EAR_BLINK_THRESHOLD && ear < EAR_BLINK_THRESHOLD) {
+              blinkDetectedRef.current = true;
+              setBlinkDetected(true);
+              setShowBlinkPrompt(false);
+            }
+          }
+          lastEARRef.current = ear;
+
+          // ── Frame-difference liveness ────────────────────────────────────
+          const frameDiff = computeFrameDiff(box);
+          if (frameDiff !== null) {
+            const scores = frameDiffScoresRef.current;
+            scores.push(frameDiff);
+            if (scores.length > 12) scores.shift();
+          }
+
+          // ── EMA distance smoothing ───────────────────────────────────────
+          const rawDist = bestMatchDistance(descriptor, storedDescriptorsRef.current);
+          smoothedDistRef.current = applyEMA(smoothedDistRef.current, rawDist);
+          setSmoothedDist(smoothedDistRef.current);
+
+          // ── Gate 1: Blink mandatory ──────────────────────────────────────
+          if (!blinkDetectedRef.current) {
             setStatus('scanning');
+          } else {
+            // ── Gate 2: Frame-diff hard-block ──────────────────────────────
+            const scores = frameDiffScoresRef.current;
+            if (scores.length >= FRAME_DIFF_MIN_FRAMES) {
+              const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+              if (avgScore < FRAME_DIFF_LIVE_THRESHOLD) {
+                runningRef.current = false;
+                stopCamera();
+                setStatus('liveness-failed');
+                onFailedRef.current('Liveness check failed — please use a live camera, not a photo.');
+                return;
+              }
+            }
+
+            // ── Face match ────────────────────────────────────────────────
+            const { match } = isSamePerson(descriptor, storedDescriptorsRef.current);
+            if (match) {
+              runningRef.current = false;
+              stopCamera();
+              setStatus('verified');
+              setTimeout(() => onVerifiedRef.current(), 300);
+              return;
+            } else {
+              failedAttemptsRef.current += 1;
+              setFailedAttempts(failedAttemptsRef.current);
+              if (failedAttemptsRef.current >= MAX_ATTEMPTS) {
+                runningRef.current = false;
+                stopCamera();
+                setStatus('max-attempts');
+                onFailedRef.current('Identity could not be verified. Access denied.');
+                return;
+              } else {
+                setStatus('scanning');
+              }
+            }
           }
         }
       } catch {
         setStatus('scanning');
       }
-    }, 800);
-  }, [stopCamera]);
+      if (runningRef.current) setTimeout(tick, 50);
+    };
+
+    tick();
+  }, [stopCamera, computeFrameDiff]);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -103,26 +230,43 @@ export default function WardenFaceVerification({
         const supabase = createClient();
         const { data, error } = await supabase
           .from('warden_face_descriptors')
-          .select('descriptor')
+          .select(
+            'descriptor, descriptor_straight, descriptor_left, descriptor_right, descriptor_up, descriptor_down'
+          )
           .eq('warden_id', wardenId)
           .single();
 
         if (cancelled) return;
 
         if (error || !data) {
-          // No face registered — skip (login page will sign out)
           onSkipRef.current();
           return;
         }
 
-        const raw = data.descriptor;
-        if (Array.isArray(raw) && raw.length > 0) {
-          storedDescriptorsRef.current = Array.isArray(raw[0])
-            ? (raw as number[][])
-            : [(raw as number[])];
+        // Prefer named angle columns, fall back to legacy descriptor array
+        const namedAngles: (number[] | null)[] = [
+          data.descriptor_straight,
+          data.descriptor_left,
+          data.descriptor_right,
+          data.descriptor_up,
+          data.descriptor_down,
+        ];
+        const hasNamedAngles = namedAngles.some((d) => d !== null && d.length > 0);
+
+        if (hasNamedAngles) {
+          storedDescriptorsRef.current = namedAngles.filter(
+            (d): d is number[] => d !== null && d.length > 0
+          );
         } else {
-          onSkipRef.current();
-          return;
+          const raw = data.descriptor;
+          if (Array.isArray(raw) && raw.length > 0) {
+            storedDescriptorsRef.current = Array.isArray(raw[0])
+              ? (raw as number[][])
+              : [(raw as number[])];
+          } else {
+            onSkipRef.current();
+            return;
+          }
         }
 
         setStatus('requesting-camera');
@@ -154,17 +298,31 @@ export default function WardenFaceVerification({
     return () => { cancelled = true; stopCamera(); };
   }, [wardenId, startVerificationLoop, stopCamera]);
 
+  // ── Derived UI ─────────────────────────────────────────────────────────────
   const isVerified = status === 'verified';
-  const isFailed = status === 'failed';
+  const isFailed = ['failed', 'liveness-failed', 'max-attempts'].includes(status);
   const isLoading = ['loading-models', 'requesting-camera', 'fetching-descriptor'].includes(status);
-  const showVideo = !['loading-models', 'fetching-descriptor', 'camera-denied', 'error', 'verified', 'failed'].includes(status);
+  const showVideo = !['loading-models', 'fetching-descriptor', 'camera-denied', 'error', 'verified', 'failed', 'liveness-failed', 'max-attempts', 'no-face-data'].includes(status);
 
-  const confidence = bestDist !== null
-    ? Math.max(0, Math.min(100, Math.round((1 - bestDist / 0.6) * 100)))
-    : null;
+  const confidence =
+    smoothedDist !== null
+      ? Math.max(0, Math.min(100, Math.round((1 - smoothedDist / 0.6) * 100)))
+      : null;
+
+  const barColor =
+    confidence === null ? '#e5e7eb'
+    : confidence >= 70 ? '#16a34a'
+    : confidence >= 40 ? '#f59e0b'
+    : '#ef4444';
+
+  const livenessColor = blinkDetected ? '#16a34a' : '#f59e0b';
+  const livenessText = blinkDetected
+    ? '👁 Liveness: ✓ Confirmed'
+    : '👁 Blink once to verify you\'re real';
 
   return (
     <div className="flex flex-col items-center gap-5 p-6">
+      {/* Header */}
       <div className="text-center">
         <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center mx-auto mb-3">
           <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -175,6 +333,7 @@ export default function WardenFaceVerification({
         <p className="text-sm text-gray-400 mt-1">Face verification required for warden access</p>
       </div>
 
+      {/* Loading */}
       {isLoading && (
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <svg className="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24">
@@ -191,6 +350,8 @@ export default function WardenFaceVerification({
 
       {/* Camera */}
       <div className="relative w-full max-w-sm">
+        {/* Hidden canvas for frame-diff liveness */}
+        <canvas ref={canvasRef} style={{ display: 'none' }} />
         <video
           ref={videoRef}
           muted
@@ -201,6 +362,7 @@ export default function WardenFaceVerification({
 
         {showVideo && (
           <>
+            {/* Oval face guide */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="relative" style={{ width: '42%', paddingTop: '58%' }}>
                 <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 136" fill="none">
@@ -213,6 +375,8 @@ export default function WardenFaceVerification({
                 </svg>
               </div>
             </div>
+
+            {/* Status chip */}
             <div className="absolute top-3 left-0 right-0 flex justify-center pointer-events-none">
               <div
                 className="text-white text-xs font-medium px-3 py-1 rounded-full"
@@ -224,9 +388,33 @@ export default function WardenFaceVerification({
                 {status === 'verifying' ? 'Verifying…' : 'Hold still'}
               </div>
             </div>
+
+            {/* Blink prompt overlay */}
+            {showBlinkPrompt && !blinkDetected && (
+              <div className="absolute bottom-3 left-0 right-0 flex justify-center pointer-events-none">
+                <div className="bg-yellow-500/80 text-white text-xs font-medium px-3 py-1 rounded-full">
+                  Please blink to verify you&apos;re real
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
+
+      {/* Liveness indicator */}
+      {showVideo && (
+        <div
+          className="text-xs font-semibold px-3 py-1.5 rounded-full border transition-all duration-300"
+          style={{
+            color: livenessColor,
+            borderColor: livenessColor,
+            background: blinkDetected ? 'rgba(22,163,74,0.1)' : 'rgba(245,158,11,0.1)',
+            animation: blinkDetected ? 'none' : 'livenessGlow 1.5s ease-in-out infinite',
+          }}
+        >
+          {livenessText}
+        </div>
+      )}
 
       {/* Confidence meter */}
       {showVideo && confidence !== null && (
@@ -237,19 +425,25 @@ export default function WardenFaceVerification({
           </div>
           <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className="h-full rounded-full transition-all duration-300"
+              className="h-full rounded-full"
               style={{
                 width: `${confidence}%`,
-                background:
-                  confidence >= 70 ? '#16a34a'
-                  : confidence >= 40 ? '#f59e0b'
-                  : '#ef4444',
+                background: barColor,
+                transition: 'width 300ms ease-out, background 300ms ease-out',
               }}
             />
           </div>
         </div>
       )}
 
+      {/* Attempt counter */}
+      {showVideo && failedAttempts > 0 && (
+        <p className="text-xs text-gray-400">
+          Attempt {failedAttempts}/{MAX_ATTEMPTS} — hold still and look directly at the camera
+        </p>
+      )}
+
+      {/* Verified */}
       {isVerified && (
         <div className="flex flex-col items-center gap-2">
           <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
@@ -261,7 +455,20 @@ export default function WardenFaceVerification({
         </div>
       )}
 
-      {isFailed && (
+      {/* Failed states */}
+      {status === 'liveness-failed' && (
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center">
+            <span className="text-2xl">👁</span>
+          </div>
+          <p className="text-sm font-medium text-orange-600">Liveness check failed</p>
+          <p className="text-xs text-gray-400 text-center max-w-xs">
+            Please use a live camera, not a photo.
+          </p>
+        </div>
+      )}
+
+      {(status === 'failed' || status === 'max-attempts') && (
         <div className="flex flex-col items-center gap-2">
           <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
             <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -270,25 +477,39 @@ export default function WardenFaceVerification({
           </div>
           <p className="text-sm font-medium text-red-600">Face not recognized</p>
           <p className="text-xs text-gray-400 text-center max-w-xs">
-            Make sure lighting is good and face the camera directly.
+            {status === 'max-attempts'
+              ? 'Maximum attempts reached. Access denied.'
+              : 'Make sure lighting is good and face the camera directly.'}
           </p>
         </div>
       )}
 
+      {/* Error states */}
       {status === 'camera-denied' && (
-        <p className="text-xs text-gray-500 text-center max-w-xs">
-          Camera access denied. Enable permissions in browser settings, then refresh.
-        </p>
+        <div className="flex flex-col items-center gap-2 text-center max-w-xs">
+          <span className="text-2xl">📷</span>
+          <p className="text-sm font-medium text-gray-700">Camera access required</p>
+          <p className="text-xs text-gray-400">
+            Enable camera permissions in your browser settings, then refresh.
+          </p>
+        </div>
       )}
+
       {status === 'error' && (
         <p className="text-xs text-red-500 text-center max-w-xs">{errorMsg}</p>
       )}
 
-      {failedAttemptsRef.current > 0 && !isFailed && status === 'scanning' && (
-        <p className="text-xs text-gray-400">
-          Attempt {failedAttemptsRef.current}/10 — hold still and look directly at the camera
-        </p>
-      )}
+      {/* Security badges */}
+      <div className="flex items-center gap-2 flex-wrap justify-center mt-1">
+        {['🔒 5-Angle Scan', '👁 Liveness Check', '🛡 Warden Auth'].map((badge) => (
+          <span
+            key={badge}
+            className="text-xs text-gray-400 border border-gray-200 rounded-full px-2 py-0.5"
+          >
+            {badge}
+          </span>
+        ))}
+      </div>
 
       <button
         id="skip-warden-face-verification-btn"
@@ -299,9 +520,9 @@ export default function WardenFaceVerification({
       </button>
 
       <style>{`
-        @keyframes scanPulse {
-          0%, 100% { transform: scale(1); opacity: 0.7; }
-          50% { transform: scale(1.08); opacity: 0.4; }
+        @keyframes livenessGlow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.3); }
+          50% { box-shadow: 0 0 0 4px rgba(245,158,11,0.15); }
         }
       `}</style>
     </div>

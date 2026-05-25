@@ -93,8 +93,10 @@ export default function FaceRegistration({
 
   const onSuccessRef = useRef(onSuccess);
   const onSkipRef = useRef(onSkip);
-  onSuccessRef.current = onSuccess;
-  onSkipRef.current = onSkip;
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+    onSkipRef.current = onSkip;
+  });
 
   const [status, setStatus] = useState<Status>('loading-models');
   const [errorMsg, setErrorMsg] = useState('');
@@ -106,7 +108,9 @@ export default function FaceRegistration({
 
   const currentPhaseIndexRef = useRef(0);
   const phasesRef = useRef(phases);
-  phasesRef.current = phases;
+  useEffect(() => {
+    phasesRef.current = phases;
+  });
 
   const stopCamera = useCallback(() => {
     if (intervalRef.current) {
@@ -119,33 +123,21 @@ export default function FaceRegistration({
     }
   }, []);
 
-  // Advance to next phase or finish
-  const advancePhase = useCallback(() => {
-    const nextIdx = currentPhaseIndexRef.current + 1;
-    if (nextIdx >= PHASES.length) {
-      // All phases done — stop loop and save
-      clearInterval(intervalRef.current!);
-      intervalRef.current = null;
-      handleSave();
-    } else {
-      currentPhaseIndexRef.current = nextIdx;
-      setPhaseIndex(nextIdx);
-      // Reset buffer for next phase
-      phaseBuffersRef.current.set(PHASES[nextIdx].id, []);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const handleSave = useCallback(async () => {
     stopCamera();
     setStatus('processing');
     try {
       const supabase = createClient();
-      // collectedDescriptorsRef.current is number[][] — one mean per angle
+      const descs = collectedDescriptorsRef.current;
       const { error } = await supabase.from('face_descriptors').upsert(
         {
           student_id: studentId,
-          descriptor: collectedDescriptorsRef.current,
+          descriptor: descs,
+          descriptor_straight: descs[0] ?? null,
+          descriptor_left:     descs[1] ?? null,
+          descriptor_right:    descs[2] ?? null,
+          descriptor_up:       descs[3] ?? null,
+          descriptor_down:     descs[4] ?? null,
         },
         { onConflict: 'student_id' }
       );
@@ -157,6 +149,21 @@ export default function FaceRegistration({
       setErrorMsg(err instanceof Error ? err.message : 'Failed to save face data');
     }
   }, [studentId, stopCamera]);
+
+  // Advance to next phase or finish
+  const advancePhase = useCallback(() => {
+    const nextIdx = currentPhaseIndexRef.current + 1;
+    if (nextIdx >= PHASES.length) {
+      // All phases done — stop loop and save
+      clearInterval(intervalRef.current!);
+      intervalRef.current = null;
+      handleSave();
+    } else {
+      currentPhaseIndexRef.current = nextIdx;
+      setPhaseIndex(nextIdx);
+      phaseBuffersRef.current.set(PHASES[nextIdx].id, []);
+    }
+  }, [handleSave]);
 
   const startCaptureLoop = useCallback(() => {
     // Init buffers
