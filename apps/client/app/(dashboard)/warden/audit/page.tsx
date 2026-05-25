@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/warden/audit/page.tsx
+ * Warden portal audit administrative page rendering statistics and actions.
+ */
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
