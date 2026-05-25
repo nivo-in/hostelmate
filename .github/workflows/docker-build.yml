@@ -16,6 +16,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Prepare server Docker context
+        run: cp pnpm-lock.yaml apps/server/pnpm-lock.yaml
+
+
       - name: Build server image
         uses: docker/build-push-action@v5
         with:
