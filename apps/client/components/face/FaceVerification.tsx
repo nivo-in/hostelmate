@@ -424,13 +424,17 @@ export default function FaceVerification({
             {/* Status chip */}
             <div className="absolute top-3 left-0 right-0 flex justify-center pointer-events-none">
               <div
-                className="text-white text-xs font-medium px-3 py-1 rounded-full"
+                className="flex items-center gap-2 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-sm transition-all"
                 style={{
-                  background: status === 'verifying' ? 'rgba(59,130,246,0.75)' : 'rgba(0,0,0,0.55)',
-                  backdropFilter: 'blur(4px)',
+                  background: 'rgba(0,0,0,0.6)',
+                  backdropFilter: 'blur(8px)',
                 }}
               >
-                {status === 'verifying' ? 'Verifying…' : 'Hold still'}
+                <div className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                </div>
+                Scanning face...
               </div>
             </div>
 
