@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/warden/emergency/page.tsx
+ * Warden portal emergency administrative page rendering statistics and actions.
+ */
+
 'use client';
 import { Siren } from 'lucide-react';
 
