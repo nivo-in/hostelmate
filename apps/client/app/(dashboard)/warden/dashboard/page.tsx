@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/warden/dashboard/page.tsx
+ * Warden portal dashboard administrative page rendering statistics and actions.
+ */
+
 'use client';
 
 import { useEffect, useState } from 'react';
