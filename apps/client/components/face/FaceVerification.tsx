@@ -80,9 +80,12 @@ export default function FaceVerification({
   const onVerifiedRef = useRef(onVerified);
   const onFailedRef = useRef(onFailed);
   const onSkipRef = useRef(onSkip);
-  onVerifiedRef.current = onVerified;
-  onFailedRef.current = onFailed;
-  onSkipRef.current = onSkip;
+  // Sync latest callbacks without re-creating callbacks that close over them
+  useEffect(() => {
+    onVerifiedRef.current = onVerified;
+    onFailedRef.current = onFailed;
+    onSkipRef.current = onSkip;
+  });
 
   const [status, setStatus] = useState<Status>('loading-models');
   const [errorMsg, setErrorMsg] = useState('');

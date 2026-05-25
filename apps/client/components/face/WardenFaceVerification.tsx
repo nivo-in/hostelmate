@@ -69,9 +69,11 @@ export default function WardenFaceVerification({
   const onVerifiedRef = useRef(onVerified);
   const onFailedRef = useRef(onFailed);
   const onSkipRef = useRef(onSkip);
-  onVerifiedRef.current = onVerified;
-  onFailedRef.current = onFailed;
-  onSkipRef.current = onSkip;
+  useEffect(() => {
+    onVerifiedRef.current = onVerified;
+    onFailedRef.current = onFailed;
+    onSkipRef.current = onSkip;
+  });
 
   const [status, setStatus] = useState<Status>('loading-models');
   const [errorMsg, setErrorMsg] = useState('');

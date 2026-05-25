@@ -51,8 +51,10 @@ export default function WardenFaceRegistration({
 
   const onSuccessRef = useRef(onSuccess);
   const onSkipRef = useRef(onSkip);
-  onSuccessRef.current = onSuccess;
-  onSkipRef.current = onSkip;
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+    onSkipRef.current = onSkip;
+  });
 
   const [status, setStatus] = useState<Status>('loading-models');
   const [errorMsg, setErrorMsg] = useState('');
