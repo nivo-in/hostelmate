@@ -4,8 +4,11 @@ WORKDIR /app
 
 RUN npm install -g pnpm@10.33.2
 
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# The client is a pnpm workspace member — its lockfile may reference
+# workspace siblings not present in this Docker context.
+# --no-frozen-lockfile installs from package.json directly and is reliable.
+COPY package.json ./
+RUN pnpm install --no-frozen-lockfile
 
 # ── Stage 2: Build ────────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
@@ -35,13 +38,10 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-RUN npm install -g pnpm@10.33.2
-
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 
 EXPOSE 3000
-CMD ["pnpm", "start"]
+CMD ["node", "node_modules/.bin/next", "start"]
