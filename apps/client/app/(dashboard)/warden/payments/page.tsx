@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/warden/payments/page.tsx
+ * Warden portal payments administrative page rendering statistics and actions.
+ */
+
 'use client';
 import { Banknote, ClipboardList, Bell, CheckCircle, AlertCircle, X } from 'lucide-react';
 
