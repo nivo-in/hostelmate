@@ -26,6 +26,7 @@ import curfewRoutes from './routes/curfew.js'
 import notificationsRoutes from './routes/notifications.js'
 import roomsRoutes from './routes/rooms.js'
 import auditRoutes from './routes/audit.js'
+import studentsRoutes from './routes/students.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -109,6 +110,7 @@ app.use('/api/curfew', curfewRoutes)
 app.use('/api/notifications', notificationLimiter, notificationsRoutes)
 app.use('/api/rooms', roomsRoutes)
 app.use('/api/audit', auditRoutes)
+app.use('/api/students', studentsRoutes)
 
 // 404 handler
 app.use((req, res) => {
