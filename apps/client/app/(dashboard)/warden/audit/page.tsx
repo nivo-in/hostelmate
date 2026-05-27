@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useApi } from '@/hooks/useApi';
 import { createClient } from '@/lib/supabase/client';
@@ -11,13 +11,15 @@ type AuditLog = {
   user_name: string;
   action: string;
   resource: string;
-  details: any;
+  details: Record<string, unknown> | string | null;
 };
 
 export default function WardenAuditPage() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
-  
+  const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
   // Filters
   const [resourceFilter, setResourceFilter] = useState('all');
   const [searchAction, setSearchAction] = useState('');
@@ -29,38 +31,46 @@ export default function WardenAuditPage() {
   const { apiGet } = useApi();
   const supabase = createClient();
 
+  // Stable ref to avoid re-render loops
+  const apiGetRef = useRef(apiGet);
+  useEffect(() => { apiGetRef.current = apiGet; });
+
+  useEffect(() => { setMounted(true); }, []);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     window.location.href = '/login';
   };
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       let query = `/api/audit?limit=50`;
       if (resourceFilter !== 'all') {
         query += `&resource=${resourceFilter}`;
       }
-      
-      const res = await apiGet(query);
+      const res = await apiGetRef.current(query);
       if (res.success && res.data) {
-        setLogs(res.data);
+        setLogs(res.data as AuditLog[]);
+      } else {
+        setLogs([]);
       }
     } catch (err) {
-      console.error(err);
+      console.error('Audit fetch error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load audit logs');
     } finally {
       setLoading(false);
     }
-  };
+  }, [resourceFilter]); // resourceFilter is a primitive — safe dep
 
   useEffect(() => {
     fetchLogs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resourceFilter]); // re-fetch when resource filter changes
+  }, [fetchLogs]);
 
   const filteredLogs = logs.filter(log => {
     const matchAction = log.action.toLowerCase().includes(searchAction.toLowerCase());
-    
+
     let matchDate = true;
     if (dateFrom || dateTo) {
       const logDate = new Date(log.created_at);
@@ -68,13 +78,12 @@ export default function WardenAuditPage() {
         matchDate = matchDate && logDate >= new Date(dateFrom);
       }
       if (dateTo) {
-        // Add 1 day to include the end date fully
         const to = new Date(dateTo);
         to.setDate(to.getDate() + 1);
         matchDate = matchDate && logDate < to;
       }
     }
-    
+
     return matchAction && matchDate;
   });
 
@@ -82,7 +91,7 @@ export default function WardenAuditPage() {
     const actionLower = action.toLowerCase();
     let bg = 'bg-gray-50';
     let text = 'text-gray-600';
-    
+
     if (actionLower.includes('attendance')) {
       bg = 'bg-green-50'; text = 'text-green-600';
     } else if (actionLower.includes('approve_leave')) {
@@ -104,22 +113,42 @@ export default function WardenAuditPage() {
     );
   };
 
-  const getRelativeTime = (dateString: string) => {
+  // Hydration-safe: only runs on client after mount
+  const getRelativeTime = (dateString: string): string => {
+    if (!mounted) return '—';
     const date = new Date(dateString);
-    const diffMs = new Date().getTime() - date.getTime();
+    const diffMs = Date.now() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
     if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} mins ago`;
-    if (diffHours < 24) return `${diffHours} hours ago`;
-    return `${diffDays} days ago`;
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+  };
+
+  const formatFullDate = (dateString: string): string => {
+    if (!mounted) return '';
+    return new Date(dateString).toLocaleString();
   };
 
   return (
     <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
       <PageHeader title="Audit Log" showBack={true} onSignOut={handleSignOut} />
+
+      {/* Error */}
+      {error && (
+        <div className="border border-red-100 rounded-xl p-4 bg-red-50 mb-6 flex items-center justify-between">
+          <span className="text-sm text-red-600">{error}</span>
+          <button
+            onClick={fetchLogs}
+            className="text-xs text-red-600 underline hover:text-red-800"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="mb-6 grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -183,34 +212,39 @@ export default function WardenAuditPage() {
             </thead>
             <tbody>
               {loading ? (
-                // Skeletons
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-b border-gray-50 animate-pulse">
-                    <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-16"></div></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-24"></div></td>
-                    <td className="px-6 py-4"><div className="h-5 bg-gray-100 rounded-full w-20"></div></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-16"></div></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-32"></div></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-16" /></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-24" /></td>
+                    <td className="px-6 py-4"><div className="h-5 bg-gray-100 rounded-full w-20" /></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-16" /></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-32" /></td>
                   </tr>
                 ))
               ) : filteredLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
+                  <td colSpan={5} className="px-6 py-12 text-center text-sm text-gray-400">
                     No audit logs found.
                   </td>
                 </tr>
               ) : (
                 filteredLogs.map(log => {
                   const isExpanded = expandedRow === log.id;
-                  const detailsStr = typeof log.details === 'string' ? log.details : JSON.stringify(log.details);
+                  const detailsStr =
+                    typeof log.details === 'string'
+                      ? log.details
+                      : JSON.stringify(log.details);
                   const isLongDetails = detailsStr.length > 30;
-                  
+
                   return (
-                    <tr key={log.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    <tr
+                      key={log.id}
+                      className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span 
-                          className="text-sm text-gray-600 cursor-help" 
-                          title={new Date(log.created_at).toLocaleString()}
+                        <span
+                          className="text-sm text-gray-600 cursor-help"
+                          title={formatFullDate(log.created_at)}
                         >
                           {getRelativeTime(log.created_at)}
                         </span>
@@ -225,9 +259,13 @@ export default function WardenAuditPage() {
                         {log.resource}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600 max-w-[200px]">
-                        <div 
-                          className={`font-mono text-[10px] bg-gray-50 border border-gray-100 p-2 rounded ${isExpanded ? '' : 'truncate'} ${isLongDetails ? 'cursor-pointer hover:border-gray-200' : ''}`}
-                          onClick={() => isLongDetails && setExpandedRow(isExpanded ? null : log.id)}
+                        <div
+                          className={`font-mono text-[10px] bg-gray-50 border border-gray-100 p-2 rounded ${
+                            isExpanded ? '' : 'truncate'
+                          } ${isLongDetails ? 'cursor-pointer hover:border-gray-200' : ''}`}
+                          onClick={() =>
+                            isLongDetails && setExpandedRow(isExpanded ? null : log.id)
+                          }
                         >
                           {detailsStr}
                         </div>
