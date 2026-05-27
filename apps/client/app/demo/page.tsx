@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/demo/page.tsx
+ * Source code module for HostelMate page.tsx.
+ */
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
