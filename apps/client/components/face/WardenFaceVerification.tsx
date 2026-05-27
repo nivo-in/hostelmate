@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/components/face/WardenFaceVerification.tsx
+ * Shared client component for layout renders and user interaction flows.
+ */
+
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
