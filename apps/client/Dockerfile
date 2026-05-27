@@ -2,19 +2,16 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 
-RUN npm install -g pnpm@10.33.2
-
-# The client is a pnpm workspace member — its lockfile may reference
-# workspace siblings not present in this Docker context.
-# --no-frozen-lockfile installs from package.json directly and is reliable.
+# Using npm to isolate this package installation from the monorepo workspace
 COPY package.json ./
-RUN pnpm install --no-frozen-lockfile
+RUN npm install --legacy-peer-deps
 
 # ── Stage 2: Build ────────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-RUN npm install -g pnpm@10.33.2
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 
 # Accept build-time env vars (passed from CI via --build-arg)
 ARG NEXT_PUBLIC_SUPABASE_URL
@@ -25,10 +22,7 @@ ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-
-RUN pnpm build
+RUN npm run build
 
 # ── Stage 3: Production runner ────────────────────────────────────────────────
 FROM node:20-alpine AS runner
