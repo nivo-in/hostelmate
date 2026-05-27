@@ -322,7 +322,7 @@ export default function StudentRoomTransferPage() {
                   <div key={req.id} className="border border-gray-100 rounded-xl p-4 flex justify-between items-start hover:border-gray-300 transition-colors">
                     <div className="flex-1 min-w-0 mr-4">
                       <div className="text-sm font-medium text-gray-900 mb-1">Room {req.requested_room}</div>
-                      <div className="text-xs text-gray-500 mb-2 line-clamp-2">"{req.reason}"</div>
+                      <div className="text-xs text-gray-500 mb-2 line-clamp-2">&quot;{req.reason}&quot;</div>
                       <div className="text-[10px] text-gray-400">{formatDate(req.created_at)}</div>
                     </div>
                     <span className={`flex-shrink-0 text-[10px] px-2 py-1 rounded-full font-medium ${

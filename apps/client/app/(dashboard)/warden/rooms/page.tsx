@@ -102,7 +102,7 @@ export default function WardenRoomsPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    window.location.assign('/login');
   };
 
   const fetchData = useCallback(async () => {
@@ -539,7 +539,7 @@ export default function WardenRoomsPage() {
                   <div className="text-xs text-gray-500 mb-2">
                     {req.current_room} → {req.requested_room}
                   </div>
-                  <div className="text-sm text-gray-600">"{req.reason}"</div>
+                  <div className="text-sm text-gray-600">&quot;{req.reason}&quot;</div>
                   <div className="text-xs text-gray-400 mt-2">{formatDate(req.created_at)}</div>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">

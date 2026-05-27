@@ -19,6 +19,7 @@ export default function WardenAuditPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [now, setNow] = useState<number>(0);
 
   // Filters
   const [resourceFilter, setResourceFilter] = useState('all');
@@ -35,7 +36,10 @@ export default function WardenAuditPage() {
   const apiGetRef = useRef(apiGet);
   useEffect(() => { apiGetRef.current = apiGet; });
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { 
+    setMounted(true); 
+    setNow(Date.now());
+  }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -115,9 +119,9 @@ export default function WardenAuditPage() {
 
   // Hydration-safe: only runs on client after mount
   const getRelativeTime = (dateString: string): string => {
-    if (!mounted) return '—';
+    if (!mounted || !now) return '—';
     const date = new Date(dateString);
-    const diffMs = Date.now() - date.getTime();
+    const diffMs = now - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
