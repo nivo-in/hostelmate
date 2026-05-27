@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/components/ui/Card.tsx
+ * Shared client component for layout renders and user interaction flows.
+ */
+
 import Link from 'next/link';
 
 interface CardProps {
