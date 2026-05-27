@@ -1,4 +1,5 @@
 import { RouteGuard } from '@/components/RouteGuard'
+import { NivoBadge } from '@/components/ui/NivoBadge'
 
 export default function DashboardLayout({
   children,
@@ -8,12 +9,7 @@ export default function DashboardLayout({
   return (
     <RouteGuard>
       {children}
-      {/* Persistent Nivo branding — fixed bottom-left on all sub-pages */}
-      <div className="fixed bottom-5 right-5 z-40 pointer-events-none select-none">
-        <span className="text-xs uppercase tracking-widest text-gray-400 font-medium">
-          by Nivo
-        </span>
-      </div>
+      <NivoBadge />
     </RouteGuard>
   )
 }
