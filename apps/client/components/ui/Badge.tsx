@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/components/ui/Badge.tsx
+ * Shared client component for layout renders and user interaction flows.
+ */
+
 import React from 'react';
 
 type BadgeVariant = 'success' | 'danger' | 'warning' | 'info' | 'default' | 'purple' | 'orange';
