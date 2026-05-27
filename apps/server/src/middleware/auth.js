@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../config/supabase.js'
+import logger from '../config/logger.js'
 
 export const authenticate = async (req, res, next) => {
   try {
@@ -21,9 +22,11 @@ export const authenticate = async (req, res, next) => {
       .single()
 
     if (profileError || !profile) {
+      logger.error("Auth FAILED - no profile: " + JSON.stringify(profileError));
       return res.status(401).json({ success: false, error: 'Unauthorized' })
     }
 
+    logger.info(`Auth Success - user: ${user.id}, profile role: ${profile.role}`);
     req.user = user
     req.profile = profile
     next()

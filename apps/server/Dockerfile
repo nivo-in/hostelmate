@@ -2,13 +2,9 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 
-RUN npm install -g pnpm@10.33.2
-
-# Only copy package.json — the root pnpm-lock.yaml is a workspace lockfile
-# that references all monorepo packages and cannot be used standalone here.
-# --no-frozen-lockfile installs from package.json directly, reproducibly.
+# Only copy package.json because we are isolating this package from the monorepo
 COPY package.json ./
-RUN pnpm install --no-frozen-lockfile --ignore-scripts
+RUN npm install --omit=dev --ignore-scripts
 
 # ── Stage 2: Production runner ────────────────────────────────────────────────
 FROM node:20-alpine AS runner
