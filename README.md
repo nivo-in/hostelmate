@@ -266,6 +266,8 @@ HostelMate uses **client-side biometric verification** powered by `face-api.js` 
 | Staff Feedback Aggregation | View per-staff average ratings from student reviews |
 | Emergency Alerts | System-wide emergency notifications |
 | Auto-Match Alerts | Notified when lost/found items match automatically |
+| Room Management | Allocate rooms, approve transfers, and track availability |
+| Curfew Tracking | Monitor curfew violations and manage curfew settings |
 
 ### 👨‍👩‍👧 Parent
 | Feature | Description |
@@ -502,6 +504,22 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | `POST` | `/api/lost-found` | ✓ | Student | Report lost/found item |
 | `GET` | `/api/lost-found` | ✓ | Any | Browse items |
 | `PATCH` | `/api/lost-found/:id/claim` | ✓ | Any | Claim/resolve item |
+
+### Rooms
+
+| Method | Endpoint | Auth | Role | Description |
+|---|---|---|---|---|
+| `GET` | `/api/rooms` | ✓ | Warden | View all room allocations |
+| `POST` | `/api/rooms/assign` | ✓ | Warden | Assign student to a room |
+| `GET` | `/api/rooms/transfer-requests` | ✓ | Warden | View room transfer requests |
+
+### Notifications & Audit
+
+| Method | Endpoint | Auth | Role | Description |
+|---|---|---|---|---|
+| `GET` | `/api/notifications` | ✓ | Any | View user notifications |
+| `PATCH` | `/api/notifications/read-all` | ✓ | Any | Mark all as read |
+| `GET` | `/api/audit` | ✓ | Warden | View warden action audit logs |
 
 ### Stats
 
