@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/components/ui/TiltCard.tsx
+ * Shared client component for layout renders and user interaction flows.
+ */
+
 'use client';
 
 import { useCallback, useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
