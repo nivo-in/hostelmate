@@ -256,6 +256,7 @@ HostelMate uses **client-side biometric verification** powered by `face-api.js` 
 |---|---|
 | Analytics Dashboard | Redis-cached stats: attendance, leaves, complaints |
 | **Face Auth Login** | **5-angle biometric verification with liveness detection** |
+| Student Search | Mistype-tolerant fuzzy search for quick student lookup and assignment |
 | Attendance Management | View today's attendance with student details |
 | Leave Approvals | Approve/reject with `approved_by` audit trail |
 | Complaint Tracking | Update status: open → in_progress → resolved |
@@ -318,7 +319,8 @@ hostelmate/
 │   │   │   ├── WardenFaceRegistration.tsx
 │   │   │   └── WardenFaceVerification.tsx
 │   │   ├── lib/faceRecognition.ts       # EAR, EMA, frame-diff, bestMatchDistance
-│   │   ├── hooks/                       # Custom React hooks
+│   │   ├── lib/socket.ts                # Socket.io client configuration
+│   │   ├── hooks/                       # Custom React hooks (useApi, useSocket)
 │   │   ├── lib/supabase/                # Supabase client config
 │   │   ├── middleware.ts                # Auth + role routing
 │   │   ├── types/                       # TypeScript definitions
@@ -327,9 +329,11 @@ hostelmate/
 │   └── server/                          # Express.js Backend
 │       ├── src/
 │       │   ├── config/
+│       │   │   ├── audit.js             # Audit trail configuration
 │       │   │   ├── geofence.js          # Haversine distance calc
 │       │   │   ├── logger.js            # Winston configuration
 │       │   │   ├── redis.js             # Upstash Redis client
+│       │   │   ├── socket.js            # Socket.io configuration
 │       │   │   ├── supabase.js          # Supabase admin client
 │       │   │   └── validation.js        # Zod schemas
 │       │   ├── middleware/
@@ -347,6 +351,9 @@ hostelmate/
 │       │   │   ├── lost-found.js        # Lost & found directory
 │       │   │   ├── mess.js              # Menu + reviews
 │       │   │   ├── notices.js           # Announcements
+│       │   │   ├── notifications.js     # Real-time notifications
+│       │   │   ├── rooms.js             # Room allocation
+│       │   │   ├── students.js          # Student management & search
 │       │   │   └── stats.js             # Dashboard analytics
 │       │   └── index.js                 # Server entry point
 │       └── Dockerfile
@@ -543,8 +550,8 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | ✅ | **Night Curfew Alerts** | Auto-notify parents if student not checked in by 10 PM |
 | ✅ | **In-App Notifications** | Per-user notification centre with read/unread state |
 | ✅ | **Audit Logging** | Structured audit trail for all warden actions |
-| 🔲 | WebSocket Notifications | Real-time push via Socket.io for instant alerts without polling |
-| 🔲 | Redis Pub/Sub | Live cross-client updates across browser tabs and devices |
+| ✅ | **WebSocket Notifications** | Real-time push via Socket.io for instant alerts without polling |
+| ✅ | **Redis Pub/Sub** | Live cross-client updates across browser tabs and devices |
 | 🔲 | Test Coverage ≥80% | Expand Jest suite to full route coverage with Supertest |
 | 🔲 | Mobile App | React Native cross-platform app for students and parents |
 | 🔲 | AI Complaint Classification | Auto-categorise complaints by type and urgency using NLP |
