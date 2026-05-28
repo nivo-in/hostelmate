@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/components/ui/NotificationBell.tsx
+ * Shared client component for layout renders and user interaction flows.
+ */
+
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
