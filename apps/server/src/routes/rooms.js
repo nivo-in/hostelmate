@@ -8,6 +8,80 @@ import logger from '../config/logger.js'
 
 const router = Router()
 
+router.get('/my', authenticate, requireStudent, async (req, res, next) => {
+  try {
+    const { data: student, error } = await supabaseAdmin
+      .from('students')
+      .select(`
+        room_id,
+        rooms!students_room_id_fkey(
+          room_number,
+          capacity,
+          blocks!rooms_block_id_fkey(name)
+        )
+      `)
+      .eq('id', req.user.id)
+      .single()
+
+    if (error) throw error
+
+    let roommates = []
+    if (student?.room_id) {
+      const { data: rmData } = await supabaseAdmin
+        .from('students')
+        .select('id, profiles!students_id_fkey(full_name)')
+        .eq('room_id', student.room_id)
+        .neq('id', req.user.id)
+      
+      roommates = rmData?.map(r => r.profiles?.full_name) || []
+    }
+
+    // Flatten block name for convenience
+    const room = student?.rooms ? {
+      room_number: student.rooms.room_number,
+      capacity: student.rooms.capacity,
+      block_name: student.rooms.blocks?.name || ''
+    } : null
+
+    res.json({ success: true, data: { student: { ...student, rooms: room }, roommates } })
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.get('/available', authenticate, requireStudent, async (req, res, next) => {
+  try {
+    const { data: roomsData, error: roomsError } = await supabaseAdmin
+      .from('rooms')
+      .select('id, room_number, capacity, blocks!rooms_block_id_fkey(name)')
+      .order('room_number')
+
+    if (roomsError) throw roomsError
+
+    const { data: studentsData, error: studentsError } = await supabaseAdmin
+      .from('students')
+      .select('room_id')
+      .not('room_id', 'is', null)
+
+    if (studentsError) throw studentsError
+
+    const available = roomsData.map(room => {
+      const occupants = studentsData.filter(s => s.room_id === room.id).length
+      return {
+        id: room.id,
+        room_number: room.room_number,
+        block_name: room.blocks?.name || '',
+        capacity: room.capacity,
+        occupancy: occupants
+      }
+    }).filter(r => r.occupancy < r.capacity)
+
+    res.json({ success: true, data: available })
+  } catch (error) {
+    next(error)
+  }
+})
+
 router.get('/', authenticate, requireWarden, async (req, res, next) => {
   try {
     const { data: roomsData, error: roomsError } = await supabaseAdmin

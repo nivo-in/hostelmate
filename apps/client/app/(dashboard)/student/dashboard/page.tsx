@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Header } from '@/components/ui/Header'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { Card } from '@/components/ui/Card'
 
 const SkeletonCard = () => (
@@ -48,7 +48,7 @@ export default function StudentDashboard() {
 
   return (
     <div className="min-h-screen bg-white p-8 max-w-5xl mx-auto">
-      <Header title={loading ? 'Hello 👋' : `Hello ${firstName} 👋`} onSignOut={handleSignOut} />
+      <PageHeader title={loading ? 'Hello 👋' : `Hello ${firstName} 👋`} onSignOut={handleSignOut} />
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

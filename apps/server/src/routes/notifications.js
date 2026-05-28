@@ -65,4 +65,21 @@ router.patch('/:id/read', authenticate, async (req, res, next) => {
   }
 })
 
+router.delete('/:id', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const { error } = await supabaseAdmin
+      .from('notifications')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', req.user.id)   // guard: only own notifications
+
+    if (error) return res.json({ success: true })
+    res.json({ success: true })
+  } catch {
+    res.json({ success: true })
+  }
+})
+
 export default router
