@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/components/ui/EmptyState.tsx
+ * Shared client component for layout renders and user interaction flows.
+ */
+
 import type { ReactNode } from 'react';
 
 type EmptyStateProps = {
