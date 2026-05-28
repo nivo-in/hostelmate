@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 interface AttendanceStats {
   present?: number; absent?: number; total?: number; percentage?: number;
@@ -107,7 +108,7 @@ export default function WardenAttendance() {
         <div className="border border-gray-100 rounded-xl p-6 flex flex-col items-center hover:border-gray-300 transition-colors">
           <h2 className="text-sm font-medium text-gray-900 mb-4 self-start">Daily QR Code</h2>
           {qrCodeDataUrl ? (
-            <img src={qrCodeDataUrl} alt="Attendance QR Code" className="w-48 h-48 mb-4 border border-gray-100 rounded-lg" />
+            <Image src={qrCodeDataUrl} alt="Attendance QR Code" width={192} height={192} className="mb-4 border border-gray-100 rounded-lg" />
           ) : (
             <div className="w-48 h-48 mb-4 bg-gray-50 flex items-center justify-center text-sm text-gray-400 rounded-lg">
               Generating...
