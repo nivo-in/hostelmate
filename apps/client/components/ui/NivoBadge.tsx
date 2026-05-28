@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/components/ui/NivoBadge.tsx
+ * Shared client component for layout renders and user interaction flows.
+ */
+
 'use client';
 
 import { usePathname } from 'next/navigation';
