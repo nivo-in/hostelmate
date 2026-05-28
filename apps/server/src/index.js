@@ -1,6 +1,7 @@
 import dotenv from 'dotenv'
 dotenv.config()
 
+import { createServer } from 'http'
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
@@ -13,6 +14,7 @@ import { errorHandler } from './middleware/errorHandler.js'
 import requestLogger from './middleware/requestLogger.js'
 import logger from './config/logger.js'
 import { redis } from './config/redis.js'
+import { initSocket } from './config/socket.js'
 
 import attendanceRoutes from './routes/attendance.js'
 import leavesRoutes from './routes/leaves.js'
@@ -26,9 +28,15 @@ import curfewRoutes from './routes/curfew.js'
 import notificationsRoutes from './routes/notifications.js'
 import roomsRoutes from './routes/rooms.js'
 import auditRoutes from './routes/audit.js'
+import studentsRoutes from './routes/students.js'
+import parentRoutes from './routes/parent.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
+
+// Create HTTP server and attach Socket.io
+const httpServer = createServer(app)
+initSocket(httpServer)
 
 // Swagger setup
 const swaggerOptions = {
@@ -109,6 +117,8 @@ app.use('/api/curfew', curfewRoutes)
 app.use('/api/notifications', notificationLimiter, notificationsRoutes)
 app.use('/api/rooms', roomsRoutes)
 app.use('/api/audit', auditRoutes)
+app.use('/api/students', studentsRoutes)
+app.use('/api/parent', parentRoutes)
 
 // 404 handler
 app.use((req, res) => {
@@ -119,7 +129,7 @@ app.use((req, res) => {
 app.use(errorHandler)
 
 // Start server
-const server = app.listen(PORT, '0.0.0.0', async () => {
+const server = httpServer.listen(PORT, '0.0.0.0', async () => {
   logger.info(`HostelMate server running on port ${PORT}`)
   
   try {

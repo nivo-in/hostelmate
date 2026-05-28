@@ -8,6 +8,80 @@ import logger from '../config/logger.js'
 
 const router = Router()
 
+router.get('/my', authenticate, requireStudent, async (req, res, next) => {
+  try {
+    const { data: student, error } = await supabaseAdmin
+      .from('students')
+      .select(`
+        room_id,
+        rooms!students_room_id_fkey(
+          room_number,
+          capacity,
+          blocks!rooms_block_id_fkey(name)
+        )
+      `)
+      .eq('id', req.user.id)
+      .single()
+
+    if (error) throw error
+
+    let roommates = []
+    if (student?.room_id) {
+      const { data: rmData } = await supabaseAdmin
+        .from('students')
+        .select('id, profiles!students_id_fkey(full_name)')
+        .eq('room_id', student.room_id)
+        .neq('id', req.user.id)
+      
+      roommates = rmData?.map(r => r.profiles?.full_name) || []
+    }
+
+    // Flatten block name for convenience
+    const room = student?.rooms ? {
+      room_number: student.rooms.room_number,
+      capacity: student.rooms.capacity,
+      block_name: student.rooms.blocks?.name || ''
+    } : null
+
+    res.json({ success: true, data: { student: { ...student, rooms: room }, roommates } })
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.get('/available', authenticate, requireStudent, async (req, res, next) => {
+  try {
+    const { data: roomsData, error: roomsError } = await supabaseAdmin
+      .from('rooms')
+      .select('id, room_number, capacity, blocks!rooms_block_id_fkey(name)')
+      .order('room_number')
+
+    if (roomsError) throw roomsError
+
+    const { data: studentsData, error: studentsError } = await supabaseAdmin
+      .from('students')
+      .select('room_id')
+      .not('room_id', 'is', null)
+
+    if (studentsError) throw studentsError
+
+    const available = roomsData.map(room => {
+      const occupants = studentsData.filter(s => s.room_id === room.id).length
+      return {
+        id: room.id,
+        room_number: room.room_number,
+        block_name: room.blocks?.name || '',
+        capacity: room.capacity,
+        occupancy: occupants
+      }
+    }).filter(r => r.occupancy < r.capacity)
+
+    res.json({ success: true, data: available })
+  } catch (error) {
+    next(error)
+  }
+})
+
 router.get('/', authenticate, requireWarden, async (req, res, next) => {
   try {
     const { data: roomsData, error: roomsError } = await supabaseAdmin
@@ -45,6 +119,75 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
     })
 
     res.json({ success: true, data: { rooms } })
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.post('/', authenticate, requireWarden, async (req, res, next) => {
+  try {
+    const { room_number, block_name, capacity } = req.body
+
+    // 1. Find or create block
+    let blockId = ''
+    const { data: existingBlocks, error: searchErr } = await supabaseAdmin
+      .from('blocks')
+      .select('id')
+      .eq('name', block_name.trim())
+      .limit(1)
+
+    if (searchErr) throw searchErr
+
+    if (existingBlocks && existingBlocks.length > 0) {
+      blockId = existingBlocks[0].id
+    } else {
+      const { data: newBlock, error: insertBlockErr } = await supabaseAdmin
+        .from('blocks')
+        .insert({ name: block_name.trim() })
+        .select('id')
+        .single()
+        
+      if (insertBlockErr) throw insertBlockErr
+      blockId = newBlock.id
+    }
+
+    // 2. Insert room
+    const { data: newRoom, error: roomErr } = await supabaseAdmin
+      .from('rooms')
+      .insert({
+        room_number: room_number.trim(),
+        block_id: blockId,
+        capacity: parseInt(capacity, 10),
+      })
+      .select()
+      .single()
+
+    if (roomErr) throw roomErr
+
+    await auditLog(req.user.id, 'create_room', 'room', newRoom.id)
+
+    res.json({ success: true, data: newRoom })
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.get('/unassigned', authenticate, requireWarden, async (req, res, next) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('students')
+      .select('id, roll_number, profiles!students_id_fkey(full_name)')
+      .is('room_id', null)
+
+    if (error) throw error
+
+    const unassignedStudents = data.map(d => ({
+      id: d.id,
+      roll_number: d.roll_number,
+      full_name: d.profiles?.full_name ?? 'Unknown',
+    }))
+
+    res.json({ success: true, data: unassignedStudents })
   } catch (error) {
     next(error)
   }

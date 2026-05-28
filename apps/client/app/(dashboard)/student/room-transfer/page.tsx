@@ -50,7 +50,7 @@ export default function StudentRoomTransferPage() {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
-  const { apiPost } = useApi();
+  const { apiGet, apiPost } = useApi();
   const supabase = createClient();
 
   useEffect(() => {
@@ -72,20 +72,10 @@ export default function StudentRoomTransferPage() {
         return;
       }
 
-      // All Supabase queries run in parallel — no warden-protected API calls
-      const [studentResult, roomsResult, requestsResult] = await Promise.all([
-        supabase
-          .from('students')
-          .select('room_id, rooms(room_number, block_name)')
-          .eq('id', session.user.id)
-          .single(),
-
-        // Query rooms directly from Supabase (no warden auth needed)
-        supabase
-          .from('rooms')
-          .select('id, room_number, block_name, capacity, students(id)')
-          .order('room_number'),
-
+      // Run API calls and Supabase query in parallel
+      const [myRoomRes, availableRoomsRes, requestsResult] = await Promise.all([
+        apiGet('/api/rooms/my'),
+        apiGet('/api/rooms/available'),
         supabase
           .from('room_transfer_requests')
           .select('id, rooms!requested_room_id(room_number), reason, status, created_at')
@@ -94,24 +84,12 @@ export default function StudentRoomTransferPage() {
       ]);
 
       // Current room
-      const studentData = studentResult.data;
-      if (studentData?.room_id) {
-        const { data: roommatesData } = await supabase
-          .from('students')
-          .select('id, profiles!inner(full_name)')
-          .eq('room_id', studentData.room_id)
-          .neq('id', session.user.id);
-
-        type RoomShape = { room_number: string; block_name: string } | null;
-        const roomInfo = studentData.rooms as unknown as RoomShape;
+      if (myRoomRes.success && myRoomRes.data?.student?.room_id) {
+        const { student, roommates } = myRoomRes.data;
         setCurrentRoom({
-          room_number: roomInfo?.room_number ?? 'Unknown',
-          block_name: roomInfo?.block_name ?? '',
-          roommates: roommatesData
-            ? (roommatesData as unknown as { profiles: { full_name: string } | null }[]).map(
-                rm => rm.profiles?.full_name ?? 'Unknown'
-              )
-            : [],
+          room_number: student.rooms?.room_number ?? 'Unknown',
+          block_name: student.rooms?.block_name ?? '',
+          roommates: roommates || [],
         });
         setNoRoomAssigned(false);
       } else {
@@ -119,19 +97,9 @@ export default function StudentRoomTransferPage() {
         setNoRoomAssigned(true);
       }
 
-      // Available rooms (not full) — computed from Supabase data
-      if (roomsResult.data) {
-        type RoomRow = { id: string; room_number: string; block_name: string; capacity: number; students: { id: string }[] | null };
-        const available: Room[] = (roomsResult.data as unknown as RoomRow[])
-          .map(r => ({
-            id: r.id,
-            room_number: r.room_number,
-            block_name: r.block_name,
-            capacity: r.capacity,
-            occupancy: r.students?.length ?? 0,
-          }))
-          .filter(r => r.occupancy < r.capacity);
-        setAvailableRooms(available);
+      // Available rooms
+      if (availableRoomsRes.success) {
+        setAvailableRooms(availableRoomsRes.data || []);
       }
 
       // My transfer requests

@@ -6,15 +6,90 @@ import { validate } from '../middleware/validate.js'
 import { attendanceSchema } from '../config/validation.js'
 import { isWithinGeofence } from '../config/geofence.js'
 import logger from '../config/logger.js'
-import { getCache, setCache, deleteCache } from '../config/redis.js'
+import { getCache, setCache, deleteCache, publishEvent } from '../config/redis.js'
 import { auditLog } from '../config/audit.js'
+import { emitToAll, emitToUser } from '../config/socket.js'
+import { createNotification } from '../config/notify.js'
 
 const router = Router()
 
 router.post('/mark', authenticate, requireStudent, validate(attendanceSchema), async (req, res, next) => {
   try {
-    const { qr_data, lat, lng, face_verified } = req.body
+    const { qr_data, lat, lng, face_only, face_verified } = req.body
+    const today = new Date().toISOString().split('T')[0]
 
+    // ── Check already marked ────────────────────────────────────────────────
+    const { data: existing } = await supabaseAdmin
+      .from('attendance')
+      .select('id')
+      .eq('student_id', req.user.id)
+      .eq('date', today)
+      .single()
+
+    if (existing) {
+      return res.status(400).json({ success: false, error: 'Attendance already marked for today' })
+    }
+
+    // ── Face-only path ──────────────────────────────────────────────────────
+    if (face_only === true) {
+      const { data: record, error: insertError } = await supabaseAdmin
+        .from('attendance')
+        .insert({
+          student_id: req.user.id,
+          date: today,
+          status: 'present',
+          scan_time: new Date().toISOString(),
+          qr_data: null,
+          face_verified: true,
+        })
+        .select()
+        .single()
+
+      if (insertError) throw insertError
+
+      logger.info(`Face-only attendance marked for user ${req.user.id}`)
+      await auditLog(req.user.id, 'mark_attendance', 'attendance', record.id)
+      await deleteCache('attendance:stats:today')
+      await deleteCache(`attendance:today:${today}`)
+
+      // Notify everyone (warden dashboard) + specifically the linked parent
+      emitToAll('attendance:marked', { student_id: req.user.id, status: 'present', scan_time: record.scan_time })
+      publishEvent('attendance', { student_id: req.user.id, date: today, status: 'present' })
+
+      // Emit directly to parent if linked + create notifications
+      const { data: studentRow } = await supabaseAdmin
+        .from('students')
+        .select('parent_id, profiles!students_id_fkey(full_name)')
+        .eq('id', req.user.id)
+        .single()
+
+      const studentName = studentRow?.profiles?.full_name || 'Your student'
+
+      // Notify the student themselves
+      await createNotification(
+        req.user.id,
+        'Attendance Marked ✅',
+        `Your attendance has been marked as present for ${today}`,
+        'notice',
+        record.id
+      )
+
+      if (studentRow?.parent_id) {
+        emitToUser(studentRow.parent_id, 'attendance:marked', { student_id: req.user.id, status: 'present', scan_time: record.scan_time })
+        // Notify the parent
+        await createNotification(
+          studentRow.parent_id,
+          'Attendance Update 🎓',
+          `${studentName} has marked attendance as present for today`,
+          'notice',
+          record.id
+        )
+      }
+
+      return res.json({ success: true, data: record })
+    }
+
+    // ── QR path ─────────────────────────────────────────────────────────────
     let parsedQr
     try {
       parsedQr = typeof qr_data === 'string' ? JSON.parse(qr_data) : qr_data
@@ -22,13 +97,10 @@ router.post('/mark', authenticate, requireStudent, validate(attendanceSchema), a
       return res.status(400).json({ success: false, error: 'Invalid qr_data format' })
     }
 
-    const today = new Date().toISOString().split('T')[0]
-
     if (parsedQr.date !== today || !parsedQr.token.startsWith(`${today}-secret123`)) {
       return res.status(400).json({ success: false, error: 'Invalid or expired QR code' })
     }
 
-    
     if (parsedQr.nonce) {
       const qrAge = Date.now() - parsedQr.nonce
       if (qrAge > 30000) {
@@ -45,17 +117,6 @@ router.post('/mark', authenticate, requireStudent, validate(attendanceSchema), a
       }
     } else {
       logger.warn(`Attendance marked without location verification for user ${req.user.id}`)
-    }
-
-    const { data: existing } = await supabaseAdmin
-      .from('attendance')
-      .select('id')
-      .eq('student_id', req.user.id)
-      .eq('date', today)
-      .single()
-
-    if (existing) {
-      return res.status(400).json({ success: false, error: 'Attendance already marked for today' })
     }
 
     const { data: record, error: insertError } = await supabaseAdmin
@@ -79,6 +140,39 @@ router.post('/mark', authenticate, requireStudent, validate(attendanceSchema), a
     await auditLog(req.user.id, 'mark_attendance', 'attendance', record.id)
     await deleteCache('attendance:stats:today')
     await deleteCache(`attendance:today:${today}`)
+
+    // Notify everyone (warden dashboard) + specifically the linked parent
+    emitToAll('attendance:marked', { student_id: req.user.id, status: 'present', scan_time: record.scan_time })
+    publishEvent('attendance', { student_id: req.user.id, date: today, status: 'present' })
+
+    // Emit directly to parent if linked + create notifications
+    const { data: studentRowQr } = await supabaseAdmin
+      .from('students')
+      .select('parent_id, profiles!students_id_fkey(full_name)')
+      .eq('id', req.user.id)
+      .single()
+
+    const studentNameQr = studentRowQr?.profiles?.full_name || 'Your student'
+
+    // Notify the student themselves
+    await createNotification(
+      req.user.id,
+      'Attendance Marked ✅',
+      `Your attendance has been marked as present for ${today}`,
+      'notice',
+      record.id
+    )
+
+    if (studentRowQr?.parent_id) {
+      emitToUser(studentRowQr.parent_id, 'attendance:marked', { student_id: req.user.id, status: 'present', scan_time: record.scan_time })
+      await createNotification(
+        studentRowQr.parent_id,
+        'Attendance Update 🎓',
+        `${studentNameQr} has marked attendance as present for today`,
+        'notice',
+        record.id
+      )
+    }
 
     res.json({ success: true, data: record })
   } catch (error) {
