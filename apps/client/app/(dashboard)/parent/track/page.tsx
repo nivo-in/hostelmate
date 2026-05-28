@@ -69,9 +69,10 @@ export default function ParentTrack() {
 
   // WebSocket: re-fetch when student marks attendance
   useSocket({
-    'attendance:marked': (payload: any) => {
+    'attendance:marked': (payload: unknown) => {
+      const data = payload as { student_id?: string };
       // Only refetch if the event is for our linked student
-      if (!studentIdRef.current || payload?.student_id === studentIdRef.current) {
+      if (!studentIdRef.current || data?.student_id === studentIdRef.current) {
         fetchData();
       }
     },
