@@ -15,7 +15,15 @@ export default function StudentComplaints() {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [aiInfo, setAiInfo] = useState<any>(null);
+  const [aiInfo, setAiInfo] = useState<{
+    classified: boolean;
+    category_changed: boolean;
+    urgency_changed: boolean;
+    summary: string;
+    confidence: number;
+    finalCategory: string;
+    finalUrgency: boolean;
+  } | null>(null);
   
   const { apiGet, apiPost } = useApi();
   const router = useRouter();
