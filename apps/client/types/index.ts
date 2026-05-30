@@ -86,6 +86,10 @@ export interface Complaint {
   resolved_by: string
   resolution_date: string
   created_at: string
+  ai_summary?: string
+  ai_suggested_action?: string
+  ai_confidence?: number
+  ai_classified?: boolean
 }
 
 export interface MessMenu {
