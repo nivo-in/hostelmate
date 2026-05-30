@@ -39,6 +39,11 @@
             "date": 1779955181905,
             "name": "logs/hostelmate-2026-05-28.log",
             "hash": "9b2e3a281da74648a8d69a969ecbbb3a91013af9df198eec8bd0b2b5be0e461b"
+        },
+        {
+            "date": 1780166891873,
+            "name": "logs/hostelmate-2026-05-31.log",
+            "hash": "5988b9bd5c9c359258d194c32a102ecea201028c7fd702c4763b3b543affa73e"
         }
     ],
     "hashType": "sha256"

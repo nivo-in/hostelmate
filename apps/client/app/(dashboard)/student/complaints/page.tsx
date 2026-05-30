@@ -10,12 +10,12 @@ import { useRouter } from 'next/navigation';
 import { Complaint } from '@/types'
 
 export default function StudentComplaints() {
-  const [category, setCategory] = useState('electrical');
   const [description, setDescription] = useState('');
   const [urgent, setUrgent] = useState(false);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [aiInfo, setAiInfo] = useState<any>(null);
   
   const { apiGet, apiPost } = useApi();
   const router = useRouter();
@@ -38,28 +38,29 @@ export default function StudentComplaints() {
     e.preventDefault();
     if (!description.trim()) return setError('Description required');
     
-    // Optimistic UI update
-    setComplaints(prev => [{
-      id: crypto.randomUUID(),
-      category,
-      description,
-      is_urgent: urgent,
-      status: 'open',
-      student_id: 'pending',
-      resolved_by: '',
-      resolution_date: '',
-      created_at: new Date().toISOString()
-    } as Complaint, ...(prev || [])]);
-
     try {
-      const res = await apiPost('/api/complaints', { category, description, is_urgent: urgent });
+      const res = await apiPost('/api/complaints', { category: 'other', description, is_urgent: urgent });
       if (res.success) {
-        setCategory('electrical');
         setDescription('');
         setUrgent(false);
         setError('');
         setSuccess('Complaint submitted successfully');
-        setTimeout(() => setSuccess(''), 3000);
+        
+        if (res.ai?.classified) {
+          setAiInfo({
+            ...res.ai,
+            finalCategory: res.data.category,
+            finalUrgency: res.data.is_urgent
+          });
+          setTimeout(() => {
+            setSuccess('');
+            setAiInfo(null);
+          }, 5000);
+        } else {
+          setTimeout(() => setSuccess(''), 3000);
+        }
+        
+        fetchComplaints();
       } else {
         setError(res.error || 'Failed to submit complaint');
       }
@@ -86,18 +87,8 @@ export default function StudentComplaints() {
       <div className="mb-8 p-6 border border-gray-100 rounded-xl hover:border-gray-300 transition-colors">
         <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Category</label>
-            <select value={category} onChange={e => setCategory(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 transition-colors w-full bg-white">
-              <option value="electrical">Electrical</option>
-              <option value="plumbing">Plumbing</option>
-              <option value="furniture">Furniture</option>
-              <option value="cleaning">Cleaning</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div>
             <label className="block text-xs text-gray-500 mb-1">Description</label>
-            <textarea value={description} onChange={e => setDescription(e.target.value)} required className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 transition-colors w-full" rows={3}></textarea>
+            <textarea value={description} onChange={e => setDescription(e.target.value)} required placeholder="Describe your issue in detail — AI will auto-categorize" className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 transition-colors w-full" rows={3}></textarea>
           </div>
           <div className="flex items-center gap-2">
             <button 
@@ -107,10 +98,18 @@ export default function StudentComplaints() {
             >
               <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${urgent ? 'translate-x-5' : 'translate-x-1'}`} />
             </button>
-            <label className="text-sm text-gray-900 cursor-pointer" onClick={() => setUrgent(!urgent)}>Mark as urgent</label>
+            <label className="text-sm text-gray-900 cursor-pointer" onClick={() => setUrgent(!urgent)}>Mark as urgent (AI may override)</label>
           </div>
           {error && <p className="text-xs text-red-500">{error}</p>}
           {success && <p className="text-xs text-green-600">{success}</p>}
+          {aiInfo && (
+            <div className="border border-blue-100 bg-blue-50/50 rounded-lg p-3 mt-3">
+              <div className="text-xs font-medium text-blue-700">🤖 AI Analysis</div>
+              {aiInfo.category_changed && <div className="text-xs text-blue-600 mt-1">Category updated to: {aiInfo.finalCategory}</div>}
+              {aiInfo.urgency_changed && aiInfo.finalUrgency && <div className="text-xs text-orange-600 mt-1">⚠️ Marked as urgent based on description</div>}
+              <div className="text-xs text-gray-400 mt-1">AI Confidence: {Math.round((aiInfo.confidence || 0) * 100)}%</div>
+            </div>
+          )}
           <button type="submit" className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors">Submit Complaint</button>
         </form>
       </div>

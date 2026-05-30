@@ -18,11 +18,16 @@
 
 ---
 
-> *[Dashboard Screenshot — Warden Analytics View]*
+> <img width="728" height="418" alt="2026-05-28_19-17-29" src="https://github.com/user-attachments/assets/286575f9-5675-4091-b20e-3f4a06102559" />
+
+
 >
-> *[Student Mobile View — QR Attendance]*
+> <img width="728" height="418" alt="2026-05-28_19-19-14" src="https://github.com/user-attachments/assets/6eba77e7-ef48-45d5-ba26-6548a70ce419" />
+
 >
-> *[Parent Dashboard — Real-time Tracking]*
+> <img width="728" height="418" alt="image" src="https://github.com/user-attachments/assets/d55c1143-61ad-47cb-999a-2afd2cde33f1" />
+
+
 
 </div>
 
@@ -134,7 +139,7 @@ HostelMate provides a **role-based platform** where students, wardens, and paren
 
 ### 1. Rotating QR Codes — Eliminating Screenshot Fraud
 
-Students sharing QR screenshots is the #1 proxy attendance method. HostelMate generates QR codes that **rotate every 60 seconds** with embedded timestamps.
+Students sharing QR screenshots is the #1 proxy attendance method. HostelMate generates QR codes that **rotate every 30 seconds** with embedded timestamps.
 
 ```
 QR Payload: {
@@ -233,6 +238,17 @@ HostelMate uses **client-side biometric verification** powered by `face-api.js` 
 | **3 — Face match** | Euclidean distance vs all 5 stored angle descriptors. Best (minimum) distance must be < 0.52. | Threshold set below face-api's default 0.6 — tight enough to reject strangers, loose enough to match front-facing without head rotation. |
 
 **Performance:** Recursive async tick instead of `setInterval` — next detection fires 50ms after the previous completes (~3× more detections/sec). Blink → verified in **~300ms total**. EMA smoothing on the confidence bar prevents jitter.
+
+### 9. AI Complaint Classification & Predictive Maintenance
+
+HostelMate integrates **Groq's blazing-fast inference API** (using `llama-3.1-8b-instant`) to instantly process maintenance requests. 
+
+When a student submits a complaint, the AI automatically:
+1. **Categorizes** the issue (e.g., plumbing, electrical).
+2. **Flags Urgency** based on safety risks (e.g., "sparking fan" = urgent).
+3. **Generates a Warden Summary** with specific resolution steps.
+
+Additionally, a **Predictive Maintenance Dashboard** analyzes the last 30 days of complaints to identify recurring patterns (e.g., "Block A lights flicker frequently") and suggests preventive measures, saving time and money.
 
 ---
 
@@ -572,8 +588,8 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | ✅ | **Redis Pub/Sub** | Live cross-client updates across browser tabs and devices |
 | 🔲 | Test Coverage ≥80% | Expand Jest suite to full route coverage with Supertest |
 | 🔲 | Mobile App | React Native cross-platform app for students and parents |
-| 🔲 | AI Complaint Classification | Auto-categorise complaints by type and urgency using NLP |
-| 🔲 | Predictive Maintenance | Predict recurring issues from historical complaint patterns |
+| ✅ | **AI Complaint Classification** | Auto-categorise complaints by type and urgency using Groq/Llama 3.1 |
+| ✅ | **Predictive Maintenance** | Predict recurring issues from historical complaint patterns via AI |
 | 🔲 | Multi-tenancy | Support multiple hostels under one instance |
 | 🔲 | Payment Integration | Mess fees and hostel charges via Razorpay |
 | 🔲 | Visitor Management | Digital guest check-in / check-out with warden approval |
