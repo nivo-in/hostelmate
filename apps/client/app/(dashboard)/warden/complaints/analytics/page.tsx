@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 
 export default function ComplaintsAnalytics() {
   const [stats, setStats] = useState<{
@@ -25,6 +26,12 @@ export default function ComplaintsAnalytics() {
   
   const { apiGet } = useApi();
   const router = useRouter();
+  const supabase = createClient();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/login';
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -56,7 +63,7 @@ export default function ComplaintsAnalytics() {
   return (
     <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
       <div className="flex justify-between items-start mb-6">
-        <PageHeader title="Complaint Analytics" showBack />
+        <PageHeader title="Complaint Analytics" showBack onSignOut={handleSignOut} />
       </div>
       
       {/* SECTION 1 — Stats Row */}
