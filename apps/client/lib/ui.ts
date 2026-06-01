@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/lib/ui.ts
+ * Source code module for HostelMate ui.ts.
+ */
+
 import type { CSSProperties } from 'react';
 
 /**
