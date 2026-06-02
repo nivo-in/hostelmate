@@ -66,6 +66,8 @@ export default function WardenCurfewPage() {
       }
       if (violationsRes.success && violationsRes.data) {
         setViolations(violationsRes.data);
+        const alreadyNotifiedIds = violationsRes.data.filter((v: any) => v.parent_notified).map((v: any) => v.student_id);
+        setNotifiedIds(alreadyNotifiedIds);
       }
     } catch (err) {
       console.error('Curfew fetch error:', err);
