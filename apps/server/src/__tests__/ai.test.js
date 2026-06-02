@@ -93,6 +93,10 @@ describe('AI Assistant API', () => {
       expect(processWardenChat).toHaveBeenCalled();
     });
 
+    /**
+     * Test: should return success for student role
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return success for student role', async () => {
       currentProfile = mockStudentProfile;
       supabaseMock.then.mockImplementation((resolve) => resolve({ data: [], count: 0, error: null }));
