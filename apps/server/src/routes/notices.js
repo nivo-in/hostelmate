@@ -78,7 +78,6 @@ router.get('/', authenticate, async (req, res, next) => {
     let query = supabaseAdmin
       .from('notices')
       .select('*')
-      .order('created_at', { ascending: false })
 
     if (role === 'student') {
       query = query.in('target_audience', ['students', 'all'])
@@ -86,7 +85,7 @@ router.get('/', authenticate, async (req, res, next) => {
       query = query.in('target_audience', ['parents', 'all'])
     }
 
-    const { data, error } = await query
+    const { data, error } = await query.order('created_at', { ascending: false })
 
     if (error) throw error
 

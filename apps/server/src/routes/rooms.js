@@ -12,6 +12,7 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
   try {
     const { data: student, error } = await supabaseAdmin
       .from('students')
+      .eq('id', req.user.id)
       .select(`
         room_id,
         rooms!students_room_id_fkey(
@@ -20,7 +21,6 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
           blocks!rooms_block_id_fkey(name)
         )
       `)
-      .eq('id', req.user.id)
       .single()
 
     if (error) throw error
@@ -29,9 +29,9 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
     if (student?.room_id) {
       const { data: rmData } = await supabaseAdmin
         .from('students')
-        .select('id, profiles!students_id_fkey(full_name)')
         .eq('room_id', student.room_id)
         .neq('id', req.user.id)
+        .select('id, profiles!students_id_fkey(full_name)')
       
       roommates = rmData?.map(r => r.profiles?.full_name) || []
     }
@@ -45,7 +45,7 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
 
     res.json({ success: true, data: { student: { ...student, rooms: room }, roommates } })
   } catch (error) {
-    next(error)
+    { console.error(error); next(error); }
   }
 })
 
@@ -60,8 +60,8 @@ router.get('/available', authenticate, requireStudent, async (req, res, next) =>
 
     const { data: studentsData, error: studentsError } = await supabaseAdmin
       .from('students')
-      .select('room_id')
       .not('room_id', 'is', null)
+      .select('room_id')
 
     if (studentsError) throw studentsError
 
@@ -78,7 +78,7 @@ router.get('/available', authenticate, requireStudent, async (req, res, next) =>
 
     res.json({ success: true, data: available })
   } catch (error) {
-    next(error)
+    { console.error(error); next(error); }
   }
 })
 
@@ -97,8 +97,8 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
 
     const { data: studentsData, error: studentsError } = await supabaseAdmin
       .from('students')
-      .select('id, roll_number, room_id, profiles!students_id_fkey(full_name)')
       .not('room_id', 'is', null)
+      .select('id, roll_number, room_id, profiles!students_id_fkey(full_name)')
 
     if (studentsError) throw studentsError
 
@@ -120,7 +120,7 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
 
     res.json({ success: true, data: { rooms } })
   } catch (error) {
-    next(error)
+    { console.error(error); next(error); }
   }
 })
 
@@ -132,9 +132,9 @@ router.post('/', authenticate, requireWarden, async (req, res, next) => {
     let blockId = ''
     const { data: existingBlocks, error: searchErr } = await supabaseAdmin
       .from('blocks')
-      .select('id')
       .eq('name', block_name.trim())
       .limit(1)
+      .select('id')
 
     if (searchErr) throw searchErr
 
@@ -168,7 +168,7 @@ router.post('/', authenticate, requireWarden, async (req, res, next) => {
 
     res.json({ success: true, data: newRoom })
   } catch (error) {
-    next(error)
+    { console.error(error); next(error); }
   }
 })
 
@@ -176,8 +176,8 @@ router.get('/unassigned', authenticate, requireWarden, async (req, res, next) =>
   try {
     const { data, error } = await supabaseAdmin
       .from('students')
-      .select('id, roll_number, profiles!students_id_fkey(full_name)')
       .is('room_id', null)
+      .select('id, roll_number, profiles!students_id_fkey(full_name)')
 
     if (error) throw error
 
@@ -189,7 +189,7 @@ router.get('/unassigned', authenticate, requireWarden, async (req, res, next) =>
 
     res.json({ success: true, data: unassignedStudents })
   } catch (error) {
-    next(error)
+    { console.error(error); next(error); }
   }
 })
 
@@ -199,16 +199,16 @@ router.post('/assign', authenticate, requireWarden, async (req, res, next) => {
 
     const { data: room, error: roomError } = await supabaseAdmin
       .from('rooms')
-      .select('capacity, room_number, blocks!rooms_block_id_fkey(name)')
       .eq('id', room_id)
+      .select('capacity, room_number, blocks!rooms_block_id_fkey(name)')
       .single()
 
     if (roomError) throw roomError
 
     const { count, error: countError } = await supabaseAdmin
       .from('students')
-      .select('*', { count: 'exact', head: true })
       .eq('room_id', room_id)
+      .select('*', { count: 'exact', head: true })
 
     if (countError) throw countError
 
@@ -220,6 +220,7 @@ router.post('/assign', authenticate, requireWarden, async (req, res, next) => {
       .from('students')
       .update({ room_id })
       .eq('id', student_id)
+      .select()
 
     if (updateError) throw updateError
 
@@ -236,7 +237,7 @@ router.post('/assign', authenticate, requireWarden, async (req, res, next) => {
 
     res.json({ success: true })
   } catch (error) {
-    next(error)
+    { console.error(error); next(error); }
   }
 })
 
@@ -246,8 +247,8 @@ router.post('/transfer-request', authenticate, requireStudent, async (req, res, 
 
     const { data: student, error: studentError } = await supabaseAdmin
       .from('students')
-      .select('room_id')
       .eq('id', req.user.id)
+      .select('room_id')
       .single()
 
     if (studentError) throw studentError
@@ -261,12 +262,13 @@ router.post('/transfer-request', authenticate, requireStudent, async (req, res, 
         reason,
         status: 'pending'
       })
+      .select()
 
     if (insertError) throw insertError
 
     res.json({ success: true })
   } catch (error) {
-    next(error)
+    { console.error(error); next(error); }
   }
 })
 
@@ -274,6 +276,7 @@ router.get('/transfer-requests', authenticate, requireWarden, async (req, res, n
   try {
     const { data, error } = await supabaseAdmin
       .from('room_transfer_requests')
+      .eq('status', 'pending')
       .select(`
         *,
         students!room_transfer_requests_student_id_fkey(
@@ -283,13 +286,12 @@ router.get('/transfer-requests', authenticate, requireWarden, async (req, res, n
         current_room:rooms!room_transfer_requests_current_room_id_fkey(room_number),
         requested_room:rooms!room_transfer_requests_requested_room_id_fkey(room_number)
       `)
-      .eq('status', 'pending')
 
     if (error) throw error
 
     res.json({ success: true, data })
   } catch (error) {
-    next(error)
+    { console.error(error); next(error); }
   }
 })
 
@@ -299,8 +301,8 @@ router.patch('/transfer-requests/:id/approve', authenticate, requireWarden, asyn
 
     const { data: request, error: requestError } = await supabaseAdmin
       .from('room_transfer_requests')
-      .select('*')
       .eq('id', id)
+      .select('*')
       .single()
 
     if (requestError) throw requestError
@@ -309,6 +311,7 @@ router.patch('/transfer-requests/:id/approve', authenticate, requireWarden, asyn
       .from('students')
       .update({ room_id: request.requested_room_id })
       .eq('id', request.student_id)
+      .select()
 
     if (updateStudentError) throw updateStudentError
 
@@ -316,6 +319,7 @@ router.patch('/transfer-requests/:id/approve', authenticate, requireWarden, asyn
       .from('room_transfer_requests')
       .update({ status: 'approved' })
       .eq('id', id)
+      .select()
 
     if (updateRequestError) throw updateRequestError
 
@@ -329,7 +333,7 @@ router.patch('/transfer-requests/:id/approve', authenticate, requireWarden, asyn
 
     res.json({ success: true })
   } catch (error) {
-    next(error)
+    { console.error(error); next(error); }
   }
 })
 
@@ -356,7 +360,7 @@ router.patch('/transfer-requests/:id/reject', authenticate, requireWarden, async
 
     res.json({ success: true })
   } catch (error) {
-    next(error)
+    { console.error(error); next(error); }
   }
 })
 

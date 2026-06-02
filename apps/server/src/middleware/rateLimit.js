@@ -9,6 +9,7 @@ export const generalLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: false,
+  validate: false,
   keyGenerator: (req) => req.ip || 'unknown',
   handler: (req, res) => {
     logger.warn(`Rate limit exceeded: ${req.ip} ${req.method} ${req.url}`)
@@ -24,6 +25,7 @@ export const authLimiter = rateLimit({
   max: isDev ? 200 : 10,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: false,
   keyGenerator: (req) => req.ip || 'unknown',
   handler: (req, res) => {
     logger.warn(`Auth rate limit exceeded: ${req.ip}`)
@@ -39,6 +41,7 @@ export const notificationLimiter = rateLimit({
   max: isDev ? 100 : 30,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: false,
   keyGenerator: (req) => `${req.ip}_${req.user?.id || 'anon'}`,
   handler: (req, res) => {
     res.status(429).json({ success: false, error: 'Too many notification requests.' })

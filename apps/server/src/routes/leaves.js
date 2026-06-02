@@ -99,6 +99,7 @@ router.patch('/:id/approve', authenticate, requireWarden, async (req, res, next)
       .single()
 
     if (error) throw error
+    if (!data) return res.status(404).json({ success: false, error: 'Leave request not found' })
 
     logger.info(`Leave request ${id} approved by ${req.user.id}`)
     
@@ -126,6 +127,7 @@ router.patch('/:id/reject', authenticate, requireWarden, async (req, res, next) 
       .single()
 
     if (error) throw error
+    if (!data) return res.status(404).json({ success: false, error: 'Leave request not found' })
 
     logger.info(`Leave request ${id} rejected by ${req.user.id}`)
     
