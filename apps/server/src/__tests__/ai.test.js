@@ -124,6 +124,10 @@ describe('AI Assistant API', () => {
   });
 
   describe('GET /api/v1/ai/analysis/:type', () => {
+    /**
+     * Test: should return 400 for invalid type
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 400 for invalid type', async () => {
       const res = await request(app).get('/api/v1/ai/analysis/invalid_type');
       expect(res.status).toBe(400);
