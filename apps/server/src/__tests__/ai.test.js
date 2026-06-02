@@ -109,6 +109,10 @@ describe('AI Assistant API', () => {
       expect(processStudentChat).toHaveBeenCalled();
     });
 
+    /**
+     * Test: should return 403 for unsupported role
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 403 for unsupported role', async () => {
       currentProfile = mockUnknownProfile;
       const res = await request(app).post('/api/v1/ai/chat').send({
