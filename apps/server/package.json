@@ -17,7 +17,22 @@
     "transform": {},
     "moduleNameMapper": {
       "^(\\.{1,2}/.*)\\.js$": "$1"
-    }
+    },
+    "coverageThreshold": {
+      "global": {
+        "branches": 70,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    },
+    "collectCoverageFrom": [
+      "src/routes/**/*.js",
+      "src/config/geofence.js",
+      "src/config/matcher.js",
+      "src/config/validation.js",
+      "!src/**/*.test.js"
+    ]
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.3",
@@ -38,6 +53,7 @@
   },
   "devDependencies": {
     "@jest/globals": "^30.4.1",
+    "@types/supertest": "^7.2.0",
     "jest": "^30.4.2",
     "nodemon": "^3.1.14",
     "supertest": "^7.2.2"
