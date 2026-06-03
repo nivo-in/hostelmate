@@ -161,6 +161,10 @@ describe('Attendance API Integration', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should reject if already marked
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject if already marked', async () => {
       queryResults = [
         { data: { id: 1 }, error: null }, // existing check
