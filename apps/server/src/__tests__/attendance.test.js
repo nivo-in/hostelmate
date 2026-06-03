@@ -131,6 +131,10 @@ describe('Attendance API Integration', () => {
       expect(res.body.success).toBe(true);
     });
 
+    /**
+     * Test: should mark attendance via valid QR
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should mark attendance via valid QR', async () => {
       queryResults = [
         { data: null, error: null }, // existing check
