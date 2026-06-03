@@ -111,6 +111,10 @@ describe('Attendance API Integration', () => {
   });
 
   describe('POST /api/attendance/mark', () => {
+    /**
+     * Test: should mark attendance via face_only if not already marked
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should mark attendance via face_only if not already marked', async () => {
       queryResults = [
         { data: null, error: null }, // existing check (not marked)
