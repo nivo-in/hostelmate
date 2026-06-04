@@ -121,6 +121,10 @@ describe('Complaints API', () => {
   });
 
   describe('POST /api/complaints - Student submits', () => {
+    /**
+     * Test: should reject invalid category
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject invalid category', async () => {
       const res = await request(app).post('/api/v1/complaints').send({
         category: 'invalid_cat',
