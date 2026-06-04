@@ -14,7 +14,7 @@ export default function StudentVisitors() {
   const [purpose, setPurpose] = useState('');
   const [expectedDate, setExpectedDate] = useState('');
   
-  const [visitors, setVisitors] = useState<any[]>([]);
+  const [visitors, setVisitors] = useState<Record<string, unknown>[]>([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   

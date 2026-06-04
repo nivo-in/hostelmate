@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 
 export default function WardenVisitors() {
-  const [visitors, setVisitors] = useState<any[]>([]);
+  const [visitors, setVisitors] = useState<Record<string, unknown>[]>([]);
   const [filter, setFilter] = useState('All');
   const [actionId, setActionId] = useState<string | null>(null);
   const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
@@ -89,7 +89,7 @@ export default function WardenVisitors() {
           <div className="text-2xl font-semibold text-gray-900">{pendingCount}</div>
         </div>
         <div className="border border-blue-100 bg-blue-50/30 rounded-xl p-4">
-          <div className="text-xs text-blue-600 font-medium mb-1">Today's Expected Visitors</div>
+          <div className="text-xs text-blue-600 font-medium mb-1">Today&apos;s Expected Visitors</div>
           <div className="text-2xl font-semibold text-gray-900">{todayCount}</div>
         </div>
         <div className="border border-green-100 bg-green-50/30 rounded-xl p-4">
