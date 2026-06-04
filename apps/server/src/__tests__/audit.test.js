@@ -93,6 +93,10 @@ describe('Audit API', () => {
       expect(res.body.data).toHaveLength(1);
     });
 
+    /**
+     * Test: should filter by resource and action
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should filter by resource and action', async () => {
       queryResults = [{ data: [{ id: 2, action: 'create', resource: 'room' }], error: null }];
 
