@@ -264,6 +264,10 @@ describe('Attendance API Integration', () => {
   });
 
   describe('GET /api/attendance/stats', () => {
+    /**
+     * Test: should return attendance stats for today
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return attendance stats for today', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
