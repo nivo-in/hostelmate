@@ -81,6 +81,10 @@ describe('Audit API', () => {
   });
 
   describe('GET /api/audit', () => {
+    /**
+     * Test: should return audit logs without filters
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return audit logs without filters', async () => {
       queryResults = [{ data: [{ id: 1, action: 'login', resource: 'auth' }], error: null }];
 
