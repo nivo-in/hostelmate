@@ -7,6 +7,17 @@ import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 
+interface Visitor {
+  id: string;
+  visitor_name: string;
+  relationship: string;
+  purpose: string;
+  expected_visit_date: string;
+  status: string;
+  warden_notes?: string;
+  created_at: string;
+}
+
 export default function StudentVisitors() {
   const [visitorName, setVisitorName] = useState('');
   const [visitorPhone, setVisitorPhone] = useState('');
@@ -14,7 +25,7 @@ export default function StudentVisitors() {
   const [purpose, setPurpose] = useState('');
   const [expectedDate, setExpectedDate] = useState('');
   
-  const [visitors, setVisitors] = useState<Record<string, unknown>[]>([]);
+  const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   

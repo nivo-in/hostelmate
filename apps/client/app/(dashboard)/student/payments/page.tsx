@@ -253,8 +253,9 @@ export default function StudentPaymentsPage() {
         },
       };
       const rzp = new (window as RazorpayWindow).Razorpay(options);
-      rzp.on('payment.failed', async (response: { error: { description: string } }) => {
-        setError(`Payment failed: ${response.error.description}`);
+      rzp.on('payment.failed', async (response: unknown) => {
+        const errResponse = response as { error: { description: string } };
+        setError(`Payment failed: ${errResponse.error.description}`);
         try {
           await apiPost('/api/payments/cancel', { fee_payment_id: payment.id });
         } finally {
