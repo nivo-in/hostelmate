@@ -32,6 +32,7 @@ import auditRoutes from './routes/audit.js'
 import studentsRoutes from './routes/students.js'
 import parentRoutes from './routes/parent.js'
 import visitorsRoutes from './routes/visitors.js'
+import paymentsRoutes from './routes/payments.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -122,6 +123,7 @@ app.use('/api/audit', auditRoutes)
 app.use('/api/students', studentsRoutes)
 app.use('/api/parent', parentRoutes)
 app.use('/api/visitors', visitorsRoutes)
+app.use('/api/payments', paymentsRoutes)
 
 // 404 handler
 app.use((req, res) => {
