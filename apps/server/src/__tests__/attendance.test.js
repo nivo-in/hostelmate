@@ -228,6 +228,10 @@ describe('Attendance API Integration', () => {
       expect(res.body.data).toHaveLength(1);
     });
 
+    /**
+     * Test: should return from cache if available
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return from cache if available', async () => {
       currentProfile = mockWardenProfile;
       mockRedisGet.mockResolvedValueOnce([{ id: 2, status: 'present' }]);
