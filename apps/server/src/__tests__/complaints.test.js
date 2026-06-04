@@ -134,6 +134,10 @@ describe('Complaints API', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should reject missing description
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject missing description', async () => {
       const res = await request(app).post('/api/v1/complaints').send({
         category: 'electrical',
