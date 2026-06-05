@@ -15,10 +15,10 @@ const SkeletonCard = () => (
 export default function StudentDashboard() {
   const [firstName, setFirstName] = useState('')
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
 
   const init = useCallback(async () => {
     try {
+      const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       const user = session?.user
       if (!user) { setLoading(false); return }
@@ -35,16 +35,19 @@ export default function StudentDashboard() {
     } finally {
       setLoading(false)
     }
-  }, [supabase])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     init()
   }, [init])
 
+
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
+    await createClient().auth.signOut()
     window.location.href = '/login'
   }
+
 
   return (
     <div className="min-h-screen bg-white p-8 max-w-5xl mx-auto">
