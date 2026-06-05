@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 // Assuming Profile type based on requirements, adjust imports if needed
@@ -15,9 +15,10 @@ export function useProfile() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     setLoading(true)
     setError(null)
+    // Uses the singleton — no new client per refetch
     const supabase = createClient()
     
     try {
@@ -43,11 +44,12 @@ export function useProfile() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchProfile()
-  }, [])
+  }, [fetchProfile])
 
   return { profile, loading, error, refetch: fetchProfile }
 }
+
