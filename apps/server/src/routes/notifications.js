@@ -1,11 +1,20 @@
 import { Router } from 'express'
 import { supabaseAdmin } from '../config/supabase.js'
 import { authenticate } from '../middleware/auth.js'
+import { getCache, setCache, deleteCache } from '../config/redis.js'
 
 const router = Router()
 
 router.get('/', authenticate, async (req, res, next) => {
   try {
+    // Short cache per user — real-time updates come via WebSocket anyway.
+    // 30 seconds is safe: new notifications push via socket, not polling.
+    const cacheKey = `notifications:${req.user.id}`
+    const cached = await getCache(cacheKey)
+    if (cached) {
+      return res.json({ success: true, data: cached })
+    }
+
     const { data: notifications, error } = await supabaseAdmin
       .from('notifications')
       .select('*')
@@ -14,14 +23,15 @@ router.get('/', authenticate, async (req, res, next) => {
       .limit(20)
 
     if (error) {
-      // If notifications table doesn't exist yet, return empty response
       return res.json({ success: true, data: { notifications: [], unread_count: 0 } })
     }
 
     const safeNotifications = notifications || []
     const unread_count = safeNotifications.filter(n => !n.is_read).length
+    const payload = { notifications: safeNotifications, unread_count }
 
-    res.json({ success: true, data: { notifications: safeNotifications, unread_count } })
+    await setCache(cacheKey, payload, 30) // 30s cache
+    res.json({ success: true, data: payload })
   } catch {
     res.json({ success: true, data: { notifications: [], unread_count: 0 } })
   }
@@ -34,6 +44,9 @@ router.patch('/read-all', authenticate, async (req, res, next) => {
       .update({ is_read: true })
       .eq('user_id', req.user.id)
       .eq('is_read', false)
+
+    // Invalidate cache so next GET returns fresh data
+    await deleteCache(`notifications:${req.user.id}`).catch(() => {})
 
     if (error) {
       return res.json({ success: true })
@@ -55,6 +68,8 @@ router.patch('/:id/read', authenticate, async (req, res, next) => {
       .eq('id', id)
       .eq('user_id', req.user.id)
 
+    await deleteCache(`notifications:${req.user.id}`).catch(() => {})
+
     if (error) {
       return res.json({ success: true })
     }
@@ -74,6 +89,8 @@ router.delete('/:id', authenticate, async (req, res) => {
       .delete()
       .eq('id', id)
       .eq('user_id', req.user.id)   // guard: only own notifications
+
+    await deleteCache(`notifications:${req.user.id}`).catch(() => {})
 
     if (error) return res.json({ success: true })
     res.json({ success: true })
