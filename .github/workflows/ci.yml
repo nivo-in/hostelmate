@@ -52,6 +52,9 @@ jobs:
       - name: Check server syntax
         run: cd apps/server && node --check src/index.js
 
+      - name: Run server tests
+        run: cd apps/server && pnpm test
+
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
