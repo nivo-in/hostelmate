@@ -30,7 +30,7 @@ export default function ComplaintsAnalytics() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   useEffect(() => {

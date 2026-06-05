@@ -164,7 +164,7 @@ const [reportData, setReportData] = useState<ReportData[]>([])
   // ── Sign out ─────────────────────────────────────────────────────────
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    window.location.href = '/login'
+    router.push('/login')
   }
 
   // ── Presence toggle ──────────────────────────────────────────────────

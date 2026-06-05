@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useApi } from '@/hooks/useApi';
 import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation'
 
 type AuditLog = {
   id: string;
@@ -15,6 +16,7 @@ type AuditLog = {
 };
 
 export default function WardenAuditPage() {
+  const router = useRouter()
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +45,7 @@ export default function WardenAuditPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   const fetchLogs = useCallback(async () => {

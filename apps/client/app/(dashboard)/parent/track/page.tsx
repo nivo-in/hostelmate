@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useProfile } from '@/hooks/useProfile';
 import { useSocket } from '@/hooks/useSocket';
+import { useRouter } from 'next/navigation'
 
 interface StudentInfo {
   id: string;
@@ -33,6 +34,7 @@ interface ParentStudentData {
 }
 
 export default function ParentTrack() {
+  const router = useRouter()
   const supabase = createClient();
   const { apiGet } = useApi();
   const { profile, loading: profileLoading } = useProfile();
@@ -80,7 +82,7 @@ export default function ParentTrack() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   if (profileLoading || loading) {

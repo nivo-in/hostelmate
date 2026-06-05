@@ -81,7 +81,7 @@ export default function StudentLostFound() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   const filteredItems = items.filter(item => {

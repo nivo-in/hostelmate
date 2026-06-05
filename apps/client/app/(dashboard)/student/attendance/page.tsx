@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useProfile } from '@/hooks/useProfile';
+import { useRouter } from 'next/navigation'
 
 // Lazy-load face components so face-api.js is not bundled in initial chunk
 const FaceRegistration = lazy(() => import('@/components/face/FaceRegistration'));
@@ -99,6 +100,7 @@ function SuccessAnimation({ onDone }: { onDone: () => void }) {
 }
 
 export default function StudentAttendance() {
+  const router = useRouter()
   const [view, setView] = useState<AttendanceView>('checking-face');
   const [mode, setMode] = useState<AttendanceMode>('choose');
   const [faceError, setFaceError] = useState('');
@@ -219,7 +221,7 @@ export default function StudentAttendance() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   const getStatusVariant = (status: string) => {

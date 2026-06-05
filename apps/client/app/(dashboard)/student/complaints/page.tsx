@@ -79,7 +79,7 @@ export default function StudentComplaints() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   const getStatusVariant = (status: string) => {

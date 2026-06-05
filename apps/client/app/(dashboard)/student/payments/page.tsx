@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
+import { useRouter } from 'next/navigation'
 
 // ─── Razorpay window type ────────────────────────────────
 
@@ -148,6 +149,7 @@ const PLANS = {
 // ─── Component ───────────────────────────────────────────
 
 export default function StudentPaymentsPage() {
+  const router = useRouter()
   const [paymentsData, setPaymentsData] = useState<PaymentsData | null>(null);
   const [feeStructures, setFeeStructures] = useState<FeeStructuresGrouped | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -308,7 +310,7 @@ export default function StudentPaymentsPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   return (
