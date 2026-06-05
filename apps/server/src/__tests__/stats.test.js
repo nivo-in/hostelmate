@@ -15,7 +15,8 @@ const supabaseMock = {
   order: jest.fn().mockReturnThis(),
   limit: jest.fn().mockReturnThis(),
   single: jest.fn().mockResolvedValue({ data: null, error: null }),
-  head: jest.fn().mockResolvedValue({ count: 0, error: null }),
+  head: jest.fn().mockReturnThis(),
+  then: jest.fn((resolve) => resolve({ data: [], count: 10, error: null })),
 };
 
 jest.unstable_mockModule('../config/supabase.js', () => ({
@@ -84,9 +85,6 @@ describe('Stats API', () => {
 
   describe('GET /api/stats/dashboard - Warden', () => {
     it('should return all dashboard stats', async () => {
-      supabaseMock.head.mockResolvedValue({ count: 10, error: null });
-      supabaseMock.select.mockResolvedValue({ data: [], error: null });
-      
       const res = await request(app).get('/api/stats/dashboard');
       expect(res.status).toBe(200);
     });
@@ -104,9 +102,6 @@ describe('Stats API', () => {
     });
 
     it('should include attendance, leaves, complaints, notices stats', async () => {
-      supabaseMock.head.mockResolvedValue({ count: 5, error: null });
-      supabaseMock.select.mockResolvedValue({ data: [], error: null });
-      
       const res = await request(app).get('/api/stats/dashboard');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveProperty('attendance');
