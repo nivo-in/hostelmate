@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
+import { useRouter } from 'next/navigation'
 
 // ─── Razorpay window type ────────────────────────────────
 
@@ -73,6 +74,7 @@ const typeBadge = (type: string) => {
 };
 
 export default function ParentPaymentsPage() {
+  const router = useRouter()
   const [paymentsData, setPaymentsData] = useState<PaymentsData | null>(null);
   const [parentProfile, setParentProfile] = useState<ParentProfile | null>(null);
   const [receiptModal, setReceiptModal] = useState<ReceiptData | null>(null);
@@ -194,7 +196,7 @@ export default function ParentPaymentsPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   const totals = paymentsData?.totals;
