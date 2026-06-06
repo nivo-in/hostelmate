@@ -161,6 +161,10 @@ describe('Complaints API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should include AI classification in response
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should include AI classification in response', async () => {
       supabaseMock.single.mockResolvedValueOnce({
         data: { id: '1', ai_category: 'electrical' },
