@@ -221,6 +221,10 @@ describe('Complaints API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should respect the limit query parameter for student complaints
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should respect the limit query parameter for student complaints', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/complaints/my?limit=5');
