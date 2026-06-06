@@ -211,6 +211,10 @@ describe('Complaints API', () => {
   });
 
   describe('GET /api/complaints/my - Student views own', () => {
+    /**
+     * Test: should return student complaints
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return student complaints', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/complaints/my');
