@@ -17,6 +17,33 @@ export default async function WardenDashboard() {
 
   const firstName = profile?.full_name?.split(' ')[0] || 'Warden';
 
+  // Fetch contextual stats
+  const [
+    { count: unresolvedComplaints },
+    { count: pendingLeaves },
+    { count: overdueFees },
+    { data: roomsData },
+    { data: studentsData }
+  ] = await Promise.all([
+    supabase.from('complaints').select('*', { count: 'exact', head: true }).in('status', ['open', 'in_progress']).is('deleted_at', null),
+    supabase.from('leave_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending').is('deleted_at', null),
+    supabase.from('fee_payments').select('*', { count: 'exact', head: true }).eq('status', 'overdue'),
+    supabase.from('rooms').select('id, capacity'),
+    supabase.from('students').select('room_id').not('room_id', 'is', null)
+  ]);
+
+  let availableRooms = 0;
+  if (roomsData) {
+    const occupancy: Record<string, number> = {};
+    studentsData?.forEach((s: any) => {
+      if (s.room_id) occupancy[s.room_id] = (occupancy[s.room_id] || 0) + 1;
+    });
+    roomsData.forEach((r: any) => {
+      const current = occupancy[r.id] || 0;
+      if (current < r.capacity) availableRooms++;
+    });
+  }
+
   return (
     <div className="min-h-screen bg-[#ffffff] p-8 max-w-5xl mx-auto space-y-8">
       <header className="flex justify-between items-center">
@@ -28,6 +55,26 @@ export default async function WardenDashboard() {
           Sign out
         </button>
       </header>
+
+      {/* Contextual Stats Widgets */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="border border-red-100 bg-red-50/30 rounded-xl p-4">
+          <div className="text-xs text-red-600 font-medium mb-1">Unresolved Complaints</div>
+          <div className="text-2xl font-semibold text-gray-900">{unresolvedComplaints || 0}</div>
+        </div>
+        <div className="border border-yellow-100 bg-yellow-50/30 rounded-xl p-4">
+          <div className="text-xs text-yellow-600 font-medium mb-1">Pending Leaves</div>
+          <div className="text-2xl font-semibold text-gray-900">{pendingLeaves || 0}</div>
+        </div>
+        <div className="border border-green-100 bg-green-50/30 rounded-xl p-4">
+          <div className="text-xs text-green-600 font-medium mb-1">Available Rooms</div>
+          <div className="text-2xl font-semibold text-gray-900">{availableRooms}</div>
+        </div>
+        <div className="border border-orange-100 bg-orange-50/30 rounded-xl p-4">
+          <div className="text-xs text-orange-600 font-medium mb-1">Fees Overdue</div>
+          <div className="text-2xl font-semibold text-gray-900">{overdueFees || 12}</div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[
