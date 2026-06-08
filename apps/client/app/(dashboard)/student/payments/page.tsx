@@ -187,7 +187,7 @@ export default function StudentPaymentsPage() {
 
   const fetchPayments = useCallback(async () => {
     try {
-      const res = await apiGet('/api/payments/my');
+      const res = await apiGet('/api/v1/payments/my');
       if (res.success) setPaymentsData(res.data);
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -197,7 +197,7 @@ export default function StudentPaymentsPage() {
 
   const fetchFeeStructures = useCallback(async () => {
     try {
-      const res = await apiGet('/api/payments/fee-structures');
+      const res = await apiGet('/api/v1/payments/fee-structures');
       if (res.success) setFeeStructures(res.data);
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -239,7 +239,7 @@ export default function StudentPaymentsPage() {
     setError('');
     setLoading(true);
     try {
-      const orderRes = await apiPost('/api/payments/create-order', { fee_payment_id: payment.id });
+      const orderRes = await apiPost('/api/v1/payments/create-order', { fee_payment_id: payment.id });
       if (!orderRes.success) throw new Error(orderRes.error || 'Failed to create order');
 
       const orderData = orderRes.data;
@@ -256,7 +256,7 @@ export default function StudentPaymentsPage() {
           razorpay_signature: string;
         }) => {
           try {
-            const result = await apiPost('/api/payments/verify', {
+            const result = await apiPost('/api/v1/payments/verify', {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
@@ -282,7 +282,7 @@ export default function StudentPaymentsPage() {
           ondismiss: async () => {
             setError('Payment window closed');
             try {
-              await apiPost('/api/payments/cancel', { fee_payment_id: payment.id });
+              await apiPost('/api/v1/payments/cancel', { fee_payment_id: payment.id });
             } finally {
               fetchPayments();
             }
@@ -294,7 +294,7 @@ export default function StudentPaymentsPage() {
         const errResponse = response as { error: { description: string } };
         setError(`Payment failed: ${errResponse.error.description}`);
         try {
-          await apiPost('/api/payments/cancel', { fee_payment_id: payment.id });
+          await apiPost('/api/v1/payments/cancel', { fee_payment_id: payment.id });
         } finally {
           fetchPayments();
           setLoading(false);
@@ -314,7 +314,7 @@ export default function StudentPaymentsPage() {
   const handleCancelPayment = async (paymentId: string) => {
     setLoading(true);
     try {
-      await apiPost('/api/payments/cancel', { fee_payment_id: paymentId });
+      await apiPost('/api/v1/payments/cancel', { fee_payment_id: paymentId });
       fetchPayments();
     } catch (e) {
       setError((e as Error).message || 'Failed to cancel payment');

@@ -164,7 +164,7 @@ export default function WardenPaymentsPage() {
       if (filterFeeType) params.set('fee_type', filterFeeType);
       if (filterBilling) params.set('billing_period', filterBilling);
       if (filterPeriod) params.set('period_label', filterPeriod);
-      const res = await apiGet(`/api/payments/all?${params.toString()}`);
+      const res = await apiGet(`/api/v1/payments/all?${params.toString()}`);
       if (res.success) {
         setPayments(res.data.payments);
         setSummary(res.data.summary);
@@ -177,7 +177,7 @@ export default function WardenPaymentsPage() {
 
   const fetchStructures = useCallback(async () => {
     try {
-      const res = await apiGet('/api/payments/fee-structures');
+      const res = await apiGet('/api/v1/payments/fee-structures');
       if (res.success) {
         const all = [
           ...(res.data.yearly || []),
@@ -194,7 +194,7 @@ export default function WardenPaymentsPage() {
 
   const fetchStudentsList = useCallback(async () => {
     try {
-      const res = await apiGet('/api/payments/students-list');
+      const res = await apiGet('/api/v1/payments/students-list');
       if (res.success) setAllStudents(res.data);
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -209,7 +209,7 @@ export default function WardenPaymentsPage() {
     fetchStructures();
     fetchStudentsList();
     // Fetch last reminder timestamp
-    apiGet('/api/payments/last-reminder')
+    apiGet('/api/v1/payments/last-reminder')
       .then((res) => {
         if (res.success && res.last_reminder) setLastReminder(res.last_reminder);
       })
@@ -225,7 +225,7 @@ export default function WardenPaymentsPage() {
   const handleMarkPaid = async (id: string) => {
     setMarkingId(id);
     try {
-      const res = await apiPatch(`/api/payments/${id}/mark-paid`, { payment_method: 'cash' });
+      const res = await apiPatch(`/api/v1/payments/${id}/mark-paid`, { payment_method: 'cash' });
       if (res.success) {
         setSuccess('Payment marked as paid (cash)');
         setTimeout(() => setSuccess(''), 4000);
@@ -243,7 +243,7 @@ export default function WardenPaymentsPage() {
     setSendingReminders(true);
     setError('');
     try {
-      const res = await apiPost('/api/payments/send-reminders', {});
+      const res = await apiPost('/api/v1/payments/send-reminders', {});
       if (res.success) {
         setLastReminder(new Date().toISOString());
         setSuccess(`Sent ${res.reminders_sent} reminders to students and parents`);
@@ -275,7 +275,7 @@ export default function WardenPaymentsPage() {
         payload.student_ids = targetStudents;
       }
 
-      const res = await apiPost('/api/payments/generate-bills', payload);
+      const res = await apiPost('/api/v1/payments/generate-bills', payload);
       if (res.success) {
         setGenResult({ generated: res.generated, skipped: res.skipped });
         setSuccess(`Done! Generated ${res.generated} bills, skipped ${res.skipped}.`);
@@ -295,7 +295,7 @@ export default function WardenPaymentsPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await apiPost('/api/payments/fee-structures', {
+      const res = await apiPost('/api/v1/payments/fee-structures', {
         name: newName,
         amount: parseInt(newAmount, 10),
         fee_type: newFeeType,

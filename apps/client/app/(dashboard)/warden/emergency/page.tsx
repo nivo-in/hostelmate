@@ -22,7 +22,7 @@ export default function EmergencyAlert() {
   const fetchNotices = async () => {
     setLoading(true);
     try {
-      const res = await apiGet('/api/notices');
+      const res = await apiGet('/api/v1/notices');
       if (res.success) {
         setNotices((res.data || []).filter((n: Notice) => n.title?.includes('EMERGENCY')));
       }
@@ -47,7 +47,7 @@ export default function EmergencyAlert() {
     setSuccess('');
 
     try {
-      const res = await apiPost('/api/notices', {
+      const res = await apiPost('/api/v1/notices', {
         title: 'EMERGENCY ALERT',
         content: message,
         target_audience: 'all',

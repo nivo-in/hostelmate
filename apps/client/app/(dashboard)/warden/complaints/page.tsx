@@ -20,7 +20,7 @@ export default function WardenComplaints() {
 
   const fetchComplaints = async () => {
     try {
-      const res = await apiGet('/api/complaints/all');
+      const res = await apiGet('/api/v1/complaints/all');
       if (res.success) setComplaints(res.data || []);
     } catch {
       // Silently fail
@@ -33,7 +33,7 @@ export default function WardenComplaints() {
 
   const handleStatusUpdate = async (id: string, status: string) => {
     try {
-      const res = await apiPatch(`/api/complaints/${id}/status`, { status });
+      const res = await apiPatch(`/api/v1/complaints/${id}/status`, { status });
       if (res.success) {
         setMessage('Status updated successfully');
         fetchComplaints();

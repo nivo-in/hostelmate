@@ -103,23 +103,29 @@ app.get('/', (req, res) => {
   });
 });
 
-// Routes
-app.use('/api/attendance', attendanceRoutes);
-app.use('/api/leaves', leavesRoutes);
-app.use('/api/complaints', complaintsRoutes);
-app.use('/api/mess', messRoutes);
-app.use('/api/notices', noticesRoutes);
-app.use('/api/lost-found', lostFoundRoutes);
-app.use('/api/stats', statsRoutes);
-app.use('/api/staff-feedback', staffFeedbackRoutes);
-app.use('/api/curfew', curfewRoutes);
-app.use('/api/notifications', notificationLimiter, notificationsRoutes);
-app.use('/api/rooms', roomsRoutes);
-app.use('/api/audit', auditRoutes);
-app.use('/api/students', studentsRoutes);
-app.use('/api/parent', parentRoutes);
-app.use('/api/visitors', visitorsRoutes);
-app.use('/api/payments', paymentsRoutes);
+// Routes version 1
+app.use('/api/v1/attendance', attendanceRoutes);
+app.use('/api/v1/leaves', leavesRoutes);
+app.use('/api/v1/complaints', complaintsRoutes);
+app.use('/api/v1/mess', messRoutes);
+app.use('/api/v1/notices', noticesRoutes);
+app.use('/api/v1/lost-found', lostFoundRoutes);
+app.use('/api/v1/stats', statsRoutes);
+app.use('/api/v1/staff-feedback', staffFeedbackRoutes);
+app.use('/api/v1/curfew', curfewRoutes);
+app.use('/api/v1/notifications', notificationLimiter, notificationsRoutes);
+app.use('/api/v1/rooms', roomsRoutes);
+app.use('/api/v1/audit', auditRoutes);
+app.use('/api/v1/students', studentsRoutes);
+app.use('/api/v1/parent', parentRoutes);
+app.use('/api/v1/visitors', visitorsRoutes);
+app.use('/api/v1/payments', paymentsRoutes);
+
+// Backward compatibility redirect
+app.use('/api', (req, res, next) => {
+  if (req.path.startsWith('/v1')) return next();
+  res.redirect(307, `/api/v1${req.url}`);
+});
 
 // 404 handler
 app.use((req, res) => {

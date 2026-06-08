@@ -65,8 +65,8 @@ export default function WardenCurfewPage() {
   const fetchData = useCallback(async () => {
     try {
       const [settingsRes, violationsRes] = await Promise.all([
-        apiGetRef.current('/api/curfew/settings'),
-        apiGetRef.current('/api/curfew/violations'),
+        apiGetRef.current('/api/v1/curfew/settings'),
+        apiGetRef.current('/api/v1/curfew/violations'),
       ]);
 
       if (settingsRes.success && settingsRes.data) {
@@ -108,7 +108,7 @@ export default function WardenCurfewPage() {
     setSavingSettings(true);
     setSettingsMessage('');
     try {
-      const res = await apiPatchRef.current('/api/curfew/settings', settings);
+      const res = await apiPatchRef.current('/api/v1/curfew/settings', settings);
       if (res.success) {
         setSettingsMessage('Settings saved');
         await fetchData();
@@ -126,7 +126,7 @@ export default function WardenCurfewPage() {
   const handleNotify = async (studentIds: string[]) => {
     setNotifyingIds((prev) => [...prev, ...studentIds]);
     try {
-      const res = await apiPostRef.current('/api/curfew/notify', { student_ids: studentIds });
+      const res = await apiPostRef.current('/api/v1/curfew/notify', { student_ids: studentIds });
       if (res.success) {
         setNotifiedIds((prev) => [...prev, ...studentIds]);
       }

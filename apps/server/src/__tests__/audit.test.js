@@ -81,7 +81,7 @@ describe('Audit API', () => {
     it('should return audit logs without filters', async () => {
       queryResults = [{ data: [{ id: 1, action: 'login', resource: 'auth' }], error: null }];
 
-      const res = await request(app).get('/api/audit');
+      const res = await request(app).get('/api/v1/audit');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(1);
     });
@@ -89,14 +89,14 @@ describe('Audit API', () => {
     it('should filter by resource and action', async () => {
       queryResults = [{ data: [{ id: 2, action: 'create', resource: 'room' }], error: null }];
 
-      const res = await request(app).get('/api/audit?resource=room&action=create');
+      const res = await request(app).get('/api/v1/audit?resource=room&action=create');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(1);
     });
 
     it('should reject non-warden access', async () => {
       currentProfile = mockStudentProfile;
-      const res = await request(app).get('/api/audit');
+      const res = await request(app).get('/api/v1/audit');
       expect(res.status).toBe(403);
     });
   });

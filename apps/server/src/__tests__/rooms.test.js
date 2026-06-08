@@ -113,7 +113,7 @@ describe('Rooms API', () => {
         { data: [{ id: 'other', profiles: { full_name: 'Other Student' } }], error: null },
       ];
 
-      const res = await request(app).get('/api/rooms/my');
+      const res = await request(app).get('/api/v1/rooms/my');
       expect(res.status).toBe(200);
       expect(res.body.data.student.rooms.room_number).toBe('101');
       expect(res.body.data.roommates).toContain('Other Student');
@@ -130,7 +130,7 @@ describe('Rooms API', () => {
         { data: [{ room_id: 'room-1' }], error: null },
       ];
 
-      const res = await request(app).get('/api/rooms/available');
+      const res = await request(app).get('/api/v1/rooms/available');
       expect(res.status).toBe(200);
       expect(res.body.data[0].room_number).toBe('101');
       expect(res.body.data[0].occupancy).toBe(1);
@@ -151,7 +151,7 @@ describe('Rooms API', () => {
         },
       ];
 
-      const res = await request(app).get('/api/rooms');
+      const res = await request(app).get('/api/v1/rooms');
       expect(res.status).toBe(200);
       expect(res.body.data.rooms[0].current_occupants).toHaveLength(1);
     });
@@ -165,7 +165,7 @@ describe('Rooms API', () => {
         { data: { id: 'room-new' }, error: null },
       ];
 
-      const res = await request(app).post('/api/rooms').send({
+      const res = await request(app).post('/api/v1/rooms').send({
         room_number: '102',
         block_name: 'A',
         capacity: 2,
@@ -175,7 +175,7 @@ describe('Rooms API', () => {
     });
 
     it('should return 403 for student', async () => {
-      const res = await request(app).post('/api/rooms').send({
+      const res = await request(app).post('/api/v1/rooms').send({
         room_number: '102',
         block_name: 'A',
         capacity: 2,
@@ -190,7 +190,7 @@ describe('Rooms API', () => {
       queryResults = [
         { data: [{ id: 'student-2', profiles: { full_name: 'No Room' } }], error: null },
       ];
-      const res = await request(app).get('/api/rooms/unassigned');
+      const res = await request(app).get('/api/v1/rooms/unassigned');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(1);
     });
@@ -205,7 +205,7 @@ describe('Rooms API', () => {
         { error: null },
       ];
 
-      const res = await request(app).post('/api/rooms/assign').send({
+      const res = await request(app).post('/api/v1/rooms/assign').send({
         student_id: 'student-2',
         room_id: 'room-1',
       });
@@ -219,7 +219,7 @@ describe('Rooms API', () => {
         { count: 2, error: null },
       ];
 
-      const res = await request(app).post('/api/rooms/assign').send({
+      const res = await request(app).post('/api/v1/rooms/assign').send({
         student_id: 'student-2',
         room_id: 'room-1',
       });
@@ -231,7 +231,7 @@ describe('Rooms API', () => {
     it('POST /transfer-request - should submit request', async () => {
       queryResults = [{ data: { room_id: 'room-1' }, error: null }, { error: null }];
 
-      const res = await request(app).post('/api/rooms/transfer-request').send({
+      const res = await request(app).post('/api/v1/rooms/transfer-request').send({
         requested_room_id: 'room-2',
         reason: 'Too noisy',
       });
@@ -241,7 +241,7 @@ describe('Rooms API', () => {
     it('GET /transfer-requests - should return requests for warden', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: [{ id: 'req-1' }], error: null }];
-      const res = await request(app).get('/api/rooms/transfer-requests');
+      const res = await request(app).get('/api/v1/rooms/transfer-requests');
       expect(res.status).toBe(200);
     });
 
@@ -256,7 +256,7 @@ describe('Rooms API', () => {
         { error: null },
       ];
 
-      const res = await request(app).patch('/api/rooms/transfer-requests/1/approve');
+      const res = await request(app).patch('/api/v1/rooms/transfer-requests/1/approve');
       expect(res.status).toBe(200);
     });
 
@@ -264,7 +264,7 @@ describe('Rooms API', () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: { id: 'req-1', student_id: 'student-1' }, error: null }];
 
-      const res = await request(app).patch('/api/rooms/transfer-requests/1/reject');
+      const res = await request(app).patch('/api/v1/rooms/transfer-requests/1/reject');
       expect(res.status).toBe(200);
     });
   });

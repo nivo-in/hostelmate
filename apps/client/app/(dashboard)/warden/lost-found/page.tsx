@@ -20,7 +20,7 @@ export default function WardenLostFound() {
 
   const fetchItems = async () => {
     try {
-      const res = await apiGet('/api/lost-found');
+      const res = await apiGet('/api/v1/lost-found');
       if (res.success) setItems(res.data || []);
     } catch {
       // Silently fail
@@ -33,7 +33,7 @@ export default function WardenLostFound() {
 
   const handleClaim = async (id: string) => {
     try {
-      const res = await apiPatch(`/api/lost-found/${id}/claim`, {});
+      const res = await apiPatch(`/api/v1/lost-found/${id}/claim`, {});
       if (res.success) {
         setMessage('Item marked as claimed');
         fetchItems();

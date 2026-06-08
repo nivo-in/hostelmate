@@ -48,7 +48,7 @@ export default function ParentTrack() {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await apiGet('/api/parent/my-student');
+      const res = await apiGet('/api/v1/parent/my-student');
       if (res.success) {
         setData(res.data);
         studentIdRef.current = res.data.student.id;

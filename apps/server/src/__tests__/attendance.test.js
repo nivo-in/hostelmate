@@ -119,7 +119,7 @@ describe('Attendance API Integration', () => {
         { error: null }, // notify parent
       ];
 
-      const res = await request(app).post('/api/attendance/mark').send({
+      const res = await request(app).post('/api/v1/attendance/mark').send({
         face_only: true,
       });
       expect(res.status).toBe(200);
@@ -143,7 +143,7 @@ describe('Attendance API Integration', () => {
       };
 
       const res = await request(app)
-        .post('/api/attendance/mark')
+        .post('/api/v1/attendance/mark')
         .send({
           qr_data: JSON.stringify(validQR),
           lat: 28.6139,
@@ -156,7 +156,7 @@ describe('Attendance API Integration', () => {
       queryResults = [
         { data: { id: 1 }, error: null }, // existing check
       ];
-      const res = await request(app).post('/api/attendance/mark').send({ face_only: true });
+      const res = await request(app).post('/api/v1/attendance/mark').send({ face_only: true });
       expect(res.status).toBe(400);
     });
 
@@ -165,7 +165,7 @@ describe('Attendance API Integration', () => {
         { data: null, error: null }, // existing check
       ];
       const res = await request(app)
-        .post('/api/attendance/mark')
+        .post('/api/v1/attendance/mark')
         .send({ qr_data: 'invalid json {' });
       expect(res.status).toBe(400);
     });
@@ -175,7 +175,7 @@ describe('Attendance API Integration', () => {
     it('should return attendance for today for warden', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: [{ id: 1, status: 'present' }], error: null }];
-      const res = await request(app).get('/api/attendance/today');
+      const res = await request(app).get('/api/v1/attendance/today');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(1);
     });
@@ -183,7 +183,7 @@ describe('Attendance API Integration', () => {
     it('should return from cache if available', async () => {
       currentProfile = mockWardenProfile;
       mockRedisGet.mockResolvedValueOnce([{ id: 2, status: 'present' }]);
-      const res = await request(app).get('/api/attendance/today');
+      const res = await request(app).get('/api/v1/attendance/today');
       expect(res.status).toBe(200);
       expect(res.body.data[0].id).toBe(2);
     });
@@ -192,13 +192,13 @@ describe('Attendance API Integration', () => {
   describe('GET /api/attendance/student/:studentId', () => {
     it('should return attendance for specific student', async () => {
       queryResults = [{ data: [{ id: 1, date: '2026-05-31' }], error: null }];
-      const res = await request(app).get('/api/attendance/student/student-id');
+      const res = await request(app).get('/api/v1/attendance/student/student-id');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(1);
     });
 
     it('should reject student accessing other student data', async () => {
-      const res = await request(app).get('/api/attendance/student/other-id');
+      const res = await request(app).get('/api/v1/attendance/student/other-id');
       expect(res.status).toBe(403);
     });
   });
@@ -210,7 +210,7 @@ describe('Attendance API Integration', () => {
         { count: 100, error: null }, // total students
         { count: 80, error: null }, // present today
       ];
-      const res = await request(app).get('/api/attendance/stats');
+      const res = await request(app).get('/api/v1/attendance/stats');
       expect(res.status).toBe(200);
       expect(res.body.data.total_students).toBe(100);
       expect(res.body.data.present_today).toBe(80);

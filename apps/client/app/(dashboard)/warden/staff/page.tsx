@@ -127,7 +127,7 @@ export default function StaffDirectory() {
               const attendancePercent =
                 totalDays > 0 ? Math.round((daysPresent / totalDays) * 100) : 0;
 
-              const res = await apiGet(`/api/staff-feedback/${staff.id}`);
+              const res = await apiGet(`/api/v1/staff-feedback/${staff.id}`);
               let feedbackData = { average_rating: 0, total_reviews: 0, this_month_reviews: 0 };
 
               if (res.success && res.data) {

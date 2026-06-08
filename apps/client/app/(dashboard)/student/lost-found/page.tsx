@@ -30,7 +30,7 @@ export default function StudentLostFound() {
 
   const fetchItems = async () => {
     try {
-      const res = await apiGet('/api/lost-found');
+      const res = await apiGet('/api/v1/lost-found');
       if (res.success) setItems(res.data || []);
     } catch {
       // Silently fail
@@ -62,7 +62,7 @@ export default function StudentLostFound() {
     ]);
 
     try {
-      const res = await apiPost('/api/lost-found', {
+      const res = await apiPost('/api/v1/lost-found', {
         item_name: itemName,
         description,
         status,

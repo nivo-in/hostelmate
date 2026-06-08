@@ -100,7 +100,7 @@ export default function ParentPaymentsPage() {
 
   const fetchPayments = useCallback(async () => {
     try {
-      const res = await apiGet('/api/payments/my');
+      const res = await apiGet('/api/v1/payments/my');
       if (res.success) setPaymentsData(res.data);
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -139,7 +139,7 @@ export default function ParentPaymentsPage() {
     setError('');
     setLoading(true);
     try {
-      const orderRes = await apiPost('/api/payments/create-order', { fee_payment_id: payment.id });
+      const orderRes = await apiPost('/api/v1/payments/create-order', { fee_payment_id: payment.id });
       if (!orderRes.success) throw new Error(orderRes.error || 'Failed to create order');
       const orderData = orderRes.data;
       const studentName = paymentsData?.student_name || 'Ward';
@@ -156,7 +156,7 @@ export default function ParentPaymentsPage() {
           razorpay_payment_id: string;
           razorpay_signature: string;
         }) => {
-          const result = await apiPost('/api/payments/verify', {
+          const result = await apiPost('/api/v1/payments/verify', {
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
@@ -178,7 +178,7 @@ export default function ParentPaymentsPage() {
           ondismiss: async () => {
             setError('Payment window closed');
             try {
-              await apiPost('/api/payments/cancel', { fee_payment_id: payment.id });
+              await apiPost('/api/v1/payments/cancel', { fee_payment_id: payment.id });
             } finally {
               fetchPayments();
             }
@@ -190,7 +190,7 @@ export default function ParentPaymentsPage() {
         const errResponse = response as { error: { description: string } };
         setError(`Payment failed: ${errResponse.error.description}`);
         try {
-          await apiPost('/api/payments/cancel', { fee_payment_id: payment.id });
+          await apiPost('/api/v1/payments/cancel', { fee_payment_id: payment.id });
         } finally {
           fetchPayments();
           setLoading(false);
@@ -207,7 +207,7 @@ export default function ParentPaymentsPage() {
   const handleCancelPayment = async (paymentId: string) => {
     setLoading(true);
     try {
-      await apiPost('/api/payments/cancel', { fee_payment_id: paymentId });
+      await apiPost('/api/v1/payments/cancel', { fee_payment_id: paymentId });
       fetchPayments();
     } catch (e) {
       setError((e as Error).message || 'Failed to cancel payment');
@@ -218,7 +218,7 @@ export default function ParentPaymentsPage() {
 
   const handleViewReceipt = async (paymentId: string) => {
     try {
-      const res = await apiGet(`/api/payments/receipt/${paymentId}`);
+      const res = await apiGet(`/api/v1/payments/receipt/${paymentId}`);
       if (res.success) setReceiptModal(res.data);
     } catch (e) {
       setError((e as Error).message);

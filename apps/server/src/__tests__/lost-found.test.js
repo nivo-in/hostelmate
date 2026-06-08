@@ -104,7 +104,7 @@ describe('Lost and Found API', () => {
       });
       supabaseMock.neq.mockResolvedValueOnce({ data: [], error: null }); // Matcher query mock
 
-      const res = await request(app).post('/api/lost-found').send({
+      const res = await request(app).post('/api/v1/lost-found').send({
         status: 'lost',
         item_name: 'Keys',
         description: 'lost keys',
@@ -120,7 +120,7 @@ describe('Lost and Found API', () => {
       });
       supabaseMock.neq.mockResolvedValueOnce({ data: [], error: null }); // Matcher query mock
 
-      const res = await request(app).post('/api/lost-found').send({
+      const res = await request(app).post('/api/v1/lost-found').send({
         status: 'found',
         item_name: 'Wallet',
         description: 'found wallet',
@@ -130,7 +130,7 @@ describe('Lost and Found API', () => {
     });
 
     it('should reject missing item_name', async () => {
-      const res = await request(app).post('/api/lost-found').send({
+      const res = await request(app).post('/api/v1/lost-found').send({
         status: 'lost',
         description: 'lost stuff',
       });
@@ -152,7 +152,7 @@ describe('Lost and Found API', () => {
         error: null,
       });
 
-      const res = await request(app).post('/api/lost-found').send({
+      const res = await request(app).post('/api/v1/lost-found').send({
         status: 'lost',
         item_name: 'Keys',
         description: 'lost keys',
@@ -171,7 +171,7 @@ describe('Lost and Found API', () => {
         error: null,
       });
 
-      const res = await request(app).post('/api/lost-found').send({
+      const res = await request(app).post('/api/v1/lost-found').send({
         status: 'lost',
         item_name: 'Keys',
         description: 'lost keys',
@@ -185,20 +185,20 @@ describe('Lost and Found API', () => {
   describe('GET /api/lost-found', () => {
     it('should return all items', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
-      const res = await request(app).get('/api/lost-found');
+      const res = await request(app).get('/api/v1/lost-found');
       expect(res.status).toBe(200);
     });
 
     it('should filter by status', async () => {
       supabaseMock.eq.mockResolvedValueOnce({ data: [], error: null });
-      const res = await request(app).get('/api/lost-found?status=claimed');
+      const res = await request(app).get('/api/v1/lost-found?status=claimed');
       if (res.status === 500) console.error('GET STATUS ERROR:', res.body);
       expect(res.status).toBe(200);
     });
 
     it('should return 401 without auth', async () => {
       currentProfile = null;
-      const res = await request(app).get('/api/lost-found');
+      const res = await request(app).get('/api/v1/lost-found');
       expect(res.status).toBe(401);
     });
   });
@@ -209,13 +209,13 @@ describe('Lost and Found API', () => {
         data: { id: '1', status: 'claimed' },
         error: null,
       });
-      const res = await request(app).patch('/api/lost-found/1/claim');
+      const res = await request(app).patch('/api/v1/lost-found/1/claim');
       expect(res.status).toBe(200);
     });
 
     it('should return 401 without auth', async () => {
       currentProfile = null;
-      const res = await request(app).patch('/api/lost-found/1/claim');
+      const res = await request(app).patch('/api/v1/lost-found/1/claim');
       expect(res.status).toBe(401);
     });
   });

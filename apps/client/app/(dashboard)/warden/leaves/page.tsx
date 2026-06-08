@@ -20,7 +20,7 @@ export default function WardenLeaves() {
 
   const fetchLeaves = async () => {
     try {
-      const res = await apiGet('/api/leaves/all');
+      const res = await apiGet('/api/v1/leaves/all');
       if (res.success) setLeaves(res.data || []);
     } catch {
       // Silently fail
@@ -33,7 +33,7 @@ export default function WardenLeaves() {
 
   const handleAction = async (id: string, action: 'approve' | 'reject') => {
     try {
-      const res = await apiPatch(`/api/leaves/${id}/${action}`, {});
+      const res = await apiPatch(`/api/v1/leaves/${id}/${action}`, {});
       if (res.success) {
         setMessage(`Leave request ${action}d successfully`);
         fetchLeaves();

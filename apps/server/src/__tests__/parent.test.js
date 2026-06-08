@@ -87,7 +87,7 @@ describe('Parent API Integration', () => {
         { data: [{ id: 1, status: 'present' }], error: null }, // month's attendance
       ];
 
-      const res = await request(app).get('/api/parent/my-student');
+      const res = await request(app).get('/api/v1/parent/my-student');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.student.full_name).toBe('Student Name');
@@ -98,13 +98,13 @@ describe('Parent API Integration', () => {
     it('should return 404 if no linked student', async () => {
       queryResults = [{ data: null, error: new Error('No rows') }];
 
-      const res = await request(app).get('/api/parent/my-student');
+      const res = await request(app).get('/api/v1/parent/my-student');
       expect(res.status).toBe(404);
     });
 
     it('should reject non-parent access', async () => {
       currentProfile = mockStudentProfile;
-      const res = await request(app).get('/api/parent/my-student');
+      const res = await request(app).get('/api/v1/parent/my-student');
       expect(res.status).toBe(403);
     });
   });

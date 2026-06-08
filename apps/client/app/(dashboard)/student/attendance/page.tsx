@@ -119,7 +119,7 @@ export default function StudentAttendance() {
   const fetchHistory = useCallback(async () => {
     if (!profile?.id) return;
     try {
-      const res = await apiGet(`/api/attendance/student/${profile.id}`);
+      const res = await apiGet(`/api/v1/attendance/student/${profile.id}`);
       if (res.success) setHistory(res.data.slice(0, 30) || []);
     } catch {
       /* silently fail */
@@ -157,7 +157,7 @@ export default function StudentAttendance() {
     setMarkingAttendance(true);
     setError('');
     try {
-      const res = await apiPost('/api/attendance/mark', {
+      const res = await apiPost('/api/v1/attendance/mark', {
         face_only: true,
         face_verified: true,
       });
@@ -198,7 +198,7 @@ export default function StudentAttendance() {
           navigator.geolocation.getCurrentPosition(
             async (pos) => {
               try {
-                const res = await apiPost('/api/attendance/mark', {
+                const res = await apiPost('/api/v1/attendance/mark', {
                   qr_data: text,
                   lat: pos.coords.latitude,
                   lng: pos.coords.longitude,

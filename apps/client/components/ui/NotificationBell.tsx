@@ -56,7 +56,7 @@ export function NotificationBell() {
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchNotifications = useCallback(async () => {
     try {
-      const res = await apiGet('/api/notifications');
+      const res = await apiGet('/api/v1/notifications');
       if (res.success) {
         setNotifications(res.data.notifications);
         setUnreadCount(res.data.unread_count);
@@ -128,7 +128,7 @@ export function NotificationBell() {
     try {
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
       setUnreadCount(0);
-      await apiPatch('/api/notifications/read-all', {});
+      await apiPatch('/api/v1/notifications/read-all', {});
     } catch {
       fetchNotifications();
     }
@@ -139,7 +139,7 @@ export function NotificationBell() {
     try {
       setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
       setUnreadCount((prev) => Math.max(0, prev - 1));
-      await apiPatch(`/api/notifications/${id}/read`, {});
+      await apiPatch(`/api/v1/notifications/${id}/read`, {});
     } catch {
       fetchNotifications();
     }
@@ -151,7 +151,7 @@ export function NotificationBell() {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
     if (!isRead) setUnreadCount((prev) => Math.max(0, prev - 1));
     try {
-      await apiDelete(`/api/notifications/${id}`);
+      await apiDelete(`/api/v1/notifications/${id}`);
     } catch {
       fetchNotifications();
     }

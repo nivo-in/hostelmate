@@ -36,7 +36,7 @@ export default function WardenVisitors() {
 
   const fetchVisitors = async () => {
     try {
-      const res = await apiGet('/api/visitors');
+      const res = await apiGet('/api/v1/visitors');
       if (res.success) setVisitors(res.data || []);
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -51,7 +51,7 @@ export default function WardenVisitors() {
   const handleAction = async (id: string, action: string, notesParam?: string) => {
     try {
       const payload = notesParam !== undefined ? { warden_notes: notesParam } : {};
-      const res = await apiPatch(`/api/visitors/${id}/${action}`, payload);
+      const res = await apiPatch(`/api/v1/visitors/${id}/${action}`, payload);
       if (res.success) {
         setActionId(null);
         setActionType(null);

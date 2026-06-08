@@ -41,7 +41,7 @@ export default function ParentLeaves() {
         setStudent(studentData);
 
         try {
-          const res = await apiGet(`/api/leaves/my?studentId=${parentData.student_id}`);
+          const res = await apiGet(`/api/v1/leaves/my?studentId=${parentData.student_id}`);
           if (res.success) {
             setLeaves(res.data);
           }

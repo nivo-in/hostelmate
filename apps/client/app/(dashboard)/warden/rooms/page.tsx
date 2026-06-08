@@ -154,8 +154,8 @@ export default function WardenRoomsPage() {
     setIsForbidden(false);
     try {
       const [roomsRes, requestsRes] = await Promise.all([
-        apiGetRef.current('/api/rooms'),
-        apiGetRef.current('/api/rooms/transfer-requests'),
+        apiGetRef.current('/api/v1/rooms'),
+        apiGetRef.current('/api/v1/rooms/transfer-requests'),
       ]);
 
       if (roomsRes.success && roomsRes.data?.rooms) {
@@ -216,7 +216,7 @@ export default function WardenRoomsPage() {
     setSelectedStudentId('');
 
     try {
-      const res = await apiGetRef.current('/api/rooms/unassigned');
+      const res = await apiGetRef.current('/api/v1/rooms/unassigned');
       if (res.success && res.data) {
         setUnassignedStudents(res.data);
       }
@@ -230,7 +230,7 @@ export default function WardenRoomsPage() {
     if (!selectedStudentId || !assignRoomId) return;
     setAssigning(true);
     try {
-      const res = await apiPostRef.current('/api/rooms/assign', {
+      const res = await apiPostRef.current('/api/v1/rooms/assign', {
         student_id: selectedStudentId,
         room_id: assignRoomId,
       });
@@ -248,7 +248,7 @@ export default function WardenRoomsPage() {
 
   const handleTransfer = async (id: string, action: 'approve' | 'reject') => {
     try {
-      const res = await apiPatchRef.current(`/api/rooms/transfer-requests/${id}/${action}`, {});
+      const res = await apiPatchRef.current(`/api/v1/rooms/transfer-requests/${id}/${action}`, {});
       if (res.success) fetchData();
     } catch (err) {
       // eslint-disable-next-line no-console
@@ -261,7 +261,7 @@ export default function WardenRoomsPage() {
     setAddingRoom(true);
     setAddRoomError('');
     try {
-      const res = await apiPostRef.current('/api/rooms', {
+      const res = await apiPostRef.current('/api/v1/rooms', {
         room_number: newRoomNumber,
         block_name: newBlockName,
         capacity: newCapacity,

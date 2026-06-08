@@ -94,24 +94,24 @@ describe('Stats API', () => {
 
   describe('GET /api/stats/dashboard - Warden', () => {
     it('should return all dashboard stats', async () => {
-      const res = await request(app).get('/api/stats/dashboard');
+      const res = await request(app).get('/api/v1/stats/dashboard');
       expect(res.status).toBe(200);
     });
 
     it('should return 403 for student', async () => {
       currentProfile = mockStudentProfile;
-      const res = await request(app).get('/api/stats/dashboard');
+      const res = await request(app).get('/api/v1/stats/dashboard');
       expect(res.status).toBe(403);
     });
 
     it('should return 401 without auth', async () => {
       currentProfile = null;
-      const res = await request(app).get('/api/stats/dashboard');
+      const res = await request(app).get('/api/v1/stats/dashboard');
       expect(res.status).toBe(401);
     });
 
     it('should include attendance, leaves, complaints, notices stats', async () => {
-      const res = await request(app).get('/api/stats/dashboard');
+      const res = await request(app).get('/api/v1/stats/dashboard');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveProperty('attendance');
       expect(res.body.data).toHaveProperty('leaves');
