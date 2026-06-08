@@ -203,7 +203,7 @@ export default function ParentPaymentsPage() {
   };
 
   const totals = paymentsData?.totals;
-  const _allPayments = paymentsData?.payments.all || [];
+
   const pendingPayments = paymentsData?.payments.pending || [];
   const paidPayments = paymentsData?.payments.paid || [];
   const studentName = paymentsData?.student_name || 'Ward';

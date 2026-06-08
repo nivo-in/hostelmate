@@ -15,7 +15,7 @@ import { createClient } from '@/lib/supabase/client';
 interface FaceVerificationProps {
   studentId: string;
   onVerified: () => void;
-  onFaceFailed: (_failureReason: string) => void;
+  onFailed: (_failureReason: string) => void;
   onSkip: () => void;
 }
 
@@ -71,7 +71,7 @@ export default function FaceVerification({
   // Liveness tracking
   const blinkDetectedRef = useRef(false);
   const lastEARRef = useRef<number>(1.0);
-  const _scanStartTimeRef = useRef<number>(0);
+
   const facePositionHistoryRef = useRef<FacePosition[]>([]);
   // Frame-diff: store previous frame pixel data for comparison
   const prevFrameDataRef = useRef<Uint8ClampedArray | null>(null);
