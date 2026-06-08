@@ -102,6 +102,37 @@ describe('Students API', () => {
       expect(res.body.data.students[0].block_name).toBe('A');
     });
 
+    it('should filter students by search query', async () => {
+      queryResults = [
+        {
+          data: [
+            {
+              id: 's1',
+              roll_number: '123',
+              profiles: { full_name: 'Student 1', email: 's1@test.com' },
+            },
+            {
+              id: 's2',
+              roll_number: '999',
+              profiles: { full_name: 'Other', email: 'other@test.com' },
+            },
+          ],
+          error: null,
+        },
+      ];
+
+      const res = await request(app).get('/api/v1/students?search=student');
+      expect(res.status).toBe(200);
+      expect(res.body.data.students).toHaveLength(1);
+      expect(res.body.data.students[0].id).toBe('s1');
+    });
+
+    it('should throw error on db failure', async () => {
+      queryResults = [{ data: null, error: new Error('DB error') }];
+      const res = await request(app).get('/api/v1/students');
+      expect(res.status).toBe(500);
+    });
+
     it('should reject non-warden access', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).get('/api/v1/students');

@@ -1,6 +1,7 @@
 import { jest } from '@jest/globals';
 import request from 'supertest';
 
+let queryResults = [];
 const supabaseMock = {
   select: jest.fn().mockReturnThis(),
   insert: jest.fn().mockReturnThis(),
@@ -17,7 +18,7 @@ const supabaseMock = {
   range: jest.fn().mockReturnThis(),
   single: jest.fn().mockResolvedValue({ data: null, error: null }),
   head: jest.fn().mockReturnThis(),
-  then: jest.fn((resolve) => resolve({ data: [], count: 10, error: null })),
+  then: jest.fn((resolve) => resolve(queryResults.shift() || { data: [], count: 0, error: null })),
 };
 
 jest.unstable_mockModule('../config/supabase.js', () => ({
@@ -85,18 +86,34 @@ jest.unstable_mockModule('../middleware/auth.js', () => ({
 }));
 
 const { default: app } = await import('../index.js');
-const { supabaseAdmin } = await import('../config/supabase.js');
 
 describe('Stats API', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     currentProfile = mockWardenProfile;
+    queryResults = [];
   });
 
   describe('GET /api/stats/dashboard - Warden', () => {
-    it('should return all dashboard stats', async () => {
+    it('GET /api/v1/stats/dashboard should return dashboard stats', async () => {
+      queryResults = [
+        { count: 100 }, // totalStudents
+        { count: 90 }, // presentToday
+        { count: 5 }, // pendingLeaves
+        { count: 10 }, // approvedLeavesMonth
+        { count: 2 }, // rejectedLeavesMonth
+        { count: 3 }, // openComplaints
+        { count: 2 }, // inProgressComplaints
+        { count: 15 }, // resolvedComplaintsMonth
+        { count: 4 }, // totalActiveNotices
+        { data: [{ status: 'lost' }, { status: 'found' }, { status: 'claimed' }] }, // lostFoundData
+      ];
+
       const res = await request(app).get('/api/v1/stats/dashboard');
       expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.attendance.today_present).toBe(90);
+      expect(res.body.data.attendance.today_percentage).toBe(90);
     });
 
     it('should return 403 for student', async () => {
@@ -111,13 +128,13 @@ describe('Stats API', () => {
       expect(res.status).toBe(401);
     });
 
-    it('should include attendance, leaves, complaints, notices stats', async () => {
+    it('should return cached data if available', async () => {
+      const { getCache } = await import('../config/redis.js');
+      getCache.mockResolvedValueOnce({ attendance: { today_present: 50 } });
+
       const res = await request(app).get('/api/v1/stats/dashboard');
       expect(res.status).toBe(200);
-      expect(res.body.data).toHaveProperty('attendance');
-      expect(res.body.data).toHaveProperty('leaves');
-      expect(res.body.data).toHaveProperty('complaints');
-      expect(res.body.data).toHaveProperty('notices');
+      expect(res.body.data.attendance.today_present).toBe(50);
     });
   });
 });

@@ -112,7 +112,11 @@ describe('Notices API', () => {
     });
 
     it('should accept valid notice', async () => {
+      // Return notice data on insert
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '1' }, error: null });
+      // Return users for notification
+      supabaseMock.in.mockResolvedValueOnce({ data: [{ id: 'u1' }, { id: 'u2' }] });
+      
       const res = await request(app).post('/api/v1/notices').send({
         title: 'valid title',
         content: 'valid content 20 chars......',
@@ -130,6 +134,30 @@ describe('Notices API', () => {
         target_audience: 'all',
       });
       expect(res.status).toBe(403);
+    });
+
+    it('should accept notice targeting students', async () => {
+      currentProfile = mockWardenProfile;
+      supabaseMock.single.mockResolvedValueOnce({ data: { id: '2' }, error: null });
+      supabaseMock.in.mockResolvedValueOnce({ data: [{ id: 'u1' }] });
+      const res = await request(app).post('/api/v1/notices').send({
+        title: 'valid title',
+        content: 'valid content 20 chars......',
+        target_audience: 'students',
+      });
+      expect(res.status).toBe(200);
+    });
+
+    it('should accept notice targeting parents', async () => {
+      currentProfile = mockWardenProfile;
+      supabaseMock.single.mockResolvedValueOnce({ data: { id: '3' }, error: null });
+      supabaseMock.in.mockResolvedValueOnce({ data: [{ id: 'u2' }] });
+      const res = await request(app).post('/api/v1/notices').send({
+        title: 'valid title',
+        content: 'valid content 20 chars......',
+        target_audience: 'parents',
+      });
+      expect(res.status).toBe(200);
     });
   });
 
