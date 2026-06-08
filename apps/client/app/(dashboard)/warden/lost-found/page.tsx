@@ -13,22 +13,31 @@ export default function WardenLostFound() {
   const [activeTab, setActiveTab] = useState('All');
   const [items, setItems] = useState<LostAndFound[]>([]);
   const [message, setMessage] = useState('');
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
 
   const { apiGet, apiPatch } = useApi();
   const router = useRouter();
   const supabase = createClient();
 
-  const fetchItems = async () => {
+  const fetchItems = async (currentPage = 1) => {
     try {
-      const res = await apiGet('/api/v1/lost-found');
-      if (res.success) setItems(res.data || []);
+      const res = await apiGet(`/api/v1/lost-found?page=${currentPage}&limit=20`);
+      if (res.success) {
+        if (currentPage === 1) {
+          setItems(res.data || []);
+        } else {
+          setItems(prev => [...prev, ...(res.data || [])]);
+        }
+        setHasNext(res.pagination?.hasNext || false);
+      }
     } catch {
       // Silently fail
     }
   };
 
   useEffect(() => {
-    fetchItems();
+    fetchItems(1);
   }, []);
 
   const handleClaim = async (id: string) => {
@@ -143,6 +152,21 @@ export default function WardenLostFound() {
           </tbody>
         </table>
       </div>
+
+      {hasNext && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => {
+              const nextPage = page + 1;
+              setPage(nextPage);
+              fetchItems(nextPage);
+            }}
+            className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Load more
+          </button>
+        </div>
+      )}
     </div>
   );
 }

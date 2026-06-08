@@ -7,31 +7,65 @@ const router = Router();
 
 router.get('/', authenticate, async (req, res) => {
   try {
-    // Short cache per user — real-time updates come via WebSocket anyway.
-    // 30 seconds is safe: new notifications push via socket, not polling.
-    const cacheKey = `notifications:${req.user.id}`;
-    const cached = await getCache(cacheKey);
-    if (cached) {
-      return res.json({ success: true, data: cached });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    // We skip cache if paginating beyond page 1 to keep things simple
+    if (page === 1) {
+      const cacheKey = `notifications:${req.user.id}:p1`;
+      const cached = await getCache(cacheKey);
+      if (cached) {
+        return res.json({ success: true, data: cached });
+      }
     }
 
-    const { data: notifications, error } = await supabaseAdmin
+    const query = supabaseAdmin
       .from('notifications')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('user_id', req.user.id)
       .order('created_at', { ascending: false })
-      .limit(20);
+      .range(from, to);
+
+    const { data: notifications, count, error } = await query;
 
     if (error) {
       return res.json({ success: true, data: { notifications: [], unread_count: 0 } });
     }
 
     const safeNotifications = notifications || [];
-    const unread_count = safeNotifications.filter((n) => !n.is_read).length;
-    const payload = { notifications: safeNotifications, unread_count };
+    
+    // Get total unread count (not just this page)
+    const { count: unreadCount } = await supabaseAdmin
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', req.user.id)
+      .eq('is_read', false);
 
-    await setCache(cacheKey, payload, 30); // 30s cache
-    res.json({ success: true, data: payload });
+    const totalPages = Math.ceil(count / limit);
+
+    const payload = { 
+      notifications: safeNotifications, 
+      unread_count: unreadCount || 0 
+    };
+
+    if (page === 1) {
+      await setCache(`notifications:${req.user.id}:p1`, payload, 30); // 30s cache
+    }
+
+    res.json({ 
+      success: true, 
+      data: payload,
+      pagination: {
+        page,
+        limit,
+        total: count,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      }
+    });
   } catch {
     res.json({ success: true, data: { notifications: [], unread_count: 0 } });
   }

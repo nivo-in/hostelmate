@@ -87,16 +87,10 @@ router.post(
 router.get('/', authenticate, async (req, res, next) => {
   try {
     const { status } = req.query;
-
-    if (!status) {
-      const cacheKey = 'lost-found:all';
-      const cached = await getCache(cacheKey);
-      if (cached) {
-        logger.info('Cache hit: lost-found:all');
-        return res.json({ success: true, data: cached });
-      }
-      logger.info('Cache miss: lost-found:all');
-    }
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
 
     let query = supabaseAdmin
       .from('lost_and_found')
@@ -109,7 +103,7 @@ router.get('/', authenticate, async (req, res, next) => {
         full_name
       )
     )
-  `
+  `, { count: 'exact' }
       )
       .order('created_at', { ascending: false });
 
@@ -117,15 +111,26 @@ router.get('/', authenticate, async (req, res, next) => {
       query = query.eq('status', status);
     }
 
-    const { data, error } = await query;
+    query = query.range(from, to);
+
+    const { data, count, error } = await query;
 
     if (error) throw error;
 
-    if (!status) {
-      await setCache('lost-found:all', data, 120);
-    }
+    const totalPages = Math.ceil(count / limit);
 
-    res.json({ success: true, data });
+    res.json({
+      success: true,
+      data,
+      pagination: {
+        page,
+        limit,
+        total: count,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      }
+    });
   } catch (error) {
     next(error);
   }

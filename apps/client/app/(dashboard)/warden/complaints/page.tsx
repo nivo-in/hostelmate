@@ -13,22 +13,31 @@ export default function WardenComplaints() {
   const [activeTab, setActiveTab] = useState('All');
   const [complaints, setComplaints] = useState<ComplaintWithStudent[]>([]);
   const [message, setMessage] = useState('');
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
 
   const { apiGet, apiPatch } = useApi();
   const router = useRouter();
   const supabase = createClient();
 
-  const fetchComplaints = async () => {
+  const fetchComplaints = async (currentPage = 1) => {
     try {
-      const res = await apiGet('/api/v1/complaints/all');
-      if (res.success) setComplaints(res.data || []);
+      const res = await apiGet(`/api/v1/complaints/all?page=${currentPage}&limit=20`);
+      if (res.success) {
+        if (currentPage === 1) {
+          setComplaints(res.data || []);
+        } else {
+          setComplaints(prev => [...prev, ...(res.data || [])]);
+        }
+        setHasNext(res.pagination?.hasNext || false);
+      }
     } catch {
       // Silently fail
     }
   };
 
   useEffect(() => {
-    fetchComplaints();
+    fetchComplaints(1);
   }, []);
 
   const handleStatusUpdate = async (id: string, status: string) => {
@@ -186,6 +195,21 @@ export default function WardenComplaints() {
           ))
         )}
       </div>
+
+      {hasNext && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => {
+              const nextPage = page + 1;
+              setPage(nextPage);
+              fetchComplaints(nextPage);
+            }}
+            className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Load more
+          </button>
+        </div>
+      )}
     </div>
   );
 }

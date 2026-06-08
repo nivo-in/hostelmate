@@ -88,6 +88,10 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
 router.get('/', authenticate, requireWarden, async (req, res, next) => {
   try {
     const { status, date } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
 
     let query = supabaseAdmin.from('visitors').select(`
         *,
@@ -97,16 +101,31 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
             full_name
           )
         )
-      `);
+      `, { count: 'exact' });
 
     if (status) query = query.eq('status', status);
     if (date) query = query.eq('expected_visit_date', date);
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    query = query.range(from, to).order('created_at', { ascending: false });
+
+    const { data, count, error } = await query;
 
     if (error) throw error;
 
-    res.json({ success: true, data });
+    const totalPages = Math.ceil(count / limit);
+
+    res.json({
+      success: true,
+      data,
+      pagination: {
+        page,
+        limit,
+        total: count,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      }
+    });
   } catch (error) {
     next(error);
   }

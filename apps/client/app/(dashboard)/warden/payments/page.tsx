@@ -126,6 +126,8 @@ export default function WardenPaymentsPage() {
   const [markingId, setMarkingId] = useState('');
   const [sendingReminders, setSendingReminders] = useState(false);
   const [lastReminder, setLastReminder] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
 
   // Generate bills state
   const [feeStructures, setFeeStructures] = useState<FeeStructure[]>([]);
@@ -157,17 +159,24 @@ export default function WardenPaymentsPage() {
 
   // ── Fetch ──
 
-  const fetchPayments = useCallback(async () => {
+  const fetchPayments = useCallback(async (currentPage = 1) => {
     try {
       const params = new URLSearchParams();
       if (filterStatus) params.set('status', filterStatus);
       if (filterFeeType) params.set('fee_type', filterFeeType);
       if (filterBilling) params.set('billing_period', filterBilling);
       if (filterPeriod) params.set('period_label', filterPeriod);
+      params.set('page', currentPage.toString());
+      params.set('limit', '20');
       const res = await apiGet(`/api/v1/payments/all?${params.toString()}`);
       if (res.success) {
-        setPayments(res.data.payments);
+        if (currentPage === 1) {
+          setPayments(res.data.payments);
+        } else {
+          setPayments(prev => [...prev, ...res.data.payments]);
+        }
         setSummary(res.data.summary);
+        setHasNext(res.pagination?.hasNext || false);
       }
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -203,8 +212,9 @@ export default function WardenPaymentsPage() {
   }, [apiGet]);
 
   useEffect(() => {
-    fetchPayments();
-  }, [filterStatus, filterFeeType, filterBilling, filterPeriod]);
+    setPage(1);
+    fetchPayments(1);
+  }, [filterStatus, filterFeeType, filterBilling, filterPeriod, fetchPayments]);
   useEffect(() => {
     fetchStructures();
     fetchStudentsList();
@@ -444,7 +454,10 @@ export default function WardenPaymentsPage() {
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400 w-44"
             />
             <button
-              onClick={fetchPayments}
+              onClick={() => {
+                setPage(1);
+                fetchPayments(1);
+              }}
               className="border border-gray-200 text-gray-600 rounded-lg px-4 py-2.5 text-sm hover:border-gray-400 transition-colors"
             >
               Apply
@@ -534,6 +547,21 @@ export default function WardenPaymentsPage() {
               </table>
             </div>
           </div>
+
+          {hasNext && (
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={() => {
+                  const nextPage = page + 1;
+                  setPage(nextPage);
+                  fetchPayments(nextPage);
+                }}
+                className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Load more
+              </button>
+            </div>
+          )}
         </div>
       )}
 
