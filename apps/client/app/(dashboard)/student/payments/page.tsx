@@ -239,7 +239,9 @@ export default function StudentPaymentsPage() {
     setError('');
     setLoading(true);
     try {
-      const orderRes = await apiPost('/api/v1/payments/create-order', { fee_payment_id: payment.id });
+      const orderRes = await apiPost('/api/v1/payments/create-order', {
+        fee_payment_id: payment.id,
+      });
       if (!orderRes.success) throw new Error(orderRes.error || 'Failed to create order');
 
       const orderData = orderRes.data;

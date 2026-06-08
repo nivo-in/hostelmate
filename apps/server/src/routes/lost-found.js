@@ -104,7 +104,8 @@ router.get('/', authenticate, async (req, res, next) => {
         full_name
       )
     )
-  `, { count: 'exact' }
+  `,
+        { count: 'exact' }
       )
       .is('deleted_at', null)
       .order('created_at', { ascending: false });
@@ -130,8 +131,8 @@ router.get('/', authenticate, async (req, res, next) => {
         total: count,
         totalPages,
         hasNext: page < totalPages,
-        hasPrev: page > 1
-      }
+        hasPrev: page > 1,
+      },
     });
   } catch (error) {
     next(error);

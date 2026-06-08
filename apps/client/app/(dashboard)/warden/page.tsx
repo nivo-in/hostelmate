@@ -23,13 +23,24 @@ export default async function WardenDashboard() {
     { count: pendingLeaves },
     { count: overdueFees },
     { data: roomsData },
-    { data: studentsData }
+    { data: studentsData },
   ] = await Promise.all([
-    supabase.from('complaints').select('*', { count: 'exact', head: true }).in('status', ['open', 'in_progress']).is('deleted_at', null),
-    supabase.from('leave_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending').is('deleted_at', null),
-    supabase.from('fee_payments').select('*', { count: 'exact', head: true }).eq('status', 'overdue'),
+    supabase
+      .from('complaints')
+      .select('*', { count: 'exact', head: true })
+      .in('status', ['open', 'in_progress'])
+      .is('deleted_at', null),
+    supabase
+      .from('leave_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending')
+      .is('deleted_at', null),
+    supabase
+      .from('fee_payments')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'overdue'),
     supabase.from('rooms').select('id, capacity'),
-    supabase.from('students').select('room_id').not('room_id', 'is', null)
+    supabase.from('students').select('room_id').not('room_id', 'is', null),
   ]);
 
   let availableRooms = 0;

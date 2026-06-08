@@ -54,35 +54,39 @@ export default function WardenAuditPage() {
     router.push('/login');
   };
 
-  const fetchLogs = useCallback(async (currentPage = 1) => {
-    setLoading(true);
-    setError(null);
-      let query = `/api/v1/audit?page=${currentPage}&limit=50`;
-      if (resourceFilter !== 'all') {
-        query += `&resource=${resourceFilter}`;
-      }
-      if (debouncedSearchAction) {
-        query += `&action=${encodeURIComponent(debouncedSearchAction)}`;
-      }
-      const res = await apiGetRef.current(query);
-      if (res.success && res.data) {
-        if (currentPage === 1) {
-          setLogs(res.data as AuditLog[]);
-        } else {
-          setLogs(prev => [...prev, ...(res.data as AuditLog[])]);
+  const fetchLogs = useCallback(
+    async (currentPage = 1) => {
+      setLoading(true);
+      setError(null);
+      try {
+        let query = `/api/v1/audit?page=${currentPage}&limit=50`;
+        if (resourceFilter !== 'all') {
+          query += `&resource=${resourceFilter}`;
         }
-        setHasNext(res.pagination?.hasNext || false);
-      } else if (currentPage === 1) {
-        setLogs([]);
+        if (debouncedSearchAction) {
+          query += `&action=${encodeURIComponent(debouncedSearchAction)}`;
+        }
+        const res = await apiGetRef.current(query);
+        if (res.success && res.data) {
+          if (currentPage === 1) {
+            setLogs(res.data as AuditLog[]);
+          } else {
+            setLogs((prev) => [...prev, ...(res.data as AuditLog[])]);
+          }
+          setHasNext(res.pagination?.hasNext || false);
+        } else if (currentPage === 1) {
+          setLogs([]);
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Audit fetch error:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load audit logs');
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('Audit fetch error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load audit logs');
-    } finally {
-      setLoading(false);
-    }
-  }, [resourceFilter]); // resourceFilter is a primitive — safe dep
+    },
+    [resourceFilter]
+  ); // resourceFilter is a primitive — safe dep
 
   useEffect(() => {
     setPage(1);
@@ -166,7 +170,10 @@ export default function WardenAuditPage() {
       {error && (
         <div className="border border-red-100 rounded-xl p-4 bg-red-50 mb-6 flex items-center justify-between">
           <span className="text-sm text-red-600">{error}</span>
-          <button onClick={() => fetchLogs(1)} className="text-xs text-red-600 underline hover:text-red-800">
+          <button
+            onClick={() => fetchLogs(1)}
+            className="text-xs text-red-600 underline hover:text-red-800"
+          >
             Retry
           </button>
         </div>

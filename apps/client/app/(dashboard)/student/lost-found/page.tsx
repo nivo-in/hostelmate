@@ -37,7 +37,7 @@ export default function StudentLostFound() {
         if (currentPage === 1) {
           setItems(res.data || []);
         } else {
-          setItems(prev => [...prev, ...(res.data || [])]);
+          setItems((prev) => [...prev, ...(res.data || [])]);
         }
         setHasNext(res.pagination?.hasNext || false);
       }
