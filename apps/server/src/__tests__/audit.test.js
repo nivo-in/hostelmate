@@ -19,6 +19,8 @@ const supabaseMock = {
   single: jest.fn().mockReturnThis(),
   not: jest.fn().mockReturnThis(),
   is: jest.fn().mockReturnThis(),
+  ilike: jest.fn().mockReturnThis(),
+  or: jest.fn().mockReturnThis(),
   head: jest.fn().mockReturnThis(),
   then: jest.fn(function (resolve) {
     resolve(queryResults.shift());
