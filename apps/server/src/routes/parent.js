@@ -1,9 +1,9 @@
-import { Router } from 'express'
-import { supabaseAdmin } from '../config/supabase.js'
-import { authenticate } from '../middleware/auth.js'
-import { requireParent } from '../middleware/rbac.js'
+import { Router } from 'express';
+import { supabaseAdmin } from '../config/supabase.js';
+import { authenticate } from '../middleware/auth.js';
+import { requireParent } from '../middleware/rbac.js';
 
-const router = Router()
+const router = Router();
 
 /**
  * GET /api/parent/my-student
@@ -17,47 +17,51 @@ router.get('/my-student', authenticate, requireParent, async (req, res, next) =>
       .from('parents')
       .select('student_id, relation')
       .eq('id', req.user.id)
-      .single()
+      .single();
 
     if (parentErr || !parentRow) {
-      return res.status(404).json({ success: false, error: 'No student linked to this parent account' })
+      return res
+        .status(404)
+        .json({ success: false, error: 'No student linked to this parent account' });
     }
 
-    const { student_id } = parentRow
+    const { student_id } = parentRow;
 
     // Fetch student profile
     const { data: profile, error: profileErr } = await supabaseAdmin
       .from('profiles')
       .select('id, full_name, email, phone, avatar_url')
       .eq('id', student_id)
-      .single()
+      .single();
 
-    if (profileErr) throw profileErr
+    if (profileErr) throw profileErr;
 
     // Fetch student roll number & room
     const { data: studentRow } = await supabaseAdmin
       .from('students')
-      .select('roll_number, room_id, rooms!students_room_id_fkey(room_number, blocks!rooms_block_id_fkey(name))')
+      .select(
+        'roll_number, room_id, rooms!students_room_id_fkey(room_number, blocks!rooms_block_id_fkey(name))'
+      )
       .eq('id', student_id)
-      .single()
+      .single();
 
     // Fetch today's attendance
-    const today = new Date().toISOString().split('T')[0]
+    const today = new Date().toISOString().split('T')[0];
     const { data: todayAttendance } = await supabaseAdmin
       .from('attendance')
       .select('id, date, status, scan_time, face_verified')
       .eq('student_id', student_id)
       .eq('date', today)
-      .single()
+      .single();
 
     // Fetch this month's attendance
-    const month = new Date().toISOString().slice(0, 7)
+    const month = new Date().toISOString().slice(0, 7);
     const { data: monthAttendance } = await supabaseAdmin
       .from('attendance')
       .select('id, date, status, scan_time')
       .eq('student_id', student_id)
       .gte('date', `${month}-01`)
-      .order('date', { ascending: false })
+      .order('date', { ascending: false });
 
     res.json({
       success: true,
@@ -75,11 +79,11 @@ router.get('/my-student', authenticate, requireParent, async (req, res, next) =>
         today_attendance: todayAttendance ?? null,
         month_attendance: monthAttendance ?? [],
         relation: parentRow.relation,
-      }
-    })
+      },
+    });
   } catch (error) {
-    next(error)
+    next(error);
   }
-})
+});
 
-export default router
+export default router;

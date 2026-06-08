@@ -1,10 +1,10 @@
-import Link from 'next/link'
+import Link from 'next/link';
 
 interface CardProps {
-  emoji: string
-  title: string
-  description: string
-  href: string
+  emoji: string;
+  title: string;
+  description: string;
+  href: string;
 }
 
 export function Card({ emoji, title, description, href }: CardProps) {
@@ -22,11 +22,14 @@ export function Card({ emoji, title, description, href }: CardProps) {
         </div>
         <svg
           className="w-4 h-4 text-gray-300 group-hover:text-gray-600 transition-colors flex-shrink-0"
-          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1.5}
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
         </svg>
       </div>
     </Link>
-  )
+  );
 }

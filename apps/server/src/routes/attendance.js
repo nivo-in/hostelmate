@@ -1,37 +1,146 @@
-import { Router } from 'express'
-import { supabaseAdmin } from '../config/supabase.js'
-import { authenticate } from '../middleware/auth.js'
-import { requireStudent, requireWarden } from '../middleware/rbac.js'
-import { validate } from '../middleware/validate.js'
-import { attendanceSchema } from '../config/validation.js'
-import { isWithinGeofence } from '../config/geofence.js'
-import logger from '../config/logger.js'
-import { getCache, setCache, deleteCache, publishEvent } from '../config/redis.js'
-import { auditLog } from '../config/audit.js'
-import { emitToAll, emitToUser } from '../config/socket.js'
-import { createNotification } from '../config/notify.js'
+import { Router } from 'express';
+import { supabaseAdmin } from '../config/supabase.js';
+import { authenticate } from '../middleware/auth.js';
+import { requireStudent, requireWarden } from '../middleware/rbac.js';
+import { validate } from '../middleware/validate.js';
+import { attendanceSchema } from '../config/validation.js';
+import { isWithinGeofence } from '../config/geofence.js';
+import logger from '../config/logger.js';
+import { getCache, setCache, deleteCache, publishEvent } from '../config/redis.js';
+import { auditLog } from '../config/audit.js';
+import { emitToAll, emitToUser } from '../config/socket.js';
+import { createNotification } from '../config/notify.js';
 
-const router = Router()
+const router = Router();
 
-router.post('/mark', authenticate, requireStudent, validate(attendanceSchema), async (req, res, next) => {
-  try {
-    const { qr_data, lat, lng, face_only, face_verified } = req.body
-    const today = new Date().toISOString().split('T')[0]
+router.post(
+  '/mark',
+  authenticate,
+  requireStudent,
+  validate(attendanceSchema),
+  async (req, res, next) => {
+    try {
+      const { qr_data, lat, lng, face_only, face_verified } = req.body;
+      const today = new Date().toISOString().split('T')[0];
 
-    // ── Check already marked ────────────────────────────────────────────────
-    const { data: existing } = await supabaseAdmin
-      .from('attendance')
-      .select('id')
-      .eq('student_id', req.user.id)
-      .eq('date', today)
-      .single()
+      // ── Check already marked ────────────────────────────────────────────────
+      const { data: existing } = await supabaseAdmin
+        .from('attendance')
+        .select('id')
+        .eq('student_id', req.user.id)
+        .eq('date', today)
+        .single();
 
-    if (existing) {
-      return res.status(400).json({ success: false, error: 'Attendance already marked for today' })
-    }
+      if (existing) {
+        return res
+          .status(400)
+          .json({ success: false, error: 'Attendance already marked for today' });
+      }
 
-    // ── Face-only path ──────────────────────────────────────────────────────
-    if (face_only === true) {
+      // ── Face-only path ──────────────────────────────────────────────────────
+      if (face_only === true) {
+        const { data: record, error: insertError } = await supabaseAdmin
+          .from('attendance')
+          .insert({
+            student_id: req.user.id,
+            date: today,
+            status: 'present',
+            scan_time: new Date().toISOString(),
+            qr_data: null,
+            face_verified: true,
+          })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+
+        logger.info(`Face-only attendance marked for user ${req.user.id}`);
+        await auditLog(req.user.id, 'mark_attendance', 'attendance', record.id);
+        await deleteCache('attendance:stats:today');
+        await deleteCache(`attendance:today:${today}`);
+
+        // Notify everyone (warden dashboard) + specifically the linked parent
+        emitToAll('attendance:marked', {
+          student_id: req.user.id,
+          status: 'present',
+          scan_time: record.scan_time,
+        });
+        publishEvent('attendance', { student_id: req.user.id, date: today, status: 'present' });
+
+        // Emit directly to parent if linked + create notifications
+        const { data: studentRow } = await supabaseAdmin
+          .from('students')
+          .select('parent_id, profiles!students_id_fkey(full_name)')
+          .eq('id', req.user.id)
+          .single();
+
+        const studentName = studentRow?.profiles?.full_name || 'Your student';
+
+        // Notify the student themselves
+        await createNotification(
+          req.user.id,
+          'Attendance Marked ✅',
+          `Your attendance has been marked as present for ${today}`,
+          'notice',
+          record.id
+        );
+
+        if (studentRow?.parent_id) {
+          emitToUser(studentRow.parent_id, 'attendance:marked', {
+            student_id: req.user.id,
+            status: 'present',
+            scan_time: record.scan_time,
+          });
+          // Notify the parent
+          await createNotification(
+            studentRow.parent_id,
+            'Attendance Update 🎓',
+            `${studentName} has marked attendance as present for today`,
+            'notice',
+            record.id
+          );
+        }
+
+        return res.json({ success: true, data: record });
+      }
+
+      // ── QR path ─────────────────────────────────────────────────────────────
+      let parsedQr;
+      try {
+        parsedQr = typeof qr_data === 'string' ? JSON.parse(qr_data) : qr_data;
+      } catch (e) {
+        return res.status(400).json({ success: false, error: 'Invalid qr_data format' });
+      }
+
+      if (parsedQr.date !== today || !parsedQr.token.startsWith(`${today}-secret123`)) {
+        return res.status(400).json({ success: false, error: 'Invalid or expired QR code' });
+      }
+
+      if (parsedQr.nonce) {
+        const qrAge = Date.now() - parsedQr.nonce;
+        if (qrAge > 30000) {
+          return res
+            .status(400)
+            .json({ success: false, error: 'QR code expired. Please scan the latest QR code.' });
+        }
+      }
+
+      if (lat !== undefined && lng !== undefined) {
+        const hostelLat = parseFloat(process.env.HOSTEL_LAT || '28.6139');
+        const hostelLng = parseFloat(process.env.HOSTEL_LNG || '77.2090');
+        const { allowed, distance } = isWithinGeofence(lat, lng, hostelLat, hostelLng);
+        if (!allowed) {
+          return res
+            .status(403)
+            .json({
+              success: false,
+              error: `You are ${Math.round(distance)}m away from hostel. Must be within 100m to mark attendance.`,
+            });
+        }
+      } else {
+        logger.warn(`Attendance marked without location verification for user ${req.user.id}`);
+      }
+
       const { data: record, error: insertError } = await supabaseAdmin
         .from('attendance')
         .insert({
@@ -39,31 +148,37 @@ router.post('/mark', authenticate, requireStudent, validate(attendanceSchema), a
           date: today,
           status: 'present',
           scan_time: new Date().toISOString(),
-          qr_data: null,
-          face_verified: true,
+          qr_data: parsedQr,
+          lat,
+          lng,
+          face_verified: face_verified ?? false,
         })
         .select()
-        .single()
+        .single();
 
-      if (insertError) throw insertError
+      if (insertError) throw insertError;
 
-      logger.info(`Face-only attendance marked for user ${req.user.id}`)
-      await auditLog(req.user.id, 'mark_attendance', 'attendance', record.id)
-      await deleteCache('attendance:stats:today')
-      await deleteCache(`attendance:today:${today}`)
+      logger.info(`Attendance marked successfully for user ${req.user.id}`);
+      await auditLog(req.user.id, 'mark_attendance', 'attendance', record.id);
+      await deleteCache('attendance:stats:today');
+      await deleteCache(`attendance:today:${today}`);
 
       // Notify everyone (warden dashboard) + specifically the linked parent
-      emitToAll('attendance:marked', { student_id: req.user.id, status: 'present', scan_time: record.scan_time })
-      publishEvent('attendance', { student_id: req.user.id, date: today, status: 'present' })
+      emitToAll('attendance:marked', {
+        student_id: req.user.id,
+        status: 'present',
+        scan_time: record.scan_time,
+      });
+      publishEvent('attendance', { student_id: req.user.id, date: today, status: 'present' });
 
       // Emit directly to parent if linked + create notifications
-      const { data: studentRow } = await supabaseAdmin
+      const { data: studentRowQr } = await supabaseAdmin
         .from('students')
         .select('parent_id, profiles!students_id_fkey(full_name)')
         .eq('id', req.user.id)
-        .single()
+        .single();
 
-      const studentName = studentRow?.profiles?.full_name || 'Your student'
+      const studentNameQr = studentRowQr?.profiles?.full_name || 'Your student';
 
       // Notify the student themselves
       await createNotification(
@@ -72,218 +187,136 @@ router.post('/mark', authenticate, requireStudent, validate(attendanceSchema), a
         `Your attendance has been marked as present for ${today}`,
         'notice',
         record.id
-      )
+      );
 
-      if (studentRow?.parent_id) {
-        emitToUser(studentRow.parent_id, 'attendance:marked', { student_id: req.user.id, status: 'present', scan_time: record.scan_time })
-        // Notify the parent
+      if (studentRowQr?.parent_id) {
+        emitToUser(studentRowQr.parent_id, 'attendance:marked', {
+          student_id: req.user.id,
+          status: 'present',
+          scan_time: record.scan_time,
+        });
         await createNotification(
-          studentRow.parent_id,
+          studentRowQr.parent_id,
           'Attendance Update 🎓',
-          `${studentName} has marked attendance as present for today`,
+          `${studentNameQr} has marked attendance as present for today`,
           'notice',
           record.id
-        )
+        );
       }
 
-      return res.json({ success: true, data: record })
+      res.json({ success: true, data: record });
+    } catch (error) {
+      next(error);
     }
-
-    // ── QR path ─────────────────────────────────────────────────────────────
-    let parsedQr
-    try {
-      parsedQr = typeof qr_data === 'string' ? JSON.parse(qr_data) : qr_data
-    } catch (e) {
-      return res.status(400).json({ success: false, error: 'Invalid qr_data format' })
-    }
-
-    if (parsedQr.date !== today || !parsedQr.token.startsWith(`${today}-secret123`)) {
-      return res.status(400).json({ success: false, error: 'Invalid or expired QR code' })
-    }
-
-    if (parsedQr.nonce) {
-      const qrAge = Date.now() - parsedQr.nonce
-      if (qrAge > 30000) {
-        return res.status(400).json({ success: false, error: 'QR code expired. Please scan the latest QR code.' })
-      }
-    }
-
-    if (lat !== undefined && lng !== undefined) {
-      const hostelLat = parseFloat(process.env.HOSTEL_LAT || '28.6139')
-      const hostelLng = parseFloat(process.env.HOSTEL_LNG || '77.2090')
-      const { allowed, distance } = isWithinGeofence(lat, lng, hostelLat, hostelLng)
-      if (!allowed) {
-        return res.status(403).json({ success: false, error: `You are ${Math.round(distance)}m away from hostel. Must be within 100m to mark attendance.` })
-      }
-    } else {
-      logger.warn(`Attendance marked without location verification for user ${req.user.id}`)
-    }
-
-    const { data: record, error: insertError } = await supabaseAdmin
-      .from('attendance')
-      .insert({
-        student_id: req.user.id,
-        date: today,
-        status: 'present',
-        scan_time: new Date().toISOString(),
-        qr_data: parsedQr,
-        lat,
-        lng,
-        face_verified: face_verified ?? false
-      })
-      .select()
-      .single()
-
-    if (insertError) throw insertError
-
-    logger.info(`Attendance marked successfully for user ${req.user.id}`)
-    await auditLog(req.user.id, 'mark_attendance', 'attendance', record.id)
-    await deleteCache('attendance:stats:today')
-    await deleteCache(`attendance:today:${today}`)
-
-    // Notify everyone (warden dashboard) + specifically the linked parent
-    emitToAll('attendance:marked', { student_id: req.user.id, status: 'present', scan_time: record.scan_time })
-    publishEvent('attendance', { student_id: req.user.id, date: today, status: 'present' })
-
-    // Emit directly to parent if linked + create notifications
-    const { data: studentRowQr } = await supabaseAdmin
-      .from('students')
-      .select('parent_id, profiles!students_id_fkey(full_name)')
-      .eq('id', req.user.id)
-      .single()
-
-    const studentNameQr = studentRowQr?.profiles?.full_name || 'Your student'
-
-    // Notify the student themselves
-    await createNotification(
-      req.user.id,
-      'Attendance Marked ✅',
-      `Your attendance has been marked as present for ${today}`,
-      'notice',
-      record.id
-    )
-
-    if (studentRowQr?.parent_id) {
-      emitToUser(studentRowQr.parent_id, 'attendance:marked', { student_id: req.user.id, status: 'present', scan_time: record.scan_time })
-      await createNotification(
-        studentRowQr.parent_id,
-        'Attendance Update 🎓',
-        `${studentNameQr} has marked attendance as present for today`,
-        'notice',
-        record.id
-      )
-    }
-
-    res.json({ success: true, data: record })
-  } catch (error) {
-    next(error)
   }
-})
+);
 
 router.get('/today', authenticate, requireWarden, async (req, res, next) => {
   try {
-    const today = new Date().toISOString().split('T')[0]
-    const cacheKey = `attendance:today:${today}`
+    const today = new Date().toISOString().split('T')[0];
+    const cacheKey = `attendance:today:${today}`;
 
-    const cached = await getCache(cacheKey)
+    const cached = await getCache(cacheKey);
     if (cached) {
-      logger.info('Cache hit: attendance today')
-      return res.json({ success: true, data: cached })
+      logger.info('Cache hit: attendance today');
+      return res.json({ success: true, data: cached });
     }
-    logger.info('Cache miss: attendance today')
+    logger.info('Cache miss: attendance today');
 
     const { data, error } = await supabaseAdmin
       .from('attendance')
-      .select(`*, students!attendance_student_id_fkey(roll_number, profiles!students_id_fkey(full_name))`)
-      .eq('date', today)
+      .select(
+        `*, students!attendance_student_id_fkey(roll_number, profiles!students_id_fkey(full_name))`
+      )
+      .eq('date', today);
 
-    if (error) throw error
+    if (error) throw error;
 
-    const formattedData = data.map(item => ({
+    const formattedData = data.map((item) => ({
       id: item.id,
       full_name: item.students?.profiles?.full_name,
       roll_number: item.students?.roll_number,
       status: item.status,
       scan_time: item.scan_time,
-      face_verified: item.face_verified ?? false
-    }))
+      face_verified: item.face_verified ?? false,
+    }));
 
-    await setCache(cacheKey, formattedData, 120)
-    res.json({ success: true, data: formattedData })
+    await setCache(cacheKey, formattedData, 120);
+    res.json({ success: true, data: formattedData });
   } catch (error) {
-    next(error)
+    next(error);
   }
-})
+});
 
 router.get('/student/:studentId', authenticate, async (req, res, next) => {
   try {
-    const { studentId } = req.params
-    const { month } = req.query
+    const { studentId } = req.params;
+    const { month } = req.query;
 
     if (req.profile.role === 'student' && req.user.id !== studentId) {
-      return res.status(403).json({ success: false, error: 'Forbidden' })
+      return res.status(403).json({ success: false, error: 'Forbidden' });
     }
 
     let query = supabaseAdmin
       .from('attendance')
       .select('*')
       .eq('student_id', studentId)
-      .order('date', { ascending: false })
+      .order('date', { ascending: false });
 
     if (month) {
-      const startOfMonth = `${month}-01`
-      const endOfMonth = `${month}-31`
-      query = query.gte('date', startOfMonth).lte('date', endOfMonth)
+      const startOfMonth = `${month}-01`;
+      const endOfMonth = `${month}-31`;
+      query = query.gte('date', startOfMonth).lte('date', endOfMonth);
     }
 
-    const { data, error } = await query
-    if (error) throw error
+    const { data, error } = await query;
+    if (error) throw error;
 
-    res.json({ success: true, data })
+    res.json({ success: true, data });
   } catch (error) {
-    next(error)
+    next(error);
   }
-})
+});
 
 router.get('/stats', authenticate, requireWarden, async (req, res, next) => {
   try {
-    const today = new Date().toISOString().split('T')[0]
-    const cacheKey = 'attendance:stats:today'
+    const today = new Date().toISOString().split('T')[0];
+    const cacheKey = 'attendance:stats:today';
 
-    const cached = await getCache(cacheKey)
+    const cached = await getCache(cacheKey);
     if (cached) {
-      logger.info('Cache hit: attendance stats')
-      return res.json({ success: true, data: cached })
+      logger.info('Cache hit: attendance stats');
+      return res.json({ success: true, data: cached });
     }
-    logger.info('Cache miss: attendance stats')
+    logger.info('Cache miss: attendance stats');
 
     const { count: totalStudents } = await supabaseAdmin
       .from('students')
-      .select('*', { count: 'exact', head: true })
+      .select('*', { count: 'exact', head: true });
 
     const { count: presentToday } = await supabaseAdmin
       .from('attendance')
       .select('*', { count: 'exact', head: true })
       .eq('date', today)
-      .eq('status', 'present')
+      .eq('status', 'present');
 
-    const total = totalStudents || 0
-    const present = presentToday || 0
-    const absent = total - present
-    const percentage = total > 0 ? ((present / total) * 100).toFixed(2) : 0
+    const total = totalStudents || 0;
+    const present = presentToday || 0;
+    const absent = total - present;
+    const percentage = total > 0 ? ((present / total) * 100).toFixed(2) : 0;
 
     const statsData = {
       total_students: total,
       present_today: present,
       absent_today: absent,
-      percentage: Number(percentage)
-    }
+      percentage: Number(percentage),
+    };
 
-    await setCache(cacheKey, statsData, 300)
-    res.json({ success: true, data: statsData })
+    await setCache(cacheKey, statsData, 300);
+    res.json({ success: true, data: statsData });
   } catch (error) {
-    next(error)
+    next(error);
   }
-})
+});
 
-export default router
+export default router;

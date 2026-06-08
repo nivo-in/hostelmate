@@ -1,6 +1,6 @@
 interface HeaderProps {
-  title: string
-  onSignOut: () => void
+  title: string;
+  onSignOut: () => void;
 }
 
 export function Header({ title, onSignOut }: HeaderProps) {
@@ -10,12 +10,12 @@ export function Header({ title, onSignOut }: HeaderProps) {
         <p className="text-xs uppercase text-gray-400 tracking-widest font-medium">by Nivo</p>
         <h1 className="text-2xl font-medium text-gray-900">{title}</h1>
       </div>
-      <button 
+      <button
         onClick={onSignOut}
         className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
       >
         Sign out
       </button>
     </header>
-  )
+  );
 }

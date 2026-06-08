@@ -9,10 +9,10 @@ export const validate = (schema) => (req, res, next) => {
   if (!result.success) {
     return res.status(400).json({
       success: false,
-      error: 'Validation failed'
+      error: 'Validation failed',
     });
   }
-  
+
   req.body = result.data;
   next();
-}
+};

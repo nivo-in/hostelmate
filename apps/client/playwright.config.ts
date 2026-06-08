@@ -33,6 +33,6 @@ export default defineConfig({
       url: 'http://localhost:3001/health',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
-    }
+    },
   ],
 });

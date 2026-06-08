@@ -24,10 +24,10 @@ jest.unstable_mockModule('../config/supabase.js', () => ({
     auth: {
       getUser: jest.fn().mockResolvedValue({
         data: { user: { id: 'test-user-id' } },
-        error: null
-      })
-    }
-  }
+        error: null,
+      }),
+    },
+  },
 }));
 
 jest.unstable_mockModule('../config/redis.js', () => ({
@@ -36,30 +36,39 @@ jest.unstable_mockModule('../config/redis.js', () => ({
   deleteCache: jest.fn().mockResolvedValue(true),
   deleteCachePattern: jest.fn().mockResolvedValue(true),
   publishEvent: jest.fn().mockResolvedValue(true),
-  redis: {}
+  redis: {},
 }));
 
 jest.unstable_mockModule('../config/logger.js', () => ({
-  default: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), http: jest.fn() }
+  default: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), http: jest.fn() },
 }));
 
 jest.unstable_mockModule('../config/socket.js', () => ({
   emitToUser: jest.fn(),
   emitToAll: jest.fn(),
   getIO: jest.fn(),
-  initSocket: jest.fn()
+  initSocket: jest.fn(),
 }));
 
-const mockWardenProfile = { id: 'warden-id', role: 'warden', email: 'warden@test.com', full_name: 'Test Warden' };
-const mockStudentProfile = { id: 'student-id', role: 'student', email: 'student@test.com', full_name: 'Test Student' };
+const mockWardenProfile = {
+  id: 'warden-id',
+  role: 'warden',
+  email: 'warden@test.com',
+  full_name: 'Test Warden',
+};
+const mockStudentProfile = {
+  id: 'student-id',
+  role: 'student',
+  email: 'student@test.com',
+  full_name: 'Test Student',
+};
 
 let currentProfile = mockWardenProfile;
-
 
 jest.unstable_mockModule('../middleware/rateLimit.js', () => ({
   generalLimiter: (req, res, next) => next(),
   authLimiter: (req, res, next) => next(),
-  notificationLimiter: (req, res, next) => next()
+  notificationLimiter: (req, res, next) => next(),
 }));
 
 jest.unstable_mockModule('../middleware/auth.js', () => ({
@@ -70,7 +79,7 @@ jest.unstable_mockModule('../middleware/auth.js', () => ({
     req.user = { id: currentProfile.id };
     req.profile = currentProfile;
     next();
-  }
+  },
 }));
 
 const { default: app } = await import('../index.js');
@@ -85,14 +94,18 @@ describe('Notices API', () => {
   describe('POST /api/notices - Warden posts', () => {
     it('should reject notice with short title', async () => {
       const res = await request(app).post('/api/notices').send({
-        title: 'ab', content: 'valid content 20 chars......', target_audience: 'all'
+        title: 'ab',
+        content: 'valid content 20 chars......',
+        target_audience: 'all',
       });
       expect(res.status).toBe(400);
     });
 
     it('should reject invalid target_audience', async () => {
       const res = await request(app).post('/api/notices').send({
-        title: 'valid title', content: 'valid content 20 chars......', target_audience: 'invalid'
+        title: 'valid title',
+        content: 'valid content 20 chars......',
+        target_audience: 'invalid',
       });
       expect(res.status).toBe(400);
     });
@@ -100,7 +113,10 @@ describe('Notices API', () => {
     it('should accept valid notice', async () => {
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '1' }, error: null });
       const res = await request(app).post('/api/notices').send({
-        title: 'valid title', content: 'valid content 20 chars......', target_audience: 'all', priority: 'normal'
+        title: 'valid title',
+        content: 'valid content 20 chars......',
+        target_audience: 'all',
+        priority: 'normal',
       });
       expect(res.status).toBe(200);
     });
@@ -108,7 +124,9 @@ describe('Notices API', () => {
     it('should return 403 for student', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).post('/api/notices').send({
-        title: 'valid title', content: 'valid content 20 chars......', target_audience: 'all'
+        title: 'valid title',
+        content: 'valid content 20 chars......',
+        target_audience: 'all',
       });
       expect(res.status).toBe(403);
     });

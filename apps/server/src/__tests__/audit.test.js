@@ -19,7 +19,9 @@ const supabaseMock = {
   not: jest.fn().mockReturnThis(),
   is: jest.fn().mockReturnThis(),
   head: jest.fn().mockReturnThis(),
-  then: jest.fn(function(resolve) { resolve(queryResults.shift()); })
+  then: jest.fn(function (resolve) {
+    resolve(queryResults.shift());
+  }),
 };
 
 jest.unstable_mockModule('../config/supabase.js', () => ({
@@ -28,21 +30,31 @@ jest.unstable_mockModule('../config/supabase.js', () => ({
     auth: {
       getUser: jest.fn().mockResolvedValue({
         data: { user: { id: 'test-user-id' } },
-        error: null
-      })
-    }
-  }
+        error: null,
+      }),
+    },
+  },
 }));
 
-const mockWardenProfile = { id: 'warden-id', role: 'warden', email: 'warden@test.com', full_name: 'Test Warden' };
-const mockStudentProfile = { id: 'student-id', role: 'student', email: 'student@test.com', full_name: 'Test Student' };
+const mockWardenProfile = {
+  id: 'warden-id',
+  role: 'warden',
+  email: 'warden@test.com',
+  full_name: 'Test Warden',
+};
+const mockStudentProfile = {
+  id: 'student-id',
+  role: 'student',
+  email: 'student@test.com',
+  full_name: 'Test Student',
+};
 
 let currentProfile = mockWardenProfile;
 
 jest.unstable_mockModule('../middleware/rateLimit.js', () => ({
   generalLimiter: (req, res, next) => next(),
   authLimiter: (req, res, next) => next(),
-  notificationLimiter: (req, res, next) => next()
+  notificationLimiter: (req, res, next) => next(),
 }));
 
 jest.unstable_mockModule('../middleware/auth.js', () => ({
@@ -53,7 +65,7 @@ jest.unstable_mockModule('../middleware/auth.js', () => ({
     req.user = { id: currentProfile.id };
     req.profile = currentProfile;
     next();
-  }
+  },
 }));
 
 const { default: app } = await import('../index.js');
@@ -67,20 +79,16 @@ describe('Audit API', () => {
 
   describe('GET /api/audit', () => {
     it('should return audit logs without filters', async () => {
-      queryResults = [
-        { data: [{ id: 1, action: 'login', resource: 'auth' }], error: null }
-      ];
-      
+      queryResults = [{ data: [{ id: 1, action: 'login', resource: 'auth' }], error: null }];
+
       const res = await request(app).get('/api/audit');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(1);
     });
 
     it('should filter by resource and action', async () => {
-      queryResults = [
-        { data: [{ id: 2, action: 'create', resource: 'room' }], error: null }
-      ];
-      
+      queryResults = [{ data: [{ id: 2, action: 'create', resource: 'room' }], error: null }];
+
       const res = await request(app).get('/api/audit?resource=room&action=create');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(1);

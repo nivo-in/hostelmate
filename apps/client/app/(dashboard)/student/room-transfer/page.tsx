@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useApi } from '@/hooks/useApi';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
 
 type Room = {
   id: string;
@@ -37,7 +37,7 @@ const SkeletonCard = () => (
 );
 
 export default function StudentRoomTransferPage() {
-  const router = useRouter()
+  const router = useRouter();
   const [currentRoom, setCurrentRoom] = useState<CurrentRoomInfo | null>(null);
   const [noRoomAssigned, setNoRoomAssigned] = useState(false);
   const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
@@ -68,7 +68,9 @@ export default function StudentRoomTransferPage() {
     setError(null);
     try {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         setError('Session expired — please refresh');
         return;
@@ -114,7 +116,7 @@ export default function StudentRoomTransferPage() {
           created_at: string;
         };
         setMyRequests(
-          (requestsResult.data as unknown as RequestRow[]).map(r => ({
+          (requestsResult.data as unknown as RequestRow[]).map((r) => ({
             id: r.id,
             requested_room: r.rooms?.room_number ?? 'Unknown',
             reason: r.reason,
@@ -130,7 +132,7 @@ export default function StudentRoomTransferPage() {
     } finally {
       setLoading(false);
     }
-    }, []);
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -200,7 +202,9 @@ export default function StudentRoomTransferPage() {
             <h2 className="text-xs uppercase text-gray-400 tracking-widest mb-4">Current Room</h2>
             {currentRoom ? (
               <div>
-                <div className="text-2xl font-medium text-gray-900 mb-1">{currentRoom.room_number}</div>
+                <div className="text-2xl font-medium text-gray-900 mb-1">
+                  {currentRoom.room_number}
+                </div>
                 <div className="text-xs text-gray-400 mb-4">{currentRoom.block_name}</div>
                 <div className="text-sm text-gray-600">
                   <span className="text-gray-400 mr-1">Roommates:</span>
@@ -209,12 +213,24 @@ export default function StudentRoomTransferPage() {
               </div>
             ) : noRoomAssigned ? (
               <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-                <svg className="w-5 h-5 text-yellow-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-5 h-5 text-yellow-500 flex-shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <div>
                   <div className="text-sm font-medium text-yellow-800">No room assigned yet</div>
-                  <div className="text-xs text-yellow-600 mt-0.5">Contact your warden to get a room assigned.</div>
+                  <div className="text-xs text-yellow-600 mt-0.5">
+                    Contact your warden to get a room assigned.
+                  </div>
                 </div>
               </div>
             ) : (
@@ -224,34 +240,41 @@ export default function StudentRoomTransferPage() {
 
           {/* Transfer Request Form */}
           <div className="border border-gray-100 rounded-xl p-6">
-            <h2 className="text-xs uppercase text-gray-400 tracking-widest mb-4">Request a Transfer</h2>
+            <h2 className="text-xs uppercase text-gray-400 tracking-widest mb-4">
+              Request a Transfer
+            </h2>
 
             {message && (
-              <div className={`mb-4 p-3 text-sm rounded-lg border ${
-                messageType === 'success'
-                  ? 'bg-green-50 text-green-700 border-green-200'
-                  : 'bg-red-50 text-red-700 border-red-200'
-              }`}>
+              <div
+                className={`mb-4 p-3 text-sm rounded-lg border ${
+                  messageType === 'success'
+                    ? 'bg-green-50 text-green-700 border-green-200'
+                    : 'bg-red-50 text-red-700 border-red-200'
+                }`}
+              >
                 {message}
               </div>
             )}
 
             {availableRooms.length === 0 ? (
-              <div className="text-sm text-gray-400">No rooms with available capacity right now.</div>
+              <div className="text-sm text-gray-400">
+                No rooms with available capacity right now.
+              </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Select Requested Room</label>
                   <select
                     value={selectedRoomId}
-                    onChange={e => setSelectedRoomId(e.target.value)}
+                    onChange={(e) => setSelectedRoomId(e.target.value)}
                     className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full bg-white"
                     required
                   >
                     <option value="">Choose a room...</option>
-                    {availableRooms.map(room => (
+                    {availableRooms.map((room) => (
                       <option key={room.id} value={room.id}>
-                        {room.room_number} ({room.block_name}) — {room.capacity - room.occupancy} slot{room.capacity - room.occupancy !== 1 ? 's' : ''} available
+                        {room.room_number} ({room.block_name}) — {room.capacity - room.occupancy}{' '}
+                        slot{room.capacity - room.occupancy !== 1 ? 's' : ''} available
                       </option>
                     ))}
                   </select>
@@ -262,7 +285,7 @@ export default function StudentRoomTransferPage() {
                   </label>
                   <textarea
                     value={reason}
-                    onChange={e => setReason(e.target.value)}
+                    onChange={(e) => setReason(e.target.value)}
                     placeholder="Explain why you want to transfer..."
                     className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full min-h-[100px] resize-none"
                     required
@@ -283,25 +306,38 @@ export default function StudentRoomTransferPage() {
 
           {/* My Requests */}
           <div>
-            <h2 className="text-xs uppercase text-gray-400 tracking-widest mb-4">My Transfer Requests</h2>
+            <h2 className="text-xs uppercase text-gray-400 tracking-widest mb-4">
+              My Transfer Requests
+            </h2>
             {myRequests.length === 0 ? (
               <div className="border border-gray-100 rounded-xl p-6 text-sm text-gray-400 text-center">
                 No transfer requests yet.
               </div>
             ) : (
               <div className="space-y-3">
-                {myRequests.map(req => (
-                  <div key={req.id} className="border border-gray-100 rounded-xl p-4 flex justify-between items-start hover:border-gray-300 transition-colors">
+                {myRequests.map((req) => (
+                  <div
+                    key={req.id}
+                    className="border border-gray-100 rounded-xl p-4 flex justify-between items-start hover:border-gray-300 transition-colors"
+                  >
                     <div className="flex-1 min-w-0 mr-4">
-                      <div className="text-sm font-medium text-gray-900 mb-1">Room {req.requested_room}</div>
-                      <div className="text-xs text-gray-500 mb-2 line-clamp-2">&quot;{req.reason}&quot;</div>
+                      <div className="text-sm font-medium text-gray-900 mb-1">
+                        Room {req.requested_room}
+                      </div>
+                      <div className="text-xs text-gray-500 mb-2 line-clamp-2">
+                        &quot;{req.reason}&quot;
+                      </div>
                       <div className="text-[10px] text-gray-400">{formatDate(req.created_at)}</div>
                     </div>
-                    <span className={`flex-shrink-0 text-[10px] px-2 py-1 rounded-full font-medium ${
-                      req.status === 'approved' ? 'bg-green-50 text-green-600' :
-                      req.status === 'rejected' ? 'bg-red-50 text-red-600' :
-                      'bg-yellow-50 text-yellow-600'
-                    }`}>
+                    <span
+                      className={`flex-shrink-0 text-[10px] px-2 py-1 rounded-full font-medium ${
+                        req.status === 'approved'
+                          ? 'bg-green-50 text-green-600'
+                          : req.status === 'rejected'
+                            ? 'bg-red-50 text-red-600'
+                            : 'bg-yellow-50 text-yellow-600'
+                      }`}
+                    >
                       {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
                     </span>
                   </div>

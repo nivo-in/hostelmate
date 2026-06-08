@@ -46,7 +46,7 @@ const MOTION_HISTORY_FRAMES = 6;
 // Only used to BLOCK after a blink is already confirmed + we have lots of data.
 // A blink alone is strong enough liveness — frame-diff is a secondary hard-block.
 const FRAME_DIFF_LIVE_THRESHOLD = 6; // out of 255
-const FRAME_DIFF_MIN_FRAMES = 10;    // need this many frames before we hard-block
+const FRAME_DIFF_MIN_FRAMES = 10; // need this many frames before we hard-block
 
 export default function FaceVerification({
   studentId,
@@ -87,7 +87,6 @@ export default function FaceVerification({
     onSkipRef.current = onSkip;
   });
 
-
   const [status, setStatus] = useState<Status>('loading-models');
   const [errorMsg, setErrorMsg] = useState('');
   const [smoothedDist, setSmoothedDist] = useState<number | null>(null);
@@ -97,7 +96,10 @@ export default function FaceVerification({
 
   const stopCamera = useCallback(() => {
     runningRef.current = false; // stops the recursive tick loop
-    if (streamRef.current) { streamRef.current.getTracks().forEach((t) => t.stop()); streamRef.current = null; }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
   }, []);
 
   // ── Frame-difference liveness (primary anti-spoofing) ────────────────────
@@ -120,9 +122,14 @@ export default function FaceVerification({
       canvas.height = SAMPLE;
       ctx.drawImage(
         video,
-        Math.max(0, box.x), Math.max(0, box.y),
-        box.width, box.height,
-        0, 0, SAMPLE, SAMPLE
+        Math.max(0, box.x),
+        Math.max(0, box.y),
+        box.width,
+        box.height,
+        0,
+        0,
+        SAMPLE,
+        SAMPLE
       );
 
       const current = ctx.getImageData(0, 0, SAMPLE, SAMPLE).data;
@@ -222,7 +229,9 @@ export default function FaceVerification({
                 runningRef.current = false;
                 stopCamera();
                 setStatus('liveness-failed');
-                onFailedRef.current('Liveness check failed — please use a live camera, not a photo.');
+                onFailedRef.current(
+                  'Liveness check failed — please use a live camera, not a photo.'
+                );
                 return;
               }
             }
@@ -306,7 +315,7 @@ export default function FaceVerification({
           if (Array.isArray(raw) && raw.length > 0) {
             storedDescriptorsRef.current = Array.isArray(raw[0])
               ? (raw as number[][])
-              : [(raw as number[])];
+              : [raw as number[]];
           } else {
             setStatus('no-face-data');
             return;
@@ -317,7 +326,10 @@ export default function FaceVerification({
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
         });
-        if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
         streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -343,14 +355,27 @@ export default function FaceVerification({
     };
 
     init();
-    return () => { cancelled = true; stopCamera(); };
+    return () => {
+      cancelled = true;
+      stopCamera();
+    };
   }, [studentId, startVerificationLoop, stopCamera]);
 
   // ── Derived UI ───────────────────────────────────────────────────────────────
   const isVerified = status === 'verified';
   // const isFailed = status === 'failed' || status === 'liveness-failed' || status === 'max-attempts';
   const isLoading = ['loading-models', 'requesting-camera', 'fetching-descriptor'].includes(status);
-  const showVideo = !['loading-models', 'fetching-descriptor', 'camera-denied', 'error', 'verified', 'failed', 'liveness-failed', 'max-attempts', 'no-face-data'].includes(status);
+  const showVideo = ![
+    'loading-models',
+    'fetching-descriptor',
+    'camera-denied',
+    'error',
+    'verified',
+    'failed',
+    'liveness-failed',
+    'max-attempts',
+    'no-face-data',
+  ].includes(status);
 
   const confidence =
     smoothedDist !== null
@@ -361,15 +386,15 @@ export default function FaceVerification({
     confidence === null
       ? '#e5e7eb'
       : confidence >= 70
-      ? '#16a34a'
-      : confidence >= 40
-      ? '#f59e0b'
-      : '#ef4444';
+        ? '#16a34a'
+        : confidence >= 40
+          ? '#f59e0b'
+          : '#ef4444';
 
   const livenessColor = blinkDetected ? '#16a34a' : '#f59e0b';
   const livenessText = blinkDetected
     ? '👁 Liveness: ✓ Confirmed'
-    : '👁 Blink once to verify you\'re real';
+    : "👁 Blink once to verify you're real";
 
   return (
     <div className="flex flex-col items-center gap-5 p-6">
@@ -383,14 +408,21 @@ export default function FaceVerification({
       {isLoading && (
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <svg className="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
           </svg>
           {status === 'loading-models'
             ? 'Loading face recognition...'
             : status === 'fetching-descriptor'
-            ? 'Loading your face data...'
-            : 'Starting camera...'}
+              ? 'Loading your face data...'
+              : 'Starting camera...'}
         </div>
       )}
 
@@ -413,10 +445,16 @@ export default function FaceVerification({
               <div className="relative" style={{ width: '42%', paddingTop: '58%' }}>
                 <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 136" fill="none">
                   <ellipse
-                    cx="50" cy="68" rx="48" ry="66"
+                    cx="50"
+                    cy="68"
+                    rx="48"
+                    ry="66"
                     stroke={status === 'verifying' ? '#3b82f6' : '#ffffff'}
                     strokeWidth="3"
-                    style={{ filter: 'drop-shadow(0 0 6px rgba(0,0,0,0.5))', transition: 'stroke 0.2s ease' }}
+                    style={{
+                      filter: 'drop-shadow(0 0 6px rgba(0,0,0,0.5))',
+                      transition: 'stroke 0.2s ease',
+                    }}
                   />
                 </svg>
               </div>
@@ -508,7 +546,13 @@ export default function FaceVerification({
       {isVerified && (
         <div className="flex flex-col items-center gap-2">
           <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
-            <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <svg
+              className="w-8 h-8 text-green-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
@@ -520,8 +564,15 @@ export default function FaceVerification({
       {status === 'max-attempts' && (
         <div className="flex flex-col items-center gap-2">
           <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
-            <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            <svg
+              className="w-8 h-8 text-red-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </div>
           <p className="text-sm font-medium text-red-600">Verification failed</p>
@@ -546,8 +597,15 @@ export default function FaceVerification({
       {status === 'failed' && (
         <div className="flex flex-col items-center gap-2">
           <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
-            <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            <svg
+              className="w-8 h-8 text-red-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </div>
           <p className="text-sm font-medium text-red-600">Face not recognized</p>
@@ -563,7 +621,8 @@ export default function FaceVerification({
           <span className="text-2xl">📷</span>
           <p className="text-sm font-medium text-gray-700">Camera access required</p>
           <p className="text-xs text-gray-400">
-            Camera access required for face verification. Enable permissions in your browser settings, then refresh.
+            Camera access required for face verification. Enable permissions in your browser
+            settings, then refresh.
           </p>
         </div>
       )}

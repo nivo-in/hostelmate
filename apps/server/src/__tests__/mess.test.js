@@ -24,10 +24,10 @@ jest.unstable_mockModule('../config/supabase.js', () => ({
     auth: {
       getUser: jest.fn().mockResolvedValue({
         data: { user: { id: 'test-user-id' } },
-        error: null
-      })
-    }
-  }
+        error: null,
+      }),
+    },
+  },
 }));
 
 jest.unstable_mockModule('../config/redis.js', () => ({
@@ -36,30 +36,39 @@ jest.unstable_mockModule('../config/redis.js', () => ({
   deleteCache: jest.fn().mockResolvedValue(true),
   deleteCachePattern: jest.fn().mockResolvedValue(true),
   publishEvent: jest.fn().mockResolvedValue(true),
-  redis: {}
+  redis: {},
 }));
 
 jest.unstable_mockModule('../config/logger.js', () => ({
-  default: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), http: jest.fn() }
+  default: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), http: jest.fn() },
 }));
 
 jest.unstable_mockModule('../config/socket.js', () => ({
   emitToUser: jest.fn(),
   emitToAll: jest.fn(),
   getIO: jest.fn(),
-  initSocket: jest.fn()
+  initSocket: jest.fn(),
 }));
 
-const mockWardenProfile = { id: 'warden-id', role: 'warden', email: 'warden@test.com', full_name: 'Test Warden' };
-const mockStudentProfile = { id: 'student-id', role: 'student', email: 'student@test.com', full_name: 'Test Student' };
+const mockWardenProfile = {
+  id: 'warden-id',
+  role: 'warden',
+  email: 'warden@test.com',
+  full_name: 'Test Warden',
+};
+const mockStudentProfile = {
+  id: 'student-id',
+  role: 'student',
+  email: 'student@test.com',
+  full_name: 'Test Student',
+};
 
 let currentProfile = mockStudentProfile;
-
 
 jest.unstable_mockModule('../middleware/rateLimit.js', () => ({
   generalLimiter: (req, res, next) => next(),
   authLimiter: (req, res, next) => next(),
-  notificationLimiter: (req, res, next) => next()
+  notificationLimiter: (req, res, next) => next(),
 }));
 
 jest.unstable_mockModule('../middleware/auth.js', () => ({
@@ -70,7 +79,7 @@ jest.unstable_mockModule('../middleware/auth.js', () => ({
     req.user = { id: currentProfile.id };
     req.profile = currentProfile;
     next();
-  }
+  },
 }));
 
 const { default: app } = await import('../index.js');
@@ -107,32 +116,48 @@ describe('Mess API', () => {
     it('should update menu item', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '1' }, error: null });
-      const res = await request(app).put('/api/mess/menu').send({
-        day_of_week: 'monday', meal_type: 'lunch', items: ['rice', 'dal']
-      });
+      const res = await request(app)
+        .put('/api/mess/menu')
+        .send({
+          day_of_week: 'monday',
+          meal_type: 'lunch',
+          items: ['rice', 'dal'],
+        });
       expect(res.status).toBe(200);
     });
 
     it('should reject invalid day_of_week', async () => {
       currentProfile = mockWardenProfile;
-      const res = await request(app).put('/api/mess/menu').send({
-        day_of_week: 'invalid', meal_type: 'lunch', items: ['rice']
-      });
+      const res = await request(app)
+        .put('/api/mess/menu')
+        .send({
+          day_of_week: 'invalid',
+          meal_type: 'lunch',
+          items: ['rice'],
+        });
       expect(res.status).toBe(400);
     });
 
     it('should reject invalid meal_type', async () => {
       currentProfile = mockWardenProfile;
-      const res = await request(app).put('/api/mess/menu').send({
-        day_of_week: 'monday', meal_type: 'invalid', items: ['rice']
-      });
+      const res = await request(app)
+        .put('/api/mess/menu')
+        .send({
+          day_of_week: 'monday',
+          meal_type: 'invalid',
+          items: ['rice'],
+        });
       expect(res.status).toBe(400);
     });
 
     it('should return 403 for student', async () => {
-      const res = await request(app).put('/api/mess/menu').send({
-        day_of_week: 'monday', meal_type: 'lunch', items: ['rice']
-      });
+      const res = await request(app)
+        .put('/api/mess/menu')
+        .send({
+          day_of_week: 'monday',
+          meal_type: 'lunch',
+          items: ['rice'],
+        });
       expect(res.status).toBe(403);
     });
   });
@@ -141,21 +166,28 @@ describe('Mess API', () => {
     it('should accept valid review', async () => {
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '1' }, error: null });
       const res = await request(app).post('/api/mess/review').send({
-        rating: 4, meal_type: 'lunch', comments: 'good', date: '2023-10-10'
+        rating: 4,
+        meal_type: 'lunch',
+        comments: 'good',
+        date: '2023-10-10',
       });
       expect(res.status).toBe(200);
     });
 
     it('should reject rating below 1', async () => {
       const res = await request(app).post('/api/mess/review').send({
-        rating: 0, meal_type: 'lunch', date: '2023-10-10'
+        rating: 0,
+        meal_type: 'lunch',
+        date: '2023-10-10',
       });
       expect(res.status).toBe(400);
     });
 
     it('should reject rating above 5', async () => {
       const res = await request(app).post('/api/mess/review').send({
-        rating: 6, meal_type: 'lunch', date: '2023-10-10'
+        rating: 6,
+        meal_type: 'lunch',
+        date: '2023-10-10',
       });
       expect(res.status).toBe(400);
     });
@@ -163,7 +195,9 @@ describe('Mess API', () => {
     it('should return 403 for warden', async () => {
       currentProfile = mockWardenProfile;
       const res = await request(app).post('/api/mess/review').send({
-        rating: 4, meal_type: 'lunch', date: '2023-10-10'
+        rating: 4,
+        meal_type: 'lunch',
+        date: '2023-10-10',
       });
       expect(res.status).toBe(403);
     });

@@ -9,14 +9,14 @@ import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { useProfile } from '@/hooks/useProfile';
-import { Profile, LeaveRequest } from '@/types'
+import { Profile, LeaveRequest } from '@/types';
 
 export default function ParentLeaves() {
   const router = useRouter();
   const supabase = createClient();
   const { apiGet } = useApi();
   const { profile, loading: profileLoading } = useProfile();
-  
+
   const [student, setStudent] = useState<Profile | null>(null);
   const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,22 +24,22 @@ export default function ParentLeaves() {
   useEffect(() => {
     const fetchLeaves = async () => {
       if (!profile?.id) return;
-      
+
       const { data: parentData } = await supabase
         .from('parents')
         .select('student_id')
         .eq('profile_id', profile.id)
         .single();
-        
+
       if (parentData?.student_id) {
         const { data: studentData } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', parentData.student_id)
           .single();
-          
+
         setStudent(studentData);
-        
+
         try {
           const res = await apiGet(`/api/leaves/my?studentId=${parentData.student_id}`);
           if (res.success) {
@@ -51,7 +51,7 @@ export default function ParentLeaves() {
       }
       setLoading(false);
     };
-    
+
     if (!profileLoading) {
       fetchLeaves();
     }
@@ -68,15 +68,22 @@ export default function ParentLeaves() {
     return 'warning';
   };
 
-  if (profileLoading || loading) return <div className="min-h-screen bg-white px-6 py-10"><LoadingSpinner /></div>;
+  if (profileLoading || loading)
+    return (
+      <div className="min-h-screen bg-white px-6 py-10">
+        <LoadingSpinner />
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
       <PageHeader title="Leave Status" showBack onSignOut={handleSignOut} />
-      
+
       {student && (
         <div className="mb-8">
-          <h2 className="text-xl font-medium text-gray-900">{student.full_name}&apos;s Leave Requests</h2>
+          <h2 className="text-xl font-medium text-gray-900">
+            {student.full_name}&apos;s Leave Requests
+          </h2>
         </div>
       )}
 
@@ -99,17 +106,17 @@ export default function ParentLeaves() {
                 </td>
               </tr>
             ) : (
-              leaves.map(l => (
+              leaves.map((l) => (
                 <tr key={l.id} className="border-b border-gray-50">
                   <td className="px-4 py-3 text-gray-900">{l.start_date}</td>
                   <td className="px-4 py-3 text-gray-900">{l.end_date}</td>
                   <td className="px-4 py-3 text-gray-900 truncate max-w-xs">{l.reason}</td>
                   <td className="px-4 py-3">
-                    <Badge variant={getStatusVariant(l.status)}>
-                      {l.status.toUpperCase()}
-                    </Badge>
+                    <Badge variant={getStatusVariant(l.status)}>{l.status.toUpperCase()}</Badge>
                   </td>
-                  <td className="px-4 py-3 text-gray-500">{new Date(l.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-gray-500">
+                    {new Date(l.created_at).toLocaleDateString()}
+                  </td>
                 </tr>
               ))
             )}

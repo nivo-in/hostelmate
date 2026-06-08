@@ -1,95 +1,95 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { useApi } from '@/hooks/useApi'
-import { useSocket } from '@/hooks/useSocket'
-import { Notification } from '@/types'
+import React, { useState, useEffect, useCallback } from 'react';
+import { useApi } from '@/hooks/useApi';
+import { useSocket } from '@/hooks/useSocket';
+import { Notification } from '@/types';
 
 function timeAgo(dateString: string) {
-  const date = new Date(dateString)
-  const now = new Date()
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+  const date = new Date(dateString);
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-  let interval = Math.floor(seconds / 31536000)
-  if (interval >= 1) return interval + 'y ago'
-  interval = Math.floor(seconds / 2592000)
-  if (interval >= 1) return interval + 'mo ago'
-  interval = Math.floor(seconds / 86400)
-  if (interval >= 1) return interval + 'd ago'
-  interval = Math.floor(seconds / 3600)
-  if (interval >= 1) return interval + 'h ago'
-  interval = Math.floor(seconds / 60)
-  if (interval >= 1) return interval + 'm ago'
-  return Math.floor(seconds) + 's ago'
+  let interval = Math.floor(seconds / 31536000);
+  if (interval >= 1) return interval + 'y ago';
+  interval = Math.floor(seconds / 2592000);
+  if (interval >= 1) return interval + 'mo ago';
+  interval = Math.floor(seconds / 86400);
+  if (interval >= 1) return interval + 'd ago';
+  interval = Math.floor(seconds / 3600);
+  if (interval >= 1) return interval + 'h ago';
+  interval = Math.floor(seconds / 60);
+  if (interval >= 1) return interval + 'm ago';
+  return Math.floor(seconds) + 's ago';
 }
 
 const TYPE_DOT: Record<string, string> = {
-  leave:       'bg-blue-500',
-  complaint:   'bg-orange-500',
-  notice:      'bg-purple-500',
-  emergency:   'bg-red-500',
-  attendance:  'bg-green-500',
-  curfew:      'bg-yellow-500',
-  lost_found:  'bg-gray-400',
-}
+  leave: 'bg-blue-500',
+  complaint: 'bg-orange-500',
+  notice: 'bg-purple-500',
+  emergency: 'bg-red-500',
+  attendance: 'bg-green-500',
+  curfew: 'bg-yellow-500',
+  lost_found: 'bg-gray-400',
+};
 
 function typeDot(type: string) {
-  const color = TYPE_DOT[type] ?? 'bg-gray-400'
+  const color = TYPE_DOT[type] ?? 'bg-gray-400';
   return (
     <span
       className={`inline-block w-2 h-2 rounded-full shrink-0 mt-0.5 ${color}`}
       aria-hidden="true"
     />
-  )
+  );
 }
 
 export function NotificationBell() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [loading, setLoading] = useState(true)
+  const [isOpen, setIsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const { apiGet, apiPatch, apiDelete } = useApi()
+  const { apiGet, apiPatch, apiDelete } = useApi();
   // Ref to track pending debounce timer for socket-triggered fetches
-  const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchNotifications = useCallback(async () => {
     try {
-      const res = await apiGet('/api/notifications')
+      const res = await apiGet('/api/notifications');
       if (res.success) {
-        setNotifications(res.data.notifications)
-        setUnreadCount(res.data.unread_count)
+        setNotifications(res.data.notifications);
+        setUnreadCount(res.data.unread_count);
       }
     } catch {
       // Silently fail — never surface polling errors to UI
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-    }, [])
+  }, []);
 
   // Debounced version for socket events — prevents rapid-fire fetches
   const debouncedFetch = useCallback(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      fetchNotifications()
-    }, 2000) // 2s debounce: bursts of socket events → single fetch
-  }, [fetchNotifications])
+      fetchNotifications();
+    }, 2000); // 2s debounce: bursts of socket events → single fetch
+  }, [fetchNotifications]);
 
   useEffect(() => {
     // Fetch immediately on mount
-    fetchNotifications()
+    fetchNotifications();
 
     // Fallback poll every 5 minutes (WebSocket handles real-time updates)
     const intervalId = setInterval(() => {
-      fetchNotifications()
-    }, 300000)
+      fetchNotifications();
+    }, 300000);
 
     return () => {
-      clearInterval(intervalId)
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-    }
-  }, [fetchNotifications])
+      clearInterval(intervalId);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [fetchNotifications]);
 
   // WebSocket: refresh on any real-time event (debounced to avoid rapid API calls)
   useSocket({
@@ -97,68 +97,65 @@ export function NotificationBell() {
     'leave:updated': debouncedFetch,
     'complaint:updated': debouncedFetch,
     'attendance:marked': debouncedFetch,
-  })
-
+  });
 
   // ── Panel open / close side-effects ───────────────────────────────────────
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden'
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = ''
+      document.body.style.overflow = '';
     }
     return () => {
-      document.body.style.overflow = ''
-    }
-  }, [isOpen])
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false)
-    }
+      if (e.key === 'Escape') setIsOpen(false);
+    };
     if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown)
+      document.addEventListener('keydown', handleKeyDown);
     }
     return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [isOpen])
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
 
   // ── Actions ────────────────────────────────────────────────────────────────
   const handleMarkAllRead = async () => {
     try {
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
-      setUnreadCount(0)
-      await apiPatch('/api/notifications/read-all', {})
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      setUnreadCount(0);
+      await apiPatch('/api/notifications/read-all', {});
     } catch {
-      fetchNotifications()
+      fetchNotifications();
     }
-  }
+  };
 
   const handleNotificationClick = async (id: string, isRead: boolean) => {
-    if (isRead) return
+    if (isRead) return;
     try {
-      setNotifications(prev =>
-        prev.map(n => (n.id === id ? { ...n, is_read: true } : n))
-      )
-      setUnreadCount(prev => Math.max(0, prev - 1))
-      await apiPatch(`/api/notifications/${id}/read`, {})
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+      await apiPatch(`/api/notifications/${id}/read`, {});
     } catch {
-      fetchNotifications()
+      fetchNotifications();
     }
-  }
+  };
 
   const handleDismiss = async (e: React.MouseEvent, id: string, isRead: boolean) => {
-    e.stopPropagation()
+    e.stopPropagation();
     // Optimistically remove from UI
-    setNotifications(prev => prev.filter(n => n.id !== id))
-    if (!isRead) setUnreadCount(prev => Math.max(0, prev - 1))
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    if (!isRead) setUnreadCount((prev) => Math.max(0, prev - 1));
     try {
-      await apiDelete(`/api/notifications/${id}`)
+      await apiDelete(`/api/notifications/${id}`);
     } catch {
-      fetchNotifications()
+      fetchNotifications();
     }
-  }
+  };
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -250,7 +247,7 @@ export function NotificationBell() {
           {loading ? (
             /* Loading skeletons */
             <>
-              {[1, 2, 3, 4].map(i => (
+              {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="px-5 py-4 border-b border-gray-50 animate-pulse">
                   <div className="h-3 bg-gray-100 rounded w-2/3 mb-2" />
                   <div className="h-2 bg-gray-100 rounded w-full mb-1.5" />
@@ -279,12 +276,10 @@ export function NotificationBell() {
             </div>
           ) : (
             /* Notification items */
-            notifications.map(notification => (
+            notifications.map((notification) => (
               <div
                 key={notification.id}
-                onClick={() =>
-                  handleNotificationClick(notification.id, notification.is_read)
-                }
+                onClick={() => handleNotificationClick(notification.id, notification.is_read)}
                 className={`group relative px-5 py-4 border-b border-gray-50 cursor-pointer transition-colors ${
                   notification.is_read
                     ? 'bg-white hover:bg-gray-50/50'
@@ -311,7 +306,16 @@ export function NotificationBell() {
                       aria-label="Dismiss notification"
                       title="Dismiss"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-3 h-3"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
                         <line x1="18" y1="6" x2="6" y2="18" />
                         <line x1="6" y1="6" x2="18" y2="18" />
                       </svg>
@@ -329,5 +333,5 @@ export function NotificationBell() {
         </div>
       </div>
     </>
-  )
+  );
 }
