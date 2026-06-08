@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Toaster } from 'sonner';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -12,8 +13,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className="antialiased"
         style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}
-      >
         {children}
+        <Toaster position="bottom-right" />
       </body>
     </html>
   );

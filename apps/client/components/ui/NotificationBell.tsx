@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '@/hooks/useApi';
 import { useSocket } from '@/hooks/useSocket';
 import { Notification } from '@/types';
+import { toast } from 'sonner';
 
 function timeAgo(dateString: string) {
   const date = new Date(dateString);
@@ -106,10 +107,26 @@ export function NotificationBell() {
 
   // WebSocket: refresh on any real-time event (debounced to avoid rapid API calls)
   useSocket({
-    'notice:new': debouncedFetch,
-    'leave:updated': debouncedFetch,
-    'complaint:updated': debouncedFetch,
-    'attendance:marked': debouncedFetch,
+    'notice:new': (data: any) => {
+      debouncedFetch();
+      toast('New Notice', { description: data?.message || 'A new notice was posted.' });
+    },
+    'leave:updated': (data: any) => {
+      debouncedFetch();
+      toast('Leave Request Updated', { description: data?.message || 'Your leave request status changed.' });
+    },
+    'complaint:updated': (data: any) => {
+      debouncedFetch();
+      toast('Complaint Updated', { description: data?.message || 'A complaint was updated.' });
+    },
+    'attendance:marked': (data: any) => {
+      debouncedFetch();
+      toast('Attendance Marked', { description: data?.message || 'Attendance has been recorded.' });
+    },
+    'notification:new': (data: any) => {
+      debouncedFetch();
+      toast(data?.title || 'New Notification', { description: data?.message || 'You have a new notification.' });
+    }
   });
 
   // ── Panel open / close side-effects ───────────────────────────────────────
