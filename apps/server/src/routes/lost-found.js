@@ -1,100 +1,107 @@
-import { Router } from 'express'
-import { supabaseAdmin } from '../config/supabase.js'
-import { authenticate } from '../middleware/auth.js'
-import { requireStudent } from '../middleware/rbac.js'
-import { validate } from '../middleware/validate.js'
-import { lostFoundSchema } from '../config/validation.js'
-import logger from '../config/logger.js'
-import { findMatches } from '../config/matcher.js'
-import { notifyLostFoundMatch } from '../config/notifications.js'
-import { getCache, setCache, deleteCache } from '../config/redis.js'
+import { Router } from 'express';
+import { supabaseAdmin } from '../config/supabase.js';
+import { authenticate } from '../middleware/auth.js';
+import { requireStudent } from '../middleware/rbac.js';
+import { validate } from '../middleware/validate.js';
+import { lostFoundSchema } from '../config/validation.js';
+import logger from '../config/logger.js';
+import { findMatches } from '../config/matcher.js';
+import { notifyLostFoundMatch } from '../config/notifications.js';
+import { getCache, setCache, deleteCache } from '../config/redis.js';
 
-const router = Router()
+const router = Router();
 
-router.post('/', authenticate, requireStudent, validate(lostFoundSchema), async (req, res, next) => {
-  try {
-    const { item_name, description, status, location_found } = req.body
-
-    const { data: record, error } = await supabaseAdmin
-      .from('lost_and_found')
-      .insert({
-        reported_by: req.user.id,
-        item_name,
-        description,
-        location_found,
-        status: status || 'lost',
-        date_reported: new Date().toISOString().split('T')[0]
-      })
-      .select()
-      .single()
-
-    if (error) throw error
-
-    logger.info(`Lost/found item "${item_name}" reported by ${req.user.id}`)
-
+router.post(
+  '/',
+  authenticate,
+  requireStudent,
+  validate(lostFoundSchema),
+  async (req, res, next) => {
     try {
-      const oppositeStatus = record.status === 'lost' ? 'found' : 'lost'
-      const { data: existingItems } = await supabaseAdmin
+      const { item_name, description, status, location_found } = req.body;
+
+      const { data: record, error } = await supabaseAdmin
         .from('lost_and_found')
-        .select('*')
-        .eq('status', oppositeStatus)
-        .neq('id', record.id)
+        .insert({
+          reported_by: req.user.id,
+          item_name,
+          description,
+          location_found,
+          status: status || 'lost',
+          date_reported: new Date().toISOString().split('T')[0],
+        })
+        .select()
+        .single();
 
-      if (existingItems && existingItems.length > 0) {
-        const matches = findMatches(record, existingItems, 0.25)
+      if (error) throw error;
 
-        if (matches.length > 0) {
-          const bestMatch = matches[0]
-          logger.info(`Lost & Found match found — Score: ${Math.round(bestMatch.score * 100)}%`)
+      logger.info(`Lost/found item "${item_name}" reported by ${req.user.id}`);
 
-          await notifyLostFoundMatch(
-            record.reported_by,
-            bestMatch.item.reported_by,
-            record,
-            bestMatch.item,
-            bestMatch.score
-          )
+      try {
+        const oppositeStatus = record.status === 'lost' ? 'found' : 'lost';
+        const { data: existingItems } = await supabaseAdmin
+          .from('lost_and_found')
+          .select('*')
+          .eq('status', oppositeStatus)
+          .neq('id', record.id);
 
-          await deleteCache('lost-found:all')
-          return res.json({
-            success: true,
-            data: record,
-            match: {
-              found: true,
-              item: bestMatch.item,
-              confidence: Math.round(bestMatch.score * 100)
-            }
-          })
+        if (existingItems && existingItems.length > 0) {
+          const matches = findMatches(record, existingItems, 0.25);
+
+          if (matches.length > 0) {
+            const bestMatch = matches[0];
+            logger.info(`Lost & Found match found — Score: ${Math.round(bestMatch.score * 100)}%`);
+
+            await notifyLostFoundMatch(
+              record.reported_by,
+              bestMatch.item.reported_by,
+              record,
+              bestMatch.item,
+              bestMatch.score
+            );
+
+            await deleteCache('lost-found:all');
+            return res.json({
+              success: true,
+              data: record,
+              match: {
+                found: true,
+                item: bestMatch.item,
+                confidence: Math.round(bestMatch.score * 100),
+              },
+            });
+          }
         }
+      } catch (matchErr) {
+        logger.warn('Match finding failed', { error: matchErr.message });
       }
-    } catch (matchErr) {
-      logger.warn('Match finding failed', { error: matchErr.message })
-    }
 
-    await deleteCache('lost-found:all')
-    res.json({ success: true, data: record })
-  } catch (error) {
-    next(error)
+      await deleteCache('lost-found:all');
+      res.json({ success: true, data: record });
+    } catch (error) {
+      next(error);
+    }
   }
-})
+);
 
 router.get('/', authenticate, async (req, res, next) => {
   try {
-    const { status } = req.query
+    const { status } = req.query;
 
     if (!status) {
-      const cacheKey = 'lost-found:all'
-      const cached = await getCache(cacheKey)
+      const cacheKey = 'lost-found:all';
+      const cached = await getCache(cacheKey);
       if (cached) {
-        logger.info('Cache hit: lost-found:all')
-        return res.json({ success: true, data: cached })
+        logger.info('Cache hit: lost-found:all');
+        return res.json({ success: true, data: cached });
       }
-      logger.info('Cache miss: lost-found:all')
+      logger.info('Cache miss: lost-found:all');
     }
 
     let query = supabaseAdmin
       .from('lost_and_found')
-      .select(`
+      .select(
+        `
     *,
     students!lost_and_found_reported_by_fkey (
       roll_number,
@@ -102,46 +109,47 @@ router.get('/', authenticate, async (req, res, next) => {
         full_name
       )
     )
-  `)
-      .order('created_at', { ascending: false })
+  `
+      )
+      .order('created_at', { ascending: false });
 
     if (status) {
-      query = query.eq('status', status)
+      query = query.eq('status', status);
     }
 
-    const { data, error } = await query
+    const { data, error } = await query;
 
-    if (error) throw error
+    if (error) throw error;
 
     if (!status) {
-      await setCache('lost-found:all', data, 120)
+      await setCache('lost-found:all', data, 120);
     }
 
-    res.json({ success: true, data })
+    res.json({ success: true, data });
   } catch (error) {
-    next(error)
+    next(error);
   }
-})
+});
 
 router.patch('/:id/claim', authenticate, async (req, res, next) => {
   try {
-    const { id } = req.params
+    const { id } = req.params;
 
     const { data, error } = await supabaseAdmin
       .from('lost_and_found')
       .update({ status: 'claimed' })
       .eq('id', id)
       .select()
-      .single()
+      .single();
 
-    if (error) throw error
+    if (error) throw error;
 
-    logger.info(`Lost/found item ${id} claimed/resolved by ${req.user.id}`)
-    await deleteCache('lost-found:all')
-    res.json({ success: true, data })
+    logger.info(`Lost/found item ${id} claimed/resolved by ${req.user.id}`);
+    await deleteCache('lost-found:all');
+    res.json({ success: true, data });
   } catch (error) {
-    next(error)
+    next(error);
   }
-})
+});
 
-export default router
+export default router;

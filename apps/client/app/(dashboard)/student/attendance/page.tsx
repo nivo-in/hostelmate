@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useProfile } from '@/hooks/useProfile';
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
 
 // Lazy-load face components so face-api.js is not bundled in initial chunk
 const FaceRegistration = lazy(() => import('@/components/face/FaceRegistration'));
@@ -24,9 +24,9 @@ interface AttendanceRecord {
 type AttendanceMode = 'choose' | 'face' | 'qr' | 'success';
 
 type AttendanceView =
-  | 'checking-face'       // checking if face is registered
-  | 'face-registration'   // student has no face registered
-  | 'main';               // attendance mode selector + history
+  | 'checking-face' // checking if face is registered
+  | 'face-registration' // student has no face registered
+  | 'main'; // attendance mode selector + history
 
 // SuccessAnimation: uses a ref for onDone so the effect fires ONCE (empty deps)
 // avoids the stale-closure timer-reset bug caused by inline arrow functions
@@ -42,7 +42,7 @@ function SuccessAnimation({ onDone }: { onDone: () => void }) {
   }, []); // ← empty deps: timer set ONCE, never reset
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm cursor-pointer"
       onClick={onDone}
     >
@@ -51,7 +51,9 @@ function SuccessAnimation({ onDone }: { onDone: () => void }) {
           <svg viewBox="0 0 100 100" className="w-full h-full">
             <circle cx="50" cy="50" r="45" fill="none" stroke="#E5E7EB" strokeWidth="6" />
             <circle
-              cx="50" cy="50" r="45"
+              cx="50"
+              cy="50"
+              r="45"
               fill="none"
               stroke="#111827"
               strokeWidth="6"
@@ -100,7 +102,7 @@ function SuccessAnimation({ onDone }: { onDone: () => void }) {
 }
 
 export default function StudentAttendance() {
-  const router = useRouter()
+  const router = useRouter();
   const [view, setView] = useState<AttendanceView>('checking-face');
   const [mode, setMode] = useState<AttendanceMode>('choose');
   const [faceError, setFaceError] = useState('');
@@ -119,7 +121,9 @@ export default function StudentAttendance() {
     try {
       const res = await apiGet(`/api/attendance/student/${profile.id}`);
       if (res.success) setHistory(res.data.slice(0, 30) || []);
-    } catch { /* silently fail */ }
+    } catch {
+      /* silently fail */
+    }
   }, [profile, apiGet]);
 
   useEffect(() => {
@@ -143,7 +147,9 @@ export default function StudentAttendance() {
       }
     };
     check();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [profile?.id]);
 
   // ── Face-only attendance ─────────────────────────────────────────────────
@@ -177,45 +183,48 @@ export default function StudentAttendance() {
     setError('');
     setTimeout(() => {
       const scanner = new Html5QrcodeScanner('qr-reader', { fps: 10, qrbox: 250 }, false);
-      scanner.render(async (text) => {
-        scanner.clear();
-        const el = document.getElementById('qr-reader');
-        if (el) el.innerHTML = '';
+      scanner.render(
+        async (text) => {
+          scanner.clear();
+          const el = document.getElementById('qr-reader');
+          if (el) el.innerHTML = '';
 
-        if (!navigator.geolocation) {
-          setError('Geolocation not supported by this browser.');
-          setMode('choose');
-          return;
-        }
+          if (!navigator.geolocation) {
+            setError('Geolocation not supported by this browser.');
+            setMode('choose');
+            return;
+          }
 
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            try {
-              const res = await apiPost('/api/attendance/mark', {
-                qr_data: text,
-                lat: pos.coords.latitude,
-                lng: pos.coords.longitude,
-                face_verified: false,
-              });
-              if (res.success) {
-                setMode('success');
-                setShowSuccess(true);
-                fetchHistory();
-              } else {
-                setError(res.error || 'Failed to mark attendance');
+          navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+              try {
+                const res = await apiPost('/api/attendance/mark', {
+                  qr_data: text,
+                  lat: pos.coords.latitude,
+                  lng: pos.coords.longitude,
+                  face_verified: false,
+                });
+                if (res.success) {
+                  setMode('success');
+                  setShowSuccess(true);
+                  fetchHistory();
+                } else {
+                  setError(res.error || 'Failed to mark attendance');
+                  setMode('choose');
+                }
+              } catch (err: unknown) {
+                setError((err as Error).message || 'Failed to mark attendance');
                 setMode('choose');
               }
-            } catch (err: unknown) {
-              setError((err as Error).message || 'Failed to mark attendance');
+            },
+            (err) => {
+              setError('Location access required: ' + err.message);
               setMode('choose');
             }
-          },
-          (err) => {
-            setError('Location access required: ' + err.message);
-            setMode('choose');
-          }
-        );
-      }, () => {});
+          );
+        },
+        () => {}
+      );
     }, 100);
   }, [apiPost, fetchHistory]);
 
@@ -239,9 +248,7 @@ export default function StudentAttendance() {
 
   return (
     <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
-      {showSuccess && (
-        <SuccessAnimation onDone={handleSuccessDone} />
-      )}
+      {showSuccess && <SuccessAnimation onDone={handleSuccessDone} />}
 
       <PageHeader title="Mark Attendance" showBack onSignOut={handleSignOut} />
 
@@ -250,7 +257,14 @@ export default function StudentAttendance() {
         <div className="mb-8 p-6 border border-gray-100 rounded-xl flex items-center justify-center min-h-40">
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <svg className="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
             Checking face registration...
@@ -261,7 +275,9 @@ export default function StudentAttendance() {
       {/* ── FACE REGISTRATION ── */}
       {view === 'face-registration' && (
         <div className="mb-8 border border-gray-100 rounded-xl overflow-hidden">
-          <Suspense fallback={<div className="p-8 text-center text-sm text-gray-400">Loading...</div>}>
+          <Suspense
+            fallback={<div className="p-8 text-center text-sm text-gray-400">Loading...</div>}
+          >
             <FaceRegistration
               studentId={profile?.id ?? ''}
               onSuccess={() => setView('main')}
@@ -277,13 +293,17 @@ export default function StudentAttendance() {
           {/* ── CHOOSE MODE ── */}
           {mode === 'choose' && (
             <div className="mb-8">
-              <h2 className="text-sm font-medium text-gray-900 mb-4">How would you like to mark attendance?</h2>
+              <h2 className="text-sm font-medium text-gray-900 mb-4">
+                How would you like to mark attendance?
+              </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
                 {/* Face Attendance — recommended */}
                 <button
                   id="attendance-face-btn"
-                  onClick={() => { setFaceError(''); setMode('face'); }}
+                  onClick={() => {
+                    setFaceError('');
+                    setMode('face');
+                  }}
                   className="flex flex-col gap-2 p-5 rounded-xl border-2 border-gray-900 text-left hover:bg-gray-50 transition-all"
                 >
                   <div className="flex items-center gap-2">
@@ -324,12 +344,14 @@ export default function StudentAttendance() {
           {/* ── FACE MODE ── */}
           {mode === 'face' && (
             <div className="mb-8 border border-gray-100 rounded-xl overflow-hidden">
-              <Suspense fallback={<div className="p-8 text-center text-sm text-gray-400">Loading...</div>}>
+              <Suspense
+                fallback={<div className="p-8 text-center text-sm text-gray-400">Loading...</div>}
+              >
                 <FaceVerification
                   studentId={profile?.id ?? ''}
                   onVerified={() => markAttendanceDirectly()}
-                  onFailed={(reason) => {
-                    setFaceError(reason);
+                  onFailed={(_reason: string) => {
+                    setFaceError(_reason);
                     setMode('choose');
                   }}
                   onSkip={() => runQrScan()}
@@ -337,8 +359,19 @@ export default function StudentAttendance() {
               </Suspense>
               {markingAttendance && (
                 <div className="p-4 flex items-center justify-center gap-2 text-sm text-gray-500 border-t border-gray-100">
-                  <svg className="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <svg
+                    className="animate-spin w-4 h-4 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                   </svg>
                   Marking attendance...
@@ -350,7 +383,9 @@ export default function StudentAttendance() {
           {/* ── QR MODE ── */}
           {mode === 'qr' && (
             <div className="mb-8 p-6 border border-gray-100 rounded-xl hover:border-gray-300 transition-colors">
-              <p className="text-xs text-gray-500 mb-3">Scan the warden&apos;s QR code to mark attendance</p>
+              <p className="text-xs text-gray-500 mb-3">
+                Scan the warden&apos;s QR code to mark attendance
+              </p>
               <div
                 id="qr-reader"
                 className="w-full max-w-sm mx-auto mb-4 border border-gray-200 rounded-lg overflow-hidden"
@@ -427,10 +462,15 @@ export default function StudentAttendance() {
             </button>
           ) : (
             <div className="border border-gray-100 rounded-xl overflow-hidden">
-              <Suspense fallback={<div className="p-8 text-center text-sm text-gray-400">Loading...</div>}>
+              <Suspense
+                fallback={<div className="p-8 text-center text-sm text-gray-400">Loading...</div>}
+              >
                 <FaceRegistration
                   studentId={profile?.id ?? ''}
-                  onSuccess={() => { setShowReRegister(false); setMode('choose'); }}
+                  onSuccess={() => {
+                    setShowReRegister(false);
+                    setMode('choose');
+                  }}
                   onSkip={() => setShowReRegister(false)}
                 />
               </Suspense>

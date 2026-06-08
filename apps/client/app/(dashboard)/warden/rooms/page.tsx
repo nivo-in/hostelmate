@@ -48,17 +48,13 @@ type TransferApiItem = {
   created_at: string;
 };
 
-type UnassignedApiItem = {
-  id: string;
-  roll_number: string;
-  profiles: { full_name: string } | null;
-};
-
 // --- Fuzzy Search Helpers ---
 function levenshteinDistance(a: string, b: string): number {
   if (a.length === 0) return b.length;
   if (b.length === 0) return a.length;
-  const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
+  const matrix = Array(b.length + 1)
+    .fill(null)
+    .map(() => Array(a.length + 1).fill(null));
   for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
   for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
   for (let j = 1; j <= b.length; j++) {
@@ -77,7 +73,7 @@ function levenshteinDistance(a: string, b: string): number {
 function fuzzyMatch(query: string, target: string, maxDistance: number = 2): boolean {
   const q = query.toLowerCase().trim();
   const t = target.toLowerCase();
-  
+
   if (!q) return true;
   if (t.includes(q)) return true;
 
@@ -133,11 +129,19 @@ export default function WardenRoomsPage() {
   const apiGetRef = useRef(apiGet);
   const apiPostRef = useRef(apiPost);
   const apiPatchRef = useRef(apiPatch);
-  useEffect(() => { apiGetRef.current = apiGet; });
-  useEffect(() => { apiPostRef.current = apiPost; });
-  useEffect(() => { apiPatchRef.current = apiPatch; });
+  useEffect(() => {
+    apiGetRef.current = apiGet;
+  });
+  useEffect(() => {
+    apiPostRef.current = apiPost;
+  });
+  useEffect(() => {
+    apiPatchRef.current = apiPatch;
+  });
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -156,14 +160,14 @@ export default function WardenRoomsPage() {
 
       if (roomsRes.success && roomsRes.data?.rooms) {
         setRooms(
-          (roomsRes.data.rooms as RoomApiItem[]).map(r => ({
+          (roomsRes.data.rooms as RoomApiItem[]).map((r) => ({
             id: r.id,
             room_number: r.room_number,
             block_name: r.block_name,
             capacity: r.capacity,
             occupancy: r.current_occupants?.length ?? 0,
             occupants:
-              r.current_occupants?.map(o => ({
+              r.current_occupants?.map((o) => ({
                 id: o.student_id,
                 name: o.full_name,
               })) ?? [],
@@ -175,7 +179,7 @@ export default function WardenRoomsPage() {
 
       if (requestsRes.success && requestsRes.data) {
         setRequests(
-          (requestsRes.data as TransferApiItem[]).map(r => ({
+          (requestsRes.data as TransferApiItem[]).map((r) => ({
             id: r.id,
             student_id: r.student_id,
             student_name: r.students?.profiles?.full_name ?? 'Unknown',
@@ -217,6 +221,7 @@ export default function WardenRoomsPage() {
         setUnassignedStudents(res.data);
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch unassigned students:', err);
     }
   };
@@ -234,6 +239,7 @@ export default function WardenRoomsPage() {
         fetchData();
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Assign error:', err);
     } finally {
       setAssigning(false);
@@ -245,6 +251,7 @@ export default function WardenRoomsPage() {
       const res = await apiPatchRef.current(`/api/rooms/transfer-requests/${id}/${action}`, {});
       if (res.success) fetchData();
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Transfer error:', err);
     }
   };
@@ -257,9 +264,9 @@ export default function WardenRoomsPage() {
       const res = await apiPostRef.current('/api/rooms', {
         room_number: newRoomNumber,
         block_name: newBlockName,
-        capacity: newCapacity
+        capacity: newCapacity,
       });
-      
+
       if (!res.success) {
         throw new Error('Failed to create room');
       }
@@ -277,11 +284,11 @@ export default function WardenRoomsPage() {
   };
 
   const filteredStudents = unassignedStudents.filter(
-    s => fuzzyMatch(searchQuery, s.full_name) || fuzzyMatch(searchQuery, s.roll_number)
+    (s) => fuzzyMatch(searchQuery, s.full_name) || fuzzyMatch(searchQuery, s.roll_number)
   );
 
   const totalRooms = rooms.length;
-  const occupiedRooms = rooms.filter(r => r.occupancy >= r.capacity).length;
+  const occupiedRooms = rooms.filter((r) => r.occupancy >= r.capacity).length;
   const availableRooms = totalRooms - occupiedRooms;
 
   const formatDate = (dateString: string) =>
@@ -339,10 +346,7 @@ export default function WardenRoomsPage() {
       {error && !isForbidden && (
         <div className="border border-red-100 rounded-xl p-4 bg-red-50 mb-6 flex items-center justify-between">
           <span className="text-sm text-red-600">{error}</span>
-          <button
-            onClick={fetchData}
-            className="text-xs text-red-600 underline hover:text-red-800"
-          >
+          <button onClick={fetchData} className="text-xs text-red-600 underline hover:text-red-800">
             Retry
           </button>
         </div>
@@ -373,7 +377,7 @@ export default function WardenRoomsPage() {
               </div>
             </div>
             <button
-              onClick={() => setShowAddRoom(v => !v)}
+              onClick={() => setShowAddRoom((v) => !v)}
               className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors whitespace-nowrap"
             >
               {showAddRoom ? 'Cancel' : '+ Add Room'}
@@ -400,7 +404,7 @@ export default function WardenRoomsPage() {
                     required
                     placeholder="e.g. A-101"
                     value={newRoomNumber}
-                    onChange={e => setNewRoomNumber(e.target.value)}
+                    onChange={(e) => setNewRoomNumber(e.target.value)}
                     className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full"
                   />
                 </div>
@@ -411,7 +415,7 @@ export default function WardenRoomsPage() {
                     required
                     placeholder="e.g. Block A"
                     value={newBlockName}
-                    onChange={e => setNewBlockName(e.target.value)}
+                    onChange={(e) => setNewBlockName(e.target.value)}
                     className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full"
                   />
                 </div>
@@ -423,7 +427,7 @@ export default function WardenRoomsPage() {
                     min={1}
                     max={10}
                     value={newCapacity}
-                    onChange={e => setNewCapacity(e.target.value)}
+                    onChange={(e) => setNewCapacity(e.target.value)}
                     className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full"
                   />
                 </div>
@@ -454,7 +458,7 @@ export default function WardenRoomsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {rooms.map(room => {
+              {rooms.map((room) => {
                 const isFull = room.occupancy >= room.capacity;
                 const isEmpty = room.occupancy === 0;
 
@@ -473,8 +477,8 @@ export default function WardenRoomsPage() {
                           isFull
                             ? 'bg-red-50 text-red-600'
                             : isEmpty
-                            ? 'bg-green-50 text-green-600'
-                            : 'bg-yellow-50 text-yellow-600'
+                              ? 'bg-green-50 text-green-600'
+                              : 'bg-yellow-50 text-yellow-600'
                         }`}
                       >
                         {isFull ? 'Full' : isEmpty ? 'Available' : 'Partial'}
@@ -501,7 +505,7 @@ export default function WardenRoomsPage() {
                     <div className="mb-4 min-h-[40px]">
                       {room.occupants.length > 0 ? (
                         <ul className="text-sm text-gray-600 space-y-1">
-                          {room.occupants.map(occ => (
+                          {room.occupants.map((occ) => (
                             <li key={occ.id}>• {occ.name}</li>
                           ))}
                         </ul>
@@ -525,14 +529,15 @@ export default function WardenRoomsPage() {
                           type="text"
                           placeholder="Search student..."
                           value={searchQuery}
-                          onChange={e => {
+                          onChange={(e) => {
                             const val = e.target.value;
                             setSearchQuery(val);
-                            
+
                             // Automatically select the first match when searching
                             if (val.trim() !== '') {
-                              const matches = unassignedStudents.filter(s =>
-                                fuzzyMatch(val, s.full_name) || fuzzyMatch(val, s.roll_number)
+                              const matches = unassignedStudents.filter(
+                                (s) =>
+                                  fuzzyMatch(val, s.full_name) || fuzzyMatch(val, s.roll_number)
                               );
                               if (matches.length > 0) {
                                 setSelectedStudentId(matches[0].id);
@@ -545,11 +550,11 @@ export default function WardenRoomsPage() {
                         />
                         <select
                           value={selectedStudentId}
-                          onChange={e => setSelectedStudentId(e.target.value)}
+                          onChange={(e) => setSelectedStudentId(e.target.value)}
                           className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-500 w-full mb-3 bg-white"
                         >
                           <option value="">Select student...</option>
-                          {filteredStudents.map(s => (
+                          {filteredStudents.map((s) => (
                             <option key={s.id} value={s.id}>
                               {s.full_name} ({s.roll_number})
                             </option>
@@ -577,15 +582,13 @@ export default function WardenRoomsPage() {
               No pending transfer requests.
             </div>
           ) : (
-            requests.map(req => (
+            requests.map((req) => (
               <div
                 key={req.id}
                 className="border border-gray-100 rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-gray-300 transition-colors"
               >
                 <div>
-                  <div className="text-sm font-medium text-gray-900 mb-1">
-                    {req.student_name}
-                  </div>
+                  <div className="text-sm font-medium text-gray-900 mb-1">{req.student_name}</div>
                   <div className="text-xs text-gray-500 mb-2">
                     {req.current_room} → {req.requested_room}
                   </div>

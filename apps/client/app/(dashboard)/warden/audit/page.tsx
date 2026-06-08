@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useApi } from '@/hooks/useApi';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
 
 type AuditLog = {
   id: string;
@@ -16,7 +16,7 @@ type AuditLog = {
 };
 
 export default function WardenAuditPage() {
-  const router = useRouter()
+  const router = useRouter();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,10 +36,12 @@ export default function WardenAuditPage() {
 
   // Stable ref to avoid re-render loops
   const apiGetRef = useRef(apiGet);
-  useEffect(() => { apiGetRef.current = apiGet; });
+  useEffect(() => {
+    apiGetRef.current = apiGet;
+  });
 
-  useEffect(() => { 
-    setMounted(true); 
+  useEffect(() => {
+    setMounted(true);
     setNow(Date.now());
   }, []);
 
@@ -63,6 +65,7 @@ export default function WardenAuditPage() {
         setLogs([]);
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Audit fetch error:', err);
       setError(err instanceof Error ? err.message : 'Failed to load audit logs');
     } finally {
@@ -74,7 +77,7 @@ export default function WardenAuditPage() {
     fetchLogs();
   }, [fetchLogs]);
 
-  const filteredLogs = logs.filter(log => {
+  const filteredLogs = logs.filter((log) => {
     const matchAction = log.action.toLowerCase().includes(searchAction.toLowerCase());
 
     let matchDate = true;
@@ -99,17 +102,23 @@ export default function WardenAuditPage() {
     let text = 'text-gray-600';
 
     if (actionLower.includes('attendance')) {
-      bg = 'bg-green-50'; text = 'text-green-600';
+      bg = 'bg-green-50';
+      text = 'text-green-600';
     } else if (actionLower.includes('approve_leave')) {
-      bg = 'bg-blue-50'; text = 'text-blue-600';
+      bg = 'bg-blue-50';
+      text = 'text-blue-600';
     } else if (actionLower.includes('reject_leave')) {
-      bg = 'bg-red-50'; text = 'text-red-600';
+      bg = 'bg-red-50';
+      text = 'text-red-600';
     } else if (actionLower.includes('complaint')) {
-      bg = 'bg-yellow-50'; text = 'text-yellow-600';
+      bg = 'bg-yellow-50';
+      text = 'text-yellow-600';
     } else if (actionLower.includes('notice')) {
-      bg = 'bg-purple-50'; text = 'text-purple-600';
+      bg = 'bg-purple-50';
+      text = 'text-purple-600';
     } else if (actionLower.includes('assign_room') || actionLower.includes('transfer')) {
-      bg = 'bg-teal-50'; text = 'text-teal-600';
+      bg = 'bg-teal-50';
+      text = 'text-teal-600';
     }
 
     return (
@@ -147,10 +156,7 @@ export default function WardenAuditPage() {
       {error && (
         <div className="border border-red-100 rounded-xl p-4 bg-red-50 mb-6 flex items-center justify-between">
           <span className="text-sm text-red-600">{error}</span>
-          <button
-            onClick={fetchLogs}
-            className="text-xs text-red-600 underline hover:text-red-800"
-          >
+          <button onClick={fetchLogs} className="text-xs text-red-600 underline hover:text-red-800">
             Retry
           </button>
         </div>
@@ -162,7 +168,7 @@ export default function WardenAuditPage() {
           <label className="block text-xs text-gray-500 mb-1">Resource</label>
           <select
             value={resourceFilter}
-            onChange={e => setResourceFilter(e.target.value)}
+            onChange={(e) => setResourceFilter(e.target.value)}
             className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full bg-white"
           >
             <option value="all">All</option>
@@ -179,7 +185,7 @@ export default function WardenAuditPage() {
             type="text"
             placeholder="e.g. mark_attendance"
             value={searchAction}
-            onChange={e => setSearchAction(e.target.value)}
+            onChange={(e) => setSearchAction(e.target.value)}
             className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full"
           />
         </div>
@@ -188,7 +194,7 @@ export default function WardenAuditPage() {
           <input
             type="date"
             value={dateFrom}
-            onChange={e => setDateFrom(e.target.value)}
+            onChange={(e) => setDateFrom(e.target.value)}
             className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full"
           />
         </div>
@@ -197,7 +203,7 @@ export default function WardenAuditPage() {
           <input
             type="date"
             value={dateTo}
-            onChange={e => setDateTo(e.target.value)}
+            onChange={(e) => setDateTo(e.target.value)}
             className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full"
           />
         </div>
@@ -220,11 +226,21 @@ export default function WardenAuditPage() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-b border-gray-50 animate-pulse">
-                    <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-16" /></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-24" /></td>
-                    <td className="px-6 py-4"><div className="h-5 bg-gray-100 rounded-full w-20" /></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-16" /></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-32" /></td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-gray-100 rounded w-16" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-gray-100 rounded w-24" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-5 bg-gray-100 rounded-full w-20" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-gray-100 rounded w-16" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-gray-100 rounded w-32" />
+                    </td>
                   </tr>
                 ))
               ) : filteredLogs.length === 0 ? (
@@ -234,12 +250,10 @@ export default function WardenAuditPage() {
                   </td>
                 </tr>
               ) : (
-                filteredLogs.map(log => {
+                filteredLogs.map((log) => {
                   const isExpanded = expandedRow === log.id;
                   const detailsStr =
-                    typeof log.details === 'string'
-                      ? log.details
-                      : JSON.stringify(log.details);
+                    typeof log.details === 'string' ? log.details : JSON.stringify(log.details);
                   const isLongDetails = detailsStr.length > 30;
 
                   return (
@@ -258,9 +272,7 @@ export default function WardenAuditPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                         {log.user_name || 'System'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getActionBadge(log.action)}
-                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">{getActionBadge(log.action)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {log.resource}
                       </td>

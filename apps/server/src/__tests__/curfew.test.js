@@ -19,7 +19,9 @@ const supabaseMock = {
   not: jest.fn().mockReturnThis(),
   is: jest.fn().mockReturnThis(),
   head: jest.fn().mockReturnThis(),
-  then: jest.fn(function(resolve) { resolve(queryResults.shift()); })
+  then: jest.fn(function (resolve) {
+    resolve(queryResults.shift());
+  }),
 };
 
 jest.unstable_mockModule('../config/supabase.js', () => ({
@@ -28,10 +30,10 @@ jest.unstable_mockModule('../config/supabase.js', () => ({
     auth: {
       getUser: jest.fn().mockResolvedValue({
         data: { user: { id: 'test-user-id' } },
-        error: null
-      })
-    }
-  }
+        error: null,
+      }),
+    },
+  },
 }));
 
 const mockRedisGet = jest.fn().mockResolvedValue(null);
@@ -45,19 +47,29 @@ jest.unstable_mockModule('../config/redis.js', () => ({
   publishEvent: jest.fn().mockResolvedValue(true),
   redis: {
     get: mockRedisGet,
-    set: mockRedisSet
-  }
+    set: mockRedisSet,
+  },
 }));
 
-const mockWardenProfile = { id: 'warden-id', role: 'warden', email: 'warden@test.com', full_name: 'Test Warden' };
-const mockStudentProfile = { id: 'student-id', role: 'student', email: 'student@test.com', full_name: 'Test Student' };
+const mockWardenProfile = {
+  id: 'warden-id',
+  role: 'warden',
+  email: 'warden@test.com',
+  full_name: 'Test Warden',
+};
+const mockStudentProfile = {
+  id: 'student-id',
+  role: 'student',
+  email: 'student@test.com',
+  full_name: 'Test Student',
+};
 
 let currentProfile = mockWardenProfile;
 
 jest.unstable_mockModule('../middleware/rateLimit.js', () => ({
   generalLimiter: (req, res, next) => next(),
   authLimiter: (req, res, next) => next(),
-  notificationLimiter: (req, res, next) => next()
+  notificationLimiter: (req, res, next) => next(),
 }));
 
 jest.unstable_mockModule('../middleware/auth.js', () => ({
@@ -68,7 +80,7 @@ jest.unstable_mockModule('../middleware/auth.js', () => ({
     req.user = { id: currentProfile.id };
     req.profile = currentProfile;
     next();
-  }
+  },
 }));
 
 const { default: app } = await import('../index.js');
@@ -80,7 +92,7 @@ describe('Curfew API', () => {
     queryResults = [];
     mockRedisGet.mockResolvedValue(null);
     mockRedisSet.mockResolvedValue('OK');
-    
+
     // Set time to 23:00 (11 PM) to bypass curfew check
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-05-31T23:30:00Z'));
@@ -94,10 +106,16 @@ describe('Curfew API', () => {
     it('should return students absent after curfew', async () => {
       mockRedisGet.mockResolvedValueOnce(JSON.stringify({ curfew_time: '00:00', enabled: true }));
       queryResults = [
-        { data: [{ id: 's1', profiles: { full_name: 'Absent Student' } }, { id: 's2', profiles: { full_name: 'Present Student' } }], error: null }, // students query
-        { data: [{ student_id: 's2' }], error: null } // attendance query
+        {
+          data: [
+            { id: 's1', profiles: { full_name: 'Absent Student' } },
+            { id: 's2', profiles: { full_name: 'Present Student' } },
+          ],
+          error: null,
+        }, // students query
+        { data: [{ student_id: 's2' }], error: null }, // attendance query
       ];
-      
+
       const res = await request(app).get('/api/curfew/violations');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(1);
@@ -106,7 +124,7 @@ describe('Curfew API', () => {
 
     it('should return empty if before curfew time', async () => {
       mockRedisGet.mockResolvedValueOnce(JSON.stringify({ curfew_time: '23:59', enabled: true }));
-      
+
       const res = await request(app).get('/api/curfew/violations');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(0);
@@ -117,16 +135,20 @@ describe('Curfew API', () => {
     it('should notify parents of absent students', async () => {
       queryResults = [
         { data: { profiles: { full_name: 'Student 1' } }, error: null }, // student single query
-        { error: null } // notices insert
+        { error: null }, // notices insert
       ];
-      
-      const res = await request(app).post('/api/curfew/notify').send({ student_ids: ['s1'] });
+
+      const res = await request(app)
+        .post('/api/curfew/notify')
+        .send({ student_ids: ['s1'] });
       expect(res.status).toBe(200);
       expect(res.body.notified_count).toBe(1);
     });
-    
+
     it('should reject invalid payload', async () => {
-      const res = await request(app).post('/api/curfew/notify').send({ student_ids: 'not-an-array' });
+      const res = await request(app)
+        .post('/api/curfew/notify')
+        .send({ student_ids: 'not-an-array' });
       expect(res.status).toBe(400);
     });
   });
@@ -149,7 +171,9 @@ describe('Curfew API', () => {
 
   describe('PATCH /api/curfew/settings', () => {
     it('should update curfew settings', async () => {
-      const res = await request(app).patch('/api/curfew/settings').send({ curfew_time: '21:00', enabled: true });
+      const res = await request(app)
+        .patch('/api/curfew/settings')
+        .send({ curfew_time: '21:00', enabled: true });
       expect(res.status).toBe(200);
       expect(res.body.data.curfew_time).toBe('21:00');
       expect(mockRedisSet).toHaveBeenCalled();

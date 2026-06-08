@@ -4,15 +4,17 @@ import { useEffect, useState, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
 
 // ─── Razorpay window type ────────────────────────────────
 
-interface RazorpayInstance { 
-  open(): void; 
-  on(event: string, handler: (...args: unknown[]) => void): void; 
+interface RazorpayInstance {
+  open(): void;
+  on(_event: string, _handler: (..._args: unknown[]) => void): void;
 }
-interface RazorpayConstructor { new (options: Record<string, unknown>): RazorpayInstance; }
+interface RazorpayConstructor {
+  new (_options: Record<string, unknown>): RazorpayInstance;
+}
 type RazorpayWindow = Window & typeof globalThis & { Razorpay: RazorpayConstructor };
 
 // ─── Types ───────────────────────────────────────────────
@@ -48,7 +50,10 @@ interface ReceiptData {
   students: { roll_number: string; profiles: { full_name: string; email: string } };
 }
 
-interface ParentProfile { full_name: string; email: string; }
+interface ParentProfile {
+  full_name: string;
+  email: string;
+}
 
 const fmt = (n: number) => '₹' + n.toLocaleString('en-IN');
 
@@ -56,25 +61,33 @@ const statusBadge = (status: string, isOverdue: boolean) => {
   const base = 'text-xs px-2.5 py-1 rounded-full font-medium';
   if (isOverdue) return <span className={`${base} bg-red-100 text-red-700`}>OVERDUE</span>;
   switch (status) {
-    case 'paid':       return <span className={`${base} bg-green-50 text-green-700`}>Paid</span>;
-    case 'pending':    return <span className={`${base} bg-yellow-50 text-yellow-700`}>Pending</span>;
-    case 'processing': return <span className={`${base} bg-blue-50 text-blue-700`}>Processing</span>;
-    default:           return <span className={`${base} bg-gray-100 text-gray-600`}>{status}</span>;
+    case 'paid':
+      return <span className={`${base} bg-green-50 text-green-700`}>Paid</span>;
+    case 'pending':
+      return <span className={`${base} bg-yellow-50 text-yellow-700`}>Pending</span>;
+    case 'processing':
+      return <span className={`${base} bg-blue-50 text-blue-700`}>Processing</span>;
+    default:
+      return <span className={`${base} bg-gray-100 text-gray-600`}>{status}</span>;
   }
 };
 
 const typeBadge = (type: string) => {
   const base = 'text-xs px-2.5 py-1 rounded-full font-medium';
   switch (type) {
-    case 'combined': return <span className={`${base} bg-indigo-50 text-indigo-700`}>Hostel + Mess</span>;
-    case 'hostel':   return <span className={`${base} bg-orange-50 text-orange-700`}>Hostel</span>;
-    case 'mess':     return <span className={`${base} bg-teal-50 text-teal-700`}>Mess</span>;
-    default:         return <span className={`${base} bg-gray-100 text-gray-600`}>{type}</span>;
+    case 'combined':
+      return <span className={`${base} bg-indigo-50 text-indigo-700`}>Hostel + Mess</span>;
+    case 'hostel':
+      return <span className={`${base} bg-orange-50 text-orange-700`}>Hostel</span>;
+    case 'mess':
+      return <span className={`${base} bg-teal-50 text-teal-700`}>Mess</span>;
+    default:
+      return <span className={`${base} bg-gray-100 text-gray-600`}>{type}</span>;
   }
 };
 
 export default function ParentPaymentsPage() {
-  const router = useRouter()
+  const router = useRouter();
   const [paymentsData, setPaymentsData] = useState<PaymentsData | null>(null);
   const [parentProfile, setParentProfile] = useState<ParentProfile | null>(null);
   const [receiptModal, setReceiptModal] = useState<ReceiptData | null>(null);
@@ -89,16 +102,24 @@ export default function ParentPaymentsPage() {
     try {
       const res = await apiGet('/api/payments/my');
       if (res.success) setPaymentsData(res.data);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+    }
   }, [apiGet]);
 
   useEffect(() => {
     fetchPayments();
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        supabase.from('profiles').select('full_name, email')
-          .eq('id', session.user.id).single()
-          .then(({ data }) => { if (data) setParentProfile(data); });
+        supabase
+          .from('profiles')
+          .select('full_name, email')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data }) => {
+            if (data) setParentProfile(data);
+          });
       }
     });
   }, []);
@@ -109,7 +130,9 @@ export default function ParentPaymentsPage() {
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.async = true;
     document.body.appendChild(script);
-    return () => { document.body.removeChild(script); };
+    return () => {
+      document.body.removeChild(script);
+    };
   }, []);
 
   const handlePay = async (payment: FeePayment) => {
@@ -128,7 +151,11 @@ export default function ParentPaymentsPage() {
         name: 'HostelMate by Nivo',
         description: payment.fee_structures?.name || 'Fee Payment',
         order_id: orderData.order_id,
-        handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+        handler: async (response: {
+          razorpay_order_id: string;
+          razorpay_payment_id: string;
+          razorpay_signature: string;
+        }) => {
           const result = await apiPost('/api/payments/verify', {
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
@@ -136,7 +163,9 @@ export default function ParentPaymentsPage() {
             fee_payment_id: payment.id,
           });
           if (result.success) {
-            setSuccess(`Payment made successfully for ${studentName}! Receipt: ${result.receipt_number}`);
+            setSuccess(
+              `Payment made successfully for ${studentName}! Receipt: ${result.receipt_number}`
+            );
             setTimeout(() => setSuccess(''), 6000);
             fetchPayments();
           } else {
@@ -145,7 +174,7 @@ export default function ParentPaymentsPage() {
         },
         prefill: { name: parentProfile?.full_name, email: parentProfile?.email },
         theme: { color: '#111827' },
-        modal: { 
+        modal: {
           ondismiss: async () => {
             setError('Payment window closed');
             try {
@@ -153,7 +182,7 @@ export default function ParentPaymentsPage() {
             } finally {
               fetchPayments();
             }
-          }
+          },
         },
       };
       const rzp = new (window as RazorpayWindow).Razorpay(options);
@@ -191,7 +220,9 @@ export default function ParentPaymentsPage() {
     try {
       const res = await apiGet(`/api/payments/receipt/${paymentId}`);
       if (res.success) setReceiptModal(res.data);
-    } catch (e) { setError((e as Error).message); }
+    } catch (e) {
+      setError((e as Error).message);
+    }
   };
 
   const handleSignOut = async () => {
@@ -200,7 +231,7 @@ export default function ParentPaymentsPage() {
   };
 
   const totals = paymentsData?.totals;
-  const allPayments = paymentsData?.payments.all || [];
+
   const pendingPayments = paymentsData?.payments.pending || [];
   const paidPayments = paymentsData?.payments.paid || [];
   const studentName = paymentsData?.student_name || 'Ward';
@@ -216,7 +247,9 @@ export default function ParentPaymentsPage() {
         </div>
       )}
       {success && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-100 rounded-lg text-sm text-green-700">{success}</div>
+        <div className="mb-4 p-3 bg-green-50 border border-green-100 rounded-lg text-sm text-green-700">
+          {success}
+        </div>
       )}
 
       {/* Ward label */}
@@ -233,14 +266,21 @@ export default function ParentPaymentsPage() {
         </div>
         <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
           <p className="text-xs text-gray-400 mb-1">Total Pending</p>
-          <p className={`text-2xl font-medium ${(totals?.total_pending ?? 0) > 0 ? 'text-red-500' : 'text-gray-400'}`}>
+          <p
+            className={`text-2xl font-medium ${(totals?.total_pending ?? 0) > 0 ? 'text-red-500' : 'text-gray-400'}`}
+          >
             {fmt(totals?.total_pending ?? 0)}
           </p>
         </div>
         <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
           <p className="text-xs text-gray-400 mb-1">Next Due</p>
           <p className="text-2xl font-medium text-yellow-600">
-            {totals?.next_due ? new Date(totals.next_due).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}
+            {totals?.next_due
+              ? new Date(totals.next_due).toLocaleDateString('en-IN', {
+                  day: 'numeric',
+                  month: 'short',
+                })
+              : '—'}
           </p>
         </div>
       </div>
@@ -250,21 +290,32 @@ export default function ParentPaymentsPage() {
         <div className="mb-8">
           <h2 className="text-sm font-medium text-gray-900 mb-4">
             Pending Payments
-            <span className="ml-2 text-xs px-2.5 py-1 rounded-full bg-red-50 text-red-600 font-medium">{pendingPayments.length} due</span>
+            <span className="ml-2 text-xs px-2.5 py-1 rounded-full bg-red-50 text-red-600 font-medium">
+              {pendingPayments.length} due
+            </span>
           </h2>
           <div className="space-y-3">
-            {pendingPayments.map(payment => (
-              <div key={payment.id} className={`border rounded-xl p-6 transition-colors ${payment.is_overdue ? 'border-red-200 bg-red-50' : 'border-gray-100 hover:border-gray-300'}`}>
+            {pendingPayments.map((payment) => (
+              <div
+                key={payment.id}
+                className={`border rounded-xl p-6 transition-colors ${payment.is_overdue ? 'border-red-200 bg-red-50' : 'border-gray-100 hover:border-gray-300'}`}
+              >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap mb-2">
-                      <span className="text-sm font-medium text-gray-900">{payment.fee_structures?.name}</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {payment.fee_structures?.name}
+                      </span>
                       {typeBadge(payment.fee_structures?.fee_type)}
                       {statusBadge(payment.status, payment.is_overdue)}
                     </div>
                     <p className="text-xl font-medium text-gray-900 mb-1">{fmt(payment.amount)}</p>
-                    <p className="text-xs text-gray-500">Period: <span className="font-medium">{payment.period_label}</span></p>
-                    <p className="text-xs text-gray-400">Due: {new Date(payment.due_date).toLocaleDateString('en-IN')}</p>
+                    <p className="text-xs text-gray-500">
+                      Period: <span className="font-medium">{payment.period_label}</span>
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      Due: {new Date(payment.due_date).toLocaleDateString('en-IN')}
+                    </p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <button
@@ -300,22 +351,33 @@ export default function ParentPaymentsPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {paidPayments.map(payment => (
-              <div key={payment.id} className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
+            {paidPayments.map((payment) => (
+              <div
+                key={payment.id}
+                className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors"
+              >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap mb-2">
-                      <span className="text-sm font-medium text-gray-900">{payment.fee_structures?.name}</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {payment.fee_structures?.name}
+                      </span>
                       {typeBadge(payment.fee_structures?.fee_type)}
                       {statusBadge(payment.status, false)}
                     </div>
                     <p className="text-xl font-medium text-gray-900 mb-1">{fmt(payment.amount)}</p>
-                    <p className="text-xs text-gray-500">Period: <span className="font-medium">{payment.period_label}</span></p>
+                    <p className="text-xs text-gray-500">
+                      Period: <span className="font-medium">{payment.period_label}</span>
+                    </p>
                     <div className="flex gap-4 text-xs text-gray-400 mt-1">
-                      {payment.paid_at && <span>Paid: {new Date(payment.paid_at).toLocaleDateString('en-IN')}</span>}
+                      {payment.paid_at && (
+                        <span>Paid: {new Date(payment.paid_at).toLocaleDateString('en-IN')}</span>
+                      )}
                     </div>
                     {payment.receipt_number && (
-                      <p className="text-xs text-gray-400 mt-1 font-mono">{payment.receipt_number}</p>
+                      <p className="text-xs text-gray-400 mt-1 font-mono">
+                        {payment.receipt_number}
+                      </p>
                     )}
                   </div>
                   <button
@@ -338,14 +400,23 @@ export default function ParentPaymentsPage() {
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h3 className="text-sm font-medium text-gray-900">Payment Receipt</h3>
-                <p className="text-xs text-gray-400 font-mono mt-1">{receiptModal.receipt_number}</p>
+                <p className="text-xs text-gray-400 font-mono mt-1">
+                  {receiptModal.receipt_number}
+                </p>
               </div>
-              <button onClick={() => setReceiptModal(null)} className="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+              <button
+                onClick={() => setReceiptModal(null)}
+                className="text-gray-400 hover:text-gray-600 text-lg"
+              >
+                ✕
+              </button>
             </div>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-500">Student</span>
-                <span className="text-gray-900 font-medium">{receiptModal.students?.profiles?.full_name}</span>
+                <span className="text-gray-900 font-medium">
+                  {receiptModal.students?.profiles?.full_name}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Roll No.</span>
@@ -365,11 +436,17 @@ export default function ParentPaymentsPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Paid on</span>
-                <span className="text-gray-900">{new Date(receiptModal.paid_at).toLocaleDateString('en-IN', { dateStyle: 'long' })}</span>
+                <span className="text-gray-900">
+                  {new Date(receiptModal.paid_at).toLocaleDateString('en-IN', {
+                    dateStyle: 'long',
+                  })}
+                </span>
               </div>
               <div className="flex justify-between pt-3 border-t border-gray-100">
                 <span className="text-gray-900 font-medium">Amount Paid</span>
-                <span className="text-xl font-medium text-gray-900">{fmt(receiptModal.amount)}</span>
+                <span className="text-xl font-medium text-gray-900">
+                  {fmt(receiptModal.amount)}
+                </span>
               </div>
             </div>
           </div>

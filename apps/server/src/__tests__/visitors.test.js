@@ -19,7 +19,9 @@ const supabaseMock = {
   not: jest.fn().mockReturnThis(),
   is: jest.fn().mockReturnThis(),
   head: jest.fn().mockReturnThis(),
-  then: jest.fn(function(resolve) { resolve(queryResults.shift()); })
+  then: jest.fn(function (resolve) {
+    resolve(queryResults.shift());
+  }),
 };
 
 jest.unstable_mockModule('../config/supabase.js', () => ({
@@ -28,10 +30,10 @@ jest.unstable_mockModule('../config/supabase.js', () => ({
     auth: {
       getUser: jest.fn().mockResolvedValue({
         data: { user: { id: 'test-user-id' } },
-        error: null
-      })
-    }
-  }
+        error: null,
+      }),
+    },
+  },
 }));
 
 const mockRedisGet = jest.fn().mockResolvedValue(null);
@@ -45,23 +47,35 @@ jest.unstable_mockModule('../config/redis.js', () => ({
   publishEvent: jest.fn().mockResolvedValue(true),
   redis: {
     get: mockRedisGet,
-    set: mockRedisSet
-  }
+    set: mockRedisSet,
+  },
 }));
 
 jest.unstable_mockModule('../config/socket.js', () => ({
   emitToAll: jest.fn(),
   emitToUser: jest.fn(),
   getIO: jest.fn(),
-  initSocket: jest.fn()
+  initSocket: jest.fn(),
 }));
 
 jest.unstable_mockModule('../config/notify.js', () => ({
-  createNotification: jest.fn().mockResolvedValue(true)
+  createNotification: jest.fn().mockResolvedValue(true),
 }));
 
-const mockWardenProfile = { id: 'warden-id', role: 'warden', email: 'warden@test.com', full_name: 'Test Warden', hostel_id: 'hostel-1' };
-const mockStudentProfile = { id: 'student-id', role: 'student', email: 'student@test.com', full_name: 'Test Student', hostel_id: 'hostel-1' };
+const mockWardenProfile = {
+  id: 'warden-id',
+  role: 'warden',
+  email: 'warden@test.com',
+  full_name: 'Test Warden',
+  hostel_id: 'hostel-1',
+};
+const mockStudentProfile = {
+  id: 'student-id',
+  role: 'student',
+  email: 'student@test.com',
+  full_name: 'Test Student',
+  hostel_id: 'hostel-1',
+};
 
 let currentProfile = mockStudentProfile;
 let authEnabled = true;
@@ -70,7 +84,7 @@ jest.unstable_mockModule('../middleware/rateLimit.js', () => ({
   generalLimiter: (req, res, next) => next(),
   authLimiter: (req, res, next) => next(),
   notificationLimiter: (req, res, next) => next(),
-  apiLimiter: (req, res, next) => next()
+  apiLimiter: (req, res, next) => next(),
 }));
 
 jest.unstable_mockModule('../middleware/auth.js', () => ({
@@ -84,7 +98,7 @@ jest.unstable_mockModule('../middleware/auth.js', () => ({
     req.user = { id: currentProfile.id };
     req.profile = currentProfile;
     next();
-  }
+  },
 }));
 
 const { default: app } = await import('../index.js');
@@ -105,7 +119,7 @@ describe('Visitors API', () => {
         visitor_phone: '1234567890',
         purpose: 'Meeting for project discussion',
         relationship: 'friend',
-        expected_visit_date: '2026-06-05'
+        expected_visit_date: '2026-06-05',
       });
       expect(res.status).toBe(400);
     });
@@ -116,7 +130,7 @@ describe('Visitors API', () => {
         visitor_phone: '12345',
         purpose: 'Meeting for project discussion',
         relationship: 'friend',
-        expected_visit_date: '2026-06-05'
+        expected_visit_date: '2026-06-05',
       });
       expect(res.status).toBe(400);
     });
@@ -127,7 +141,7 @@ describe('Visitors API', () => {
         visitor_phone: '1234567890',
         purpose: 'short',
         relationship: 'friend',
-        expected_visit_date: '2026-06-05'
+        expected_visit_date: '2026-06-05',
       });
       expect(res.status).toBe(400);
     });
@@ -138,19 +152,21 @@ describe('Visitors API', () => {
         visitor_phone: '1234567890',
         purpose: 'Meeting for project discussion',
         relationship: 'invalid_rel',
-        expected_visit_date: '2026-06-05'
+        expected_visit_date: '2026-06-05',
       });
       expect(res.status).toBe(400);
     });
 
     it('should reject past expected_visit_date', async () => {
-      const res = await request(app).post('/api/visitors').send({
-        visitor_name: 'John Doe',
-        visitor_phone: '1234567890',
-        purpose: 'Meeting for project discussion',
-        relationship: 'friend',
-        expected_visit_date: new Date(Date.now() - 86400000).toISOString()
-      });
+      const res = await request(app)
+        .post('/api/visitors')
+        .send({
+          visitor_name: 'John Doe',
+          visitor_phone: '1234567890',
+          purpose: 'Meeting for project discussion',
+          relationship: 'friend',
+          expected_visit_date: new Date(Date.now() - 86400000).toISOString(),
+        });
       expect(res.status).toBe(400);
     });
 
@@ -158,17 +174,17 @@ describe('Visitors API', () => {
       queryResults = [
         { data: { id: 'visitor-1', status: 'pending' }, error: null },
         { data: { full_name: 'Test Student' }, error: null },
-        { data: [{ id: 'warden-id' }], error: null }
+        { data: [{ id: 'warden-id' }], error: null },
       ];
-      
+
       const res = await request(app).post('/api/visitors').send({
         visitor_name: 'John Doe',
         visitor_phone: '1234567890',
         purpose: 'Meeting for project discussion',
         relationship: 'friend',
-        expected_visit_date: '2026-06-05'
+        expected_visit_date: '2026-06-05',
       });
-      
+
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
     });
@@ -180,7 +196,7 @@ describe('Visitors API', () => {
         visitor_phone: '1234567890',
         purpose: 'Meeting for project discussion',
         relationship: 'friend',
-        expected_visit_date: '2026-06-05'
+        expected_visit_date: '2026-06-05',
       });
       expect(res.status).toBe(403);
     });
@@ -192,7 +208,7 @@ describe('Visitors API', () => {
         visitor_phone: '1234567890',
         purpose: 'Meeting for project discussion',
         relationship: 'friend',
-        expected_visit_date: '2026-06-05'
+        expected_visit_date: '2026-06-05',
       });
       expect(res.status).toBe(401);
     });
@@ -200,18 +216,14 @@ describe('Visitors API', () => {
 
   describe('GET /api/visitors/my — Student views own', () => {
     it('should return student own visitor requests', async () => {
-      queryResults = [
-        { data: [{ id: 'visitor-1', visitor_name: 'John Doe' }], error: null }
-      ];
+      queryResults = [{ data: [{ id: 'visitor-1', visitor_name: 'John Doe' }], error: null }];
       const res = await request(app).get('/api/visitors/my');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(1);
     });
 
     it('should return empty array if none', async () => {
-      queryResults = [
-        { data: [], error: null }
-      ];
+      queryResults = [{ data: [], error: null }];
       const res = await request(app).get('/api/visitors/my');
       expect(res.status).toBe(200);
       expect(res.body.data).toEqual([]);
@@ -227,9 +239,7 @@ describe('Visitors API', () => {
   describe('GET /api/visitors — Warden views all', () => {
     it('should return all visitor requests', async () => {
       currentProfile = mockWardenProfile;
-      queryResults = [
-        { data: [{ id: 'visitor-1' }, { id: 'visitor-2' }], error: null }
-      ];
+      queryResults = [{ data: [{ id: 'visitor-1' }, { id: 'visitor-2' }], error: null }];
       const res = await request(app).get('/api/visitors');
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(2);
@@ -237,18 +247,14 @@ describe('Visitors API', () => {
 
     it('should filter by status query param', async () => {
       currentProfile = mockWardenProfile;
-      queryResults = [
-        { data: [{ id: 'visitor-1', status: 'pending' }], error: null }
-      ];
+      queryResults = [{ data: [{ id: 'visitor-1', status: 'pending' }], error: null }];
       const res = await request(app).get('/api/visitors?status=pending');
       expect(res.status).toBe(200);
     });
 
     it('should filter by date query param', async () => {
       currentProfile = mockWardenProfile;
-      queryResults = [
-        { data: [{ id: 'visitor-1' }], error: null }
-      ];
+      queryResults = [{ data: [{ id: 'visitor-1' }], error: null }];
       const res = await request(app).get('/api/visitors?date=2026-06-05');
       expect(res.status).toBe(200);
     });
@@ -264,7 +270,7 @@ describe('Visitors API', () => {
     it('should approve visitor request', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
-        { data: { id: 'visitor-1', student_id: 'student-id' }, error: null } // The select to get visitor details maybe? or update returns it
+        { data: { id: 'visitor-1', student_id: 'student-id' }, error: null }, // The select to get visitor details maybe? or update returns it
       ];
       const res = await request(app).patch('/api/visitors/visitor-1/approve').send({});
       expect(res.status).toBe(200);
@@ -273,11 +279,9 @@ describe('Visitors API', () => {
 
     it('should accept optional warden_notes', async () => {
       currentProfile = mockWardenProfile;
-      queryResults = [
-        { data: { id: 'visitor-1', student_id: 'student-id' }, error: null }
-      ];
+      queryResults = [{ data: { id: 'visitor-1', student_id: 'student-id' }, error: null }];
       const res = await request(app).patch('/api/visitors/visitor-1/approve').send({
-        warden_notes: 'All good'
+        warden_notes: 'All good',
       });
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
@@ -293,9 +297,7 @@ describe('Visitors API', () => {
   describe('PATCH /api/visitors/:id/reject — Warden rejects', () => {
     it('should reject visitor request', async () => {
       currentProfile = mockWardenProfile;
-      queryResults = [
-        { data: { id: 'visitor-1', student_id: 'student-id' }, error: null }
-      ];
+      queryResults = [{ data: { id: 'visitor-1', student_id: 'student-id' }, error: null }];
       const res = await request(app).patch('/api/visitors/visitor-1/reject').send({});
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
@@ -311,9 +313,7 @@ describe('Visitors API', () => {
   describe('PATCH /api/visitors/:id/checkin — Warden checks in', () => {
     it('should set status to checked_in with check_in_time', async () => {
       currentProfile = mockWardenProfile;
-      queryResults = [
-        { data: { id: 'visitor-1', student_id: 'student-id' }, error: null }
-      ];
+      queryResults = [{ data: { id: 'visitor-1', student_id: 'student-id' }, error: null }];
       const res = await request(app).patch('/api/visitors/visitor-1/checkin');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
@@ -329,9 +329,7 @@ describe('Visitors API', () => {
   describe('PATCH /api/visitors/:id/checkout — Warden checks out', () => {
     it('should set status to checked_out with check_out_time', async () => {
       currentProfile = mockWardenProfile;
-      queryResults = [
-        { data: { id: 'visitor-1', student_id: 'student-id' }, error: null }
-      ];
+      queryResults = [{ data: { id: 'visitor-1', student_id: 'student-id' }, error: null }];
       const res = await request(app).patch('/api/visitors/visitor-1/checkout');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);

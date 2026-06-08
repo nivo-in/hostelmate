@@ -1,14 +1,16 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
-const NotificationBell = dynamic(() => import('./NotificationBell').then(m => ({ default: m.NotificationBell })), {
-  ssr: false,
-  loading: () => <div className="w-6 h-6" />,
-})
+const NotificationBell = dynamic(
+  () => import('./NotificationBell').then((m) => ({ default: m.NotificationBell })),
+  {
+    ssr: false,
+    loading: () => <div className="w-6 h-6" />,
+  }
+);
 
 type PageHeaderProps = {
   title: string;

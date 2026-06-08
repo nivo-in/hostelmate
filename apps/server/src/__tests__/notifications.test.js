@@ -19,14 +19,14 @@ const supabaseMock = {
   not: jest.fn().mockReturnThis(),
   is: jest.fn().mockReturnThis(),
   head: jest.fn().mockReturnThis(),
-  then: jest.fn(function(resolve, reject) { 
+  then: jest.fn(function (resolve, reject) {
     const result = queryResults.shift();
     if (result && result.throwMsg) {
       reject(new Error(result.throwMsg));
     } else {
       resolve(result);
     }
-  })
+  }),
 };
 
 jest.unstable_mockModule('../config/supabase.js', () => ({
@@ -35,10 +35,10 @@ jest.unstable_mockModule('../config/supabase.js', () => ({
     auth: {
       getUser: jest.fn().mockResolvedValue({
         data: { user: { id: 'test-user-id' } },
-        error: null
-      })
-    }
-  }
+        error: null,
+      }),
+    },
+  },
 }));
 
 jest.unstable_mockModule('../config/redis.js', () => ({
@@ -47,29 +47,39 @@ jest.unstable_mockModule('../config/redis.js', () => ({
   deleteCache: jest.fn().mockResolvedValue(true),
   deleteCachePattern: jest.fn().mockResolvedValue(true),
   publishEvent: jest.fn().mockResolvedValue(true),
-  redis: {}
+  redis: {},
 }));
 
 jest.unstable_mockModule('../config/logger.js', () => ({
-  default: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), http: jest.fn() }
+  default: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), http: jest.fn() },
 }));
 
 jest.unstable_mockModule('../config/socket.js', () => ({
   emitToUser: jest.fn(),
   emitToAll: jest.fn(),
   getIO: jest.fn(),
-  initSocket: jest.fn()
+  initSocket: jest.fn(),
 }));
 
-const mockWardenProfile = { id: 'warden-id', role: 'warden', email: 'warden@test.com', full_name: 'Test Warden' };
-const mockStudentProfile = { id: 'student-id', role: 'student', email: 'student@test.com', full_name: 'Test Student' };
+const mockWardenProfile = {
+  id: 'warden-id',
+  role: 'warden',
+  email: 'warden@test.com',
+  full_name: 'Test Warden',
+};
+const mockStudentProfile = {
+  id: 'student-id',
+  role: 'student',
+  email: 'student@test.com',
+  full_name: 'Test Student',
+};
 
 let currentProfile = mockStudentProfile;
 
 jest.unstable_mockModule('../middleware/rateLimit.js', () => ({
   generalLimiter: (req, res, next) => next(),
   authLimiter: (req, res, next) => next(),
-  notificationLimiter: (req, res, next) => next()
+  notificationLimiter: (req, res, next) => next(),
 }));
 
 jest.unstable_mockModule('../middleware/auth.js', () => ({
@@ -80,7 +90,7 @@ jest.unstable_mockModule('../middleware/auth.js', () => ({
     req.user = { id: currentProfile.id };
     req.profile = currentProfile;
     next();
-  }
+  },
 }));
 
 const { default: app } = await import('../index.js');

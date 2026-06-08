@@ -7,7 +7,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
-import { Complaint } from '@/types'
+import { Complaint } from '@/types';
 
 export default function StudentComplaints() {
   const [description, setDescription] = useState('');
@@ -24,7 +24,7 @@ export default function StudentComplaints() {
     finalCategory: string;
     finalUrgency: boolean;
   } | null>(null);
-  
+
   const { apiGet, apiPost } = useApi();
   const router = useRouter();
   const supabase = createClient();
@@ -34,6 +34,7 @@ export default function StudentComplaints() {
       const res = await apiGet('/api/complaints/my');
       if (res.success) setComplaints(res.data || []);
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error(e);
     }
   };
@@ -45,20 +46,24 @@ export default function StudentComplaints() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!description.trim()) return setError('Description required');
-    
+
     try {
-      const res = await apiPost('/api/complaints', { category: 'other', description, is_urgent: urgent });
+      const res = await apiPost('/api/complaints', {
+        category: 'other',
+        description,
+        is_urgent: urgent,
+      });
       if (res.success) {
         setDescription('');
         setUrgent(false);
         setError('');
         setSuccess('Complaint submitted successfully');
-        
+
         if (res.ai?.classified) {
           setAiInfo({
             ...res.ai,
             finalCategory: res.data.category,
-            finalUrgency: res.data.is_urgent
+            finalUrgency: res.data.is_urgent,
           });
           setTimeout(() => {
             setSuccess('');
@@ -67,7 +72,7 @@ export default function StudentComplaints() {
         } else {
           setTimeout(() => setSuccess(''), 3000);
         }
-        
+
         fetchComplaints();
       } else {
         setError(res.error || 'Failed to submit complaint');
@@ -91,34 +96,63 @@ export default function StudentComplaints() {
   return (
     <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
       <PageHeader title="Complaints" showBack onSignOut={handleSignOut} />
-      
+
       <div className="mb-8 p-6 border border-gray-100 rounded-xl hover:border-gray-300 transition-colors">
         <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
           <div>
             <label className="block text-xs text-gray-500 mb-1">Description</label>
-            <textarea value={description} onChange={e => setDescription(e.target.value)} required placeholder="Describe your issue in detail — AI will auto-categorize" className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 transition-colors w-full" rows={3}></textarea>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+              placeholder="Describe your issue in detail — AI will auto-categorize"
+              className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 transition-colors w-full"
+              rows={3}
+            ></textarea>
           </div>
           <div className="flex items-center gap-2">
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => setUrgent(!urgent)}
               className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${urgent ? 'bg-gray-900' : 'bg-gray-200'}`}
             >
-              <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${urgent ? 'translate-x-5' : 'translate-x-1'}`} />
+              <span
+                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${urgent ? 'translate-x-5' : 'translate-x-1'}`}
+              />
             </button>
-            <label className="text-sm text-gray-900 cursor-pointer" onClick={() => setUrgent(!urgent)}>Mark as urgent (AI may override)</label>
+            <label
+              className="text-sm text-gray-900 cursor-pointer"
+              onClick={() => setUrgent(!urgent)}
+            >
+              Mark as urgent (AI may override)
+            </label>
           </div>
           {error && <p className="text-xs text-red-500">{error}</p>}
           {success && <p className="text-xs text-green-600">{success}</p>}
           {aiInfo && (
             <div className="border border-blue-100 bg-blue-50/50 rounded-lg p-3 mt-3">
               <div className="text-xs font-medium text-blue-700">🤖 AI Analysis</div>
-              {aiInfo.category_changed && <div className="text-xs text-blue-600 mt-1">Category updated to: {aiInfo.finalCategory}</div>}
-              {aiInfo.urgency_changed && aiInfo.finalUrgency && <div className="text-xs text-orange-600 mt-1">⚠️ Marked as urgent based on description</div>}
-              <div className="text-xs text-gray-400 mt-1">AI Confidence: {Math.round((aiInfo.confidence || 0) * 100)}%</div>
+              {aiInfo.category_changed && (
+                <div className="text-xs text-blue-600 mt-1">
+                  Category updated to: {aiInfo.finalCategory}
+                </div>
+              )}
+              {aiInfo.urgency_changed && aiInfo.finalUrgency && (
+                <div className="text-xs text-orange-600 mt-1">
+                  ⚠️ Marked as urgent based on description
+                </div>
+              )}
+              <div className="text-xs text-gray-400 mt-1">
+                AI Confidence: {Math.round((aiInfo.confidence || 0) * 100)}%
+              </div>
             </div>
           )}
-          <button type="submit" className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors">Submit Complaint</button>
+          <button
+            type="submit"
+            className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors"
+          >
+            Submit Complaint
+          </button>
         </form>
       </div>
 
@@ -128,14 +162,19 @@ export default function StudentComplaints() {
             <EmptyState message="No complaints raised yet" />
           </div>
         ) : (
-          complaints.map(c => (
-            <div key={c.id} className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors bg-white">
+          complaints.map((c) => (
+            <div
+              key={c.id}
+              className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors bg-white"
+            >
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-2">
                   <span className="capitalize text-sm font-medium text-gray-900">{c.category}</span>
                   {c.is_urgent && <Badge variant="danger">URGENT</Badge>}
                 </div>
-                <span className="text-xs text-gray-400">{new Date(c.created_at).toLocaleDateString()}</span>
+                <span className="text-xs text-gray-400">
+                  {new Date(c.created_at).toLocaleDateString()}
+                </span>
               </div>
               <p className="text-sm text-gray-600 mb-4">{c.description}</p>
               <div className="flex justify-end">

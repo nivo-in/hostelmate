@@ -24,10 +24,10 @@ jest.unstable_mockModule('../config/supabase.js', () => ({
     auth: {
       getUser: jest.fn().mockResolvedValue({
         data: { user: { id: 'test-user-id' } },
-        error: null
-      })
-    }
-  }
+        error: null,
+      }),
+    },
+  },
 }));
 
 jest.unstable_mockModule('../config/redis.js', () => ({
@@ -36,18 +36,18 @@ jest.unstable_mockModule('../config/redis.js', () => ({
   deleteCache: jest.fn().mockResolvedValue(true),
   deleteCachePattern: jest.fn().mockResolvedValue(true),
   publishEvent: jest.fn().mockResolvedValue(true),
-  redis: {}
+  redis: {},
 }));
 
 jest.unstable_mockModule('../config/logger.js', () => ({
-  default: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), http: jest.fn() }
+  default: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), http: jest.fn() },
 }));
 
 jest.unstable_mockModule('../config/socket.js', () => ({
   emitToUser: jest.fn(),
   emitToAll: jest.fn(),
   getIO: jest.fn(),
-  initSocket: jest.fn()
+  initSocket: jest.fn(),
 }));
 
 jest.unstable_mockModule('../config/openai.js', () => ({
@@ -56,32 +56,41 @@ jest.unstable_mockModule('../config/openai.js', () => ({
     is_urgent: false,
     summary: 'Light not working',
     suggested_action: 'Check circuit breaker',
-    confidence: 0.95
+    confidence: 0.95,
   }),
   generateMaintenanceSuggestion: jest.fn().mockResolvedValue({
     patterns: [],
-    summary: 'No major patterns detected'
-  })
+    summary: 'No major patterns detected',
+  }),
 }));
 
 jest.unstable_mockModule('../config/notify.js', () => ({
-  createNotification: jest.fn()
+  createNotification: jest.fn(),
 }));
 
 jest.unstable_mockModule('../config/audit.js', () => ({
-  auditLog: jest.fn()
+  auditLog: jest.fn(),
 }));
 
-const mockWardenProfile = { id: 'warden-id', role: 'warden', email: 'warden@test.com', full_name: 'Test Warden' };
-const mockStudentProfile = { id: 'student-id', role: 'student', email: 'student@test.com', full_name: 'Test Student' };
+const mockWardenProfile = {
+  id: 'warden-id',
+  role: 'warden',
+  email: 'warden@test.com',
+  full_name: 'Test Warden',
+};
+const mockStudentProfile = {
+  id: 'student-id',
+  role: 'student',
+  email: 'student@test.com',
+  full_name: 'Test Student',
+};
 
 let currentProfile = mockStudentProfile;
-
 
 jest.unstable_mockModule('../middleware/rateLimit.js', () => ({
   generalLimiter: (req, res, next) => next(),
   authLimiter: (req, res, next) => next(),
-  notificationLimiter: (req, res, next) => next()
+  notificationLimiter: (req, res, next) => next(),
 }));
 
 jest.unstable_mockModule('../middleware/auth.js', () => ({
@@ -92,7 +101,7 @@ jest.unstable_mockModule('../middleware/auth.js', () => ({
     req.user = { id: currentProfile.id };
     req.profile = currentProfile;
     next();
-  }
+  },
 }));
 
 const { default: app } = await import('../index.js');
@@ -108,30 +117,40 @@ describe('Complaints API', () => {
   describe('POST /api/complaints - Student submits', () => {
     it('should reject invalid category', async () => {
       const res = await request(app).post('/api/complaints').send({
-        category: 'invalid_cat', description: 'desc', is_private: false
+        category: 'invalid_cat',
+        description: 'desc',
+        is_private: false,
       });
       expect(res.status).toBe(400);
     });
 
     it('should reject missing description', async () => {
       const res = await request(app).post('/api/complaints').send({
-        category: 'electrical'
+        category: 'electrical',
       });
       expect(res.status).toBe(400);
     });
 
     it('should accept valid complaint', async () => {
-      supabaseMock.single.mockResolvedValueOnce({ data: { id: '1', ai_category: 'electrical' }, error: null });
+      supabaseMock.single.mockResolvedValueOnce({
+        data: { id: '1', ai_category: 'electrical' },
+        error: null,
+      });
       const res = await request(app).post('/api/complaints').send({
-        category: 'electrical', description: 'valid description'
+        category: 'electrical',
+        description: 'valid description',
       });
       expect(res.status).toBe(200);
     });
 
     it('should include AI classification in response', async () => {
-      supabaseMock.single.mockResolvedValueOnce({ data: { id: '1', ai_category: 'electrical' }, error: null });
+      supabaseMock.single.mockResolvedValueOnce({
+        data: { id: '1', ai_category: 'electrical' },
+        error: null,
+      });
       const res = await request(app).post('/api/complaints').send({
-        category: 'electrical', description: 'valid description'
+        category: 'electrical',
+        description: 'valid description',
       });
       expect(res.status).toBe(200);
       expect(classifyComplaint).toHaveBeenCalled();
@@ -141,15 +160,20 @@ describe('Complaints API', () => {
       classifyComplaint.mockRejectedValueOnce(new Error('AI failed'));
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '1' }, error: null });
       const res = await request(app).post('/api/complaints').send({
-        category: 'electrical', description: 'valid description'
+        category: 'electrical',
+        description: 'valid description',
       });
       expect(res.status).toBe(200);
     });
 
     it('should default is_urgent to false', async () => {
-      supabaseMock.single.mockResolvedValueOnce({ data: { id: '1', is_urgent: false }, error: null });
+      supabaseMock.single.mockResolvedValueOnce({
+        data: { id: '1', is_urgent: false },
+        error: null,
+      });
       const res = await request(app).post('/api/complaints').send({
-        category: 'electrical', description: 'valid description'
+        category: 'electrical',
+        description: 'valid description',
       });
       expect(res.status).toBe(200);
     });
@@ -193,20 +217,30 @@ describe('Complaints API', () => {
   describe('PATCH /api/complaints/:id/status - Warden updates', () => {
     it('should update status to in_progress', async () => {
       currentProfile = mockWardenProfile;
-      supabaseMock.single.mockResolvedValueOnce({ data: { id: '1', status: 'in_progress' }, error: null });
-      const res = await request(app).patch('/api/complaints/1/status').send({ status: 'in_progress' });
+      supabaseMock.single.mockResolvedValueOnce({
+        data: { id: '1', status: 'in_progress' },
+        error: null,
+      });
+      const res = await request(app)
+        .patch('/api/complaints/1/status')
+        .send({ status: 'in_progress' });
       expect(res.status).toBe(200);
     });
 
     it('should update status to resolved with resolution date', async () => {
       currentProfile = mockWardenProfile;
-      supabaseMock.single.mockResolvedValueOnce({ data: { id: '1', status: 'resolved' }, error: null });
+      supabaseMock.single.mockResolvedValueOnce({
+        data: { id: '1', status: 'resolved' },
+        error: null,
+      });
       const res = await request(app).patch('/api/complaints/1/status').send({ status: 'resolved' });
       expect(res.status).toBe(200);
     });
 
     it('should return 403 for student', async () => {
-      const res = await request(app).patch('/api/complaints/1/status').send({ status: 'in_progress' });
+      const res = await request(app)
+        .patch('/api/complaints/1/status')
+        .send({ status: 'in_progress' });
       expect(res.status).toBe(403);
     });
 

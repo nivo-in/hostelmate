@@ -15,7 +15,7 @@ import { createClient } from '@/lib/supabase/client';
 interface WardenFaceVerificationProps {
   wardenId: string;
   onVerified: () => void;
-  onFailed: (reason: string) => void;
+  onFailed: (_failureReason: string) => void;
   onSkip: () => void;
 }
 
@@ -33,12 +33,12 @@ type Status =
   | 'max-attempts'
   | 'error';
 
-interface FacePosition { x: number; y: number; }
+// interface FacePosition { x: number; y: number; }
 
 const MAX_ATTEMPTS = 5;
 // Frame-diff: avg pixel change < this over MANY frames = photo spoof
-const FRAME_DIFF_LIVE_THRESHOLD = 6;   // out of 255
-const FRAME_DIFF_MIN_FRAMES = 10;      // need this many frames before hard-blocking
+const FRAME_DIFF_LIVE_THRESHOLD = 6; // out of 255
+const FRAME_DIFF_MIN_FRAMES = 10; // need this many frames before hard-blocking
 
 export default function WardenFaceVerification({
   wardenId,
@@ -62,7 +62,7 @@ export default function WardenFaceVerification({
   // Liveness
   const blinkDetectedRef = useRef(false);
   const lastEARRef = useRef<number>(1.0);
-  const facePositionHistoryRef = useRef<FacePosition[]>([]);
+
   const prevFrameDataRef = useRef<Uint8ClampedArray | null>(null);
   const frameDiffScoresRef = useRef<number[]>([]);
 
@@ -83,7 +83,10 @@ export default function WardenFaceVerification({
 
   const stopCamera = useCallback(() => {
     runningRef.current = false;
-    if (streamRef.current) { streamRef.current.getTracks().forEach((t) => t.stop()); streamRef.current = null; }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
   }, []);
 
   // ── Frame-difference liveness ─────────────────────────────────────────────
@@ -101,9 +104,14 @@ export default function WardenFaceVerification({
       canvas.height = SAMPLE;
       ctx.drawImage(
         video,
-        Math.max(0, box.x), Math.max(0, box.y),
-        box.width, box.height,
-        0, 0, SAMPLE, SAMPLE
+        Math.max(0, box.x),
+        Math.max(0, box.y),
+        box.width,
+        box.height,
+        0,
+        0,
+        SAMPLE,
+        SAMPLE
       );
 
       const current = ctx.getImageData(0, 0, SAMPLE, SAMPLE).data;
@@ -114,8 +122,8 @@ export default function WardenFaceVerification({
         let totalDiff = 0;
         const pixelCount = SAMPLE * SAMPLE;
         for (let i = 0; i < current.length; i += 4) {
-          const curGray  = 0.299 * current[i] + 0.587 * current[i + 1] + 0.114 * current[i + 2];
-          const prevGray = 0.299 * prev[i]    + 0.587 * prev[i + 1]    + 0.114 * prev[i + 2];
+          const curGray = 0.299 * current[i] + 0.587 * current[i + 1] + 0.114 * current[i + 2];
+          const prevGray = 0.299 * prev[i] + 0.587 * prev[i + 1] + 0.114 * prev[i + 2];
           totalDiff += Math.abs(curGray - prevGray);
         }
         avgDiff = totalDiff / pixelCount;
@@ -179,7 +187,9 @@ export default function WardenFaceVerification({
                 runningRef.current = false;
                 stopCamera();
                 setStatus('liveness-failed');
-                onFailedRef.current('Liveness check failed — please use a live camera, not a photo.');
+                onFailedRef.current(
+                  'Liveness check failed — please use a live camera, not a photo.'
+                );
                 return;
               }
             }
@@ -215,7 +225,6 @@ export default function WardenFaceVerification({
 
     tick();
   }, [stopCamera, computeFrameDiff]);
-
 
   useEffect(() => {
     let cancelled = false;
@@ -262,7 +271,7 @@ export default function WardenFaceVerification({
           if (Array.isArray(raw) && raw.length > 0) {
             storedDescriptorsRef.current = Array.isArray(raw[0])
               ? (raw as number[][])
-              : [(raw as number[])];
+              : [raw as number[]];
           } else {
             onSkipRef.current();
             return;
@@ -273,7 +282,10 @@ export default function WardenFaceVerification({
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
         });
-        if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
         streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -285,7 +297,11 @@ export default function WardenFaceVerification({
       } catch (err: unknown) {
         if (cancelled) return;
         const msg = err instanceof Error ? err.message : String(err);
-        if (msg.toLowerCase().includes('permission') || msg.toLowerCase().includes('denied') || msg.toLowerCase().includes('notallowed')) {
+        if (
+          msg.toLowerCase().includes('permission') ||
+          msg.toLowerCase().includes('denied') ||
+          msg.toLowerCase().includes('notallowed')
+        ) {
           setStatus('camera-denied');
         } else {
           setStatus('error');
@@ -295,14 +311,27 @@ export default function WardenFaceVerification({
     };
 
     init();
-    return () => { cancelled = true; stopCamera(); };
+    return () => {
+      cancelled = true;
+      stopCamera();
+    };
   }, [wardenId, startVerificationLoop, stopCamera]);
 
   // ── Derived UI ─────────────────────────────────────────────────────────────
   const isVerified = status === 'verified';
-  const isFailed = ['failed', 'liveness-failed', 'max-attempts'].includes(status);
+  // const isFailed = ['failed', 'liveness-failed', 'max-attempts'].includes(status);
   const isLoading = ['loading-models', 'requesting-camera', 'fetching-descriptor'].includes(status);
-  const showVideo = !['loading-models', 'fetching-descriptor', 'camera-denied', 'error', 'verified', 'failed', 'liveness-failed', 'max-attempts', 'no-face-data'].includes(status);
+  const showVideo = ![
+    'loading-models',
+    'fetching-descriptor',
+    'camera-denied',
+    'error',
+    'verified',
+    'failed',
+    'liveness-failed',
+    'max-attempts',
+    'no-face-data',
+  ].includes(status);
 
   const confidence =
     smoothedDist !== null
@@ -310,23 +339,36 @@ export default function WardenFaceVerification({
       : null;
 
   const barColor =
-    confidence === null ? '#e5e7eb'
-    : confidence >= 70 ? '#16a34a'
-    : confidence >= 40 ? '#f59e0b'
-    : '#ef4444';
+    confidence === null
+      ? '#e5e7eb'
+      : confidence >= 70
+        ? '#16a34a'
+        : confidence >= 40
+          ? '#f59e0b'
+          : '#ef4444';
 
   const livenessColor = blinkDetected ? '#16a34a' : '#f59e0b';
   const livenessText = blinkDetected
     ? '👁 Liveness: ✓ Confirmed'
-    : '👁 Blink once to verify you\'re real';
+    : "👁 Blink once to verify you're real";
 
   return (
     <div className="flex flex-col items-center gap-5 p-6">
       {/* Header */}
       <div className="text-center">
         <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center mx-auto mb-3">
-          <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+          <svg
+            className="w-5 h-5 text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
+            />
           </svg>
         </div>
         <h2 className="text-lg font-medium text-gray-900">Warden Security Check</h2>
@@ -337,14 +379,21 @@ export default function WardenFaceVerification({
       {isLoading && (
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <svg className="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
           </svg>
           {status === 'loading-models'
             ? 'Loading face recognition...'
             : status === 'fetching-descriptor'
-            ? 'Loading your face data...'
-            : 'Starting camera...'}
+              ? 'Loading your face data...'
+              : 'Starting camera...'}
         </div>
       )}
 
@@ -367,10 +416,16 @@ export default function WardenFaceVerification({
               <div className="relative" style={{ width: '42%', paddingTop: '58%' }}>
                 <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 136" fill="none">
                   <ellipse
-                    cx="50" cy="68" rx="48" ry="66"
+                    cx="50"
+                    cy="68"
+                    rx="48"
+                    ry="66"
                     stroke={status === 'verifying' ? '#3b82f6' : '#ffffff'}
                     strokeWidth="3"
-                    style={{ filter: 'drop-shadow(0 0 6px rgba(0,0,0,0.5))', transition: 'stroke 0.2s ease' }}
+                    style={{
+                      filter: 'drop-shadow(0 0 6px rgba(0,0,0,0.5))',
+                      transition: 'stroke 0.2s ease',
+                    }}
                   />
                 </svg>
               </div>
@@ -451,7 +506,13 @@ export default function WardenFaceVerification({
       {isVerified && (
         <div className="flex flex-col items-center gap-2">
           <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
-            <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <svg
+              className="w-8 h-8 text-green-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
@@ -475,8 +536,15 @@ export default function WardenFaceVerification({
       {(status === 'failed' || status === 'max-attempts') && (
         <div className="flex flex-col items-center gap-2">
           <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
-            <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            <svg
+              className="w-8 h-8 text-red-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </div>
           <p className="text-sm font-medium text-red-600">Face not recognized</p>

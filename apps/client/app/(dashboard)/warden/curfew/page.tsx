@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useApi } from '@/hooks/useApi';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
 
 type Violation = {
   student_id: string;
@@ -26,7 +26,7 @@ const SkeletonCard = () => (
 );
 
 export default function WardenCurfewPage() {
-  const router = useRouter()
+  const router = useRouter();
   const [settings, setSettings] = useState<CurfewSettings>({ enabled: true, curfew_time: '22:00' });
   const [violations, setViolations] = useState<Violation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,9 +46,15 @@ export default function WardenCurfewPage() {
   const apiGetRef = useRef(apiGet);
   const apiPostRef = useRef(apiPost);
   const apiPatchRef = useRef(apiPatch);
-  useEffect(() => { apiGetRef.current = apiGet; });
-  useEffect(() => { apiPostRef.current = apiPost; });
-  useEffect(() => { apiPatchRef.current = apiPatch; });
+  useEffect(() => {
+    apiGetRef.current = apiGet;
+  });
+  useEffect(() => {
+    apiPostRef.current = apiPost;
+  });
+  useEffect(() => {
+    apiPatchRef.current = apiPatch;
+  });
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -60,7 +66,7 @@ export default function WardenCurfewPage() {
     try {
       const [settingsRes, violationsRes] = await Promise.all([
         apiGetRef.current('/api/curfew/settings'),
-        apiGetRef.current('/api/curfew/violations')
+        apiGetRef.current('/api/curfew/violations'),
       ]);
 
       if (settingsRes.success && settingsRes.data) {
@@ -68,10 +74,13 @@ export default function WardenCurfewPage() {
       }
       if (violationsRes.success && violationsRes.data) {
         setViolations(violationsRes.data);
-        const alreadyNotifiedIds = violationsRes.data.filter((v: { parent_notified: boolean, student_id: string }) => v.parent_notified).map((v: { parent_notified: boolean, student_id: string }) => v.student_id);
+        const alreadyNotifiedIds = violationsRes.data
+          .filter((v: { parent_notified: boolean; student_id: string }) => v.parent_notified)
+          .map((v: { parent_notified: boolean; student_id: string }) => v.student_id);
         setNotifiedIds(alreadyNotifiedIds);
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Curfew fetch error:', err);
     } finally {
       setLoading(false);
@@ -115,16 +124,17 @@ export default function WardenCurfewPage() {
   };
 
   const handleNotify = async (studentIds: string[]) => {
-    setNotifyingIds(prev => [...prev, ...studentIds]);
+    setNotifyingIds((prev) => [...prev, ...studentIds]);
     try {
       const res = await apiPostRef.current('/api/curfew/notify', { student_ids: studentIds });
       if (res.success) {
-        setNotifiedIds(prev => [...prev, ...studentIds]);
+        setNotifiedIds((prev) => [...prev, ...studentIds]);
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Notify error:', err);
     } finally {
-      setNotifyingIds(prev => prev.filter(id => !studentIds.includes(id)));
+      setNotifyingIds((prev) => prev.filter((id) => !studentIds.includes(id)));
     }
   };
 
@@ -163,7 +173,9 @@ export default function WardenCurfewPage() {
 
       {loading ? (
         <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}
+          {Array.from({ length: 3 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
         </div>
       ) : (
         <div className="space-y-6">
@@ -171,26 +183,30 @@ export default function WardenCurfewPage() {
           <div className="border border-gray-100 rounded-xl p-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div>
-                <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">Current Time</div>
+                <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">
+                  Current Time
+                </div>
                 <div className="text-3xl font-medium text-gray-900">
                   {mounted ? displayTime : '——:——'}
                 </div>
               </div>
               <div>
-                <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">Curfew Time</div>
+                <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">
+                  Curfew Time
+                </div>
                 <div className="text-xl text-gray-500">{settings.curfew_time}</div>
               </div>
               <div className="text-right">
-                <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium border ${
-                  isAfterCurfew
-                    ? 'bg-red-50 text-red-700 border-red-200'
-                    : 'bg-green-50 text-green-700 border-green-200'
-                }`}>
+                <span
+                  className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium border ${
+                    isAfterCurfew
+                      ? 'bg-red-50 text-red-700 border-red-200'
+                      : 'bg-green-50 text-green-700 border-green-200'
+                  }`}
+                >
                   {isAfterCurfew ? 'After Curfew' : 'Before Curfew'}
                 </span>
-                {mounted && (
-                  <div className="text-sm text-gray-500 mt-1.5">{statusText}</div>
-                )}
+                {mounted && <div className="text-sm text-gray-500 mt-1.5">{statusText}</div>}
               </div>
             </div>
           </div>
@@ -205,14 +221,16 @@ export default function WardenCurfewPage() {
                   <button
                     role="switch"
                     aria-checked={settings.enabled}
-                    onClick={() => setSettings(s => ({ ...s, enabled: !s.enabled }))}
+                    onClick={() => setSettings((s) => ({ ...s, enabled: !s.enabled }))}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
                       settings.enabled ? 'bg-gray-900' : 'bg-gray-200'
                     }`}
                   >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      settings.enabled ? 'translate-x-6' : 'translate-x-1'
-                    }`} />
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        settings.enabled ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
                   </button>
                   <span className="text-sm text-gray-700">Enable curfew system</span>
                 </div>
@@ -222,7 +240,7 @@ export default function WardenCurfewPage() {
                   <input
                     type="time"
                     value={settings.curfew_time}
-                    onChange={e => setSettings(s => ({ ...s, curfew_time: e.target.value }))}
+                    onChange={(e) => setSettings((s) => ({ ...s, curfew_time: e.target.value }))}
                     className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full"
                   />
                 </div>
@@ -237,7 +255,9 @@ export default function WardenCurfewPage() {
               </button>
             </div>
             {settingsMessage && (
-              <div className={`mt-3 text-xs font-medium ${settingsMessage.includes('Failed') ? 'text-red-600' : 'text-green-600'}`}>
+              <div
+                className={`mt-3 text-xs font-medium ${settingsMessage.includes('Failed') ? 'text-red-600' : 'text-green-600'}`}
+              >
                 {settingsMessage}
               </div>
             )}
@@ -249,7 +269,7 @@ export default function WardenCurfewPage() {
               <h2 className="text-sm font-medium text-gray-900">Tonight&apos;s Violations</h2>
               {violations.length > 0 && (
                 <button
-                  onClick={() => handleNotify(violations.map(v => v.student_id))}
+                  onClick={() => handleNotify(violations.map((v) => v.student_id))}
                   disabled={notifyingIds.length > 0}
                   className="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors"
                 >
@@ -261,7 +281,13 @@ export default function WardenCurfewPage() {
             {violations.length === 0 ? (
               <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
                 <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <svg
+                    className="w-4 h-4 text-green-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </div>
@@ -276,16 +302,21 @@ export default function WardenCurfewPage() {
                   <div className="text-sm font-medium text-red-700">
                     {violations.length} student{violations.length === 1 ? '' : 's'} not checked in
                   </div>
-                  <div className="text-xs text-red-500 mt-0.5">Notify parents to alert them of the violation</div>
+                  <div className="text-xs text-red-500 mt-0.5">
+                    Notify parents to alert them of the violation
+                  </div>
                 </div>
 
                 <div className="space-y-3">
-                  {violations.map(v => {
+                  {violations.map((v) => {
                     const isNotified = notifiedIds.includes(v.student_id);
                     const isNotifying = notifyingIds.includes(v.student_id);
 
                     return (
-                      <div key={v.student_id} className="border border-gray-100 rounded-xl p-4 flex justify-between items-center hover:border-gray-300 transition-colors">
+                      <div
+                        key={v.student_id}
+                        className="border border-gray-100 rounded-xl p-4 flex justify-between items-center hover:border-gray-300 transition-colors"
+                      >
                         <div>
                           <div className="text-sm font-medium text-gray-900">{v.full_name}</div>
                           <div className="text-xs text-gray-500 mt-0.5">
@@ -301,7 +332,11 @@ export default function WardenCurfewPage() {
                               : 'border-gray-200 text-gray-700 hover:bg-gray-50'
                           }`}
                         >
-                          {isNotifying ? 'Notifying...' : isNotified ? 'Notified ✓' : 'Notify Parent'}
+                          {isNotifying
+                            ? 'Notifying...'
+                            : isNotified
+                              ? 'Notified ✓'
+                              : 'Notify Parent'}
                         </button>
                       </div>
                     );

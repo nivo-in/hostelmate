@@ -1,8 +1,8 @@
-import { Server } from 'socket.io'
-import logger from './logger.js'
+import { Server } from 'socket.io';
+import logger from './logger.js';
 
 /** @type {import('socket.io').Server | null} */
-let io = null
+let io = null;
 
 /**
  * Initialize Socket.io server attached to an HTTP server instance.
@@ -12,28 +12,29 @@ let io = null
 export function initSocket(httpServer) {
   io = new Server(httpServer, {
     cors: {
-      origin: process.env.NODE_ENV === 'production'
-        ? process.env.FRONTEND_URL
-        : ['http://localhost:3000', 'http://192.168.29.142:3000'],
+      origin:
+        process.env.NODE_ENV === 'production'
+          ? process.env.FRONTEND_URL
+          : ['http://localhost:3000', 'http://192.168.29.142:3000'],
       methods: ['GET', 'POST'],
-      credentials: true
-    }
-  })
+      credentials: true,
+    },
+  });
 
   io.on('connection', (socket) => {
-    logger.info(`Socket connected: ${socket.id}`)
+    logger.info(`Socket connected: ${socket.id}`);
 
     socket.on('join', (userId) => {
-      socket.join(`user:${userId}`)
-      logger.info(`User ${userId} joined room`)
-    })
+      socket.join(`user:${userId}`);
+      logger.info(`User ${userId} joined room`);
+    });
 
     socket.on('disconnect', () => {
-      logger.info(`Socket disconnected: ${socket.id}`)
-    })
-  })
+      logger.info(`Socket disconnected: ${socket.id}`);
+    });
+  });
 
-  return io
+  return io;
 }
 
 /**
@@ -41,8 +42,8 @@ export function initSocket(httpServer) {
  * @returns {import('socket.io').Server}
  */
 export function getIO() {
-  if (!io) throw new Error('Socket.io not initialized')
-  return io
+  if (!io) throw new Error('Socket.io not initialized');
+  return io;
 }
 
 /**
@@ -52,8 +53,8 @@ export function getIO() {
  * @param {object} data
  */
 export function emitToUser(userId, event, data) {
-  if (!io) return
-  io.to(`user:${userId}`).emit(event, data)
+  if (!io) return;
+  io.to(`user:${userId}`).emit(event, data);
 }
 
 /**
@@ -62,6 +63,6 @@ export function emitToUser(userId, event, data) {
  * @param {object} data
  */
 export function emitToAll(event, data) {
-  if (!io) return
-  io.emit(event, data)
+  if (!io) return;
+  io.emit(event, data);
 }

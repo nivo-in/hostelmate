@@ -4,25 +4,25 @@ import { useEffect, useState, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
 
 // ─── Razorpay window type ────────────────────────────────
 
 interface RazorpayInstance {
   open(): void;
-  on(event: string, handler: (...args: unknown[]) => void): void;
+  on(_event: string, _handler: (..._args: unknown[]) => void): void;
 }
 
 interface RazorpayConstructor {
-  new (options: Record<string, unknown>): RazorpayInstance;
+  new (_options: Record<string, unknown>): RazorpayInstance;
 }
 
-type RazorpayWindow = Window & typeof globalThis & {
-  Razorpay: RazorpayConstructor;
-};
+type RazorpayWindow = Window &
+  typeof globalThis & {
+    Razorpay: RazorpayConstructor;
+  };
 
 // ─── Types ───────────────────────────────────────────────
-
 
 interface FeeStructure {
   id: string;
@@ -85,29 +85,38 @@ type FreqKey = 'yearly' | 'monthly';
 
 // ─── Helpers ─────────────────────────────────────────────
 
-const fmt = (n: number) =>
-  '₹' + n.toLocaleString('en-IN');
+const fmt = (n: number) => '₹' + n.toLocaleString('en-IN');
 
 const statusBadge = (status: string, isOverdue?: boolean) => {
   const base = 'text-xs px-2.5 py-1 rounded-full font-medium';
   if (isOverdue) return <span className={`${base} bg-red-100 text-red-700`}>OVERDUE</span>;
   switch (status) {
-    case 'paid':       return <span className={`${base} bg-green-50 text-green-700`}>Paid</span>;
-    case 'pending':    return <span className={`${base} bg-yellow-50 text-yellow-700`}>Pending</span>;
-    case 'processing': return <span className={`${base} bg-blue-50 text-blue-700`}>Processing</span>;
-    case 'failed':     return <span className={`${base} bg-red-50 text-red-700`}>Failed</span>;
-    case 'refunded':   return <span className={`${base} bg-gray-100 text-gray-600`}>Refunded</span>;
-    default:           return null;
+    case 'paid':
+      return <span className={`${base} bg-green-50 text-green-700`}>Paid</span>;
+    case 'pending':
+      return <span className={`${base} bg-yellow-50 text-yellow-700`}>Pending</span>;
+    case 'processing':
+      return <span className={`${base} bg-blue-50 text-blue-700`}>Processing</span>;
+    case 'failed':
+      return <span className={`${base} bg-red-50 text-red-700`}>Failed</span>;
+    case 'refunded':
+      return <span className={`${base} bg-gray-100 text-gray-600`}>Refunded</span>;
+    default:
+      return null;
   }
 };
 
 const typeBadge = (type: string) => {
   const base = 'text-xs px-2.5 py-1 rounded-full font-medium';
   switch (type) {
-    case 'combined': return <span className={`${base} bg-indigo-50 text-indigo-700`}>Hostel + Mess</span>;
-    case 'hostel':   return <span className={`${base} bg-orange-50 text-orange-700`}>Hostel</span>;
-    case 'mess':     return <span className={`${base} bg-teal-50 text-teal-700`}>Mess</span>;
-    default:         return <span className={`${base} bg-gray-100 text-gray-600`}>{type}</span>;
+    case 'combined':
+      return <span className={`${base} bg-indigo-50 text-indigo-700`}>Hostel + Mess</span>;
+    case 'hostel':
+      return <span className={`${base} bg-orange-50 text-orange-700`}>Hostel</span>;
+    case 'mess':
+      return <span className={`${base} bg-teal-50 text-teal-700`}>Mess</span>;
+    default:
+      return <span className={`${base} bg-gray-100 text-gray-600`}>{type}</span>;
   }
 };
 
@@ -115,7 +124,10 @@ const methodBadge = (method: string | null) => {
   if (!method) return null;
   const base = 'text-xs px-2.5 py-1 rounded-full font-medium bg-gray-100 text-gray-600';
   const labels: Record<string, string> = {
-    razorpay: 'Online', cash: 'Cash', bank_transfer: 'Bank Transfer', dd: 'DD'
+    razorpay: 'Online',
+    cash: 'Cash',
+    bank_transfer: 'Bank Transfer',
+    dd: 'DD',
   };
   return <span className={base}>{labels[method] || method}</span>;
 };
@@ -124,21 +136,27 @@ const methodBadge = (method: string | null) => {
 
 const PLANS = {
   combined: {
-    emoji: '🏠', label: 'Hostel + Mess', subtitle: 'Complete package — best value',
+    emoji: '🏠',
+    label: 'Hostel + Mess',
+    subtitle: 'Complete package — best value',
     recommended: true,
     yearly: { amount: 245000, note: 'Save ₹10,000 vs separate' },
     monthly: { amount: 20417, note: null },
     feeType: 'combined' as const,
   },
   hostel: {
-    emoji: '🏠', label: 'Hostel Only', subtitle: 'Room rent only, self-arrangement for meals',
+    emoji: '🏠',
+    label: 'Hostel Only',
+    subtitle: 'Room rent only, self-arrangement for meals',
     recommended: false,
     yearly: { amount: 135000, note: '₹10,000/year extra vs combined plan' },
     monthly: { amount: 11417, note: '₹1,000/month extra vs combined' },
     feeType: 'hostel' as const,
   },
   mess: {
-    emoji: '🍽', label: 'Mess Only', subtitle: 'Meals only, external accommodation',
+    emoji: '🍽',
+    label: 'Mess Only',
+    subtitle: 'Meals only, external accommodation',
     recommended: false,
     yearly: { amount: 140000, note: '₹10,000/year extra vs combined plan' },
     monthly: { amount: 11833, note: '₹1,000/month extra vs combined' },
@@ -149,7 +167,7 @@ const PLANS = {
 // ─── Component ───────────────────────────────────────────
 
 export default function StudentPaymentsPage() {
-  const router = useRouter()
+  const router = useRouter();
   const [paymentsData, setPaymentsData] = useState<PaymentsData | null>(null);
   const [feeStructures, setFeeStructures] = useState<FeeStructuresGrouped | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -172,6 +190,7 @@ export default function StudentPaymentsPage() {
       const res = await apiGet('/api/payments/my');
       if (res.success) setPaymentsData(res.data);
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error(e);
     }
   }, [apiGet]);
@@ -181,6 +200,7 @@ export default function StudentPaymentsPage() {
       const res = await apiGet('/api/payments/fee-structures');
       if (res.success) setFeeStructures(res.data);
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error(e);
     }
   }, [apiGet]);
@@ -196,7 +216,9 @@ export default function StudentPaymentsPage() {
           .select('full_name, email')
           .eq('id', session.user.id)
           .single()
-          .then(({ data }) => { if (data) setProfile(data); });
+          .then(({ data }) => {
+            if (data) setProfile(data);
+          });
       }
     });
   }, []);
@@ -207,7 +229,9 @@ export default function StudentPaymentsPage() {
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.async = true;
     document.body.appendChild(script);
-    return () => { document.body.removeChild(script); };
+    return () => {
+      document.body.removeChild(script);
+    };
   }, []);
 
   // ── Pay existing pending payment ──
@@ -226,24 +250,35 @@ export default function StudentPaymentsPage() {
         name: 'HostelMate by Nivo',
         description: payment.fee_structures?.name || 'Fee Payment',
         order_id: orderData.order_id,
-        handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
-          const result = await apiPost('/api/payments/verify', {
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-            fee_payment_id: payment.id,
-          });
-          if (result.success) {
-            setSuccess(`Payment successful! Receipt: ${result.receipt_number}`);
-            setTimeout(() => setSuccess(''), 6000);
-            fetchPayments();
-          } else {
-            setError('Payment verification failed. Contact support.');
+        handler: async (response: {
+          razorpay_order_id: string;
+          razorpay_payment_id: string;
+          razorpay_signature: string;
+        }) => {
+          try {
+            const result = await apiPost('/api/payments/verify', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              fee_payment_id: payment.id,
+            });
+            if (result.success) {
+              setSuccess(`Payment successful! Receipt: ${result.receipt_number}`);
+              setTimeout(() => setSuccess(''), 6000);
+              fetchPayments();
+            } else {
+              setError('Payment verification failed. Contact support.');
+            }
+          } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Error verifying payment:', error);
+            setError('Verification failed. Contact support.');
+            setError('Verification failed. Contact support.');
           }
         },
         prefill: { name: profile?.full_name, email: profile?.email },
         theme: { color: '#111827' },
-        modal: { 
+        modal: {
           ondismiss: async () => {
             setError('Payment window closed');
             try {
@@ -251,7 +286,7 @@ export default function StudentPaymentsPage() {
             } finally {
               fetchPayments();
             }
-          }
+          },
         },
       };
       const rzp = new (window as RazorpayWindow).Razorpay(options);
@@ -266,8 +301,11 @@ export default function StudentPaymentsPage() {
         }
       });
       rzp.open();
-    } catch (e) {
-      setError((e as Error).message || 'Payment failed');
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error creating order:', error);
+      setError('Failed to initiate payment');
+      setError('Failed to initiate payment');
     } finally {
       setLoading(false);
     }
@@ -290,11 +328,16 @@ export default function StudentPaymentsPage() {
     if (!selectedPlan || !selectedFreq || !feeStructures) return;
     const plan = PLANS[selectedPlan];
     const pool = selectedFreq === 'yearly' ? feeStructures.yearly : feeStructures.monthly;
-    const structure = pool.find(f => f.fee_type === plan.feeType);
-    if (!structure) { setError('Fee structure not found. Ask warden to set up fee structures.'); return; }
+    const structure = pool.find((f) => f.fee_type === plan.feeType);
+    if (!structure) {
+      setError('Fee structure not found. Ask warden to set up fee structures.');
+      return;
+    }
 
     // Ask warden to generate bill for this student first — or show instruction
-    setError('Please ask your warden to generate a bill for your selected plan. Then it will appear below to pay.');
+    setError(
+      'Please ask your warden to generate a bill for your selected plan. Then it will appear below to pay.'
+    );
   };
 
   // ── Derived ──
@@ -303,10 +346,12 @@ export default function StudentPaymentsPage() {
   const pendingPayments = paymentsData?.payments.pending || [];
   const hasPending = pendingPayments.length > 0;
 
-  const matchedStructure = selectedPlan && selectedFreq && feeStructures
-    ? (selectedFreq === 'yearly' ? feeStructures.yearly : feeStructures.monthly)
-        .find(f => f.fee_type === PLANS[selectedPlan].feeType)
-    : null;
+  const matchedStructure =
+    selectedPlan && selectedFreq && feeStructures
+      ? (selectedFreq === 'yearly' ? feeStructures.yearly : feeStructures.monthly).find(
+          (f) => f.fee_type === PLANS[selectedPlan].feeType
+        )
+      : null;
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -321,7 +366,12 @@ export default function StudentPaymentsPage() {
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-600">
           {error}
-          <button className="float-right text-red-400 hover:text-red-600" onClick={() => setError('')}>✕</button>
+          <button
+            className="float-right text-red-400 hover:text-red-600"
+            onClick={() => setError('')}
+          >
+            ✕
+          </button>
         </div>
       )}
       {success && (
@@ -338,14 +388,21 @@ export default function StudentPaymentsPage() {
         </div>
         <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
           <p className="text-xs text-gray-400 mb-1">Total Pending</p>
-          <p className={`text-2xl font-medium ${(totals?.total_pending ?? 0) > 0 ? 'text-red-500' : 'text-gray-400'}`}>
+          <p
+            className={`text-2xl font-medium ${(totals?.total_pending ?? 0) > 0 ? 'text-red-500' : 'text-gray-400'}`}
+          >
             {fmt(totals?.total_pending ?? 0)}
           </p>
         </div>
         <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
           <p className="text-xs text-gray-400 mb-1">Next Due</p>
           <p className="text-2xl font-medium text-yellow-600">
-            {totals?.next_due ? new Date(totals.next_due).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}
+            {totals?.next_due
+              ? new Date(totals.next_due).toLocaleDateString('en-IN', {
+                  day: 'numeric',
+                  month: 'short',
+                })
+              : '—'}
           </p>
         </div>
       </div>
@@ -355,11 +412,17 @@ export default function StudentPaymentsPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-sm font-medium text-gray-900">Choose Your Fee Plan</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Select what you want to pay for and how often</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Select what you want to pay for and how often
+            </p>
           </div>
           <button
             className="border border-gray-200 text-gray-600 rounded-lg px-4 py-2.5 text-sm hover:border-gray-400 transition-colors"
-            onClick={() => { setShowPlanSelector(v => !v); setSelectedPlan(null); setSelectedFreq(null); }}
+            onClick={() => {
+              setShowPlanSelector((v) => !v);
+              setSelectedPlan(null);
+              setSelectedFreq(null);
+            }}
           >
             {showPlanSelector ? 'Cancel' : '+ Select Plan'}
           </button>
@@ -369,30 +432,46 @@ export default function StudentPaymentsPage() {
           <div className="border border-gray-100 rounded-xl p-6 space-y-6">
             {/* Step 1 — plan type */}
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Step 1 — What do you want to pay for?</p>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
+                Step 1 — What do you want to pay for?
+              </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {(Object.keys(PLANS) as PlanKey[]).map(key => {
+                {(Object.keys(PLANS) as PlanKey[]).map((key) => {
                   const plan = PLANS[key];
                   const isSelected = selectedPlan === key;
                   return (
                     <button
                       key={key}
-                      onClick={() => { setSelectedPlan(key); setSelectedFreq(null); }}
+                      onClick={() => {
+                        setSelectedPlan(key);
+                        setSelectedFreq(null);
+                      }}
                       className={`text-left border rounded-xl p-5 transition-colors ${isSelected ? 'border-gray-900 bg-gray-50' : 'border-gray-100 hover:border-gray-300'}`}
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-xl">{plan.emoji}</span>
                         <span className="text-sm font-medium text-gray-900">{plan.label}</span>
                         {plan.recommended && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-gray-900 text-white font-medium">Best</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-gray-900 text-white font-medium">
+                            Best
+                          </span>
                         )}
                       </div>
                       <p className="text-xs text-gray-500 mb-3">{plan.subtitle}</p>
                       <div className="space-y-1">
-                        <p className="text-xs text-gray-700">Yearly: <span className="font-medium">{fmt(plan.yearly.amount)}</span></p>
-                        {plan.yearly.note && <p className="text-xs text-green-600">{plan.yearly.note}</p>}
-                        <p className="text-xs text-gray-700 mt-1">Monthly: <span className="font-medium">{fmt(plan.monthly.amount)}/mo</span></p>
-                        {plan.monthly.note && <p className="text-xs text-orange-500">{plan.monthly.note}</p>}
+                        <p className="text-xs text-gray-700">
+                          Yearly: <span className="font-medium">{fmt(plan.yearly.amount)}</span>
+                        </p>
+                        {plan.yearly.note && (
+                          <p className="text-xs text-green-600">{plan.yearly.note}</p>
+                        )}
+                        <p className="text-xs text-gray-700 mt-1">
+                          Monthly:{' '}
+                          <span className="font-medium">{fmt(plan.monthly.amount)}/mo</span>
+                        </p>
+                        {plan.monthly.note && (
+                          <p className="text-xs text-orange-500">{plan.monthly.note}</p>
+                        )}
                       </div>
                     </button>
                   );
@@ -403,7 +482,9 @@ export default function StudentPaymentsPage() {
             {/* Step 2 — frequency */}
             {selectedPlan && (
               <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Step 2 — Payment Frequency</p>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
+                  Step 2 — Payment Frequency
+                </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Yearly card */}
                   <button
@@ -411,13 +492,24 @@ export default function StudentPaymentsPage() {
                     className={`text-left border rounded-xl p-5 transition-colors ${selectedFreq === 'yearly' ? 'border-gray-900 bg-gray-50' : 'border-gray-100 hover:border-gray-300'}`}
                   >
                     <p className="text-xs text-gray-400 mb-1">Pay Yearly</p>
-                    <p className="text-3xl font-medium text-gray-900 mb-1">{fmt(PLANS[selectedPlan].yearly.amount)}</p>
+                    <p className="text-3xl font-medium text-gray-900 mb-1">
+                      {fmt(PLANS[selectedPlan].yearly.amount)}
+                    </p>
                     <p className="text-xs text-gray-500 mb-2">Pay once, save more</p>
                     {selectedPlan === 'combined' && (
-                      <p className="text-xs text-green-600">Save {fmt(PLANS[selectedPlan].monthly.amount * 12 - PLANS[selectedPlan].yearly.amount)} vs monthly</p>
+                      <p className="text-xs text-green-600">
+                        Save{' '}
+                        {fmt(
+                          PLANS[selectedPlan].monthly.amount * 12 -
+                            PLANS[selectedPlan].yearly.amount
+                        )}{' '}
+                        vs monthly
+                      </p>
                     )}
                     {PLANS[selectedPlan].yearly.note && (
-                      <p className="text-xs text-gray-400 mt-1">{PLANS[selectedPlan].yearly.note}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {PLANS[selectedPlan].yearly.note}
+                      </p>
                     )}
                   </button>
 
@@ -427,11 +519,18 @@ export default function StudentPaymentsPage() {
                     className={`text-left border rounded-xl p-5 transition-colors ${selectedFreq === 'monthly' ? 'border-gray-900 bg-gray-50' : 'border-gray-100 hover:border-gray-300'}`}
                   >
                     <p className="text-xs text-gray-400 mb-1">Pay Monthly</p>
-                    <p className="text-3xl font-medium text-gray-900 mb-1">{fmt(PLANS[selectedPlan].monthly.amount)}<span className="text-base text-gray-400">/mo</span></p>
+                    <p className="text-3xl font-medium text-gray-900 mb-1">
+                      {fmt(PLANS[selectedPlan].monthly.amount)}
+                      <span className="text-base text-gray-400">/mo</span>
+                    </p>
                     <p className="text-xs text-gray-500 mb-2">Spread across 12 months</p>
-                    <p className="text-xs text-gray-400">Total yearly: {fmt(PLANS[selectedPlan].monthly.amount * 12)}</p>
+                    <p className="text-xs text-gray-400">
+                      Total yearly: {fmt(PLANS[selectedPlan].monthly.amount * 12)}
+                    </p>
                     {PLANS[selectedPlan].monthly.note && (
-                      <p className="text-xs text-orange-500 mt-1">{PLANS[selectedPlan].monthly.note}</p>
+                      <p className="text-xs text-orange-500 mt-1">
+                        {PLANS[selectedPlan].monthly.note}
+                      </p>
                     )}
                   </button>
                 </div>
@@ -442,15 +541,22 @@ export default function StudentPaymentsPage() {
             {selectedPlan && selectedFreq && (
               <div className="border border-gray-200 rounded-xl p-5 bg-gray-50">
                 <p className="text-sm font-medium text-gray-900 mb-1">
-                  You selected: {PLANS[selectedPlan].label} ({selectedFreq === 'yearly' ? 'Yearly' : 'Monthly'})
+                  You selected: {PLANS[selectedPlan].label} (
+                  {selectedFreq === 'yearly' ? 'Yearly' : 'Monthly'})
                 </p>
                 <p className="text-sm text-gray-600 mb-1">
-                  Amount: <span className="font-medium text-gray-900">{fmt(PLANS[selectedPlan][selectedFreq].amount)}{selectedFreq === 'monthly' ? '/month' : '/year'}</span>
+                  Amount:{' '}
+                  <span className="font-medium text-gray-900">
+                    {fmt(PLANS[selectedPlan][selectedFreq].amount)}
+                    {selectedFreq === 'monthly' ? '/month' : '/year'}
+                  </span>
                 </p>
                 {matchedStructure ? (
                   <p className="text-xs text-gray-400 mb-4">{matchedStructure.description}</p>
                 ) : (
-                  <p className="text-xs text-orange-500 mb-4">Fee structure not found — ask warden to configure fees first.</p>
+                  <p className="text-xs text-orange-500 mb-4">
+                    Fee structure not found — ask warden to configure fees first.
+                  </p>
                 )}
                 <button
                   onClick={handlePayNewPlan}
@@ -483,18 +589,25 @@ export default function StudentPaymentsPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {allPayments.map(payment => (
-              <div key={payment.id} className={`border rounded-xl p-6 transition-colors ${payment.is_overdue ? 'border-red-200 bg-red-50' : 'border-gray-100 hover:border-gray-300'}`}>
+            {allPayments.map((payment) => (
+              <div
+                key={payment.id}
+                className={`border rounded-xl p-6 transition-colors ${payment.is_overdue ? 'border-red-200 bg-red-50' : 'border-gray-100 hover:border-gray-300'}`}
+              >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span className="text-sm font-medium text-gray-900">{payment.fee_structures?.name}</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {payment.fee_structures?.name}
+                      </span>
                       {typeBadge(payment.fee_structures?.fee_type)}
                       {statusBadge(payment.status, payment.is_overdue)}
                       {methodBadge(payment.payment_method)}
                     </div>
                     <p className="text-xl font-medium text-gray-900 mb-1">{fmt(payment.amount)}</p>
-                    <p className="text-xs text-gray-500 mb-1">Period: <span className="font-medium">{payment.period_label}</span></p>
+                    <p className="text-xs text-gray-500 mb-1">
+                      Period: <span className="font-medium">{payment.period_label}</span>
+                    </p>
                     <div className="flex gap-4 text-xs text-gray-400">
                       <span>Due: {new Date(payment.due_date).toLocaleDateString('en-IN')}</span>
                       {payment.paid_at && (
@@ -502,7 +615,9 @@ export default function StudentPaymentsPage() {
                       )}
                     </div>
                     {payment.receipt_number && (
-                      <p className="text-xs text-gray-400 mt-1 font-mono">{payment.receipt_number}</p>
+                      <p className="text-xs text-gray-400 mt-1 font-mono">
+                        {payment.receipt_number}
+                      </p>
                     )}
                   </div>
 
@@ -513,7 +628,8 @@ export default function StudentPaymentsPage() {
                         disabled={loading}
                         className={`rounded-lg px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap disabled:opacity-50 ${payment.is_overdue ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-gray-900 text-white hover:bg-gray-700'}`}
                       >
-                        {payment.is_overdue ? '⚠️ Pay Overdue ' : 'Pay Now '}{fmt(payment.amount)}
+                        {payment.is_overdue ? '⚠️ Pay Overdue ' : 'Pay Now '}
+                        {fmt(payment.amount)}
                       </button>
                       {payment.status === 'processing' && (
                         <button

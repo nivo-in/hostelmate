@@ -1,45 +1,45 @@
-import dotenv from 'dotenv'
-dotenv.config()
+import dotenv from 'dotenv';
+dotenv.config();
 
-import { createServer } from 'http'
-import express from 'express'
-import cors from 'cors'
-import helmet from 'helmet'
-import morgan from 'morgan'
-import swaggerJsdoc from 'swagger-jsdoc'
-import swaggerUi from 'swagger-ui-express'
+import { createServer } from 'http';
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
 
-import { generalLimiter, notificationLimiter } from './middleware/rateLimit.js'
-import { errorHandler } from './middleware/errorHandler.js'
-import requestLogger from './middleware/requestLogger.js'
-import logger from './config/logger.js'
-import { redis } from './config/redis.js'
-import { initSocket } from './config/socket.js'
-import { startCurfewJob } from './config/curfewJob.js'
+import { generalLimiter, notificationLimiter } from './middleware/rateLimit.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import requestLogger from './middleware/requestLogger.js';
+import logger from './config/logger.js';
+import { redis } from './config/redis.js';
+import { initSocket } from './config/socket.js';
+import { startCurfewJob } from './config/curfewJob.js';
 
-import attendanceRoutes from './routes/attendance.js'
-import leavesRoutes from './routes/leaves.js'
-import complaintsRoutes from './routes/complaints.js'
-import messRoutes from './routes/mess.js'
-import noticesRoutes from './routes/notices.js'
-import lostFoundRoutes from './routes/lost-found.js'
-import statsRoutes from './routes/stats.js'
-import staffFeedbackRoutes from './routes/staff-feedback.js'
-import curfewRoutes from './routes/curfew.js'
-import notificationsRoutes from './routes/notifications.js'
-import roomsRoutes from './routes/rooms.js'
-import auditRoutes from './routes/audit.js'
-import studentsRoutes from './routes/students.js'
-import parentRoutes from './routes/parent.js'
-import visitorsRoutes from './routes/visitors.js'
-import paymentsRoutes from './routes/payments.js'
+import attendanceRoutes from './routes/attendance.js';
+import leavesRoutes from './routes/leaves.js';
+import complaintsRoutes from './routes/complaints.js';
+import messRoutes from './routes/mess.js';
+import noticesRoutes from './routes/notices.js';
+import lostFoundRoutes from './routes/lost-found.js';
+import statsRoutes from './routes/stats.js';
+import staffFeedbackRoutes from './routes/staff-feedback.js';
+import curfewRoutes from './routes/curfew.js';
+import notificationsRoutes from './routes/notifications.js';
+import roomsRoutes from './routes/rooms.js';
+import auditRoutes from './routes/audit.js';
+import studentsRoutes from './routes/students.js';
+import parentRoutes from './routes/parent.js';
+import visitorsRoutes from './routes/visitors.js';
+import paymentsRoutes from './routes/payments.js';
 
-const app = express()
-const PORT = process.env.PORT || 3001
+const app = express();
+const PORT = process.env.PORT || 3001;
 
 // Create HTTP server and attach Socket.io
-const httpServer = createServer(app)
-initSocket(httpServer)
+const httpServer = createServer(app);
+initSocket(httpServer);
 
 // Swagger setup
 const swaggerOptions = {
@@ -57,102 +57,104 @@ const swaggerOptions = {
     ],
   },
   apis: ['./src/routes/*.js'], // Assuming we might add swagger annotations later
-}
+};
 
-const swaggerSpec = swaggerJsdoc(swaggerOptions)
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Middleware
-app.use(helmet())
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl)
-    if (!origin) return callback(null, true)
-    // Allow localhost and local network IPs
-    if (
-      origin.includes('localhost') ||
-      origin.includes('127.0.0.1') ||
-      origin.match(/^https?:\/\/192\.168\.\d+\.\d+/) ||
-      origin.match(/^https?:\/\/10\.\d+\.\d+\.\d+/)
-    ) {
-      return callback(null, true)
-    }
-    callback(new Error('Not allowed by CORS'))
-  },
-  credentials: true
-}))
-app.use(morgan('dev'))
-app.use(express.json())
-app.use(generalLimiter)
-app.use(requestLogger)
+app.use(helmet());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl)
+      if (!origin) return callback(null, true);
+      // Allow localhost and local network IPs
+      if (
+        origin.includes('localhost') ||
+        origin.includes('127.0.0.1') ||
+        origin.match(/^https?:\/\/192\.168\.\d+\.\d+/) ||
+        origin.match(/^https?:\/\/10\.\d+\.\d+\.\d+/)
+      ) {
+        return callback(null, true);
+      }
+      callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+  })
+);
+app.use(morgan('dev'));
+app.use(express.json());
+app.use(generalLimiter);
+app.use(requestLogger);
 
 // Health check
-let redisStatus = 'disconnected'
+let redisStatus = 'disconnected';
 
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
     uptime: process.uptime(),
     timestamp: new Date(),
-    redis: redisStatus
-  })
-})
+    redis: redisStatus,
+  });
+});
 
 app.get('/', (req, res) => {
   res.json({
     status: 'ok',
     product: 'HostelMate',
     company: 'Nivo',
-    version: '1.0.0'
-  })
-})
+    version: '1.0.0',
+  });
+});
 
 // Routes
-app.use('/api/attendance', attendanceRoutes)
-app.use('/api/leaves', leavesRoutes)
-app.use('/api/complaints', complaintsRoutes)
-app.use('/api/mess', messRoutes)
-app.use('/api/notices', noticesRoutes)
-app.use('/api/lost-found', lostFoundRoutes)
-app.use('/api/stats', statsRoutes)
-app.use('/api/staff-feedback', staffFeedbackRoutes)
-app.use('/api/curfew', curfewRoutes)
-app.use('/api/notifications', notificationLimiter, notificationsRoutes)
-app.use('/api/rooms', roomsRoutes)
-app.use('/api/audit', auditRoutes)
-app.use('/api/students', studentsRoutes)
-app.use('/api/parent', parentRoutes)
-app.use('/api/visitors', visitorsRoutes)
-app.use('/api/payments', paymentsRoutes)
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/leaves', leavesRoutes);
+app.use('/api/complaints', complaintsRoutes);
+app.use('/api/mess', messRoutes);
+app.use('/api/notices', noticesRoutes);
+app.use('/api/lost-found', lostFoundRoutes);
+app.use('/api/stats', statsRoutes);
+app.use('/api/staff-feedback', staffFeedbackRoutes);
+app.use('/api/curfew', curfewRoutes);
+app.use('/api/notifications', notificationLimiter, notificationsRoutes);
+app.use('/api/rooms', roomsRoutes);
+app.use('/api/audit', auditRoutes);
+app.use('/api/students', studentsRoutes);
+app.use('/api/parent', parentRoutes);
+app.use('/api/visitors', visitorsRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ success: false, error: 'Route not found' })
-})
+  res.status(404).json({ success: false, error: 'Route not found' });
+});
 
 // Global error handler
-app.use(errorHandler)
+app.use(errorHandler);
 
 // Start server
 let server;
 if (process.env.NODE_ENV !== 'test') {
   server = httpServer.listen(PORT, '0.0.0.0', async () => {
-    logger.info(`HostelMate server running on port ${PORT}`)
-    
+    logger.info(`HostelMate server running on port ${PORT}`);
+
     try {
-      await redis.ping()
-      redisStatus = 'connected'
-      logger.info('Redis connected successfully')
-      startCurfewJob()
+      await redis.ping();
+      redisStatus = 'connected';
+      logger.info('Redis connected successfully');
+      startCurfewJob();
     } catch (err) {
-      redisStatus = 'disconnected'
-      logger.warn('Redis connection failed — caching disabled')
+      redisStatus = 'disconnected';
+      logger.warn('Redis connection failed — caching disabled');
     }
-  })
+  });
 
   server.on('error', (err) => {
-    logger.error('Server error:', err)
-  })
+    logger.error('Server error:', err);
+  });
 }
 
-export default app
+export default app;
