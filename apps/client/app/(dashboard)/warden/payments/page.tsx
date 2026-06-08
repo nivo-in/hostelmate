@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { useDebounce } from '@/hooks/useDebounce';
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -138,6 +139,7 @@ export default function WardenPaymentsPage() {
   const [generating, setGenerating] = useState(false);
   const [targetStudents, setTargetStudents] = useState<string[]>([]);
   const [studentSearchText, setStudentSearchText] = useState('');
+  const debouncedStudentSearch = useDebounce(studentSearchText, 300);
   const [allStudents, setAllStudents] = useState<StudentInfo[]>([]);
 
   // Fee structures state
@@ -658,9 +660,9 @@ export default function WardenPaymentsPage() {
                   {allStudents
                     .filter(
                       (s) =>
-                        !studentSearchText ||
-                        fuzzyMatch(studentSearchText, s.profiles?.full_name || '') ||
-                        fuzzyMatch(studentSearchText, s.roll_number || '')
+                        !debouncedStudentSearch ||
+                        fuzzyMatch(debouncedStudentSearch, s.profiles?.full_name || '') ||
+                        fuzzyMatch(debouncedStudentSearch, s.roll_number || '')
                     )
                     .map((s) => {
                       const isSelected = targetStudents.includes(s.id!);

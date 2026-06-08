@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface Visitor {
   id: string;
@@ -32,13 +33,21 @@ export default function WardenVisitors() {
   const [notes, setNotes] = useState('');
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 300);
 
   const { apiGet, apiPatch } = useApi();
   const supabase = createClient();
 
-  const fetchVisitors = async (currentPage = 1) => {
+  const fetchVisitors = async (currentPage = 1, searchQuery = '') => {
     try {
-      const res = await apiGet(`/api/v1/visitors?page=${currentPage}&limit=20`);
+      const url = new URL('/api/v1/visitors', window.location.origin);
+      url.searchParams.set('page', currentPage.toString());
+      url.searchParams.set('limit', '20');
+      if (searchQuery) {
+        url.searchParams.set('search', searchQuery);
+      }
+      const res = await apiGet(url.pathname + url.search);
       if (res.success) {
         if (currentPage === 1) {
           setVisitors(res.data || []);
@@ -54,8 +63,9 @@ export default function WardenVisitors() {
   };
 
   useEffect(() => {
-    fetchVisitors(1);
-  }, []);
+    setPage(1);
+    fetchVisitors(1, debouncedSearch);
+  }, [debouncedSearch]);
 
   const handleAction = async (id: string, action: string, notesParam?: string) => {
     try {
@@ -65,7 +75,7 @@ export default function WardenVisitors() {
         setActionId(null);
         setActionType(null);
         setNotes('');
-        fetchVisitors(1);
+        fetchVisitors(page, debouncedSearch);
       }
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -141,8 +151,32 @@ export default function WardenVisitors() {
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+      {/* Search and Filters */}
+      <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center mb-6">
+        <div className="relative w-full md:w-96">
+          <input
+            type="text"
+            placeholder="Search by visitor name or phone..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
+          />
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </div>
+        
+        <div className="flex gap-2 overflow-x-auto pb-2 w-full md:w-auto">
         {['All', 'Pending', 'Approved', 'Checked In', 'Today'].map((tab) => (
           <button
             key={tab}
@@ -156,6 +190,7 @@ export default function WardenVisitors() {
             {tab}
           </button>
         ))}
+        </div>
       </div>
 
       {/* Visitor list */}
@@ -277,7 +312,7 @@ export default function WardenVisitors() {
             onClick={() => {
               const nextPage = page + 1;
               setPage(nextPage);
-              fetchVisitors(nextPage);
+              fetchVisitors(nextPage, debouncedSearch);
             }}
             className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
           >

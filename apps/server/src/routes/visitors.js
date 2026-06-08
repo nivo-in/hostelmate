@@ -87,7 +87,7 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
 
 router.get('/', authenticate, requireWarden, async (req, res, next) => {
   try {
-    const { status, date } = req.query;
+    const { status, date, search } = req.query;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
     const from = (page - 1) * limit;
@@ -105,6 +105,7 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
 
     if (status) query = query.eq('status', status);
     if (date) query = query.eq('expected_visit_date', date);
+    if (search) query = query.or(`visitor_name.ilike.%${search}%,visitor_phone.ilike.%${search}%`);
 
     query = query.range(from, to).order('created_at', { ascending: false });
 
