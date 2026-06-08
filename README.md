@@ -137,6 +137,7 @@ HostelMate provides a **role-based platform** where students, wardens, and paren
 | **Lint/Format** | ESLint + Prettier | Enforced strict zero-warning rules across the monorepo |
 | **Testing** | Jest + Playwright | 176 backend tests and E2E frontend verification |
 | **Git Hooks** | Husky | Prevents commits failing lint, formatting, or test suites |
+| **Notifications** | Sonner | Real-time native toast alerts mapped to WebSockets |
 
 ---
 
@@ -275,9 +276,10 @@ Additionally, a **Predictive Maintenance Dashboard** analyzes the last 30 days o
 ### 🏛 Warden
 | Feature | Description |
 |---|---|
-| Analytics Dashboard | Redis-cached stats: attendance, leaves, complaints |
+| Analytics Dashboard | Live SSR-fetched stats: attendance, leaves, rooms, overdue fees |
 | **Face Auth Login** | **5-angle biometric verification with liveness detection** |
 | Student Search | Mistype-tolerant fuzzy search for quick student lookup and assignment |
+| Data Integrity | Soft-deletes across critical records (complaints, leaves) |
 | Attendance Management | View today's attendance with student details |
 | Leave Approvals | Approve/reject with `approved_by` audit trail |
 | Complaint Tracking | Update status: open → in_progress → resolved |
@@ -595,13 +597,17 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | ✅ | **Audit Logging** | Structured audit trail for all warden actions |
 | ✅ | **WebSocket Notifications** | Real-time push via Socket.io for instant alerts without polling |
 | ✅ | **Redis Pub/Sub** | Live cross-client updates across browser tabs and devices |
-| 🔲 | Test Coverage ≥80% | Expand Jest suite to full route coverage with Supertest |
-| 🔲 | Mobile App | React Native cross-platform app for students and parents |
 | ✅ | **AI Complaint Classification** | Auto-categorise complaints by type and urgency using Groq/Llama 3.1 |
 | ✅ | **Predictive Maintenance** | Predict recurring issues from historical complaint patterns via AI |
+| ✅ | **Swagger OpenAPI** | Centralised `/api/docs` generation via Express Swagger |
+| ✅ | **Global Pagination** | Server-side cursor/offset tracking with debounced client search filters |
+| ✅ | **Soft Deletion** | `.is('deleted_at', null)` checks preserving historical audit data |
+| ✅ | **Sonner Toasts** | Elegant WebSocket-driven live-updating notifications overlay |
 | 🔲 | Multi-tenancy | Support multiple hostels under one instance |
-| 🔲 | Payment Integration | Mess fees and hostel charges via Razorpay |
-| 🔲 | Visitor Management | Digital guest check-in / check-out with warden approval |
+| ✅ | Payment Integration | Mess fees and hostel charges via Razorpay |
+| ✅ | Visitor Management | Digital guest check-in / check-out with warden approval |
+| 🔲 | Test Coverage ≥80% | Expand Jest suite to full route coverage with Supertest |
+| 🔲 | Mobile App | React Native cross-platform app for students and parents |
 
 ---
 
