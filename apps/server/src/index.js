@@ -12,6 +12,7 @@ import swaggerUi from 'swagger-ui-express';
 import { generalLimiter, notificationLimiter } from './middleware/rateLimit.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import requestLogger from './middleware/requestLogger.js';
+import { requestId } from './middleware/requestId.js';
 import logger from './config/logger.js';
 import { redis } from './config/redis.js';
 import { initSocket } from './config/socket.js';
@@ -87,6 +88,7 @@ app.use(
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(generalLimiter);
+app.use(requestId);
 app.use(requestLogger);
 
 // Health check
