@@ -48,12 +48,6 @@ type TransferApiItem = {
   created_at: string;
 };
 
-type UnassignedApiItem = {
-  id: string;
-  roll_number: string;
-  profiles: { full_name: string } | null;
-};
-
 // --- Fuzzy Search Helpers ---
 function levenshteinDistance(a: string, b: string): number {
   if (a.length === 0) return b.length;
@@ -217,6 +211,7 @@ export default function WardenRoomsPage() {
         setUnassignedStudents(res.data);
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch unassigned students:', err);
     }
   };
@@ -234,6 +229,7 @@ export default function WardenRoomsPage() {
         fetchData();
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Assign error:', err);
     } finally {
       setAssigning(false);
@@ -245,6 +241,7 @@ export default function WardenRoomsPage() {
       const res = await apiPatchRef.current(`/api/rooms/transfer-requests/${id}/${action}`, {});
       if (res.success) fetchData();
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Transfer error:', err);
     }
   };

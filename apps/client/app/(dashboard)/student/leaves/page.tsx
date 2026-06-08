@@ -28,6 +28,7 @@ export default function StudentLeaves() {
       const res = await apiGet('/api/leaves/my');
       if (res.success) setLeaves(res.data || []);
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error(e);
     }
   };

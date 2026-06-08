@@ -10,11 +10,11 @@ import { useRouter } from 'next/navigation'
 
 interface RazorpayInstance {
   open(): void;
-  on(event: string, handler: (...args: unknown[]) => void): void;
+  on(_event: string, _handler: (..._args: unknown[]) => void): void;
 }
 
 interface RazorpayConstructor {
-  new (options: Record<string, unknown>): RazorpayInstance;
+  new (_options: Record<string, unknown>): RazorpayInstance;
 }
 
 type RazorpayWindow = Window & typeof globalThis & {
@@ -172,6 +172,7 @@ export default function StudentPaymentsPage() {
       const res = await apiGet('/api/payments/my');
       if (res.success) setPaymentsData(res.data);
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error(e);
     }
   }, [apiGet]);
@@ -181,6 +182,7 @@ export default function StudentPaymentsPage() {
       const res = await apiGet('/api/payments/fee-structures');
       if (res.success) setFeeStructures(res.data);
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error(e);
     }
   }, [apiGet]);
@@ -227,18 +229,25 @@ export default function StudentPaymentsPage() {
         description: payment.fee_structures?.name || 'Fee Payment',
         order_id: orderData.order_id,
         handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
-          const result = await apiPost('/api/payments/verify', {
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-            fee_payment_id: payment.id,
-          });
-          if (result.success) {
-            setSuccess(`Payment successful! Receipt: ${result.receipt_number}`);
-            setTimeout(() => setSuccess(''), 6000);
-            fetchPayments();
-          } else {
-            setError('Payment verification failed. Contact support.');
+          try {
+            const result = await apiPost('/api/payments/verify', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              fee_payment_id: payment.id,
+            });
+            if (result.success) {
+              setSuccess(`Payment successful! Receipt: ${result.receipt_number}`);
+              setTimeout(() => setSuccess(''), 6000);
+              fetchPayments();
+            } else {
+              setError('Payment verification failed. Contact support.');
+            }
+          } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Error verifying payment:', error)
+            setError('Verification failed. Contact support.');
+            setError('Verification failed. Contact support.');
           }
         },
         prefill: { name: profile?.full_name, email: profile?.email },
@@ -266,8 +275,11 @@ export default function StudentPaymentsPage() {
         }
       });
       rzp.open();
-    } catch (e) {
-      setError((e as Error).message || 'Payment failed');
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error creating order:', error)
+      setError('Failed to initiate payment');
+      setError('Failed to initiate payment');
     } finally {
       setLoading(false);
     }

@@ -72,6 +72,7 @@ export default function WardenCurfewPage() {
         setNotifiedIds(alreadyNotifiedIds);
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Curfew fetch error:', err);
     } finally {
       setLoading(false);
@@ -122,6 +123,7 @@ export default function WardenCurfewPage() {
         setNotifiedIds(prev => [...prev, ...studentIds]);
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Notify error:', err);
     } finally {
       setNotifyingIds(prev => prev.filter(id => !studentIds.includes(id)));

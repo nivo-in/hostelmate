@@ -33,12 +33,12 @@ export default function StudentDashboard() {
         setFirstName(profileResult.data.full_name.split(' ')[0])
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error(err)
     } finally {
       setLoading(false)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    }, [])
 
   useEffect(() => {
     init()

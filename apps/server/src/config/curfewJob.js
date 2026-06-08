@@ -20,7 +20,9 @@ export const startCurfewJob = () => {
       try {
         const cached = await redis.get('curfew:settings')
         if (cached) settings = JSON.parse(cached)
-      } catch (e) {}
+      } catch (e) {
+        // ignore
+      }
 
       if (!settings.enabled) return
       

@@ -10,9 +10,9 @@ import { useRouter } from 'next/navigation'
 
 interface RazorpayInstance { 
   open(): void; 
-  on(event: string, handler: (...args: unknown[]) => void): void; 
+  on(_event: string, _handler: (..._args: unknown[]) => void): void; 
 }
-interface RazorpayConstructor { new (options: Record<string, unknown>): RazorpayInstance; }
+interface RazorpayConstructor { new (_options: Record<string, unknown>): RazorpayInstance; }
 type RazorpayWindow = Window & typeof globalThis & { Razorpay: RazorpayConstructor };
 
 // ─── Types ───────────────────────────────────────────────
@@ -89,7 +89,10 @@ export default function ParentPaymentsPage() {
     try {
       const res = await apiGet('/api/payments/my');
       if (res.success) setPaymentsData(res.data);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+    }
   }, [apiGet]);
 
   useEffect(() => {
@@ -200,7 +203,7 @@ export default function ParentPaymentsPage() {
   };
 
   const totals = paymentsData?.totals;
-  const allPayments = paymentsData?.payments.all || [];
+  const _allPayments = paymentsData?.payments.all || [];
   const pendingPayments = paymentsData?.payments.pending || [];
   const paidPayments = paymentsData?.payments.paid || [];
   const studentName = paymentsData?.student_name || 'Ward';

@@ -39,6 +39,7 @@ export default function WardenVisitors() {
       const res = await apiGet('/api/visitors');
       if (res.success) setVisitors(res.data || []);
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error(e);
     }
   };
@@ -58,6 +59,7 @@ export default function WardenVisitors() {
         fetchVisitors();
       }
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error(e);
     }
   };

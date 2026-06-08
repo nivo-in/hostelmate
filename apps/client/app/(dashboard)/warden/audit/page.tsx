@@ -63,6 +63,7 @@ export default function WardenAuditPage() {
         setLogs([]);
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Audit fetch error:', err);
       setError(err instanceof Error ? err.message : 'Failed to load audit logs');
     } finally {

@@ -49,8 +49,7 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
     };
 
     checkAuth();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+    }, [pathname]);
 
   if (authorized === null) {
     return (

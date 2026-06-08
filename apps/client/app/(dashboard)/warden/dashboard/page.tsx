@@ -95,8 +95,7 @@ export default function WardenDashboard() {
     };
 
     init();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    }, []);
 
   const handleSignOut = async () => {
     await createClient().auth.signOut();

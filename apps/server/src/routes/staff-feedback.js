@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { supabaseAdmin } from '../config/supabase.js'
 import { authenticate } from '../middleware/auth.js'
-import { requireStudent, requireWarden } from '../middleware/rbac.js'
+import { requireStudent } from '../middleware/rbac.js'
 import { validate } from '../middleware/validate.js'
 import logger from '../config/logger.js'
 

@@ -66,8 +66,7 @@ export function NotificationBell() {
     } finally {
       setLoading(false)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    }, [])
 
   // Debounced version for socket events — prevents rapid-fire fetches
   const debouncedFetch = useCallback(() => {

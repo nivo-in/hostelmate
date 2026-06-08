@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { supabaseAdmin } from '../config/supabase.js'
 import { authenticate } from '../middleware/auth.js'
 import { requireWarden } from '../middleware/rbac.js'
-import logger from '../config/logger.js'
+
 import { redis } from '../config/redis.js'
 import { createNotification } from '../config/notify.js'
 

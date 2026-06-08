@@ -1,5 +1,6 @@
 import logger from '../config/logger.js'
 
+// eslint-disable-next-line no-unused-vars
 export const errorHandler = (err, req, res, next) => {
   logger.error(`${err.message} - ${req.method} ${req.originalUrl} - User: ${req.user?.id || 'anonymous'}\n${err.stack}`)
 

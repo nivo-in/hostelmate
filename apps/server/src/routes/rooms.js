@@ -4,7 +4,7 @@ import { authenticate } from '../middleware/auth.js'
 import { requireStudent, requireWarden } from '../middleware/rbac.js'
 import { createNotification } from '../config/notify.js'
 import { auditLog } from '../config/audit.js'
-import logger from '../config/logger.js'
+
 
 const router = Router()
 
@@ -45,7 +45,7 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
 
     res.json({ success: true, data: { student: { ...student, rooms: room }, roommates } })
   } catch (error) {
-    { console.error(error); next(error); }
+    next(error)
   }
 })
 
@@ -78,7 +78,7 @@ router.get('/available', authenticate, requireStudent, async (req, res, next) =>
 
     res.json({ success: true, data: available })
   } catch (error) {
-    { console.error(error); next(error); }
+    next(error)
   }
 })
 
@@ -120,7 +120,7 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
 
     res.json({ success: true, data: { rooms } })
   } catch (error) {
-    { console.error(error); next(error); }
+    next(error)
   }
 })
 
@@ -168,7 +168,7 @@ router.post('/', authenticate, requireWarden, async (req, res, next) => {
 
     res.json({ success: true, data: newRoom })
   } catch (error) {
-    { console.error(error); next(error); }
+    next(error)
   }
 })
 
@@ -189,7 +189,7 @@ router.get('/unassigned', authenticate, requireWarden, async (req, res, next) =>
 
     res.json({ success: true, data: unassignedStudents })
   } catch (error) {
-    { console.error(error); next(error); }
+    next(error)
   }
 })
 
@@ -237,7 +237,7 @@ router.post('/assign', authenticate, requireWarden, async (req, res, next) => {
 
     res.json({ success: true })
   } catch (error) {
-    { console.error(error); next(error); }
+    next(error)
   }
 })
 
@@ -268,7 +268,7 @@ router.post('/transfer-request', authenticate, requireStudent, async (req, res, 
 
     res.json({ success: true })
   } catch (error) {
-    { console.error(error); next(error); }
+    next(error)
   }
 })
 
@@ -291,7 +291,7 @@ router.get('/transfer-requests', authenticate, requireWarden, async (req, res, n
 
     res.json({ success: true, data })
   } catch (error) {
-    { console.error(error); next(error); }
+    next(error)
   }
 })
 
@@ -333,7 +333,7 @@ router.patch('/transfer-requests/:id/approve', authenticate, requireWarden, asyn
 
     res.json({ success: true })
   } catch (error) {
-    { console.error(error); next(error); }
+    next(error)
   }
 })
 
@@ -360,7 +360,7 @@ router.patch('/transfer-requests/:id/reject', authenticate, requireWarden, async
 
     res.json({ success: true })
   } catch (error) {
-    { console.error(error); next(error); }
+    next(error)
   }
 })
 
