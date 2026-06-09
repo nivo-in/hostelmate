@@ -108,7 +108,7 @@ export default function LoginPage() {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="flex flex-col items-center gap-3 text-sm text-gray-400">
-          <svg className="animate-spin transform-gpu w-5 h-5 text-gray-900" fill="none" viewBox="0 0 24 24">
+          <svg className="animate-spin w-5 h-5 text-gray-900" fill="none" viewBox="0 0 24 24">
             <circle
               className="opacity-20"
               cx="12"
