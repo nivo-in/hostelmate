@@ -1,7 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
 const NotificationBell = dynamic(
@@ -20,7 +19,6 @@ type PageHeaderProps = {
 };
 
 export function PageHeader({ title, showBack, backHref, onSignOut }: PageHeaderProps) {
-  const router = useRouter();
   const pathname = usePathname();
 
   // Infer the dashboard href if backHref isn't provided (e.g. /warden/complaints -> /warden/dashboard)
@@ -38,16 +36,15 @@ export function PageHeader({ title, showBack, backHref, onSignOut }: PageHeaderP
         {showBack ? (
           // Sub-page: show back button only, "by Nivo" is in fixed bottom-left via layout
           finalBackHref ? (
-            <Link
+            <a
               href={finalBackHref}
-              prefetch={true}
               className="text-xs text-gray-400 hover:text-gray-600 self-start transition-colors"
             >
               ← Back
-            </Link>
+            </a>
           ) : (
             <button
-              onClick={() => router.back()}
+              onClick={() => window.history.back()}
               className="text-xs text-gray-400 hover:text-gray-600 self-start transition-colors"
             >
               ← Back
