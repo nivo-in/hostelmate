@@ -244,6 +244,10 @@ describe('Complaints API', () => {
   });
 
   describe('GET /api/complaints/all - Warden views all', () => {
+    /**
+     * Test: should return all complaints
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return all complaints', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
