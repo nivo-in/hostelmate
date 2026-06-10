@@ -255,6 +255,10 @@ describe('Complaints API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should filter by status query param
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should filter by status query param', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
