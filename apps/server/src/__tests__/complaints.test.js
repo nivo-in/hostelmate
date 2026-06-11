@@ -334,6 +334,10 @@ describe('Complaints API', () => {
   });
 
   describe('GET /api/complaints/stats', () => {
+    /**
+     * Test: should return complaint statistics for warden
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return complaint statistics for warden', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.select.mockResolvedValueOnce({ data: [], error: null }); // For aggregated stats
