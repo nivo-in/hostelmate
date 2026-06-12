@@ -104,6 +104,10 @@ describe('Curfew API', () => {
   });
 
   describe('GET /api/curfew/violations', () => {
+    /**
+     * Test: should return students absent after curfew
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return students absent after curfew', async () => {
       mockRedisGet.mockResolvedValueOnce(JSON.stringify({ curfew_time: '00:00', enabled: true }));
       queryResults = [
