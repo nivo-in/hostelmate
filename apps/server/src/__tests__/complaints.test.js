@@ -345,6 +345,10 @@ describe('Complaints API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should return 403 for student
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 403 for student', async () => {
       const res = await request(app).get('/api/v1/complaints/stats');
       expect(res.status).toBe(403);
