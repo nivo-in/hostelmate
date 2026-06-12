@@ -137,6 +137,8 @@ export default function Home() {
   const animRef = useRef<number | null>(null)
   const target = useRef({ x: 4, y: -8 })
   const current = useRef({ x: 4, y: -8 })
+  const activeStates = useRef({ fc1: false, fc2: false })
+  const timers = useRef<{ fc1: number | null, fc2: number | null }>({ fc1: null, fc2: null })
 
   const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 
@@ -172,8 +174,18 @@ export default function Home() {
     const fc1 = fc1Ref.current
     if (fc1) {
       if (isNear(fc1.getBoundingClientRect(), e.clientX, e.clientY)) {
-        activateCard(fc1, '0px, 0px')
+        if (!activeStates.current.fc1 && !timers.current.fc1) {
+          timers.current.fc1 = window.setTimeout(() => {
+            activeStates.current.fc1 = true
+            activateCard(fc1, '0px, 0px')
+          }, 225)
+        }
       } else {
+        if (timers.current.fc1) {
+          window.clearTimeout(timers.current.fc1)
+          timers.current.fc1 = null
+        }
+        activeStates.current.fc1 = false
         resetCard(fc1, '4px, 4px')
       }
     }
@@ -181,8 +193,18 @@ export default function Home() {
     const fc2 = fc2Ref.current
     if (fc2) {
       if (isNear(fc2.getBoundingClientRect(), e.clientX, e.clientY)) {
-        activateCard(fc2, '0px, 0px')
+        if (!activeStates.current.fc2 && !timers.current.fc2) {
+          timers.current.fc2 = window.setTimeout(() => {
+            activeStates.current.fc2 = true
+            activateCard(fc2, '0px, 0px')
+          }, 225)
+        }
       } else {
+        if (timers.current.fc2) {
+          window.clearTimeout(timers.current.fc2)
+          timers.current.fc2 = null
+        }
+        activeStates.current.fc2 = false
         resetCard(fc2, '-4px, -4px')
       }
     }
@@ -191,11 +213,29 @@ export default function Home() {
   const handleMouseLeave = useCallback(() => {
     target.current = { x: 4, y: -8 }
     startAnim()
+
+    if (timers.current.fc1) {
+      window.clearTimeout(timers.current.fc1)
+      timers.current.fc1 = null
+    }
+    activeStates.current.fc1 = false
     if (fc1Ref.current) resetCard(fc1Ref.current, '4px, 4px')
+
+    if (timers.current.fc2) {
+      window.clearTimeout(timers.current.fc2)
+      timers.current.fc2 = null
+    }
+    activeStates.current.fc2 = false
     if (fc2Ref.current) resetCard(fc2Ref.current, '-4px, -4px')
   }, [startAnim])
 
-  useEffect(() => () => { if (animRef.current) cancelAnimationFrame(animRef.current) }, [])
+  useEffect(() => {
+    return () => {
+      if (animRef.current) cancelAnimationFrame(animRef.current)
+      if (timers.current.fc1) window.clearTimeout(timers.current.fc1)
+      if (timers.current.fc2) window.clearTimeout(timers.current.fc2)
+    }
+  }, [])
 
   return (
     <div className={styles.site}>
