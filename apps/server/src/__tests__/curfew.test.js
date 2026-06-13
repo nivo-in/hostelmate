@@ -153,6 +153,10 @@ describe('Curfew API', () => {
   });
 
   describe('POST /api/curfew/notify', () => {
+    /**
+     * Test: should notify parents of absent students
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should notify parents of absent students', async () => {
       queryResults = [
         { data: { profiles: { full_name: 'Student 1' } }, error: null }, // student single query
