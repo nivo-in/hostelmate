@@ -122,6 +122,8 @@
   text-decoration: none;
   position: relative;
   z-index: 1;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .navLink:hover {
