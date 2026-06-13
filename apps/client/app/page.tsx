@@ -76,8 +76,9 @@ export default function Home() {
         if (!activeStates.current.fc1 && !timers.current.fc1) {
           timers.current.fc1 = window.setTimeout(() => {
             activeStates.current.fc1 = true
+            timers.current.fc1 = null
             activateCard(fc1, '0px, 0px')
-          }, 225)
+          }, 500)
         }
       } else {
         if (timers.current.fc1) {
@@ -95,8 +96,9 @@ export default function Home() {
         if (!activeStates.current.fc2 && !timers.current.fc2) {
           timers.current.fc2 = window.setTimeout(() => {
             activeStates.current.fc2 = true
+            timers.current.fc2 = null
             activateCard(fc2, '0px, 0px')
-          }, 225)
+          }, 500)
         }
       } else {
         if (timers.current.fc2) {
