@@ -10,6 +10,17 @@
 }
 
 body {
-  background-color: var(--color-bg);
+  background-color: #080810;
   color: var(--color-primary);
+}
+
+/* Hide scrollbar completely but retain scrolling functionality */
+html, body {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+html::-webkit-scrollbar, 
+body::-webkit-scrollbar {
+  display: none;
 }
