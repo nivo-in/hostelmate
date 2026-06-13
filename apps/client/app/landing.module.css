@@ -58,10 +58,10 @@
   top: 0;
   z-index: 100;
 
-  /* heavy glass finish */
-  background: rgba(8, 8, 18, 0.75);
-  backdrop-filter: blur(48px) saturate(200%);
-  -webkit-backdrop-filter: blur(48px) saturate(200%);
+  /* framer style glass finish */
+  background: rgba(6, 8, 16, 0.88);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
 
   /* subtle border + inner highlight */
   border-bottom: 0.5px solid rgba(255,255,255,0.08);
