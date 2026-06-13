@@ -469,10 +469,9 @@ export default function Home() {
           <div 
             className={styles.navPill}
             style={{
-              left: navPillStyle.left,
               width: navPillStyle.width,
               opacity: navPillStyle.opacity,
-              transform: `scale(${navPillStyle.scale})`
+              transform: `translateX(${navPillStyle.left}px) scale(${navPillStyle.scale})`
             }}
           />
           {['Features', 'How it works', 'Pricing', 'FAQ'].map((label, i) => (
