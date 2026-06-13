@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { useRef, useCallback, useEffect, useState } from 'react'
+import useEmblaCarousel from 'embla-carousel-react'
+import Autoplay from 'embla-carousel-autoplay'
 import styles from './landing.module.css'
 
 const PROXIMITY = 48 // px — how close to a floating card triggers it
@@ -114,62 +116,21 @@ export default function Home() {
     },
   ]
 
-  const RADIUS = 600
-  const CARD_ANGLE = 360 / features.length
-  const ANIM_DURATION = 800
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, align: 'center', skipSnaps: false },
+    [Autoplay({ delay: 3500, stopOnInteraction: true })]
+  )
+  const [selectedIndex, setSelectedIndex] = useState(0)
 
-  const currentAngle = useRef(0)
-  const targetAngle = useRef(0)
-  const scrollAccum = useRef(0)
-  const isAnimating = useRef(false)
-  const cylinderRef = useRef<HTMLDivElement>(null)
-  const [displayAngle, setDisplayAngle] = useState(0)
-  const [activeIndex, setActiveIndex] = useState(0)
-
-  const animateTo = useCallback((angle: number) => {
-    if (isAnimating.current) return
-    isAnimating.current = true
-    targetAngle.current = angle
-    const start = currentAngle.current
-    const diff = angle - start
-    const startTime = performance.now()
-
-    const tick = (now: number) => {
-      const elapsed = now - startTime
-      const progress = Math.min(elapsed / ANIM_DURATION, 1)
-      const eased = 1 - Math.pow(1 - progress, 4)
-      const current = start + diff * eased
-      currentAngle.current = current
-      setDisplayAngle(current)
-      if (progress < 1) {
-        requestAnimationFrame(tick)
-      } else {
-        currentAngle.current = angle
-        setDisplayAngle(angle)
-        isAnimating.current = false
-      }
-    }
-    requestAnimationFrame(tick)
-  }, [])
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
 
   useEffect(() => {
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault()
-      if (isAnimating.current) return
-      scrollAccum.current += e.deltaY
-      if (Math.abs(scrollAccum.current) >= 150) {
-        const dir = scrollAccum.current > 0 ? 1 : -1
-        scrollAccum.current = 0
-        const newIndex = ((activeIndex + dir) % features.length + features.length) % features.length
-        setActiveIndex(newIndex)
-        const newAngle = currentAngle.current - dir * CARD_ANGLE
-        animateTo(newAngle)
-      }
-    }
-    const section = document.getElementById('features')
-    section?.addEventListener('wheel', onWheel, { passive: false })
-    return () => section?.removeEventListener('wheel', onWheel)
-  }, [activeIndex, animateTo, CARD_ANGLE, features.length])
+    if (!emblaApi) return
+    const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap())
+    emblaApi.on('select', onSelect)
+    return () => { emblaApi.off('select', onSelect) }
+  }, [emblaApi])
   const cardRef = useRef<HTMLDivElement>(null)
   const fc1Ref = useRef<HTMLDivElement>(null)
   const fc2Ref = useRef<HTMLDivElement>(null)
@@ -404,71 +365,45 @@ export default function Home() {
         <div className={styles.featuresHeader}>
           <div className={styles.featuresLabel}>What&apos;s inside</div>
           <div className={styles.carouselNav}>
-            <button className={styles.carouselBtn} onClick={() => {
-              if (isAnimating.current) return
-              const newIndex = ((activeIndex - 1) + features.length) % features.length
-              setActiveIndex(newIndex)
-              animateTo(currentAngle.current + CARD_ANGLE)
-            }}>
+            <button className={styles.carouselBtn} onClick={scrollPrev} aria-label="Previous">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <span className={styles.carouselCount}>{activeIndex + 1} / {features.length}</span>
-            <button className={styles.carouselBtn} onClick={() => {
-              if (isAnimating.current) return
-              const newIndex = (activeIndex + 1) % features.length
-              setActiveIndex(newIndex)
-              animateTo(currentAngle.current - CARD_ANGLE)
-            }}>
+            <span className={styles.carouselCount}>{selectedIndex + 1} / {features.length}</span>
+            <button className={styles.carouselBtn} onClick={scrollNext} aria-label="Next">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18l6-6-6-6"/></svg>
             </button>
           </div>
         </div>
 
-        <div className={styles.cylinderScene}>
-          <div
-            ref={cylinderRef}
-            className={styles.cylinder}
-            style={{ transform: `rotateY(${displayAngle}deg)` }}
-          >
-            {features.map((f, i) => {
-              const cardAngle = i * CARD_ANGLE
-              const relAngle = (((-displayAngle + cardAngle) % 360) + 360) % 360
-              const normalised = relAngle > 180 ? relAngle - 360 : relAngle
-              const absAngle = Math.abs(normalised)
-              const opacity = absAngle < 1 ? 1 : absAngle < 45 ? 0.2 : 0
-              const scale = absAngle < 1 ? 1 : 0.85
-              return (
-                <div
-                  key={i}
-                  className={styles.cylinderCard}
-                  style={{
-                    transform: `rotateY(${cardAngle}deg) translateZ(${RADIUS}px)`,
-                    opacity,
-                    scale: String(scale),
-                    borderLeft: `3px solid ${f.stroke}`,
-                  }}
-                >
-                  <div className={styles.featureIconRow}>
-                    <div className={styles.featureIcon} style={{ background: f.bg }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={f.stroke} strokeWidth="1.5">
-                        <path d={f.path} />
-                      </svg>
-                    </div>
-                    <span className={styles.featureTag}>{f.tag}</span>
-                  </div>
-                  <div className={styles.featureTitle}>{f.title}</div>
-                  <div className={styles.featureDesc}>{f.desc}</div>
-                  <div className={styles.featureDetails}>
-                    {f.details.map((d, j) => (
-                      <div key={j} className={styles.featureDetailItem}>
-                        <div className={styles.featureDetailDot} style={{ background: f.stroke }} />
-                        <span>{d}</span>
+        <div className={styles.emblaViewport} ref={emblaRef}>
+          <div className={styles.emblaContainer}>
+            {features.map((f, i) => (
+              <div key={i} className={`${styles.emblaSlide} ${i === selectedIndex ? styles.emblaSlideActive : ''}`}>
+                <div className={styles.featureCard3d}>
+                  <div className={styles.featureCardInner}>
+                    <div className={styles.featureIconRow}>
+                      <div className={styles.featureIcon} style={{background: f.bg}}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={f.stroke} strokeWidth="1.5">
+                          <path d={f.path}/>
+                        </svg>
                       </div>
-                    ))}
+                      <span className={styles.featureTag}>{f.tag}</span>
+                    </div>
+                    <div className={styles.featureTitle}>{f.title}</div>
+                    <div className={styles.featureDesc}>{f.desc}</div>
+                    <div className={styles.featureDetails}>
+                      {f.details.map((d, j) => (
+                        <div key={j} className={styles.featureDetailItem}>
+                          <div className={styles.featureDetailDot} style={{background: f.stroke}} />
+                          <span>{d}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                  <div className={styles.featureCardGlow} style={{background: `radial-gradient(ellipse at 30% 50%, ${f.stroke}18 0%, transparent 60%)`}} />
                 </div>
-              )
-            })}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -476,13 +411,8 @@ export default function Home() {
           {features.map((_, i) => (
             <button
               key={i}
-              className={`${styles.emblaDot} ${i === activeIndex ? styles.emblaDotActive : ''}`}
-              onClick={() => {
-                if (isAnimating.current) return
-                const diff = i - activeIndex
-                setActiveIndex(i)
-                animateTo(currentAngle.current - diff * CARD_ANGLE)
-              }}
+              className={`${styles.emblaDot} ${i === selectedIndex ? styles.emblaDotActive : ''}`}
+              onClick={() => emblaApi?.scrollTo(i)}
               aria-label={`Go to slide ${i + 1}`}
             />
           ))}
