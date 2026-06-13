@@ -562,21 +562,28 @@ export default function Home() {
                   ref={(el) => {
                     cardsRef.current[i] = el;
                   }}
+                  style={{
+                    borderColor: f.stroke + '2e',
+                    boxShadow: `inset 0 0 60px 0 ${f.bg}`,
+                  }}
                 >
                   <div className={styles.featureIconRow}>
-                    <div className={styles.featureIcon}>
-                      <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.5">
+                    <div
+                      className={styles.featureIcon}
+                      style={{ background: f.bg, borderColor: f.stroke + '38' }}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.5" stroke={f.stroke}>
                         <path d={f.path}/>
                       </svg>
                     </div>
-                    <span className={styles.featureTag}>{f.tag}</span>
+                    <span className={styles.featureTag} style={{ color: f.stroke + '99' }}>{f.tag}</span>
                   </div>
                   <div className={styles.featureTitle}>{f.title}</div>
                   <div className={styles.featureDesc}>{f.desc}</div>
                   <div className={styles.featureDetails}>
                     {f.details.map((d, j) => (
                       <div key={j} className={styles.featureDetailItem}>
-                        <div className={styles.featureDetailDot} />
+                        <div className={styles.featureDetailDot} style={{ background: f.stroke + '59' }} />
                         <span>{d}</span>
                       </div>
                     ))}
