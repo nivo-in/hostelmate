@@ -486,7 +486,7 @@ export default function Home() {
           <div ref={cardRef} className={styles.dashboard3d} style={{ transform: 'rotateY(-8deg) rotateX(4deg)' }}>
             <div className={styles.dashHeader}>
               <span className={styles.dashTitle}>Warden dashboard</span>
-              <span className={styles.dashDate}>Today, June 7</span>
+              <span className={styles.dashDate} suppressHydrationWarning>Today, {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</span>
             </div>
             <div className={styles.dashStats}>
               <div className={styles.dashStat}>
