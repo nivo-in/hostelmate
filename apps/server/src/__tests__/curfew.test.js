@@ -139,6 +139,10 @@ describe('Curfew API', () => {
       expect(res.body.data).toHaveLength(0);
     });
 
+    /**
+     * Test: should return empty if curfew is disabled
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return empty if curfew is disabled', async () => {
       mockRedisGet.mockResolvedValueOnce(JSON.stringify({ curfew_time: '00:00', enabled: false }));
 
