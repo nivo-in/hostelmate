@@ -170,6 +170,10 @@ describe('Curfew API', () => {
       expect(res.body.notified_count).toBe(1);
     });
 
+    /**
+     * Test: should reject invalid payload
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject invalid payload', async () => {
       const res = await request(app)
         .post('/api/v1/curfew/notify')
