@@ -775,7 +775,7 @@
 .cylinderScene {
   position: relative;
   perspective: 1200px;
-  height: 320px;
+  height: 360px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -784,8 +784,8 @@
 
 .cylinder {
   position: absolute;
-  width: 280px;
-  height: 230px;
+  width: 330px;
+  height: 290px;
   transform-style: preserve-3d;
   will-change: transform;
 }
@@ -794,12 +794,12 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 280px;
-  height: 230px;
+  width: 330px;
+  height: 290px;
   background: rgba(10, 14, 28, 0.92);
   border: 0.5px solid rgba(255, 255, 255, 0.1);
   border-radius: 18px;
-  padding: 18px 22px;
+  padding: 20px 24px;
   will-change: transform, opacity, filter;
   display: flex;
   flex-direction: column;

@@ -146,7 +146,7 @@ export default function Home() {
     }
 
     currentRot.current += (targetRot.current - currentRot.current) * 0.025
-    const RADIUS = window.innerWidth > 1024 ? 380 : 285
+    const RADIUS = window.innerWidth > 1024 ? 445 : 335
 
     if (cylinderRef.current) {
       cylinderRef.current.style.transform = `rotateY(${currentRot.current}deg)`
