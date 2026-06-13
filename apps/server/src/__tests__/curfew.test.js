@@ -183,6 +183,10 @@ describe('Curfew API', () => {
   });
 
   describe('GET /api/curfew/settings', () => {
+    /**
+     * Test: should return default settings if no cache
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return default settings if no cache', async () => {
       const res = await request(app).get('/api/v1/curfew/settings');
       expect(res.status).toBe(200);
