@@ -102,13 +102,24 @@ export default function LoginPage() {
     }}>
       <div style={{
         position: 'fixed',
-        top: mounted ? '50%' : '-15%',
-        left: '50%',
-        transform: mounted ? 'translate(-50%, -50%)' : 'translateX(-50%)',
+        top: mounted ? '-5%' : '-15%',
+        left: mounted ? '65%' : '50%',
+        transform: 'translateX(-50%)',
         width: '900px',
         height: '600px',
         background: `radial-gradient(ellipse at center, ${roleColors[role]}24 0%, ${roleColors[role]}14 35%, ${roleColors[role]}08 60%, transparent 75%)`,
-        transition: 'top 1.5s cubic-bezier(0.16, 1, 0.3, 1), transform 1.5s cubic-bezier(0.16, 1, 0.3, 1), background 1.2s ease',
+        transition: 'top 1.5s cubic-bezier(0.16, 1, 0.3, 1), left 1.5s cubic-bezier(0.16, 1, 0.3, 1), background 1.2s ease',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }} />
+      <div style={{
+        position: 'fixed',
+        bottom: mounted ? '-25%' : '5%',
+        left: '-8%',
+        width: '500px',
+        height: '400px',
+        background: `radial-gradient(ellipse at center, ${roleColors[role]}0D 0%, transparent 65%)`,
+        transition: 'bottom 1.5s cubic-bezier(0.16, 1, 0.3, 1), background 1.2s ease',
         pointerEvents: 'none',
         zIndex: 0,
       }} />
