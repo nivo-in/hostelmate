@@ -80,7 +80,7 @@ export default function LoginPage() {
   }
 
   const roleColors = {
-    student: '#4ade80',
+    student: '#fb923c',
     warden: '#a78bfa',
     parent: '#60a5fa'
   }

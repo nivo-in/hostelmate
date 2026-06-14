@@ -802,7 +802,7 @@ export default function Home() {
               </p>
               <div className={styles.loginRoleList}>
                 <div className={styles.loginRoleItem}>
-                  <div className={styles.loginRoleDot} style={{background:'#4ade80'}}/>
+                  <div className={styles.loginRoleDot} style={{background:'#fb923c'}}/>
                   <div>
                     <div className={styles.loginRoleTitle}>Student</div>
                     <div className={styles.loginRoleDesc}>Attendance, leaves, fees, complaints</div>
