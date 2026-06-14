@@ -449,6 +449,17 @@ export default function Home() {
     try {
       if (sessionStorage.getItem('fromLoginTransition') === 'true') {
         sessionStorage.removeItem('fromLoginTransition')
+        
+        const scrollToLogin = () => {
+          if (loginWrapperRef.current) {
+            loginWrapperRef.current.scrollIntoView({ behavior: 'instant', block: 'end' })
+          }
+        }
+        
+        scrollToLogin()
+        requestAnimationFrame(scrollToLogin)
+        setTimeout(scrollToLogin, 50)
+        
         doReverseTransition()
       }
     } catch {
