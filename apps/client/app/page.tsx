@@ -481,11 +481,15 @@ export default function Home() {
 
     const handlePageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
-        try { sessionStorage.removeItem('fromLoginTransition') } catch { /* ignore */ }
-        scrollToLogin()
-        requestAnimationFrame(scrollToLogin)
-        setTimeout(scrollToLogin, 50)
-        doReverseTransition()
+        try {
+          if (sessionStorage.getItem('fromLoginTransition') === 'true') {
+            sessionStorage.removeItem('fromLoginTransition')
+            scrollToLogin()
+            requestAnimationFrame(scrollToLogin)
+            setTimeout(scrollToLogin, 50)
+            doReverseTransition()
+          }
+        } catch { /* ignore */ }
       }
     }
 
