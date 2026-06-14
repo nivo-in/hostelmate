@@ -399,7 +399,7 @@ export default function Home() {
     const translateX = viewportCX - cardCX
     const translateY = viewportCY - cardCY
 
-    card.style.transition = 'transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.7s ease'
+    card.style.transition = 'transform 0.58s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.58s ease'
     card.style.transform = `translate(${translateX}px, ${translateY}px) scale(1.04)`
     card.style.boxShadow = '0 40px 80px rgba(0,0,0,0.6)'
     card.style.zIndex = '999'
@@ -410,7 +410,7 @@ export default function Home() {
 
     setTimeout(() => {
       window.location.href = '/login'
-    }, 750)
+    }, 600)
   }, [transitioning])
 
   useEffect(() => {
@@ -436,15 +436,15 @@ export default function Home() {
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             if (overlayRef.current) {
-              overlayRef.current.style.transition = 'opacity 0.4s ease'
+              overlayRef.current.style.transition = 'opacity 0.35s ease'
               overlayRef.current.style.opacity = '0'
             }
           })
         })
 
         setTimeout(() => {
-          if (overlayRef.current) overlayRef.current.style.transition = 'opacity 0.7s ease'
-        }, 450)
+          if (overlayRef.current) overlayRef.current.style.transition = 'opacity 0.58s ease'
+        }, 350)
       }
     }
 
@@ -594,7 +594,7 @@ export default function Home() {
           opacity: 0,
           zIndex: 998,
           pointerEvents: 'none',
-          transition: 'opacity 0.7s ease'
+          transition: 'opacity 0.58s ease'
         }}
       />
 
