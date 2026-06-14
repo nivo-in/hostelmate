@@ -85,6 +85,13 @@ export default function LoginPage() {
     parent: '#60a5fa'
   }
 
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 50)
+    return () => clearTimeout(timer)
+  }, [])
+
   return (
     <div className={styles.site} style={{ 
       display: 'flex', 
@@ -95,13 +102,13 @@ export default function LoginPage() {
     }}>
       <div style={{
         position: 'fixed',
-        top: '-15%',
+        top: mounted ? '50%' : '-15%',
         left: '50%',
-        transform: 'translateX(-50%)',
+        transform: mounted ? 'translate(-50%, -50%)' : 'translateX(-50%)',
         width: '900px',
         height: '600px',
         background: `radial-gradient(ellipse at center, ${roleColors[role]}24 0%, ${roleColors[role]}14 35%, ${roleColors[role]}08 60%, transparent 75%)`,
-        transition: 'background 1.2s ease',
+        transition: 'top 1.5s cubic-bezier(0.16, 1, 0.3, 1), transform 1.5s cubic-bezier(0.16, 1, 0.3, 1), background 1.2s ease',
         pointerEvents: 'none',
         zIndex: 0,
       }} />
