@@ -23,7 +23,7 @@ const supabaseMock = {
   or: jest.fn().mockReturnThis(),
   head: jest.fn().mockReturnThis(),
   then: jest.fn(function (resolve) {
-    resolve(queryResults.shift());
+    resolve(queryResults.shift() || { data: null, error: null });
   }),
 };
 
