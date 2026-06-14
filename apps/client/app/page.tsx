@@ -30,6 +30,10 @@ function resetCard(el: HTMLDivElement, translate: string) {
 }
 
 export default function Home() {
+  const [transitioning, setTransitioning] = useState(false)
+  const loginCardRef = useRef<HTMLDivElement>(null)
+  const overlayRef = useRef<HTMLDivElement>(null)
+
   const [hoveredNavIdx, setHoveredNavIdx] = useState<number | null>(null)
   const [isNavPressed, setIsNavPressed] = useState(false)
   const [navPillStyle, setNavPillStyle] = useState({ left: 0, width: 0, opacity: 0, scale: 1 })
@@ -368,6 +372,39 @@ export default function Home() {
     if (!animRef.current) animRef.current = requestAnimationFrame(tick)
   }, [tick])
 
+  const handleLoginCardClick = useCallback(() => {
+    if (transitioning) return
+    setTransitioning(true)
+
+    const card = loginCardRef.current
+    if (!card) {
+      window.location.href = '/login'
+      return
+    }
+
+    const rect = card.getBoundingClientRect()
+    const viewportCX = window.innerWidth / 2
+    const viewportCY = window.innerHeight / 2
+    const cardCX = rect.left + rect.width / 2
+    const cardCY = rect.top + rect.height / 2
+
+    const translateX = viewportCX - cardCX
+    const translateY = viewportCY - cardCY
+
+    card.style.transition = 'transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.7s ease'
+    card.style.transform = `translate(${translateX}px, ${translateY}px) scale(1.04)`
+    card.style.boxShadow = '0 40px 80px rgba(0,0,0,0.6)'
+    card.style.zIndex = '999'
+
+    if (overlayRef.current) {
+      overlayRef.current.style.opacity = '1'
+    }
+
+    setTimeout(() => {
+      window.location.href = '/login'
+    }, 750)
+  }, [transitioning])
+
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const el = cardRef.current
     if (!el) return
@@ -453,6 +490,18 @@ export default function Home() {
       <div className={styles.glow} />
       <div className={styles.glow2} />
       <div className={styles.noise} />
+      <div
+        ref={overlayRef}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: '#080810',
+          opacity: 0,
+          zIndex: 998,
+          pointerEvents: 'none',
+          transition: 'opacity 0.7s ease'
+        }}
+      />
 
       <nav className={styles.nav}>
         <div className={styles.navLogo}>
@@ -650,16 +699,45 @@ export default function Home() {
           <div className={styles.sectionEyebrow}>Sign in experience</div>
           <div className={styles.loginLayout}>
             <div ref={loginLeftRef} className={`${styles.revealUp} ${styles.stagger1}`}>
-              <h2 className={styles.loginLeftH2}>Three roles.<br />One clean login.</h2>
-              <p className={styles.loginLeftP}>Students, wardens, and parents each get a tailored dashboard. The 3D cursor-reactive background activates on the login screen — subtle motion that makes it feel alive without distracting.</p>
-              <div className={styles.loginTags}>
-                <span className={styles.loginTag}>cursor parallax</span>
-                <span className={styles.loginTag}>magnetic buttons</span>
-                <span className={styles.loginTag}>3D card tilt</span>
-                <span className={styles.loginTag}>smooth transitions</span>
+              <h2 className={styles.loginLeftH2}>
+                Your role.<br />Your dashboard.
+              </h2>
+              <p className={styles.loginLeftP}>
+                Three distinct experiences — student, warden, and parent — each designed around what actually matters to that person. No clutter, no irrelevant data.
+              </p>
+              <div className={styles.loginRoleList}>
+                <div className={styles.loginRoleItem}>
+                  <div className={styles.loginRoleDot} style={{background:'#4ade80'}}/>
+                  <div>
+                    <div className={styles.loginRoleTitle}>Student</div>
+                    <div className={styles.loginRoleDesc}>Attendance, leaves, fees, complaints</div>
+                  </div>
+                </div>
+                <div className={styles.loginRoleItem}>
+                  <div className={styles.loginRoleDot} style={{background:'#a78bfa'}}/>
+                  <div>
+                    <div className={styles.loginRoleTitle}>Warden</div>
+                    <div className={styles.loginRoleDesc}>Full management, analytics, approvals</div>
+                  </div>
+                </div>
+                <div className={styles.loginRoleItem}>
+                  <div className={styles.loginRoleDot} style={{background:'#60a5fa'}}/>
+                  <div>
+                    <div className={styles.loginRoleTitle}>Parent</div>
+                    <div className={styles.loginRoleDesc}>Live tracking, fee payments, notices</div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div ref={loginRightRef} className={`${styles.loginCard} ${styles.revealUp} ${styles.stagger2}`}>
+            <div
+              ref={(node) => {
+                loginRightRef.current = node;
+                loginCardRef.current = node;
+              }}
+              className={`${styles.loginCard} ${styles.loginCardClickable} ${styles.revealUp} ${styles.stagger2}`}
+              style={{cursor: 'pointer'}}
+              onClick={handleLoginCardClick}
+            >
               <div className={styles.loginLogo}>HostelMate</div>
               <div className={styles.loginBy}>by Nivo Technologies</div>
               <div className={styles.roleTabs}>
@@ -676,10 +754,6 @@ export default function Home() {
                 <div className={styles.loginInput}>••••••••••</div>
               </div>
               <button className={styles.loginBtn}>Sign in</button>
-              <div className={styles.loginHint}>
-                <div className={styles.loginHintDot} />
-                <div className={styles.loginHintText}>Move your cursor on the login page — a 3D depth field responds to your mouse position using Three.js particles</div>
-              </div>
             </div>
           </div>
         </section>
