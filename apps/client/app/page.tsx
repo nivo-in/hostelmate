@@ -297,7 +297,51 @@ export default function Home() {
       }
 
 
-      
+        // Slide in/out for login section
+      if (loginWrapperRef.current && loginLeftRef.current && loginRightRef.current) {
+        const loginRect = loginWrapperRef.current.getBoundingClientRect()
+        let loginEntry = 1
+        if (loginRect.top > 0) {
+          loginEntry = Math.max(0, 1 - (loginRect.top / window.innerHeight))
+        }
+
+        // We want a slight delay for the right card so they stagger
+        // Using a similar easeOutQuart
+        const easeOutQuart = (t: number) => 1 - Math.pow(1 - t, 4)
+        
+        // Left side
+        const easeL = easeOutQuart(Math.max(0, Math.min(1, loginEntry * 1.2)))
+        const opacityL = easeL
+        const yL = (1 - easeL) * 100
+
+        // Right side (card) - starts slightly later
+        const easeR = easeOutQuart(Math.max(0, Math.min(1, (loginEntry - 0.1) * 1.2)))
+        const opacityR = easeR
+        const yR = (1 - easeR) * 100
+
+        if (loginEntry < 1) {
+          loginLeftRef.current.style.transition = 'none'
+          loginLeftRef.current.style.opacity = `${opacityL}`
+          loginLeftRef.current.style.transform = `translateY(${yL}px)`
+
+          loginRightRef.current.style.transition = 'none'
+          loginRightRef.current.style.opacity = `${opacityR}`
+          loginRightRef.current.style.transform = `translateY(${yR}px)`
+        } else {
+          // Reset to CSS defined states when fully in view so hover/click transitions work
+          loginLeftRef.current.style.transition = 'opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1)'
+          loginLeftRef.current.style.opacity = '1'
+          loginLeftRef.current.style.transform = 'translateY(0)'
+
+          // For the right card, if it's not transitioning to login page, reset it
+          if (!transitioning) {
+            loginRightRef.current.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease'
+            loginRightRef.current.style.opacity = '1'
+            loginRightRef.current.style.transform = 'translateY(0)'
+          }
+        }
+      }
+
       targetRot.current = progress * -360
       
       if (!wheelAnimRef.current) wheelAnimRef.current = requestAnimationFrame(tickWheel)
@@ -346,8 +390,6 @@ export default function Home() {
     
     if (footerRef.current) observer.observe(footerRef.current)
     if (whatsInsideRef.current) observer.observe(whatsInsideRef.current)
-    if (loginLeftRef.current) observer.observe(loginLeftRef.current)
-    if (loginRightRef.current) observer.observe(loginRightRef.current)
     return () => observer.disconnect()
   }, [])
   const activeStates = useRef({ fc1: false, fc2: false })
@@ -726,7 +768,7 @@ export default function Home() {
         <section className={styles.loginPreview}>
           <div className={styles.sectionEyebrow}>Sign in experience</div>
           <div className={styles.loginLayout}>
-            <div ref={loginLeftRef} className={`${styles.revealUp} ${styles.stagger1}`}>
+            <div ref={loginLeftRef}>
               <h2 className={styles.loginLeftH2}>
                 Your role.<br />Your dashboard.
               </h2>
@@ -762,7 +804,7 @@ export default function Home() {
                 loginRightRef.current = node;
                 loginCardRef.current = node;
               }}
-              className={`${styles.loginCard} ${styles.loginCardClickable} ${styles.revealUp} ${styles.stagger2}`}
+              className={`${styles.loginCard} ${styles.loginCardClickable}`}
               style={{cursor: 'pointer'}}
               onClick={handleLoginCardClick}
             >
