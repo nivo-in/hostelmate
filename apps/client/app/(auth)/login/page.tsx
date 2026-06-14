@@ -108,7 +108,7 @@ export default function LoginPage() {
         width: '900px',
         height: '600px',
         background: `radial-gradient(ellipse at center, ${roleColors[role]}24 0%, ${roleColors[role]}14 35%, ${roleColors[role]}08 60%, transparent 75%)`,
-        transition: 'top 1.8s cubic-bezier(0.16, 1, 0.3, 1), left 1.8s cubic-bezier(0.16, 1, 0.3, 1), background 1.2s ease',
+        transition: 'top 2.0s cubic-bezier(0.16, 1, 0.3, 1), left 2.0s cubic-bezier(0.16, 1, 0.3, 1), background 1.2s ease',
         pointerEvents: 'none',
         zIndex: 0,
       }} />
@@ -119,7 +119,7 @@ export default function LoginPage() {
         width: '500px',
         height: '400px',
         background: `radial-gradient(ellipse at center, ${roleColors[role]}0D 0%, transparent 65%)`,
-        transition: 'bottom 1.8s cubic-bezier(0.16, 1, 0.3, 1), background 1.2s ease',
+        transition: 'bottom 2.0s cubic-bezier(0.16, 1, 0.3, 1), background 1.2s ease',
         pointerEvents: 'none',
         zIndex: 0,
       }} />
