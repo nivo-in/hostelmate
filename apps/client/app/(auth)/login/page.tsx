@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import styles from '../../landing.module.css'
 
 const ROLE_EMAIL_HINTS: Record<string, string[]> = {
   warden: ['warden', 'admin', 'staff', 'rector', 'hod', 'principal'],
@@ -26,53 +27,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [role, setRole] = useState<'student' | 'warden' | 'parent'>('student')
   const [autoDetected, setAutoDetected] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
   const supabase = createClient()
-
-  const cardRef = useRef<HTMLDivElement>(null)
-  const animRef = useRef<number | null>(null)
-  const target = useRef({ x: 0, y: 0 })
-  const current = useRef({ x: 0, y: 0 })
-
-  const lerp = (a: number, b: number, t: number) => a + (b - a) * t
-
-  const tick = useCallback(function tickFn() {
-    const el = cardRef.current
-    if (!el) return
-    current.current.x = lerp(current.current.x, target.current.x, 0.06)
-    current.current.y = lerp(current.current.y, target.current.y, 0.06)
-    el.style.transform = `rotateY(${current.current.y}deg) rotateX(${current.current.x}deg)`
-    if (
-      Math.abs(current.current.x - target.current.x) > 0.005 ||
-      Math.abs(current.current.y - target.current.y) > 0.005
-    ) {
-      animRef.current = requestAnimationFrame(tickFn)
-    } else {
-      animRef.current = null
-    }
-  }, [])
-
-  const startAnim = useCallback(() => {
-    if (!animRef.current) animRef.current = requestAnimationFrame(tick)
-  }, [tick])
-
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const el = cardRef.current
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    const dx = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2)
-    const dy = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2)
-    target.current = { x: dy * -10, y: dx * 10 }
-    startAnim()
-  }, [startAnim])
-
-  const handleMouseLeave = useCallback(() => {
-    target.current = { x: 0, y: 0 }
-    startAnim()
-  }, [startAnim])
-
-  useEffect(() => {
-    return () => { if (animRef.current) cancelAnimationFrame(animRef.current) }
-  }, [])
 
   useEffect(() => {
     if (email.length > 3) {
@@ -123,91 +79,42 @@ export default function LoginPage() {
     }
   }
 
-  const roleColors = {
-    student: '#4ade80',
-    warden: '#a78bfa',
-    parent: '#60a5fa'
-  }
-
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#080810',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      position: 'relative',
+    <div className={styles.site} style={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      padding: '48px',
       overflow: 'hidden',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
     }}>
-      {/* Animated glow background */}
-      <div style={{
-        position: 'fixed',
-        top: '-20%',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: '800px',
-        height: '600px',
-        background: `radial-gradient(ellipse at center, ${roleColors[role]}18 0%, ${roleColors[role]}08 35%, transparent 70%)`,
-        transition: 'background 1.2s ease',
-        pointerEvents: 'none',
-        zIndex: 0,
-      }} />
-      <div style={{
-        position: 'fixed',
-        inset: 0,
-        opacity: 0.025,
-        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        pointerEvents: 'none',
-        zIndex: 0,
-      }} />
+      <div className={styles.glow} />
+      <div className={styles.noise} />
 
-      <div style={{ position: 'relative', zIndex: 1, perspective: '1000px' }}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-      >
+      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '440px' }}>
         <div
-          ref={cardRef}
-          style={{
-            background: 'rgba(10, 14, 28, 0.95)',
-            border: `0.5px solid ${roleColors[role]}40`,
-            borderRadius: '20px',
-            padding: '40px',
-            width: '400px',
-            transformStyle: 'preserve-3d',
-            boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 0 0.5px ${roleColors[role]}20`,
-            transition: 'border-color 0.8s ease, box-shadow 0.8s ease',
+          className={styles.loginCard}
+          style={{ 
+            cursor: 'default',
+            transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
+            borderColor: isHovered ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+            boxShadow: isHovered ? '0 8px 32px rgba(0,0,0,0.4)' : 'none',
           }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
           {/* Logo */}
-          <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-            <div style={{ fontSize: '18px', fontWeight: 500, color: '#fff', marginBottom: '4px' }}>
-              HostelMate
-            </div>
-            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase' }}>
-              by Nivo Technologies
-            </div>
-          </div>
+          <div className={styles.loginLogo}>HostelMate</div>
+          <div className={styles.loginBy}>by Nivo Technologies</div>
 
           {/* Role tabs */}
-          <div style={{ display: 'flex', gap: '6px', marginBottom: '24px' }}>
+          <div className={styles.roleTabs}>
             {(['student', 'warden', 'parent'] as const).map(r => (
               <button
+                type="button"
                 key={r}
                 onClick={() => { setRole(r); setAutoDetected(false) }}
-                style={{
-                  flex: 1,
-                  padding: '9px 8px',
-                  background: role === r ? `${roleColors[r]}18` : 'rgba(255,255,255,0.04)',
-                  border: `0.5px solid ${role === r ? roleColors[r] + '50' : 'rgba(255,255,255,0.08)'}`,
-                  borderRadius: '10px',
-                  fontSize: '12px',
-                  color: role === r ? roleColors[r] : 'rgba(255,255,255,0.38)',
-                  cursor: 'pointer',
-                  transition: 'all 0.25s ease',
-                  fontWeight: role === r ? 500 : 400,
-                  textTransform: 'capitalize',
-                }}
+                className={`${styles.roleTab} ${role === r ? styles.roleTabActive : ''}`}
+                style={{ cursor: 'pointer', textTransform: 'capitalize' }}
               >
                 {r}
               </button>
@@ -216,75 +123,40 @@ export default function LoginPage() {
 
           {/* Auto-detect hint */}
           {autoDetected && (
-            <div style={{
-              marginBottom: '16px',
-              background: `${roleColors[role]}10`,
-              border: `0.5px solid ${roleColors[role]}30`,
-              borderRadius: '8px',
-              padding: '8px 12px',
-              fontSize: '11px',
-              color: roleColors[role],
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}>
-              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: roleColors[role], flexShrink: 0 }} />
-              Role auto-detected as {role}
+            <div className={styles.loginHint} style={{ marginBottom: '16px', marginTop: 0 }}>
+              <div className={styles.loginHintDot} />
+              <div className={styles.loginHintText}>Role auto-detected as {role}</div>
             </div>
           )}
 
           {/* Form */}
           <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: '14px' }}>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '6px', letterSpacing: '0.2px' }}>
-                Email address
-              </div>
+            <div className={styles.loginField}>
+              <div className={styles.loginLabel}>Email address</div>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@college.edu"
-                style={{
-                  width: '100%',
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '0.5px solid rgba(255,255,255,0.1)',
-                  borderRadius: '10px',
-                  padding: '11px 14px',
-                  fontSize: '14px',
-                  color: '#fff',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  transition: 'border-color 0.2s',
-                }}
-                onFocus={e => e.target.style.borderColor = `${roleColors[role]}60`}
+                className={styles.loginInput}
+                style={{ opacity: 1, transition: 'border-color 0.2s', outline: 'none' }}
+                onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.4)'}
                 onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
               />
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '6px', letterSpacing: '0.2px' }}>
-                Password
-              </div>
+            <div className={styles.loginField} style={{ marginBottom: '20px' }}>
+              <div className={styles.loginLabel}>Password</div>
               <input
                 type="password"
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
-                style={{
-                  width: '100%',
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '0.5px solid rgba(255,255,255,0.1)',
-                  borderRadius: '10px',
-                  padding: '11px 14px',
-                  fontSize: '14px',
-                  color: '#fff',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  transition: 'border-color 0.2s',
-                }}
-                onFocus={e => e.target.style.borderColor = `${roleColors[role]}60`}
+                className={styles.loginInput}
+                style={{ opacity: 1, transition: 'border-color 0.2s', outline: 'none' }}
+                onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.4)'}
                 onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
               />
             </div>
@@ -306,15 +178,9 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
+              className={styles.loginBtn}
               style={{
-                width: '100%',
-                background: isLoading ? 'rgba(255,255,255,0.7)' : '#fff',
-                color: '#080810',
-                border: 'none',
-                borderRadius: '10px',
-                padding: '13px',
-                fontSize: '14px',
-                fontWeight: 500,
+                opacity: isLoading ? 0.7 : 1,
                 cursor: isLoading ? 'not-allowed' : 'pointer',
                 transition: 'opacity 0.2s',
               }}
