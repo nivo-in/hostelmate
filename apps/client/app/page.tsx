@@ -376,6 +376,12 @@ export default function Home() {
     if (transitioning) return
     setTransitioning(true)
 
+    try {
+      sessionStorage.setItem('fromLoginTransition', 'true')
+    } catch {
+      // Ignore
+    }
+
     const card = loginCardRef.current
     if (!card) {
       window.location.href = '/login'
@@ -406,35 +412,56 @@ export default function Home() {
   }, [transitioning])
 
   useEffect(() => {
-    const handlePageShow = (e: PageTransitionEvent) => {
-      if (e.persisted) {
-        setTransitioning(false)
-        
-        // Instantly reset the card behind the black screen
-        if (loginCardRef.current) {
-          loginCardRef.current.style.transition = 'none'
-          loginCardRef.current.style.transform = ''
-          loginCardRef.current.style.boxShadow = ''
-          loginCardRef.current.style.zIndex = ''
+    const doReverseTransition = () => {
+      setTransitioning(false)
+      
+      if (loginCardRef.current) {
+        loginCardRef.current.style.transition = 'none'
+        loginCardRef.current.style.transform = ''
+        loginCardRef.current.style.boxShadow = ''
+        loginCardRef.current.style.zIndex = ''
+        requestAnimationFrame(() => {
+          if (loginCardRef.current) loginCardRef.current.style.transition = ''
+        })
+      }
+
+      if (overlayRef.current) {
+        if (overlayRef.current.style.opacity !== '1') {
+          overlayRef.current.style.transition = 'none'
+          overlayRef.current.style.opacity = '1'
         }
 
-        // Fade out the black screen quickly (0.4s instead of 0.7s)
-        if (overlayRef.current) {
-          overlayRef.current.style.transition = 'opacity 0.4s ease'
-          
+        requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              if (overlayRef.current) overlayRef.current.style.opacity = '0'
-            })
+            if (overlayRef.current) {
+              overlayRef.current.style.transition = 'opacity 0.4s ease'
+              overlayRef.current.style.opacity = '0'
+            }
           })
+        })
 
-          // Reset the transition duration for the next click
-          setTimeout(() => {
-            if (overlayRef.current) overlayRef.current.style.transition = 'opacity 0.7s ease'
-          }, 450)
-        }
+        setTimeout(() => {
+          if (overlayRef.current) overlayRef.current.style.transition = 'opacity 0.7s ease'
+        }, 450)
       }
     }
+
+    try {
+      if (sessionStorage.getItem('fromLoginTransition') === 'true') {
+        sessionStorage.removeItem('fromLoginTransition')
+        doReverseTransition()
+      }
+    } catch {
+      // Ignore
+    }
+
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        try { sessionStorage.removeItem('fromLoginTransition') } catch { /* ignore */ }
+        doReverseTransition()
+      }
+    }
+
     window.addEventListener('pageshow', handlePageShow)
     return () => window.removeEventListener('pageshow', handlePageShow)
   }, [])
