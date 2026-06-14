@@ -409,12 +409,23 @@ export default function Home() {
     const handlePageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
         setTransitioning(false)
-        if (overlayRef.current) overlayRef.current.style.opacity = '0'
+        
+        // Fast fade out for the black overlay
+        if (overlayRef.current) {
+          overlayRef.current.style.transition = 'opacity 0.3s ease'
+          overlayRef.current.style.opacity = '0'
+        }
+        
+        // Smooth snap back for the card
         if (loginCardRef.current) {
-          loginCardRef.current.style.transition = 'none'
+          loginCardRef.current.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease'
           loginCardRef.current.style.transform = ''
           loginCardRef.current.style.boxShadow = ''
-          loginCardRef.current.style.zIndex = ''
+          
+          // Wait for the animation to finish before removing it from top z-index layer
+          setTimeout(() => {
+            if (loginCardRef.current) loginCardRef.current.style.zIndex = ''
+          }, 400)
         }
       }
     }
