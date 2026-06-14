@@ -90,7 +90,7 @@ export default function LoginPage() {
       <div className={styles.glow} />
       <div className={styles.noise} />
 
-      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '440px' }}>
+      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '522px' }}>
         <div
           className={styles.loginCard}
           style={{ 
@@ -146,7 +146,7 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className={styles.loginField} style={{ marginBottom: '20px' }}>
+            <div className={styles.loginField}>
               <div className={styles.loginLabel}>Password</div>
               <input
                 type="password"
