@@ -23,7 +23,7 @@
   );
   pointer-events: none;
   z-index: 0;
-  animation: glowSpread 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: glowSpread 1.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes glowSpread {
