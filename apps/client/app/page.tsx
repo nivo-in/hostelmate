@@ -405,6 +405,23 @@ export default function Home() {
     }, 750)
   }, [transitioning])
 
+  useEffect(() => {
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        setTransitioning(false)
+        if (overlayRef.current) overlayRef.current.style.opacity = '0'
+        if (loginCardRef.current) {
+          loginCardRef.current.style.transition = 'none'
+          loginCardRef.current.style.transform = ''
+          loginCardRef.current.style.boxShadow = ''
+          loginCardRef.current.style.zIndex = ''
+        }
+      }
+    }
+    window.addEventListener('pageshow', handlePageShow)
+    return () => window.removeEventListener('pageshow', handlePageShow)
+  }, [])
+
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const el = cardRef.current
     if (!el) return
