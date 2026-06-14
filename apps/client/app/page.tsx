@@ -379,7 +379,6 @@ export default function Home() {
 
     try {
       sessionStorage.setItem('fromLoginTransition', 'true')
-      sessionStorage.setItem('loginScrollY', window.scrollY.toString())
     } catch {
       // Ignore
     }
@@ -449,15 +448,9 @@ export default function Home() {
     }
 
     const scrollToLogin = () => {
-      let targetScrollY = document.body.scrollHeight;
-      try {
-        const stored = sessionStorage.getItem('loginScrollY')
-        if (stored) {
-          targetScrollY = parseInt(stored, 10)
-        }
-      } catch { }
-
-      window.scrollTo({ top: targetScrollY, behavior: 'instant' })
+      if (loginWrapperRef.current) {
+        loginWrapperRef.current.scrollIntoView({ behavior: 'instant', block: 'end' })
+      }
       
       // Update targetRot synchronously so the wheel doesn't spin
       if (scrollWrapperRef.current) {
