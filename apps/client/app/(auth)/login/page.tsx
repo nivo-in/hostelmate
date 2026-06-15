@@ -7,17 +7,17 @@ import styles from '../../landing.module.css'
 const ROLE_EMAIL_HINTS: Record<string, string[]> = {
   warden: ['warden', 'admin', 'staff', 'rector', 'hod', 'principal'],
   parent: ['parent', 'guardian', 'father', 'mother', 'dad', 'mom'],
-  student: [],
+  student: ['student', 'scholar', 'ug', 'pg', 'btech', 'mtech', 'phd'],
 }
 
-function detectRole(email: string): 'student' | 'warden' | 'parent' {
+function detectRole(email: string): 'student' | 'warden' | 'parent' | null {
   const lower = email.toLowerCase()
   for (const [role, hints] of Object.entries(ROLE_EMAIL_HINTS)) {
     if (hints.some(h => lower.includes(h))) {
       return role as 'student' | 'warden' | 'parent'
     }
   }
-  return 'student'
+  return null
 }
 
 export default function LoginPage() {
@@ -33,7 +33,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (email.length > 3) {
       const detected = detectRole(email)
-      if (detected !== 'student') {
+      if (detected) {
         setRole(detected)
         setAutoDetected(true)
       } else {
