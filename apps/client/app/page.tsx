@@ -513,10 +513,8 @@ export default function Home() {
 
     try {
       if (sessionStorage.getItem('navigatingBackFromLogin') === 'true') {
-        sessionStorage.setItem('loginScrollY', window.scrollY.toString())
         sessionStorage.removeItem('navigatingBackFromLogin')
-        sessionStorage.setItem('playReverseTransition', 'true')
-        window.location.reload()
+        handleReturnFromLogin()
       } else if (sessionStorage.getItem('playReverseTransition') === 'true') {
         sessionStorage.removeItem('playReverseTransition')
         handleReturnFromLogin()
@@ -525,13 +523,11 @@ export default function Home() {
       // Ignore
     }
 
-    const handlePageShow = () => {
+    const handlePageShow = (e: PageTransitionEvent) => {
       try {
-        if (sessionStorage.getItem('navigatingBackFromLogin') === 'true') {
-          sessionStorage.setItem('loginScrollY', window.scrollY.toString())
+        if (e.persisted || sessionStorage.getItem('navigatingBackFromLogin') === 'true') {
           sessionStorage.removeItem('navigatingBackFromLogin')
-          sessionStorage.setItem('playReverseTransition', 'true')
-          window.location.reload()
+          handleReturnFromLogin()
         }
       } catch { /* ignore */ }
     }
