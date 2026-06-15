@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import styles from '../../landing.module.css'
 
@@ -88,6 +88,35 @@ export default function LoginPage() {
   const [mounted, setMounted] = useState(false)
   const [bgRole, setBgRole] = useState(role)
   const [bgDimmed, setBgDimmed] = useState(false)
+  const overlayRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const fadeOutOverlay = () => {
+      if (overlayRef.current) {
+        overlayRef.current.style.transition = 'none'
+        overlayRef.current.style.opacity = '1'
+        
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (overlayRef.current) {
+              overlayRef.current.style.transition = 'opacity 0.58s ease'
+              overlayRef.current.style.opacity = '0'
+            }
+          })
+        })
+      }
+    }
+
+    fadeOutOverlay()
+
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        fadeOutOverlay()
+      }
+    }
+    window.addEventListener('pageshow', handlePageShow)
+    return () => window.removeEventListener('pageshow', handlePageShow)
+  }, [])
 
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 50)
@@ -104,6 +133,19 @@ export default function LoginPage() {
     return () => clearTimeout(timer)
   }, [role, bgRole])
 
+  useEffect(() => {
+    const handlePageHide = () => {
+      try { sessionStorage.setItem('navigatingBackFromLogin', 'true') } catch {}
+    }
+    window.addEventListener('pagehide', handlePageHide)
+    window.addEventListener('beforeunload', handlePageHide)
+    return () => {
+      window.removeEventListener('pagehide', handlePageHide)
+      window.removeEventListener('beforeunload', handlePageHide)
+      handlePageHide()
+    }
+  }, [])
+
   return (
     <div className={styles.site} style={{ 
       display: 'flex', 
@@ -112,6 +154,17 @@ export default function LoginPage() {
       padding: '48px',
       overflow: 'hidden',
     }}>
+      <div
+        ref={overlayRef}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: '#080810',
+          opacity: 1,
+          zIndex: 9999,
+          pointerEvents: 'none'
+        }}
+      />
       <div style={{
         position: 'fixed',
         top: mounted ? '-5%' : '-15%',

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRef, useCallback, useEffect, useState } from 'react'
 import styles from './landing.module.css'
 
-const PROXIMITY = 48 // px — how close to a floating card triggers it
+const PROXIMITY = 96 // px — how close to a floating card triggers it
 
 function isNear(rect: DOMRect, x: number, y: number) {
   return (
@@ -379,6 +379,7 @@ export default function Home() {
 
     try {
       sessionStorage.setItem('fromLoginTransition', 'true')
+      sessionStorage.setItem('loginScrollY', window.scrollY.toString())
     } catch {
       // Ignore
     }
@@ -402,6 +403,27 @@ export default function Home() {
     card.style.transform = `translate(${translateX}px, ${translateY}px) scale(1.04)`
     card.style.boxShadow = '0 40px 80px rgba(0,0,0,0.6)'
     card.style.zIndex = '999'
+
+    if (overlayRef.current) {
+      overlayRef.current.style.opacity = '1'
+    }
+
+    setTimeout(() => {
+      window.location.href = '/login'
+    }, 600)
+  }, [transitioning])
+
+  const handleNavSigninClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    if (transitioning) return
+    setTransitioning(true)
+
+    try {
+      sessionStorage.setItem('fromLoginTransition', 'true')
+      sessionStorage.setItem('loginScrollY', window.scrollY.toString())
+    } catch {
+      // Ignore
+    }
 
     if (overlayRef.current) {
       overlayRef.current.style.opacity = '1'
@@ -447,31 +469,59 @@ export default function Home() {
       }
     }
 
-    const scrollToLogin = () => {
-      if (loginWrapperRef.current) {
-        loginWrapperRef.current.scrollIntoView({ behavior: 'instant', block: 'end' })
+    const scrollToExactPosition = () => {
+      let targetScrollY = 0; // Default to top
+      try {
+        const stored = sessionStorage.getItem('loginScrollY')
+        if (stored !== null) targetScrollY = parseInt(stored, 10)
+      } catch { }
+
+      if (!isNaN(targetScrollY) && targetScrollY >= 0) {
+        window.scrollTo({ top: targetScrollY, behavior: 'instant' })
+        
+        // Synchronize layout bounds synchronously
+        if (scrollWrapperRef.current) {
+          const rect = scrollWrapperRef.current.getBoundingClientRect()
+          const scrollSpace = rect.height - window.innerHeight * 2
+          let progress = 0
+          if (-rect.top > 0) {
+            progress = Math.min(1, -rect.top / scrollSpace)
+          }
+          targetRot.current = progress * -360
+          currentRot.current = targetRot.current
+        }
+        window.dispatchEvent(new Event('scroll'))
+      } else {
+        window.scrollTo({ top: 0, behavior: 'instant' })
       }
     }
 
+    const handleReturnFromLogin = () => {
+      scrollToExactPosition()
+      doReverseTransition()
+    }
+
     try {
-      if (sessionStorage.getItem('fromLoginTransition') === 'true') {
-        sessionStorage.removeItem('fromLoginTransition')
-        
-        scrollToLogin()
-        requestAnimationFrame(scrollToLogin)
-        setTimeout(scrollToLogin, 50)
-        
-        doReverseTransition()
+      if (sessionStorage.getItem('navigatingBackFromLogin') === 'true') {
+        sessionStorage.removeItem('navigatingBackFromLogin')
+        sessionStorage.setItem('playReverseTransition', 'true')
+        window.location.reload()
+      } else if (sessionStorage.getItem('playReverseTransition') === 'true') {
+        sessionStorage.removeItem('playReverseTransition')
+        handleReturnFromLogin()
       }
     } catch {
       // Ignore
     }
 
-    const handlePageShow = (e: PageTransitionEvent) => {
-      if (e.persisted) {
-        try { sessionStorage.removeItem('fromLoginTransition') } catch { /* ignore */ }
-        doReverseTransition()
-      }
+    const handlePageShow = () => {
+      try {
+        if (sessionStorage.getItem('navigatingBackFromLogin') === 'true') {
+          sessionStorage.removeItem('navigatingBackFromLogin')
+          sessionStorage.setItem('playReverseTransition', 'true')
+          window.location.reload()
+        }
+      } catch { /* ignore */ }
     }
 
     window.addEventListener('pageshow', handlePageShow)
@@ -498,7 +548,7 @@ export default function Home() {
             activeStates.current.fc1 = true
             timers.current.fc1 = null
             activateCard(fc1, '0px, 0px')
-          }, 500)
+          }, 400)
         }
       } else {
         if (timers.current.fc1) {
@@ -518,7 +568,7 @@ export default function Home() {
             activeStates.current.fc2 = true
             timers.current.fc2 = null
             activateCard(fc2, '0px, 0px')
-          }, 500)
+          }, 400)
         }
       } else {
         if (timers.current.fc2) {
@@ -611,7 +661,7 @@ export default function Home() {
           ))}
         </div>
         <div className={styles.navRight}>
-          <Link href="/login" className={styles.navSignin}>Sign in</Link>
+          <Link href="/login" onClick={handleNavSigninClick} className={styles.navSignin}>Sign in</Link>
           <button className={styles.navBtn}>Request demo ↗</button>
         </div>
       </nav>
