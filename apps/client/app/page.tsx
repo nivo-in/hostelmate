@@ -491,19 +491,23 @@ export default function Home() {
             targetRot.current = progress * -360
             currentRot.current = targetRot.current
           }
-          window.dispatchEvent(new Event('scroll'))
         } else {
           window.scrollTo({ top: 0, behavior: 'instant' })
         }
       }
 
-      // Remeasure and reapply to guarantee the page height has fully rendered
+      // Aggressively enforce scroll for 1 second to overpower Next.js native
+      // scroll restoration and layout hydration clamping after BFCache eviction.
       applyScroll()
-      requestAnimationFrame(() => {
+      let attempts = 0
+      const interval = setInterval(() => {
         applyScroll()
-        setTimeout(applyScroll, 150)
-        setTimeout(applyScroll, 400)
-      })
+        attempts++
+        if (attempts > 20) { // 1000ms
+          clearInterval(interval)
+          window.dispatchEvent(new Event('scroll'))
+        }
+      }, 50)
     }
 
     const handleReturnFromLogin = () => {
