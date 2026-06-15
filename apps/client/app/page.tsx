@@ -400,7 +400,7 @@ export default function Home() {
     const translateX = viewportCX - cardCX
     const translateY = viewportCY - cardCY
 
-    card.style.transition = 'transform 0.58s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.58s ease'
+    card.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease'
     card.style.transform = `translate(${translateX}px, ${translateY}px) scale(1.04)`
     card.style.boxShadow = '0 40px 80px rgba(0,0,0,0.6)'
     card.style.zIndex = '999'
@@ -411,7 +411,7 @@ export default function Home() {
 
     setTimeout(() => {
       window.location.href = '/login'
-    }, 600)
+    }, 400)
   }, [transitioning])
 
   const handleNavSigninClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -433,7 +433,7 @@ export default function Home() {
 
     setTimeout(() => {
       window.location.href = '/login'
-    }, 600)
+    }, 400)
   }, [transitioning])
 
   useEffect(() => {
@@ -466,7 +466,7 @@ export default function Home() {
         })
 
         setTimeout(() => {
-          if (overlayRef.current) overlayRef.current.style.transition = 'opacity 0.58s ease'
+          if (overlayRef.current) overlayRef.current.style.transition = 'opacity 0.4s ease'
         }, 350)
       }
     }
@@ -676,7 +676,7 @@ export default function Home() {
           opacity: 0,
           zIndex: 998,
           pointerEvents: 'none',
-          transition: 'opacity 0.58s ease'
+          transition: 'opacity 0.4s ease'
         }}
       />
 
