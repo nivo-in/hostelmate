@@ -380,6 +380,7 @@ export default function Home() {
     try {
       sessionStorage.setItem('fromLoginTransition', 'true')
       sessionStorage.setItem('loginScrollY', window.scrollY.toString())
+      sessionStorage.setItem('loginExitTime', Date.now().toString())
     } catch {
       // Ignore
     }
@@ -421,6 +422,7 @@ export default function Home() {
     try {
       sessionStorage.setItem('fromLoginTransition', 'true')
       sessionStorage.setItem('loginScrollY', window.scrollY.toString())
+      sessionStorage.setItem('loginExitTime', Date.now().toString())
     } catch {
       // Ignore
     }
@@ -473,7 +475,19 @@ export default function Home() {
       let targetScrollY = 0; // Default to top
       try {
         const stored = sessionStorage.getItem('loginScrollY')
-        if (stored !== null) targetScrollY = parseInt(stored, 10)
+        const exitTime = sessionStorage.getItem('loginExitTime')
+        if (stored !== null) {
+          if (exitTime) {
+            const timeDiff = Date.now() - parseInt(exitTime, 10)
+            if (timeDiff > 10 * 60 * 1000) { // 10 minutes idle
+              targetScrollY = 0
+            } else {
+              targetScrollY = parseInt(stored, 10)
+            }
+          } else {
+            targetScrollY = parseInt(stored, 10)
+          }
+        }
       } catch { }
 
       const applyScroll = () => {
@@ -546,6 +560,7 @@ export default function Home() {
     const saveScroll = () => {
       try {
         sessionStorage.setItem('loginScrollY', window.scrollY.toString())
+        sessionStorage.setItem('loginExitTime', Date.now().toString())
       } catch {}
       ticking = false
     }
