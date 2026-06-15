@@ -141,7 +141,7 @@ HostelMate provides a **role-based platform** where students, wardens, and paren
 | **Containers** | Docker + Docker Compose | Multi-service containerization with layer caching |
 | **API Docs** | Swagger / OpenAPI 3.0 | Interactive documentation at `/api/docs` |
 | **Monorepo** | Turborepo + pnpm 10 | Workspace management and parallel build orchestration |
-| **Unit Tests** | Jest 30 + Supertest | 20 suites · 200 tests · ≥80% coverage enforced |
+| **Unit Tests** | Jest 30 + Supertest | 20 suites · 214 tests · ≥80% coverage enforced |
 | **E2E Tests** | Playwright | Browser automation with auto-started dev servers |
 | **Git Hooks** | Husky v9 | Pre-commit: lint client → run server tests |
 | **Linting** | ESLint 9 (Next.js config) | TypeScript-aware linting with Core Web Vitals rules |
@@ -855,7 +855,7 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | ✅ | **GitHub Actions CI/CD** | Lint → build → server tests → security audit → Docker verify on every push |
 | ✅ | **Husky Pre-commit Hooks** | Client lint + server tests enforced before every `git commit` |
 | ✅ | **E2E Tests (Playwright)** | Browser-level login flow tests with auto-started dev servers |
-| ✅ | **Jest Integration Tests** | 20 suites, 200 tests — ≥80% line/function threshold enforced |
+| ✅ | **Jest Integration Tests** | 20 suites, 214 tests — ≥80% line/function threshold enforced |
 | ✅ | **ESLint 9 Flat Config** | Next.js Core Web Vitals + TypeScript rules across the client |
 | ✅ | **Redis Caching** | Tiered TTL caching (2–60 min) with smart pattern-based invalidation |
 | ✅ | **Docker** | Multi-service containerisation with `docker-compose` (client + server) |
