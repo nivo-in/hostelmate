@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import type Hls from 'hls.js'
 import styles from '../../landing.module.css'
 
 const ROLE_EMAIL_HINTS: Record<string, string[]> = {
@@ -89,6 +90,49 @@ export default function LoginPage() {
   const [bgRole, setBgRole] = useState(role)
   const [bgDimmed, setBgDimmed] = useState(false)
   const overlayRef = useRef<HTMLDivElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [videoOpacity, setVideoOpacity] = useState(0)
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Slow down the video playback rate by 30%
+    video.playbackRate = 0.7;
+    const handlePlay = () => {
+      video.playbackRate = 0.7;
+    };
+    video.addEventListener('play', handlePlay);
+
+    const src = "https://stream.mux.com/8wrHPCX2dC3msyYU9ObwqNdm00u3ViXvOSHUMRYSEe5Q.m3u8";
+    let hlsInstance: Hls | null = null;
+
+    import("hls.js").then(({ default: HlsClass }) => {
+      if (HlsClass.isSupported()) {
+        hlsInstance = new HlsClass();
+        hlsInstance.loadSource(src);
+        hlsInstance.attachMedia(video);
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = src;
+      }
+    });
+
+    return () => {
+      video.removeEventListener('play', handlePlay);
+      if (hlsInstance) {
+        hlsInstance.destroy();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      const timer = setTimeout(() => {
+        setVideoOpacity(0.65);
+      }, 2300); // 2.0s transition + 0.3s delay
+      return () => clearTimeout(timer);
+    }
+  }, [mounted]);
 
   useEffect(() => {
     const fadeOutOverlay = () => {
@@ -165,35 +209,59 @@ export default function LoginPage() {
           pointerEvents: 'none'
         }}
       />
+
+      {/* Background HLS Video */}
+      <video
+        ref={videoRef}
+        autoPlay
+        loop
+        muted
+        playsInline
+        style={{
+          position: 'fixed',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          zIndex: 0,
+          opacity: videoOpacity,
+          transition: 'opacity 1.5s ease-in-out',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Spotlights (zIndex: 1 so they are on top of the video but behind the card) */}
       <div style={{
         position: 'fixed',
-        top: mounted ? '-5%' : '-15%',
-        left: mounted ? '65%' : '50%',
+        top: 'calc(-15% - 30px)',
+        left: '50%',
         transform: `translateX(-50%) scale(${bgDimmed ? 0.85 : 1})`,
         width: '900px',
         height: '600px',
         opacity: bgDimmed ? 0.5 : 1,
-        background: `radial-gradient(ellipse at center, ${roleColors[bgRole]}24 0%, ${roleColors[bgRole]}14 35%, ${roleColors[bgRole]}08 60%, ${roleColors[bgRole]}00 75%)`,
-        transition: 'top 2.0s cubic-bezier(0.16, 1, 0.3, 1), left 2.0s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s ease-in-out, opacity 0.4s ease-in-out, background 0.4s ease',
+        background: `radial-gradient(ellipse at center, ${roleColors[bgRole]}2B 0%, ${roleColors[bgRole]}18 35%, ${roleColors[bgRole]}0A 60%, ${roleColors[bgRole]}00 75%)`,
+        transition: 'transform 0.4s ease-in-out, opacity 0.4s ease-in-out, background 0.4s ease',
         pointerEvents: 'none',
-        zIndex: 0,
+        zIndex: 1,
       }} />
       <div style={{
         position: 'fixed',
-        bottom: mounted ? '-25%' : '5%',
+        bottom: 'calc(5% + 30px)',
         left: '-8%',
         transform: `scale(${bgDimmed ? 0.85 : 1})`,
         width: '500px',
         height: '400px',
         opacity: bgDimmed ? 0.5 : 1,
-        background: `radial-gradient(ellipse at center, ${roleColors[bgRole]}0D 0%, ${roleColors[bgRole]}00 65%)`,
-        transition: 'bottom 2.0s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s ease-in-out, opacity 0.4s ease-in-out, background 0.4s ease',
+        background: `radial-gradient(ellipse at center, ${roleColors[bgRole]}10 0%, ${roleColors[bgRole]}00 65%)`,
+        transition: 'transform 0.4s ease-in-out, opacity 0.4s ease-in-out, background 0.4s ease',
         pointerEvents: 'none',
-        zIndex: 0,
+        zIndex: 1,
       }} />
-      <div className={styles.noise} />
 
-      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '522px' }}>
+      {/* Matte noise overlay */}
+      <div className={styles.noise} style={{ zIndex: 5, pointerEvents: 'none' }} />
+
+      <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '522px' }}>
         <div
           className={styles.loginCard}
           style={{ 
