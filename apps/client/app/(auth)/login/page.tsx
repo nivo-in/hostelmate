@@ -221,7 +221,7 @@ export default function LoginPage() {
           objectFit: 'cover',
           zIndex: 0,
           opacity: videoOpacity,
-          transition: 'opacity 1.5s ease-in-out',
+          transition: 'opacity 1.9s ease-in-out',
           pointerEvents: 'none',
         }}
       />
