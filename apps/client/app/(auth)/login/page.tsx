@@ -88,7 +88,7 @@ export default function LoginPage() {
 
   const [mounted, setMounted] = useState(false)
   const [bgRole, setBgRole] = useState(role)
-  const [bgDimmed, setBgDimmed] = useState(false)
+  const [bgDimmed, setBgDimmed] = useState(true)
   const overlayRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [videoOpacity, setVideoOpacity] = useState(0)
@@ -96,13 +96,6 @@ export default function LoginPage() {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-
-    // Slow down the video playback rate by 30%
-    video.playbackRate = 0.7;
-    const handlePlay = () => {
-      video.playbackRate = 0.7;
-    };
-    video.addEventListener('play', handlePlay);
 
     const src = "https://stream.mux.com/8wrHPCX2dC3msyYU9ObwqNdm00u3ViXvOSHUMRYSEe5Q.m3u8";
     let hlsInstance: Hls | null = null;
@@ -118,7 +111,6 @@ export default function LoginPage() {
     });
 
     return () => {
-      video.removeEventListener('play', handlePlay);
       if (hlsInstance) {
         hlsInstance.destroy();
       }
@@ -163,8 +155,12 @@ export default function LoginPage() {
   }, [])
 
   useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 50)
-    return () => clearTimeout(timer)
+    const timer1 = setTimeout(() => setMounted(true), 50)
+    const timer2 = setTimeout(() => setBgDimmed(false), 300)
+    return () => {
+      clearTimeout(timer1)
+      clearTimeout(timer2)
+    }
   }, [])
 
   useEffect(() => {
