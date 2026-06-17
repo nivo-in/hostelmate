@@ -207,6 +207,10 @@ describe('Curfew API', () => {
   });
 
   describe('PATCH /api/curfew/settings', () => {
+    /**
+     * Test: should update curfew settings
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should update curfew settings', async () => {
       const res = await request(app)
         .patch('/api/v1/curfew/settings')
