@@ -358,8 +358,8 @@ export default function Home() {
   const cylinderSceneRef = useRef<HTMLDivElement>(null)
   const loginWrapperRef = useRef<HTMLDivElement>(null)
   const animRef = useRef<number | null>(null)
-  const target = useRef({ x: 4, y: -8 })
-  const current = useRef({ x: 4, y: -8 })
+  const target = useRef({ x: 3.6, y: -7.2 })
+  const current = useRef({ x: 3.6, y: -7.2 })
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -621,7 +621,7 @@ export default function Home() {
     const rect = el.getBoundingClientRect()
     const dx = Math.max(-1, Math.min(1, (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2)))
     const dy = Math.max(-1, Math.min(1, (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2)))
-    target.current = { x: dy * -14, y: dx * 14 }
+    target.current = { x: dy * -12.6, y: dx * 12.6 }
     startAnim()
 
     // Proximity — fires even when hovering the main card's edge
@@ -633,7 +633,7 @@ export default function Home() {
             activeStates.current.fc1 = true
             timers.current.fc1 = null
             activateCard(fc1, '0px, 0px')
-          }, 650)
+          }, 585)
         }
       } else {
         if (timers.current.fc1) {
@@ -653,7 +653,7 @@ export default function Home() {
             activeStates.current.fc2 = true
             timers.current.fc2 = null
             activateCard(fc2, '0px, 0px')
-          }, 650)
+          }, 585)
         }
       } else {
         if (timers.current.fc2) {
@@ -667,7 +667,7 @@ export default function Home() {
   }, [startAnim])
 
   const handleMouseLeave = useCallback(() => {
-    target.current = { x: 4, y: -8 }
+    target.current = { x: 3.6, y: -7.2 }
     startAnim()
 
     if (timers.current.fc1) {
