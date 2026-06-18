@@ -4,6 +4,146 @@ import Link from 'next/link'
 import { useRef, useCallback, useEffect, useState } from 'react'
 import styles from './landing.module.css'
 
+function PreviewGooglyEyes() {
+  const eye1Ref = useRef<HTMLDivElement>(null)
+  const eye2Ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const eyes = [eye1Ref, eye2Ref]
+      eyes.forEach(eyeRef => {
+        const eye = eyeRef.current
+        if (!eye) return
+        const rect = eye.getBoundingClientRect()
+        const eyeCX = rect.left + rect.width / 2
+        const eyeCY = rect.top + rect.height / 2
+        const dx = e.clientX - eyeCX
+        const dy = e.clientY - eyeCY
+        const angle = Math.atan2(dy, dx)
+        const dist = Math.min(Math.hypot(dx, dy), 5)
+        const pupilX = Math.cos(angle) * dist
+        const pupilY = Math.sin(angle) * dist
+        const pupil = eye.querySelector('.pupil') as HTMLElement
+        if (pupil) {
+          pupil.style.transform = `translate(calc(-50% + ${pupilX}px), calc(-50% + ${pupilY}px))`
+        }
+      })
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [])
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        right: '12px',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        userSelect: 'none',
+        zIndex: 3,
+      }}
+    >
+      <div
+        style={{
+          position: 'relative',
+          width: '20px',
+          paddingTop: '6px',
+        }}
+      >
+        <div
+          ref={eye1Ref}
+          style={{
+            width: '20px',
+            height: '20px',
+            background: 'rgba(255,255,255,0.92)',
+            borderRadius: '50%',
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: 'inset 0 1.5px 0 rgba(15,12,30,0.4)',
+          }}
+        >
+          <div
+            className="pupil"
+            style={{
+              width: '9px',
+              height: '9px',
+              background: '#08080f',
+              borderRadius: '50%',
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              top: '3px',
+              left: '4px',
+              width: '4px',
+              height: '2px',
+              background: 'rgba(255,255,255,0.7)',
+              borderRadius: '50%',
+              pointerEvents: 'none',
+            }}
+          />
+        </div>
+      </div>
+
+      <div
+        style={{
+          position: 'relative',
+          width: '20px',
+          paddingTop: '6px',
+        }}
+      >
+        <div
+          ref={eye2Ref}
+          style={{
+            width: '20px',
+            height: '20px',
+            background: 'rgba(255,255,255,0.92)',
+            borderRadius: '50%',
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: 'inset 0 1.5px 0 rgba(15,12,30,0.4)',
+          }}
+        >
+          <div
+            className="pupil"
+            style={{
+              width: '9px',
+              height: '9px',
+              background: '#08080f',
+              borderRadius: '50%',
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              top: '3px',
+              left: '4px',
+              width: '4px',
+              height: '2px',
+              background: 'rgba(255,255,255,0.7)',
+              borderRadius: '50%',
+              pointerEvents: 'none',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const PROXIMITY = 96 // px — how close to a floating card triggers it
 
 function isNear(rect: DOMRect, x: number, y: number) {
@@ -959,7 +1099,10 @@ export default function Home() {
               </div>
               <div className={styles.loginField}>
                 <div className={styles.loginLabel}>Password</div>
-                <div className={styles.loginInput}>••••••••••</div>
+                <div className={styles.loginInput} style={{ position: 'relative', paddingRight: '60px' }}>
+                  ••••••••••
+                  <PreviewGooglyEyes />
+                </div>
               </div>
               <button className={styles.loginBtn}>Sign in</button>
             </div>
