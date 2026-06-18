@@ -424,6 +424,7 @@ hostelmate/
 │   │   ├── app/
 │   │   │   ├── (auth)/
 │   │   │   │   └── login/               # Login page
+│   │   │   │       └── page.tsx         # Role detection, googly eyes toggle, animated spotlight, 3D card tilt
 │   │   │   ├── (dashboard)/
 │   │   │   │   ├── student/             # Student dashboard
 │   │   │   │   │   ├── attendance/
@@ -461,7 +462,8 @@ hostelmate/
 │   │   │   │       └── track/
 │   │   │   ├── globals.css
 │   │   │   ├── layout.tsx
-│   │   │   └── page.tsx                 # Root redirect to login/dashboard
+│   │   │   ├── page.tsx                 # Landing page — dark theme, scroll-driven 3D cylinder feature carousel
+│   │   │   └── landing.module.css       # Landing page styles with Apple liquid glass nav
 │   │   ├── components/
 │   │   │   ├── ui/                      # Shared UI components
 │   │   │   │   ├── Badge.tsx
@@ -469,7 +471,7 @@ hostelmate/
 │   │   │   │   ├── EmptyState.tsx
 │   │   │   │   ├── Header.tsx
 │   │   │   │   ├── LoadingSpinner.tsx
-│   │   │   │   ├── NotificationBell.tsx # Real-time notification dropdown
+│   │   │   │   ├── NotificationBell.tsx # Apple-style slide-in notification center
 │   │   │   │   ├── NivoBadge.tsx
 │   │   │   │   └── PageHeader.tsx
 │   │   │   ├── face/                    # Biometric components
@@ -487,9 +489,9 @@ hostelmate/
 │   │   ├── hooks/
 │   │   │   ├── useApi.ts                # Typed fetch wrapper with auth
 │   │   │   ├── useProfile.ts            # Cached Supabase profile hook
-│   │   │   └── useSocket.ts             # Socket.io connection hook
+│   │   │   └── useSocket.ts             # WebSocket hook (Socket.io connection)
 │   │   ├── lib/
-│   │   │   ├── faceRecognition.ts       # EAR, EMA, frame-diff, bestMatchDistance
+│   │   │   ├── faceRecognition.ts       # face-api.js wrapper (5-angle scan, blink liveness, EAR, frame-diff)
 │   │   │   ├── socket.ts                # Socket.io client singleton
 │   │   │   └── supabase/
 │   │   │       ├── client.ts            # Browser Supabase client (singleton)
@@ -858,6 +860,7 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | ✅ | **Jest Integration Tests** | 20 suites, 214 tests — ≥80% line/function threshold enforced |
 | ✅ | **ESLint 9 Flat Config** | Next.js Core Web Vitals + TypeScript rules across the client |
 | ✅ | **Redis Caching** | Tiered TTL caching (2–60 min) with smart pattern-based invalidation |
+| ✅ | **Redis Pub/Sub** | Real-time event propagation via Upstash Redis channels |
 | ✅ | **Docker** | Multi-service containerisation with `docker-compose` (client + server) |
 | ✅ | **Winston Logging** | Structured logging with daily file rotation and 14-day retention |
 | ✅ | **Zod v4 Validation** | Type-safe request validation schemas on every POST / PUT / PATCH |
@@ -881,6 +884,11 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | ✅ | **Razorpay Payments** | Full fee lifecycle: bill generation → Razorpay checkout → HMAC verify → receipt |
 | ✅ | **Visitor Management** | Digital guest pre-registration, warden approval, and check-in/out tracking |
 | ✅ | **E2E Coverage Expansion** | 59 tests across 5 Playwright projects — all critical user flows per role |
+| ✅ | **Landing page** | Dark theme, scroll-driven 3D cylinder feature carousel, parallax hero |
+| ✅ | **Login page** | Role detection, animated spotlight, 3D card tilt, googly eyes password toggle |
+| ✅ | **Apple liquid glass navigation** | visionOS-style backdrop blur, multi-layer refraction, inner highlights |
+| ✅ | **Cinematic login card transition** | Card fly-to-centre + overlay fade from landing page to /login |
+| ✅ | **Notification Bell** | Apple notification center style slide-in panel with unread badge |
 | 🔲 | **Mobile App** | React Native cross-platform app for students and parents |
 | 🔲 | **Multi-tenancy** | Support multiple hostels under one instance with tenant isolation |
 
