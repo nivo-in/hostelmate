@@ -107,6 +107,10 @@ describe('Demo API', () => {
       expect(res.body.error).toMatch(/Too many codes/i);
     });
 
+    /**
+     * Test: should handle internal errors gracefully
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should handle internal errors gracefully', async () => {
       redis.incr.mockRejectedValueOnce(new Error('Redis died'));
       // rateLimited catches the error and returns false, so it proceeds to redis.set
