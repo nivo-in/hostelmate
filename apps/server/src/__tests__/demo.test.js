@@ -123,6 +123,10 @@ describe('Demo API', () => {
   });
 
   describe('POST /api/demo/verify-otp', () => {
+    /**
+     * Test: should fail with invalid email or otp length
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should fail with invalid email or otp length', async () => {
       const res = await request(app)
         .post('/api/v1/demo/verify-otp')
