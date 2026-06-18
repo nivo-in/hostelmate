@@ -5,6 +5,223 @@ import { createClient } from '@/lib/supabase/client'
 import type Hls from 'hls.js'
 import styles from '../../landing.module.css'
 
+function GooglyEyes({ isHidden, onToggle, cursorX, cursorY }: {
+  isHidden: boolean
+  onToggle: () => void
+  cursorX: number
+  cursorY: number
+}) {
+  const eye1Ref = useRef<HTMLDivElement>(null)
+  const eye2Ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (isHidden) return
+    ;[eye1Ref, eye2Ref].forEach(eyeRef => {
+      const eye = eyeRef.current
+      if (!eye) return
+      const rect = eye.getBoundingClientRect()
+      const eyeCX = rect.left + rect.width / 2
+      const eyeCY = rect.top + rect.height / 2
+      const dx = cursorX - eyeCX
+      const dy = cursorY - eyeCY
+      const angle = Math.atan2(dy, dx)
+      const dist = Math.min(Math.hypot(dx, dy), 5)
+      const pupilX = Math.cos(angle) * dist
+      const pupilY = Math.sin(angle) * dist
+      const pupil = eye.querySelector('.pupil') as HTMLElement
+      if (pupil) {
+        pupil.style.transform = `translate(calc(-50% + ${pupilX}px), calc(-50% + ${pupilY}px))`
+      }
+    })
+  }, [cursorX, cursorY, isHidden])
+
+  const lashAngles = [-32, -11, 11, 32]
+
+  return (
+    <div
+      onClick={onToggle}
+      title={isHidden ? 'Show password' : 'Hide password'}
+      style={{
+        position: 'absolute',
+        right: '12px',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        cursor: 'pointer',
+        userSelect: 'none',
+        zIndex: 3,
+      }}
+    >
+      <div
+        style={{
+          position: 'relative',
+          width: '20px',
+          paddingTop: '6px',
+        }}
+      >
+        {lashAngles.map((deg, j) => (
+          <div
+            key={j}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: '50%',
+              width: '1.5px',
+              height: isHidden ? '1px' : '5px',
+              background: 'rgba(255,255,255,0.5)',
+              borderRadius: '1px',
+              transformOrigin: 'bottom center',
+              transform: `translateX(-50%) rotate(${deg}deg)`,
+              transition: 'height 0.22s ease, opacity 0.22s ease',
+              opacity: isHidden ? 0 : 0.75,
+              pointerEvents: 'none',
+            }}
+          />
+        ))}
+        <div
+          ref={eye1Ref}
+          style={{
+            width: '20px',
+            height: '20px',
+            background: 'rgba(255,255,255,0.92)',
+            borderRadius: '50%',
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: 'inset 0 1.5px 0 rgba(15,12,30,0.4)',
+          }}
+        >
+          <div
+            className="pupil"
+            style={{
+              width: '9px',
+              height: '9px',
+              background: '#08080f',
+              borderRadius: '50%',
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              transition: 'transform 0.08s ease',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              top: '3px',
+              left: '4px',
+              width: '4px',
+              height: '2px',
+              background: 'rgba(255,255,255,0.7)',
+              borderRadius: '50%',
+              pointerEvents: 'none',
+              opacity: isHidden ? 0 : 1,
+              transition: 'opacity 0.18s ease',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'rgba(12, 11, 22, 0.97)',
+              transformOrigin: 'top center',
+              transform: isHidden ? 'scaleY(1)' : 'scaleY(0)',
+              transition: isHidden
+                ? 'transform 0.24s cubic-bezier(0.55, 0, 0.45, 1)'
+                : 'transform 0.30s cubic-bezier(0.2, 0.9, 0.4, 1)',
+              boxShadow: '0 3px 8px rgba(0,0,0,0.6)',
+            }}
+          />
+        </div>
+      </div>
+
+      <div
+        style={{
+          position: 'relative',
+          width: '20px',
+          paddingTop: '6px',
+        }}
+      >
+        {lashAngles.map((deg, j) => (
+          <div
+            key={j}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: '50%',
+              width: '1.5px',
+              height: isHidden ? '1px' : '5px',
+              background: 'rgba(255,255,255,0.5)',
+              borderRadius: '1px',
+              transformOrigin: 'bottom center',
+              transform: `translateX(-50%) rotate(${deg}deg)`,
+              transition: 'height 0.22s ease, opacity 0.22s ease',
+              opacity: isHidden ? 0 : 0.75,
+              pointerEvents: 'none',
+            }}
+          />
+        ))}
+        <div
+          ref={eye2Ref}
+          style={{
+            width: '20px',
+            height: '20px',
+            background: 'rgba(255,255,255,0.92)',
+            borderRadius: '50%',
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: 'inset 0 1.5px 0 rgba(15,12,30,0.4)',
+          }}
+        >
+          <div
+            className="pupil"
+            style={{
+              width: '9px',
+              height: '9px',
+              background: '#08080f',
+              borderRadius: '50%',
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              transition: 'transform 0.08s ease',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              top: '3px',
+              left: '4px',
+              width: '4px',
+              height: '2px',
+              background: 'rgba(255,255,255,0.7)',
+              borderRadius: '50%',
+              pointerEvents: 'none',
+              opacity: isHidden ? 0 : 1,
+              transition: 'opacity 0.18s ease',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'rgba(12, 11, 22, 0.97)',
+              transformOrigin: 'top center',
+              transform: isHidden ? 'scaleY(1)' : 'scaleY(0)',
+              transition: isHidden
+                ? 'transform 0.24s cubic-bezier(0.55, 0, 0.45, 1)'
+                : 'transform 0.30s cubic-bezier(0.2, 0.9, 0.4, 1)',
+              boxShadow: '0 3px 8px rgba(0,0,0,0.6)',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
 const ROLE_EMAIL_HINTS: Record<string, string[]> = {
   warden: ['warden', 'admin', 'staff', 'rector', 'hod', 'principal'],
   parent: ['parent', 'guardian', 'father', 'mother', 'dad', 'mom'],
@@ -25,11 +242,44 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [role, setRole] = useState<'student' | 'warden' | 'parent'>('student')
   const [autoDetected, setAutoDetected] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [showPassword, setShowPassword] = useState(true)
+  const [globalCursorX, setGlobalCursorX] = useState(0)
+  const [globalCursorY, setGlobalCursorY] = useState(0)
   const supabase = createClient()
+
+  useEffect(() => {
+    const saved = localStorage.getItem('login_show_password')
+    if (saved !== null) {
+      setShowPassword(saved === 'true')
+    }
+  }, [])
+
+  // FIX E — Force repaint on mount to prevent black screen from back navigation
+  useEffect(() => {
+    document.body.style.opacity = '0'
+    requestAnimationFrame(() => {
+      document.body.style.transition = 'opacity 0.3s ease'
+      document.body.style.opacity = '1'
+    })
+    return () => {
+      document.body.style.opacity = ''
+      document.body.style.transition = ''
+    }
+  }, [])
+
+  // Global cursor tracking for googly eyes
+  useEffect(() => {
+    const track = (e: MouseEvent) => {
+      setGlobalCursorX(e.clientX)
+      setGlobalCursorY(e.clientY)
+    }
+    window.addEventListener('mousemove', track)
+    return () => window.removeEventListener('mousemove', track)
+  }, [])
 
   useEffect(() => {
     if (email.length > 3) {
@@ -313,19 +563,46 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className={styles.loginField}>
-              <div className={styles.loginLabel}>Password</div>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className={styles.loginInput}
-                style={{ opacity: 1, transition: 'border-color 0.2s', outline: 'none' }}
-                onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.4)'}
-                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
-              />
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '6px', letterSpacing: '0.2px' }}>
+                Password
+              </div>
+              {/* overflow:hidden clips the hands at the input bottom edge so they appear to slide up from beneath */}
+              <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '10px' }}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  style={{
+                    width: '100%',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    borderRadius: '10px',
+                    padding: '11px 60px 11px 14px',
+                    fontSize: '14px',
+                    color: '#fff',
+                    outline: 'none',
+                    boxSizing: 'border-box' as const,
+                    transition: 'border-color 0.2s',
+                  }}
+                  onFocus={e => e.target.style.borderColor = `${roleColors[role]}60`}
+                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                />
+                <GooglyEyes
+                  isHidden={!showPassword}
+                  onToggle={() => {
+                    setShowPassword(p => {
+                      const next = !p
+                      localStorage.setItem('login_show_password', String(next))
+                      return next
+                    })
+                  }}
+                  cursorX={globalCursorX}
+                  cursorY={globalCursorY}
+                />
+              </div>
             </div>
 
             {error && (
