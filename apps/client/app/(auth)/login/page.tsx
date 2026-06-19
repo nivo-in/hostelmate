@@ -136,68 +136,7 @@ function GooglyEyes({ isHidden, onToggle, cursorX, cursorY }: {
       }}
     >
       <SingleEye eyeRef={eye1Ref} isHidden={isHidden} />
-      <div
-        style={{
-          position: 'relative',
-          width: '20px',
-          paddingTop: '6px',
-        }}
-      >
-        <div
-          ref={eye2Ref}
-          style={{
-            width: '20px',
-            height: '20px',
-            background: 'rgba(255,255,255,0.92)',
-            borderRadius: '50%',
-            position: 'relative',
-            overflow: 'hidden',
-            boxShadow: 'inset 0 1.5px 0 rgba(15,12,30,0.4)',
-          }}
-        >
-          <div
-            className="pupil"
-            style={{
-              width: '9px',
-              height: '9px',
-              background: '#08080f',
-              borderRadius: '50%',
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              transition: 'transform 0.08s ease',
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              top: '3px',
-              left: '4px',
-              width: '4px',
-              height: '2px',
-              background: 'rgba(255,255,255,0.7)',
-              borderRadius: '50%',
-              pointerEvents: 'none',
-              opacity: isHidden ? 0 : 1,
-              transition: 'opacity 0.18s ease',
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'rgba(12, 11, 22, 0.97)',
-              transformOrigin: 'top center',
-              transform: isHidden ? 'scaleY(1)' : 'scaleY(0)',
-              transition: isHidden
-                ? 'transform 0.24s cubic-bezier(0.55, 0, 0.45, 1)'
-                : 'transform 0.30s cubic-bezier(0.2, 0.9, 0.4, 1)',
-              boxShadow: '0 3px 8px rgba(0,0,0,0.6)',
-            }}
-          />
-        </div>
-      </div>
+      <SingleEye eyeRef={eye2Ref} isHidden={isHidden} />
     </div>
   )
 }
