@@ -205,6 +205,10 @@ describe('Demo API', () => {
       expect(res.status).toBe(403);
     });
 
+    /**
+     * Test: should submit successfully if token matches
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should submit successfully if token matches', async () => {
       redis.get.mockResolvedValueOnce('valid-token');
       const res = await request(app)
