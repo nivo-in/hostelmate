@@ -41,6 +41,10 @@ describe('Health API', () => {
     redisPingThrows = false;
   });
 
+  /**
+   * Test: should return ok when both DB and Redis are up
+   * Verifies behaviour under correct inputs and constraints.
+   */
   it('should return ok when both DB and Redis are up', async () => {
     const res = await request(app).get('/health');
     expect(res.status).toBe(200);
