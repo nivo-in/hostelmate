@@ -291,6 +291,10 @@ describe('Demo API', () => {
       expect(res.status).toBe(429);
     });
 
+    /**
+     * Test: should handle internal errors gracefully in FAQ
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should handle internal errors gracefully in FAQ', async () => {
       redis.incr.mockRejectedValueOnce(new Error('Redis died'));
       // rateLimited catches the error and returns false, so it proceeds to sendEmail
