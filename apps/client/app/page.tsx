@@ -4,6 +4,67 @@ import Link from 'next/link'
 import { useRef, useCallback, useEffect, useState } from 'react'
 import styles from './landing.module.css'
 
+function PreviewSingleEye({ eyeRef }: {
+  eyeRef: React.RefObject<HTMLDivElement | null>
+}) {
+  return (
+    <div style={{ position: 'relative', width: '22px', height: '22px' }}>
+      <div
+        ref={eyeRef}
+        style={{
+          width: '22px',
+          height: '22px',
+          background: 'rgba(255,255,255,0.92)',
+          borderRadius: '50%',
+          position: 'relative',
+          overflow: 'hidden',
+          boxShadow: 'inset 0 1.5px 0 rgba(15,12,30,0.4), 0 1px 4px rgba(0,0,0,0.4)',
+        }}
+      >
+        <div
+          className="pupil"
+          style={{
+            width: '10px',
+            height: '10px',
+            background: '#08080f',
+            borderRadius: '50%',
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            top: '4px',
+            left: '5px',
+            width: '4px',
+            height: '2.5px',
+            background: 'rgba(255,255,255,0.75)',
+            borderRadius: '50%',
+            pointerEvents: 'none',
+          }}
+        />
+      </div>
+      <div
+        style={{
+          position: 'absolute',
+          top: '-3px',
+          left: '-1px',
+          right: '-1px',
+          height: '10px',
+          background: 'rgba(10, 9, 22, 0.0)',
+          borderBottom: '2.5px solid rgba(255,255,255,0.55)',
+          borderRadius: '0 0 50% 50%',
+          opacity: 0.55,
+          pointerEvents: 'none',
+        }}
+      />
+    </div>
+  )
+}
+
 function PreviewGooglyEyes() {
   const eye1Ref = useRef<HTMLDivElement>(null)
   const eye2Ref = useRef<HTMLDivElement>(null)
@@ -47,99 +108,8 @@ function PreviewGooglyEyes() {
         zIndex: 3,
       }}
     >
-      <div
-        style={{
-          position: 'relative',
-          width: '20px',
-          paddingTop: '6px',
-        }}
-      >
-        <div
-          ref={eye1Ref}
-          style={{
-            width: '20px',
-            height: '20px',
-            background: 'rgba(255,255,255,0.92)',
-            borderRadius: '50%',
-            position: 'relative',
-            overflow: 'hidden',
-            boxShadow: 'inset 0 1.5px 0 rgba(15,12,30,0.4)',
-          }}
-        >
-          <div
-            className="pupil"
-            style={{
-              width: '9px',
-              height: '9px',
-              background: '#08080f',
-              borderRadius: '50%',
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              top: '3px',
-              left: '4px',
-              width: '4px',
-              height: '2px',
-              background: 'rgba(255,255,255,0.7)',
-              borderRadius: '50%',
-              pointerEvents: 'none',
-            }}
-          />
-        </div>
-      </div>
-
-      <div
-        style={{
-          position: 'relative',
-          width: '20px',
-          paddingTop: '6px',
-        }}
-      >
-        <div
-          ref={eye2Ref}
-          style={{
-            width: '20px',
-            height: '20px',
-            background: 'rgba(255,255,255,0.92)',
-            borderRadius: '50%',
-            position: 'relative',
-            overflow: 'hidden',
-            boxShadow: 'inset 0 1.5px 0 rgba(15,12,30,0.4)',
-          }}
-        >
-          <div
-            className="pupil"
-            style={{
-              width: '9px',
-              height: '9px',
-              background: '#08080f',
-              borderRadius: '50%',
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              top: '3px',
-              left: '4px',
-              width: '4px',
-              height: '2px',
-              background: 'rgba(255,255,255,0.7)',
-              borderRadius: '50%',
-              pointerEvents: 'none',
-            }}
-          />
-        </div>
-      </div>
+      <PreviewSingleEye eyeRef={eye1Ref} />
+      <PreviewSingleEye eyeRef={eye2Ref} />
     </div>
   )
 }
