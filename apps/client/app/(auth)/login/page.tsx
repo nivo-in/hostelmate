@@ -5,6 +5,17 @@ import { createClient } from '@/lib/supabase/client'
 import type Hls from 'hls.js'
 import styles from '../../landing.module.css'
 
+
+function SingleEye({ eyeRef, isHidden }: {
+  eyeRef: React.RefObject<HTMLDivElement | null>
+  isHidden: boolean
+}) {
+  return (
+    <div style={{ position: 'relative', width: '22px', height: '22px' }}>
+    </div>
+  )
+}
+
 function GooglyEyes({ isHidden, onToggle, cursorX, cursorY }: {
   isHidden: boolean
   onToggle: () => void
