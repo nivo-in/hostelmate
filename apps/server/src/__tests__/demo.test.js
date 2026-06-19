@@ -263,6 +263,10 @@ describe('Demo API', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should submit faq and send email
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should submit faq and send email', async () => {
       const res = await request(app).post('/api/v1/demo/faq').send({
         name: 'Tester',
