@@ -118,8 +118,6 @@ function GooglyEyes({ isHidden, onToggle, cursorX, cursorY }: {
     })
   }, [cursorX, cursorY, isHidden])
 
-  const lashAngles = [-32, -11, 11, 32]
-
   return (
     <div
       onClick={onToggle}
