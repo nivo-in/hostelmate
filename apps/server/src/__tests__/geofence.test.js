@@ -63,6 +63,10 @@ describe('Geofence Utilities', () => {
       expect(result.distance).toBeGreaterThan(100);
     });
 
+    /**
+     * Test: should include distance in response
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should include distance in response', () => {
       const result = isWithinGeofence(28.6139, 77.209, HOSTEL_LAT, HOSTEL_LNG);
       expect(result).toHaveProperty('distance');
