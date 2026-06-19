@@ -38,6 +38,20 @@ function SingleEye({ eyeRef, isHidden }: {
             transition: 'transform 0.08s ease',
           }}
         />
+        <div
+          style={{
+            position: 'absolute',
+            top: '4px',
+            left: '5px',
+            width: '4px',
+            height: '2.5px',
+            background: 'rgba(255,255,255,0.75)',
+            borderRadius: '50%',
+            pointerEvents: 'none',
+            opacity: isHidden ? 0.3 : 1,
+            transition: 'opacity 0.22s ease',
+          }}
+        />
       </div>
     </div>
   )
