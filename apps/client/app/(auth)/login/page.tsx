@@ -12,6 +12,33 @@ function SingleEye({ eyeRef, isHidden }: {
 }) {
   return (
     <div style={{ position: 'relative', width: '22px', height: '22px' }}>
+      <div
+        ref={eyeRef}
+        style={{
+          width: '22px',
+          height: '22px',
+          background: 'rgba(255,255,255,0.92)',
+          borderRadius: '50%',
+          position: 'relative',
+          overflow: 'hidden',
+          boxShadow: 'inset 0 1.5px 0 rgba(15,12,30,0.4), 0 1px 4px rgba(0,0,0,0.4)',
+        }}
+      >
+        <div
+          className="pupil"
+          style={{
+            width: '10px',
+            height: '10px',
+            background: '#08080f',
+            borderRadius: '50%',
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            transition: 'transform 0.08s ease',
+          }}
+        />
+      </div>
     </div>
   )
 }
