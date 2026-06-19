@@ -307,6 +307,10 @@ describe('Demo API', () => {
       expect(res.status).toBe(500);
     });
 
+    /**
+     * Test: should skip FAQ email if no recipient is configured
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should skip FAQ email if no recipient is configured', async () => {
       const originalDemoEmail = process.env.DEMO_RECIPIENT_EMAIL;
       const originalGmail = process.env.GMAIL_USER;
