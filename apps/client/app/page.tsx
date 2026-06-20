@@ -1381,3 +1381,4 @@ export default function Home() {
 
 // PRICING WRAPPER
 // CAROUSEL FIXES
+// SAFARI FIXES
