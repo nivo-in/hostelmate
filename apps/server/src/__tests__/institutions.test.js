@@ -34,6 +34,10 @@ describe('Institutions API', () => {
   });
 
   describe('GET /api/institutions/search', () => {
+    /**
+     * Test: should return empty results for short query
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return empty results for short query', async () => {
       const res = await request(app).get('/api/v1/institutions/search?q=a');
       expect(res.status).toBe(200);
