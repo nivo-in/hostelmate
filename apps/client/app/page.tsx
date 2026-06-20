@@ -382,18 +382,13 @@ export default function Home() {
     const handleScroll = () => {
       if (window.innerWidth <= 768) return
       if (!scrollWrapperRef.current) return
-      const wRect = scrollWrapperRef.current.getBoundingClientRect()
-      const inZone = wRect.top <= 50 && wRect.bottom >= window.innerHeight * 0.5
-      if (cylinderSceneRef.current) {
-        cylinderSceneRef.current.style.visibility = inZone ? 'visible' : 'hidden'
-        if (!inZone) cylinderSceneRef.current.style.opacity = '0'
-      }
 
-      const rect = wRect
+      const rect = scrollWrapperRef.current.getBoundingClientRect()
 
       const isInFeaturesZone = rect.top <= 0 && rect.bottom >= window.innerHeight
       if (!isInFeaturesZone && cylinderSceneRef.current) {
-        cylinderSceneRef.current.style.opacity = '0'
+        // Only hide when NOT animating in/out via entryProgress/bufferProgress
+        // (those ranges are handled below — don't force-zero here)
       }
 
       // Leave 100vh buffer at the end of the rotation to absorb scroll momentum
@@ -513,7 +508,7 @@ export default function Home() {
           entry.target.classList.remove(styles.revealVisible)
         }
       })
-    }, { threshold: 0.08 })
+    }, { threshold: 0.25 })
 
     const cardObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {

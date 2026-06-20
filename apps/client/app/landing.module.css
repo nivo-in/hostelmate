@@ -656,7 +656,7 @@
 }
 
 .loginScrollWrapper {
-  height: 100vh;
+  height: 200vh;
   position: relative;
   margin-top: -100vh;
   z-index: 10;
@@ -1063,16 +1063,12 @@
 /* ── Section reveal (used on How it Works / Pricing / FAQ) ── */
 .sectionReveal {
   opacity: 0;
-  transform: translateY(44px);
-  transition:
-    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
+  transition: opacity 0.35s ease;
+  will-change: opacity;
 }
 
 .sectionReveal.revealVisible {
   opacity: 1;
-  transform: translateY(0);
 }
 
 /* Card-level staggered reveal inside sections */
