@@ -1161,170 +1161,168 @@ export default function Home() {
         </section>
       </div>
 
-      {/* HOW IT WORKS */}
-      <section
-        id="howitworks"
-        ref={howItWorksRef as React.RefObject<HTMLElement>}
-        className={styles.sectionReveal}
-        style={{ padding: '100px 48px', maxWidth: '1200px', margin: '0 auto', borderTop: '0.5px solid rgba(255,255,255,0.06)', position: 'relative', zIndex: 1 }}
-      >
-        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>
-          How it works
+      {/* HOW IT WORKS — sticky wrapper */}
+      <div className={styles.sectionStickyWrapper}>
+        <div className={styles.stickyPageSection}>
+          <section
+            id="howitworks"
+            ref={howItWorksRef as React.RefObject<HTMLElement>}
+            style={{ width: '100%', maxWidth: '1200px', padding: '0 48px' }}
+          >
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>
+              How it works
+            </div>
+            <h2 style={{ fontSize: '28px', fontWeight: 500, letterSpacing: '-0.6px', color: '#fff', marginBottom: '28px', lineHeight: 1.15 }}>
+              Live in 15 minutes. <span style={{ color: 'rgba(255,255,255,0.28)' }}>Zero learning curve.</span>
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px', background: 'rgba(255,255,255,0.06)', borderRadius: '16px', overflow: 'hidden' }}>
+              {[
+                { step: '01', color: '#4ade80', title: 'Create your hostel', desc: 'Name it, add blocks and rooms. Skeleton is live in 15 min.' },
+                { step: '02', color: '#a78bfa', title: 'Add students & staff', desc: 'CSV import or individual invite. One face scan = lifetime pass.' },
+                { step: '03', color: '#60a5fa', title: 'Connect parents', desc: 'Link a parent email. They get a live portal — no app needed.' },
+                { step: '04', color: '#fbbf24', title: 'Attendance marks itself', desc: 'Face matched in 2s at entry. QR fallback always available.' },
+                { step: '05', color: '#f87171', title: 'AI triages complaints', desc: 'GPT-4o mini assigns urgency and suggests a fix. Warden just reviews.' },
+                { step: '06', color: '#34d399', title: 'Fees collect themselves', desc: 'Razorpay reminders auto-go. Parents pay from their portal.' },
+              ].map((item, i) => (
+                <HowItWorksCard
+                  key={i}
+                  item={item}
+                  index={i}
+                  cardRef={el => { howItWorksCardsRef.current[i] = el }}
+                  staggerClass={[styles.stagger5, styles.stagger6, styles.stagger7, styles.stagger8, styles.stagger9, styles.stagger10][i]}
+                  cardRevealClass={styles.cardReveal}
+                />
+              ))}
+            </div>
+          </section>
         </div>
-        <h2 style={{ fontSize: '32px', fontWeight: 500, letterSpacing: '-0.8px', color: '#fff', marginBottom: '48px', lineHeight: 1.15 }}>
-          Live in 15 minutes.<br />
-          <span style={{ color: 'rgba(255,255,255,0.28)' }}>Zero learning curve.</span>
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px', background: 'rgba(255,255,255,0.06)', borderRadius: '16px', overflow: 'hidden' }}>
-          {[
-            {
-              step: '01', color: '#4ade80',
-              title: 'Create your hostel',
-              desc: 'Sign up as warden. Name your hostel, set your institution, add blocks and room numbers. The whole skeleton is live in under 15 minutes.',
-            },
-            {
-              step: '02', color: '#a78bfa',
-              title: 'Add students & staff',
-              desc: 'Import students via CSV or invite individually. Each student scans their face once — that\'s their lifetime biometric pass. Staff get their own login.',
-            },
-            {
-              step: '03', color: '#60a5fa',
-              title: 'Connect parents',
-              desc: 'Students link a parent email. Parents get a read-only portal: live attendance, leave status, fee dues, and emergency alerts — no app install needed.',
-            },
-            {
-              step: '04', color: '#fbbf24',
-              title: 'Attendance marks itself',
-              desc: 'Students scan at entry. Face is matched in the browser in under 2 seconds. QR fallback available. Warden sees live attendance without lifting a finger.',
-            },
-            {
-              step: '05', color: '#f87171',
-              title: 'Complaints get triaged by AI',
-              desc: 'Student submits a complaint. GPT-4o mini reads it, assigns urgency, and suggests a fix. Warden reviews — not hunts through a pile. Patterns surface automatically.',
-            },
-            {
-              step: '06', color: '#34d399',
-              title: 'Fees collect themselves',
-              desc: 'Razorpay reminders go out on your billing cycle. Parents pay from their portal. Overdue flags appear on the warden dashboard without you chasing anyone.',
-            },
-          ].map((item, i) => (
-            <HowItWorksCard
-              key={i}
-              item={item}
-              index={i}
-              cardRef={el => { howItWorksCardsRef.current[i] = el }}
-              staggerClass={[styles.stagger5, styles.stagger6, styles.stagger7, styles.stagger8, styles.stagger9, styles.stagger10][i]}
-              cardRevealClass={styles.cardReveal}
-            />
-          ))}
-        </div>
-      </section>
+      </div>
 
-      {/* PRICING */}
-      <section
-        id="pricing"
-        ref={pricingRef as React.RefObject<HTMLElement>}
-        className={styles.sectionReveal}
-        style={{ padding: '100px 48px', maxWidth: '1200px', margin: '0 auto', borderTop: '0.5px solid rgba(255,255,255,0.06)', position: 'relative', zIndex: 1 }}
-      >
-        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px' }}>Pricing</div>
-        <h2 style={{ fontSize: '36px', fontWeight: 500, letterSpacing: '-1px', color: '#fff', marginBottom: '12px', lineHeight: 1.1 }}>
-          Simple pricing.<br /><span style={{ color: 'rgba(255,255,255,0.28)' }}>No surprises.</span>
-        </h2>
-        <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.38)', marginBottom: '48px', maxWidth: '400px', lineHeight: 1.7 }}>
-          First 10 hostels get 3 months free. No credit card required.
-        </p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', maxWidth: '800px' }}>
-          {[
-            { name: 'Starter', price: 'Free', sub: 'First 3 months', color: 'rgba(255,255,255,0.08)', border: 'rgba(255,255,255,0.1)', features: ['Up to 200 students', 'All core features', 'Face recognition', 'Email support'], cta: 'Get started free', ctaBg: 'rgba(255,255,255,0.08)', ctaColor: 'rgba(255,255,255,0.7)' },
-            { name: 'Pro', price: '₹4,999', sub: 'per month', color: 'rgba(124,92,252,0.08)', border: 'rgba(124,92,252,0.3)', features: ['Unlimited students', 'AI complaint analysis', 'Razorpay integration', 'Priority support'], cta: 'Request demo', ctaBg: '#7c5cfc', ctaColor: '#fff' },
-          ].map((plan, i) => (
-            <div
-              key={i}
-              ref={el => { pricingCardsRef.current[i] = el }}
-              className={`${styles.cardReveal} ${[styles.stagger5, styles.stagger7][i]}`}
-              style={{ background: plan.color, border: `0.5px solid ${plan.border}`, borderRadius: '16px', padding: '32px 28px' }}
-            >
-              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '16px' }}>{plan.name}</div>
-              <div style={{ fontSize: '36px', fontWeight: 500, color: '#fff', letterSpacing: '-1px', marginBottom: '4px' }}>{plan.price}</div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', marginBottom: '28px' }}>{plan.sub}</div>
-              <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '10px', marginBottom: '28px' }}>
-                {plan.features.map((f, j) => (
-                  <div key={j} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: 'rgba(255,255,255,0.55)' }}>
-                    <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
-                    {f}
+      {/* PRICING — sticky wrapper */}
+      <div className={styles.sectionStickyWrapper}>
+        <div className={styles.stickyPageSection}>
+          <section
+            id="pricing"
+            ref={pricingRef as React.RefObject<HTMLElement>}
+            style={{ width: '100%', maxWidth: '1200px', padding: '0 48px' }}
+          >
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>Pricing</div>
+            <h2 style={{ fontSize: '28px', fontWeight: 500, letterSpacing: '-0.6px', color: '#fff', marginBottom: '6px', lineHeight: 1.1 }}>
+              Simple pricing. <span style={{ color: 'rgba(255,255,255,0.28)' }}>No surprises.</span>
+            </h2>
+            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginBottom: '28px', lineHeight: 1.6 }}>
+              First 10 hostels get 3 months free. No credit card required.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+              {[
+                {
+                  name: 'Starter', price: 'Free', sub: 'First 3 months',
+                  color: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)',
+                  dot: 'rgba(255,255,255,0.3)',
+                  features: ['Up to 200 students', 'All core modules', 'Face recognition', 'Email support'],
+                  cta: 'Get started free', ctaBg: 'rgba(255,255,255,0.08)', ctaColor: 'rgba(255,255,255,0.7)',
+                },
+                {
+                  name: 'Pro', price: '₹4,999', sub: 'per month',
+                  color: 'rgba(124,92,252,0.08)', border: 'rgba(124,92,252,0.3)',
+                  dot: '#a78bfa',
+                  features: ['Unlimited students', 'AI complaint triage', 'Razorpay integration', 'Priority support'],
+                  cta: 'Request demo', ctaBg: '#7c5cfc', ctaColor: '#fff',
+                },
+                {
+                  name: 'Max', price: '₹9,999', sub: 'per month',
+                  color: 'rgba(251,146,60,0.08)', border: 'rgba(251,146,60,0.3)',
+                  dot: '#fb923c',
+                  features: ['Everything in Pro', 'Multi-hostel management', 'Custom analytics & reports', 'Dedicated account manager'],
+                  cta: 'Contact sales', ctaBg: '#fb923c', ctaColor: '#080810',
+                },
+              ].map((plan, i) => (
+                <div
+                  key={i}
+                  ref={el => { pricingCardsRef.current[i] = el }}
+                  className={`${styles.cardReveal} ${[styles.stagger5, styles.stagger6, styles.stagger7][i]}`}
+                  style={{ background: plan.color, border: `0.5px solid ${plan.border}`, borderRadius: '16px', padding: '26px 24px' }}
+                >
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginBottom: '12px' }}>{plan.name}</div>
+                  <div style={{ fontSize: '30px', fontWeight: 500, color: '#fff', letterSpacing: '-1px', marginBottom: '3px' }}>{plan.price}</div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.28)', marginBottom: '20px' }}>{plan.sub}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '9px', marginBottom: '20px' }}>
+                    {plan.features.map((f, j) => (
+                      <div key={j} style={{ display: 'flex', alignItems: 'center', gap: '9px', fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>
+                        <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: plan.dot, flexShrink: 0 }} />
+                        {f}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <button style={{ width: '100%', background: plan.ctaBg, color: plan.ctaColor, border: 'none', borderRadius: '10px', padding: '12px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
-                {plan.cta}
-              </button>
+                  <button style={{ width: '100%', background: plan.ctaBg, color: plan.ctaColor, border: 'none', borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
+                    {plan.cta}
+                  </button>
+                </div>
+              ))}
             </div>
-          ))}
+          </section>
         </div>
-      </section>
+      </div>
 
-      {/* FAQ */}
-      <section
-        id="faq"
-        ref={faqRef as React.RefObject<HTMLElement>}
-        className={styles.sectionReveal}
-        style={{ padding: '100px 48px', maxWidth: '1200px', margin: '0 auto', borderTop: '0.5px solid rgba(255,255,255,0.06)', position: 'relative', zIndex: 1 }}
-      >
-        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '48px' }}>FAQ</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(255,255,255,0.06)', borderRadius: '16px', overflow: 'hidden' }}>
-          {[
-            { q: 'How long does setup take?', a: 'Under 30 minutes. Add your hostel details, create student accounts, and you\'re live.' },
-            { q: 'Does face recognition work without internet?', a: 'Face matching runs in the browser — no data leaves the device during verification.' },
-            { q: 'Can parents pay fees directly?', a: 'Yes. Parents have their own portal with Razorpay integration for hostel and mess fees.' },
-            { q: 'Is student data secure?', a: 'Row-level security on all tables. JWT auth. Face descriptors stored as numbers, not images.' },
-            { q: 'What happens if a student loses their phone?', a: 'QR attendance is always available as fallback. Wardens can also mark manually.' },
-            { q: 'Can we host it ourselves?', a: 'Not yet. Cloud-hosted SaaS only for now. Self-host option coming with multi-tenancy.' },
-          ].map((item, i) => (
+      {/* FAQ — sticky wrapper */}
+      <div className={styles.sectionStickyWrapper}>
+        <div className={styles.stickyPageSection}>
+          <section
+            id="faq"
+            ref={faqRef as React.RefObject<HTMLElement>}
+            style={{ width: '100%', maxWidth: '1200px', padding: '0 48px' }}
+          >
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '28px' }}>FAQ</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(255,255,255,0.06)', borderRadius: '16px', overflow: 'hidden', marginBottom: '16px' }}>
+              {[
+                { q: 'How long does setup take?', a: 'Under 30 minutes. Add your hostel details, create student accounts, and you\'re live.' },
+                { q: 'Does face recognition work without internet?', a: 'Face matching runs in the browser — no data leaves the device during verification.' },
+                { q: 'Can parents pay fees directly?', a: 'Yes. Parents have their own portal with Razorpay integration for hostel and mess fees.' },
+                { q: 'Is student data secure?', a: 'Row-level security on all tables. JWT auth. Face descriptors stored as numbers, not images.' },
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  ref={el => { faqCardsRef.current[i] = el }}
+                  className={`${styles.cardReveal} ${[styles.stagger5, styles.stagger6, styles.stagger7, styles.stagger8][i]}`}
+                  style={{ background: '#080810', padding: '22px 24px' }}
+                >
+                  <div style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.82)', marginBottom: '8px' }}>{item.q}</div>
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.65 }}>{item.a}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Ask a question */}
             <div
-              key={i}
-              ref={el => { faqCardsRef.current[i] = el }}
-              className={`${styles.cardReveal} ${[styles.stagger5, styles.stagger6, styles.stagger7, styles.stagger8, styles.stagger9, styles.stagger10][i]}`}
-              style={{ background: '#080810', padding: '28px 24px' }}
+              ref={faqAskRef}
+              className={`${styles.faqAskBox} ${styles.cardReveal} ${styles.stagger8}`}
+              style={{ marginTop: '0', padding: '22px 24px' }}
             >
-              <div style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.82)', marginBottom: '10px' }}>{item.q}</div>
-              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.7 }}>{item.a}</div>
+              <div className={styles.faqAskLabel}>Still have a question?</div>
+              {faqSent ? (
+                <div className={styles.faqAskSent}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5"/></svg>
+                  Got it — we&apos;ll be in touch soon.
+                </div>
+              ) : (
+                <div className={styles.faqAskRow}>
+                  <input
+                    className={styles.faqAskInput}
+                    type="text"
+                    placeholder="Type your question…"
+                    value={faqQuestion}
+                    onChange={e => setFaqQuestion(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && faqQuestion.trim()) setFaqSent(true) }}
+                  />
+                  <button className={styles.faqAskBtn} onClick={() => { if (faqQuestion.trim()) setFaqSent(true) }}>
+                    Send
+                  </button>
+                </div>
+              )}
             </div>
-          ))}
+          </section>
         </div>
-
-        {/* Ask a question */}
-        <div
-          ref={faqAskRef}
-          className={`${styles.faqAskBox} ${styles.cardReveal} ${styles.stagger8}`}
-        >
-          <div className={styles.faqAskLabel}>Still have a question?</div>
-          <div className={styles.faqAskSub}>We usually reply within a few hours.</div>
-          {faqSent ? (
-            <div className={styles.faqAskSent}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5"/></svg>
-              Got it — we&apos;ll be in touch soon.
-            </div>
-          ) : (
-            <div className={styles.faqAskRow}>
-              <input
-                className={styles.faqAskInput}
-                type="text"
-                placeholder="Type your question…"
-                value={faqQuestion}
-                onChange={e => setFaqQuestion(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter' && faqQuestion.trim()) setFaqSent(true) }}
-              />
-              <button
-                className={styles.faqAskBtn}
-                onClick={() => { if (faqQuestion.trim()) setFaqSent(true) }}
-              >
-                Send
-              </button>
-            </div>
-          )}
-        </div>
-      </section>
+      </div>
 
       {/* FOOTER */}
       <footer
@@ -1340,3 +1338,4 @@ export default function Home() {
 }
 // layout behavior
 // layout behavior
+
