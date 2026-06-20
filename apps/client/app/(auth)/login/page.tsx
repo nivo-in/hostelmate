@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type Hls from 'hls.js'
 import styles from '../../landing.module.css'
@@ -364,6 +365,38 @@ export default function LoginPage() {
       padding: '48px',
       overflow: 'hidden',
     }}>
+      {/* Back to home */}
+      <div style={{
+        position: 'absolute',
+        top: '24px',
+        left: '32px',
+        zIndex: 10,
+      }}>
+        <Link
+          href="/"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '13px',
+            color: 'rgba(255,255,255,0.35)',
+            textDecoration: 'none',
+            transition: 'color 0.2s',
+            padding: '6px 10px',
+            borderRadius: '8px',
+            background: 'rgba(255,255,255,0.04)',
+            border: '0.5px solid rgba(255,255,255,0.08)',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M19 12H5M5 12l7-7M5 12l7 7"/>
+          </svg>
+          Back to home
+        </Link>
+      </div>
+
       <div
         ref={overlayRef}
         style={{

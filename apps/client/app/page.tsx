@@ -150,14 +150,33 @@ export default function Home() {
   const navItemsRef = useRef<(HTMLAnchorElement | null)[]>([])
 
   useEffect(() => {
-    // Prevent browser scroll restoration which causes random carousel position
+    if (typeof window === 'undefined') return
+
+    // Disable browser scroll restoration completely
     if ('scrollRestoration' in history) {
       history.scrollRestoration = 'manual'
     }
-    // Always start from top
+
+    // Always start from top on mount
     window.scrollTo(0, 0)
-    
+
+    // Also handle page show event (back/forward cache)
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        // Page was restored from bfcache
+        window.scrollTo(0, 0)
+        // Reset cylinder rotation
+        if (cylinderSceneRef.current) {
+          cylinderSceneRef.current.style.visibility = 'hidden'
+          cylinderSceneRef.current.style.opacity = '0'
+        }
+      }
+    }
+
+    window.addEventListener('pageshow', handlePageShow)
+
     return () => {
+      window.removeEventListener('pageshow', handlePageShow)
       if ('scrollRestoration' in history) {
         history.scrollRestoration = 'auto'
       }
@@ -350,9 +369,15 @@ export default function Home() {
     const handleScroll = () => {
       if (window.innerWidth <= 768) return
       if (!scrollWrapperRef.current) return
-      
-      const rect = scrollWrapperRef.current.getBoundingClientRect()
-      
+      const wRect = scrollWrapperRef.current.getBoundingClientRect()
+      const inZone = wRect.top <= 50 && wRect.bottom >= window.innerHeight * 0.5
+      if (cylinderSceneRef.current) {
+        cylinderSceneRef.current.style.visibility = inZone ? 'visible' : 'hidden'
+        if (!inZone) cylinderSceneRef.current.style.opacity = '0'
+      }
+
+      const rect = wRect
+
       const isInFeaturesZone = rect.top <= 0 && rect.bottom >= window.innerHeight
       if (!isInFeaturesZone && cylinderSceneRef.current) {
         cylinderSceneRef.current.style.opacity = '0'
@@ -429,13 +454,8 @@ export default function Home() {
 
 
       
-      if (progress <= 0) {
-        targetRot.current = 0
-      } else if (progress >= 1) {
-        targetRot.current = -360
-      } else {
-        targetRot.current = progress * -360
-      }
+      const safeProgress = Math.max(0, Math.min(1, progress))
+      targetRot.current = safeProgress * -360
       
       if (!wheelAnimRef.current) wheelAnimRef.current = requestAnimationFrame(tickWheel)
     }
@@ -1084,6 +1104,145 @@ export default function Home() {
           </footer>
         </section>
       </div>
+
+      {/* HOW IT WORKS */}
+      <section id="howitworks" style={{
+        padding: '100px 48px',
+        maxWidth: '1200px',
+        margin: '0 auto',
+        borderTop: '0.5px solid rgba(255,255,255,0.06)',
+        position: 'relative',
+        zIndex: 1,
+      }}>
+        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '48px' }}>
+          How it works
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px', background: 'rgba(255,255,255,0.06)', borderRadius: '16px', overflow: 'hidden' }}>
+          {[
+            { step: '01', title: 'Set up your hostel', desc: 'Warden creates the hostel, adds rooms, blocks, and staff. Takes 15 minutes to go live.', color: '#4ade80' },
+            { step: '02', title: 'Students register', desc: 'Students sign up, register their face for biometric attendance, and link to their parents.', color: '#a78bfa' },
+            { step: '03', title: 'Everything runs itself', desc: 'Attendance auto-tracks. AI classifies complaints. Fees remind themselves. Parents stay updated.', color: '#60a5fa' },
+          ].map((item, i) => (
+            <div key={i} style={{ background: '#080810', padding: '32px 28px', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+              <div style={{ fontSize: '11px', color: item.color, letterSpacing: '2px', marginBottom: '20px', fontWeight: 500 }}>
+                {item.step}
+              </div>
+              <div style={{ fontSize: '15px', fontWeight: 500, color: 'rgba(255,255,255,0.88)', marginBottom: '10px', letterSpacing: '-0.2px' }}>
+                {item.title}
+              </div>
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.7 }}>
+                {item.desc}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* PRICING */}
+      <section id="pricing" style={{
+        padding: '100px 48px',
+        maxWidth: '1200px',
+        margin: '0 auto',
+        borderTop: '0.5px solid rgba(255,255,255,0.06)',
+        position: 'relative',
+        zIndex: 1,
+      }}>
+        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px' }}>
+          Pricing
+        </div>
+        <h2 style={{ fontSize: '36px', fontWeight: 500, letterSpacing: '-1px', color: '#fff', marginBottom: '12px', lineHeight: 1.1 }}>
+          Simple pricing.<br />
+          <span style={{ color: 'rgba(255,255,255,0.28)' }}>No surprises.</span>
+        </h2>
+        <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.38)', marginBottom: '48px', maxWidth: '400px', lineHeight: 1.7 }}>
+          First 10 hostels get 3 months free. No credit card required.
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', maxWidth: '800px' }}>
+          {[
+            {
+              name: 'Starter',
+              price: 'Free',
+              sub: 'First 3 months',
+              color: 'rgba(255,255,255,0.08)',
+              border: 'rgba(255,255,255,0.1)',
+              features: ['Up to 200 students', 'All core features', 'Face recognition', 'Email support'],
+              cta: 'Get started free',
+              ctaBg: 'rgba(255,255,255,0.08)',
+              ctaColor: 'rgba(255,255,255,0.7)',
+            },
+            {
+              name: 'Pro',
+              price: '₹4,999',
+              sub: 'per month',
+              color: 'rgba(124,92,252,0.08)',
+              border: 'rgba(124,92,252,0.3)',
+              features: ['Unlimited students', 'AI complaint analysis', 'Razorpay integration', 'Priority support'],
+              cta: 'Request demo',
+              ctaBg: '#7c5cfc',
+              ctaColor: '#fff',
+            },
+          ].map((plan, i) => (
+            <div key={i} style={{
+              background: plan.color,
+              border: `0.5px solid ${plan.border}`,
+              borderRadius: '16px',
+              padding: '32px 28px',
+            }}>
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '16px' }}>{plan.name}</div>
+              <div style={{ fontSize: '36px', fontWeight: 500, color: '#fff', letterSpacing: '-1px', marginBottom: '4px' }}>{plan.price}</div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', marginBottom: '28px' }}>{plan.sub}</div>
+              <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '10px', marginBottom: '28px' }}>
+                {plan.features.map((f, j) => (
+                  <div key={j} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: 'rgba(255,255,255,0.55)' }}>
+                    <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+                    {f}
+                  </div>
+                ))}
+              </div>
+              <button style={{
+                width: '100%', background: plan.ctaBg, color: plan.ctaColor,
+                border: 'none', borderRadius: '10px', padding: '12px',
+                fontSize: '13px', fontWeight: 500, cursor: 'pointer',
+              }}>
+                {plan.cta}
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" style={{
+        padding: '100px 48px',
+        maxWidth: '1200px',
+        margin: '0 auto',
+        borderTop: '0.5px solid rgba(255,255,255,0.06)',
+        position: 'relative',
+        zIndex: 1,
+      }}>
+        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '48px' }}>
+          FAQ
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(255,255,255,0.06)', borderRadius: '16px', overflow: 'hidden' }}>
+          {[
+            { q: 'How long does setup take?', a: 'Under 30 minutes. Add your hostel details, create student accounts, and you\'re live.' },
+            { q: 'Does face recognition work without internet?', a: 'Face matching runs in the browser — no data leaves the device during verification.' },
+            { q: 'Can parents pay fees directly?', a: 'Yes. Parents have their own portal with Razorpay integration for hostel and mess fees.' },
+            { q: 'Is student data secure?', a: 'Row-level security on all tables. JWT auth. Face descriptors stored as numbers, not images.' },
+            { q: 'What happens if a student loses their phone?', a: 'QR attendance is always available as fallback. Wardens can also mark manually.' },
+            { q: 'Can we host it ourselves?', a: 'Not yet. Cloud-hosted SaaS only for now. Self-host option coming with multi-tenancy.' },
+          ].map((item, i) => (
+            <div key={i} style={{ background: '#080810', padding: '28px 24px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.82)', marginBottom: '10px' }}>
+                {item.q}
+              </div>
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.7 }}>
+                {item.a}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }
