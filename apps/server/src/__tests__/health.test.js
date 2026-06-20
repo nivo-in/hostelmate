@@ -71,6 +71,10 @@ describe('Health API', () => {
     expect(res.body.services.redis).toBe('ok');
   });
 
+  /**
+   * Test: should return degraded when DB select throws
+   * Verifies behaviour under correct inputs and constraints.
+   */
   it('should return degraded when DB select throws', async () => {
     supabaseMock.limit.mockRejectedValueOnce(new Error('DB exception'));
     const res = await request(app).get('/health');
