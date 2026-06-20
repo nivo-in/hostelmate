@@ -207,7 +207,8 @@ export default function Home() {
     const wasFromLogin = sessionStorage.getItem('navigatingBackFromLogin') === 'true'
     
     if (wasFromLogin) {
-      sessionStorage.removeItem('navigatingBackFromLogin')
+      // Don't clear sessionStorage here, let the second useEffect handle it so transition runs!
+      // sessionStorage.removeItem('navigatingBackFromLogin')
       
       // Instead of forcing top, let's instantly jump to the login card position
       // so the transition looks seamless
@@ -224,8 +225,19 @@ export default function Home() {
         
         // We also need to hide the cylinder immediately to prevent visual glitches
         if (cylinderSceneRef.current) {
-          cylinderSceneRef.current.style.visibility = 'hidden'
           cylinderSceneRef.current.style.opacity = '0'
+          cylinderSceneRef.current.style.visibility = 'hidden'
+        }
+        
+        // Force Safari 3D layer rebuild with double rAF
+        if (cylinderRef.current) {
+          const prev = cylinderRef.current.style.display
+          cylinderRef.current.style.display = 'none'
+          requestAnimationFrame(() => {
+            if (cylinderRef.current) {
+              cylinderRef.current.style.display = prev
+            }
+          })
         }
       })
     } else {
@@ -238,7 +250,8 @@ export default function Home() {
       if (e.persisted) {
         const fromLogin = sessionStorage.getItem('navigatingBackFromLogin') === 'true'
         if (fromLogin) {
-          sessionStorage.removeItem('navigatingBackFromLogin')
+          // Don't clear here either, let the main useEffect handle it
+          // sessionStorage.removeItem('navigatingBackFromLogin')
           const loginTop = document.getElementById('login-section')?.offsetTop || window.innerHeight * 9
           document.documentElement.style.scrollBehavior = 'auto'
           window.scrollTo(0, loginTop)
@@ -247,8 +260,17 @@ export default function Home() {
           window.scrollTo(0, 0)
           // Reset cylinder rotation
           if (cylinderSceneRef.current) {
-            cylinderSceneRef.current.style.visibility = 'hidden'
             cylinderSceneRef.current.style.opacity = '0'
+            cylinderSceneRef.current.style.visibility = 'hidden'
+          }
+          if (cylinderRef.current) {
+            const prev = cylinderRef.current.style.display
+            cylinderRef.current.style.display = 'none'
+            requestAnimationFrame(() => {
+              if (cylinderRef.current) {
+                cylinderRef.current.style.display = prev
+              }
+            })
           }
         }
       }
