@@ -369,7 +369,7 @@ export default function LoginPage() {
       <div style={{
         position: 'absolute',
         top: '24px',
-        left: '32px',
+        right: '32px',
         zIndex: 10,
       }}>
         <Link
