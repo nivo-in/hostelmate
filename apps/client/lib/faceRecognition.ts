@@ -107,7 +107,7 @@ export function isSamePerson(
 ): { match: boolean; confidence: number; distance: number } {
   const distance = bestMatchDistance(liveDescriptor, storedDescriptors);
   const confidence = Math.max(0, Math.min(100, Math.round((1 - distance / 0.6) * 100)));
-  const match = distance < 0.52;
+  const match = distance < 0.42;
   return { match, confidence, distance };
 }
 
