@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type Hls from 'hls.js'
 import styles from '../../landing.module.css'
+import WardenFaceVerification from '@/components/face/WardenFaceVerification'
 
 
 function SingleEye({ eyeRef, isHidden }: {
@@ -170,7 +172,10 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(true)
   const [globalCursorX, setGlobalCursorX] = useState(0)
   const [globalCursorY, setGlobalCursorY] = useState(0)
+  const [showFaceVerification, setShowFaceVerification] = useState(false)
+  const [authenticatedUserId, setAuthenticatedUserId] = useState<string | null>(null)
   const supabase = createClient()
+  const router = useRouter()
 
   useEffect(() => {
     const saved = localStorage.getItem('login_show_password')
@@ -206,14 +211,17 @@ export default function LoginPage() {
     if (email.length > 3) {
       const detected = detectRole(email)
       if (detected) {
-        setRole(detected)
-        setAutoDetected(true)
+        if (role !== detected) {
+          setRole(detected)
+          setAutoDetected(true)
+        }
       } else {
         setAutoDetected(false)
       }
     } else {
       setAutoDetected(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email])
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -236,6 +244,13 @@ export default function LoginPage() {
         .eq('id', data.user.id)
         .single()
 
+      if (profile?.role === 'warden') {
+        setAuthenticatedUserId(data.user.id)
+        setShowFaceVerification(true)
+        setIsLoading(false)
+        return
+      }
+
       const routes: Record<string, string> = {
         student: '/student/dashboard',
         warden: '/warden/dashboard',
@@ -243,7 +258,7 @@ export default function LoginPage() {
       }
 
       const route = routes[profile?.role || 'student']
-      if (route) window.location.href = route
+      if (route) router.push(route)
       else {
         setError('No role assigned.')
         setIsLoading(false)
@@ -257,12 +272,12 @@ export default function LoginPage() {
     parent: '#60a5fa'
   }
 
-  const [mounted, setMounted] = useState(false)
   const [bgRole, setBgRole] = useState(role)
   const [bgDimmed, setBgDimmed] = useState(true)
   const overlayRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [videoOpacity, setVideoOpacity] = useState(0)
+  const [videoLoaded, setVideoLoaded] = useState(false)
 
   useEffect(() => {
     const video = videoRef.current;
@@ -289,13 +304,11 @@ export default function LoginPage() {
   }, []);
 
   useEffect(() => {
-    if (mounted) {
-      const timer = setTimeout(() => {
-        setVideoOpacity(0.65);
-      }, 2300); // 2.0s transition + 0.3s delay
-      return () => clearTimeout(timer);
+    if (videoLoaded) {
+      // Start fade-in immediately when the first frame is ready
+      setVideoOpacity(0.65);
     }
-  }, [mounted]);
+  }, [videoLoaded]);
 
   useEffect(() => {
     const fadeOutOverlay = () => {
@@ -326,10 +339,8 @@ export default function LoginPage() {
   }, [])
 
   useEffect(() => {
-    const timer1 = setTimeout(() => setMounted(true), 50)
     const timer2 = setTimeout(() => setBgDimmed(false), 300)
     return () => {
-      clearTimeout(timer1)
       clearTimeout(timer2)
     }
   }, [])
@@ -416,6 +427,8 @@ export default function LoginPage() {
         loop
         muted
         playsInline
+        onLoadedData={() => setVideoLoaded(true)}
+        onPlaying={() => setVideoLoaded(true)} // Keep onPlaying as a fallback
         style={{
           position: 'fixed',
           inset: 0,
@@ -472,9 +485,23 @@ export default function LoginPage() {
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          {/* Logo */}
-          <div className={styles.loginLogo}>HostelMate</div>
-          <div className={styles.loginBy}>by Nivo Technologies</div>
+          {showFaceVerification && authenticatedUserId ? (
+            <div style={{ background: '#fff', borderRadius: '16px', overflow: 'hidden' }}>
+              <WardenFaceVerification
+                wardenId={authenticatedUserId}
+                onVerified={() => { router.push('/warden/dashboard') }}
+                onFailed={(reason) => {
+                  setError(reason)
+                  setShowFaceVerification(false)
+                }}
+                onSkip={() => { router.push('/warden/dashboard') }}
+              />
+            </div>
+          ) : (
+            <>
+              {/* Logo */}
+              <div className={styles.loginLogo}>HostelMate</div>
+              <div className={styles.loginBy}>by Nivo Technologies</div>
 
           {/* Role tabs */}
           <div className={styles.roleTabs}>
@@ -585,6 +612,8 @@ export default function LoginPage() {
               {isLoading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
+            </>
+          )}
         </div>
       </div>
     </div>
