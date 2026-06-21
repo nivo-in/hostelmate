@@ -61,6 +61,7 @@ export default function WardenFaceVerification({
 
   // Liveness
   const blinkDetectedRef = useRef(false);
+  const faceDetectedRef = useRef(false);
   const lastEARRef = useRef<number>(1.0);
 
   const prevFrameDataRef = useRef<Uint8ClampedArray | null>(null);
@@ -78,7 +79,8 @@ export default function WardenFaceVerification({
   const [status, setStatus] = useState<Status>('loading-models');
   // const [smoothedDist, setSmoothedDist] = useState<number | null>(null);
   const [blinkDetected, setBlinkDetected] = useState(false);
-  const [showBlinkPrompt, setShowBlinkPrompt] = useState(true);
+  // const [showBlinkPrompt, setShowBlinkPrompt] = useState(true);
+  const [faceDetected, setFaceDetected] = useState(false);
 
   const stopCamera = useCallback(() => {
     runningRef.current = false;
@@ -136,18 +138,36 @@ export default function WardenFaceVerification({
 
   const startVerificationLoop = useCallback(() => {
     runningRef.current = true;
-    setShowBlinkPrompt(true);
+    
+    // Fail if no blink is detected within 12 seconds
+    setTimeout(() => {
+      if (runningRef.current && !blinkDetectedRef.current) {
+        runningRef.current = false;
+        stopCamera();
+        setStatus('liveness-failed');
+        if (onFailedRef.current) {
+          onFailedRef.current('Liveness check timed out. Please try again.');
+        }
+      }
+    }, 12000);
 
     const tick = async () => {
       if (!runningRef.current || !videoRef.current || !storedDescriptorsRef.current) return;
       try {
-        setStatus('verifying');
         const detection = await getFaceDetection(videoRef.current);
         if (!runningRef.current) return;
 
         if (!detection) {
+          if (faceDetectedRef.current) {
+            faceDetectedRef.current = false;
+            setFaceDetected(false);
+          }
           setStatus('scanning');
         } else {
+          if (!faceDetectedRef.current) {
+            faceDetectedRef.current = true;
+            setFaceDetected(true);
+          }
           const { descriptor, landmarks, box } = detection;
 
           // ── Blink detection ──────────────────────────────────────────────
@@ -156,7 +176,7 @@ export default function WardenFaceVerification({
             if (lastEARRef.current >= EAR_BLINK_THRESHOLD && ear < EAR_BLINK_THRESHOLD) {
               blinkDetectedRef.current = true;
               setBlinkDetected(true);
-              setShowBlinkPrompt(false);
+              // setShowBlinkPrompt(false);
             }
           }
           lastEARRef.current = ear;
@@ -178,42 +198,50 @@ export default function WardenFaceVerification({
           if (!blinkDetectedRef.current) {
             setStatus('scanning');
           } else {
-            // ── Gate 2: Frame-diff hard-block ──────────────────────────────
-            const scores = frameDiffScoresRef.current;
-            if (scores.length >= FRAME_DIFF_MIN_FRAMES) {
-              const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-              if (avgScore < FRAME_DIFF_LIVE_THRESHOLD) {
-                runningRef.current = false;
-                stopCamera();
-                setStatus('liveness-failed');
-                onFailedRef.current(
-                  'Liveness check failed — please use a live camera, not a photo.'
-                );
-                return;
-              }
-            }
+            runningRef.current = false; // pause scanning loop
+            setStatus('verifying'); // show verifying identity
 
-            // ── Face match ────────────────────────────────────────────────
-            const { match } = isSamePerson(descriptor, storedDescriptorsRef.current);
-            if (match) {
-              runningRef.current = false;
-              stopCamera();
-              setStatus('verified');
-              setTimeout(() => onVerifiedRef.current(), 300);
-              return;
-            } else {
-              failedAttemptsRef.current += 1;
-              setFailedAttempts(failedAttemptsRef.current);
-              if (failedAttemptsRef.current >= MAX_ATTEMPTS) {
-                runningRef.current = false;
-                stopCamera();
-                setStatus('max-attempts');
-                onFailedRef.current('Identity could not be verified. Access denied.');
+            setTimeout(() => {
+              // ── Gate 2: Frame-diff hard-block ──────────────────────────────
+              const scores = frameDiffScoresRef.current;
+              if (scores.length >= FRAME_DIFF_MIN_FRAMES) {
+                const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+                if (avgScore < FRAME_DIFF_LIVE_THRESHOLD) {
+                  stopCamera();
+                  setStatus('liveness-failed');
+                  onFailedRef.current(
+                    'Liveness check failed — please use a live camera, not a photo.'
+                  );
+                  return;
+                }
+              }
+
+              // ── Face match ────────────────────────────────────────────────
+              if (!storedDescriptorsRef.current) return;
+              const { match } = isSamePerson(descriptor, storedDescriptorsRef.current);
+              if (match) {
+                setStatus('verified');
+                onVerifiedRef.current(); // Redirect immediately
                 return;
               } else {
-                setStatus('scanning');
+                failedAttemptsRef.current += 1;
+                setFailedAttempts(failedAttemptsRef.current);
+                if (failedAttemptsRef.current >= MAX_ATTEMPTS) {
+                  stopCamera();
+                  setStatus('max-attempts');
+                  onFailedRef.current('Identity could not be verified. Access denied.');
+                  return;
+                } else {
+                  // Resume scanning if failed
+                  runningRef.current = true;
+                  blinkDetectedRef.current = false;
+                  setBlinkDetected(false);
+                  setStatus('scanning');
+                  setTimeout(tick, 50);
+                }
               }
-            }
+            }, 1500); // 1.5s verification delay
+            return; // stop current tick execution
           }
         }
       } catch {
@@ -352,16 +380,7 @@ export default function WardenFaceVerification({
   //   : "👁 Blink once to verify you're real";
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#04040a', zIndex: 50 }}>
-      {/* Background glow */}
-      <div style={{
-        position: 'fixed',
-        inset: 0,
-        pointerEvents: 'none',
-        background: 'radial-gradient(circle at top center, rgba(167,139,250,0.08) 0%, transparent 70%)',
-        transition: 'background 1s ease',
-      }} />
-
+    <div style={{ position: 'relative', width: '100%', height: '460px', background: '#04040a', overflow: 'hidden' }}>
       {/* Camera Feed */}
       <video
         ref={videoRef}
@@ -373,116 +392,121 @@ export default function WardenFaceVerification({
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          opacity: 0.35,
-          filter: 'blur(0px)',
+          opacity: 1,
           transform: 'scaleX(-1)',
           display: showVideo ? 'block' : 'none'
         }}
       />
       
+      {/* Title at top of camera window */}
+      <div style={{ position: 'absolute', top: '24px', width: '100%', textAlign: 'center', zIndex: 10 }}>
+        <h2 style={{ fontSize: '20px', fontWeight: 500, color: '#fff', letterSpacing: '-0.5px', margin: 0, textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+          Warden verification
+        </h2>
+      </div>
+      
       {/* Hidden canvas for frame-diff liveness */}
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
-      {/* Top bar */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '18px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <button
-          onClick={() => {
-            if (onSkipRef.current) onSkipRef.current();
-          }}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '13px',
-            color: 'rgba(255,255,255,0.35)',
-            background: 'rgba(255,255,255,0.04)',
-            border: '0.5px solid rgba(255,255,255,0.08)',
-            padding: '6px 10px',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            transition: 'color 0.2s',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M19 12H5M5 12l7-7M5 12l7 7"/>
-          </svg>
-          Back
-        </button>
-        
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-          <span style={{ color: '#fff', fontSize: '15px', fontWeight: 500, letterSpacing: '-0.3px' }}>HostelMate</span>
-          <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>by Nivo</span>
-        </div>
-      </div>
-
-      {/* Center content */}
-      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', width: '100%' }}>
-        <svg style={{ width: '28px', height: '28px', color: 'rgba(167,139,250,0.8)', marginBottom: '20px', display: 'inline-block' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-        </svg>
-
-        <h2 style={{ fontSize: '22px', fontWeight: 500, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>Warden verification</h2>
-        <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.38)', marginTop: '8px', margin: '8px 0 0 0' }}>Look directly at the camera</p>
-
+      {/* External floating status (Rendered outside the card via fixed positioning) */}
+      <div style={{ position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 9999, textAlign: 'center', width: '100%', pointerEvents: 'none' }}>
         <div style={{
-          marginTop: '28px',
-          background: 'rgba(255,255,255,0.06)',
+          background: 'rgba(0,0,0,0.4)',
+          backdropFilter: 'blur(10px)',
           border: '0.5px solid rgba(255,255,255,0.12)',
           borderRadius: '100px',
           padding: '8px 18px',
           display: 'inline-flex',
           alignItems: 'center',
-          gap: '8px'
+          gap: '8px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
         }}>
           <div style={{
             width: '7px',
             height: '7px',
             borderRadius: '50%',
             backgroundColor: status === 'verifying' ? '#fbbf24' : isVerified ? '#4ade80' : status === 'failed' || status === 'max-attempts' ? '#f87171' : '#a78bfa',
+            transition: 'background-color 0.4s ease',
             animation: 'pulseDot 1.5s infinite'
           }} />
-          <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-            {status === 'verifying' ? 'Verifying identity...' : isVerified ? 'Identity confirmed' : status === 'failed' || status === 'max-attempts' ? 'Face not recognized' : 'Scanning face...'}
-          </span>
-        </div>
-
-        {showBlinkPrompt && !blinkDetected && (
-          <div style={{
-            marginTop: '16px',
-            fontSize: '12px',
-            color: 'rgba(255,255,255,0.3)',
-            animation: 'fadeIn 1s ease forwards'
-          }}>
-            Blink once to confirm liveness
+          <div style={{ display: 'grid', placeItems: 'center', height: '20px' }}>
+            <span style={{
+              gridArea: '1/1', whiteSpace: 'nowrap',
+              fontSize: '13px', color: 'rgba(255,255,255,0.95)',
+              transition: 'opacity 0.3s ease',
+              opacity: status === 'verifying' ? 1 : 0,
+              willChange: 'opacity'
+            }}>
+              Verifying identity...
+            </span>
+            <span style={{
+              gridArea: '1/1', whiteSpace: 'nowrap',
+              fontSize: '13px', color: 'rgba(255,255,255,0.95)',
+              transition: 'opacity 0.3s ease',
+              opacity: isVerified ? 1 : 0,
+              willChange: 'opacity'
+            }}>
+              Identity confirmed
+            </span>
+            <span style={{
+              gridArea: '1/1', whiteSpace: 'nowrap',
+              fontSize: '13px', color: 'rgba(255,255,255,0.95)',
+              transition: 'opacity 0.3s ease',
+              opacity: (status === 'failed' || status === 'max-attempts') ? 1 : 0,
+              willChange: 'opacity'
+            }}>
+              Face not recognized
+            </span>
+            <span style={{
+              gridArea: '1/1', whiteSpace: 'nowrap',
+              fontSize: '13px', color: 'rgba(255,255,255,0.95)',
+              transition: 'opacity 0.3s ease',
+              opacity: (status !== 'verifying' && !isVerified && status !== 'failed' && status !== 'max-attempts') ? 1 : 0,
+              willChange: 'opacity'
+            }}>
+              Scanning face...
+            </span>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Scanning frame corner overlays */}
       {showVideo && !isVerified && (
         <>
-          <div style={{ position: 'absolute', top: 'calc(50% - 140px)', left: 'calc(50% - 140px)', width: '24px', height: '24px', borderTop: '1.5px solid rgba(167,139,250,0.5)', borderLeft: '1.5px solid rgba(167,139,250,0.5)', borderRadius: '2px 0 0 0' }} />
-          <div style={{ position: 'absolute', top: 'calc(50% - 140px)', right: 'calc(50% - 140px)', width: '24px', height: '24px', borderTop: '1.5px solid rgba(167,139,250,0.5)', borderRight: '1.5px solid rgba(167,139,250,0.5)', borderRadius: '0 2px 0 0' }} />
-          <div style={{ position: 'absolute', bottom: 'calc(50% - 140px)', left: 'calc(50% - 140px)', width: '24px', height: '24px', borderBottom: '1.5px solid rgba(167,139,250,0.5)', borderLeft: '1.5px solid rgba(167,139,250,0.5)', borderRadius: '0 0 0 2px' }} />
-          <div style={{ position: 'absolute', bottom: 'calc(50% - 140px)', right: 'calc(50% - 140px)', width: '24px', height: '24px', borderBottom: '1.5px solid rgba(167,139,250,0.5)', borderRight: '1.5px solid rgba(167,139,250,0.5)', borderRadius: '0 0 2px 0' }} />
-
-          <div style={{
-            position: 'absolute',
-            width: '280px',
-            height: '1px',
-            background: 'linear-gradient(90deg, transparent, rgba(167,139,250,0.6), transparent)',
-            left: 'calc(50% - 140px)',
-            animation: 'scanLine 2.5s ease-in-out infinite'
-          }} />
+          <div style={{ position: 'absolute', top: '16px', left: '16px', width: '24px', height: '24px', borderTop: '3.5px solid rgba(131,75,241,0.95)', borderLeft: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '4px 0 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', top: '16px', right: '16px', width: '24px', height: '24px', borderTop: '3.5px solid rgba(131,75,241,0.95)', borderRight: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '0 4px 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', bottom: '16px', left: '16px', width: '24px', height: '24px', borderBottom: '3.5px solid rgba(131,75,241,0.95)', borderLeft: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '0 0 0 4px', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', bottom: '16px', right: '16px', width: '24px', height: '24px', borderBottom: '3.5px solid rgba(131,75,241,0.95)', borderRight: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '0 0 4px 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
         </>
       )}
 
-      {/* Bottom bar */}
-      <div style={{ position: 'absolute', bottom: '32px', left: 0, right: 0, textAlign: 'center' }}>
-        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)' }}>
-          Attempt {Math.min(MAX_ATTEMPTS, failedAttempts + 1)} / {MAX_ATTEMPTS}
+      {/* Bottom bar inside the card (Blink Prompt, Instruction Text & Skip) */}
+      <div style={{ position: 'absolute', bottom: '22px', left: 0, right: 0, textAlign: 'center' }}>
+        <div style={{ position: 'relative', height: '20px', marginBottom: '12px' }}>
+          <div style={{
+            position: 'absolute',
+            width: '100%',
+            fontSize: '13px',
+            fontWeight: 500,
+            color: 'rgba(255,255,255,0.6)',
+            transition: 'opacity 0.6s ease',
+            opacity: (!faceDetected && !isVerified) ? 1 : 0,
+            pointerEvents: 'none'
+          }}>
+            Please look directly at the camera
+          </div>
+          <div style={{
+            position: 'absolute',
+            width: '100%',
+            fontSize: '13px',
+            fontWeight: 500,
+            color: 'rgba(255,255,255,0.6)',
+            transition: 'opacity 0.6s ease',
+            opacity: (faceDetected && !blinkDetected && !isVerified) ? 1 : 0,
+            pointerEvents: 'none'
+          }}>
+            Blink once to confirm liveness
+          </div>
         </div>
         {failedAttempts >= 3 && (
           <button
@@ -506,13 +530,6 @@ export default function WardenFaceVerification({
       </div>
 
       <style>{`
-        @keyframes scanLine {
-          0% { top: calc(50% - 140px); opacity: 0; }
-          10% { opacity: 1; }
-          50% { top: calc(50% + 140px); }
-          90% { opacity: 1; }
-          100% { top: calc(50% - 140px); opacity: 0; }
-        }
         @keyframes pulseDot {
           0% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.4; transform: scale(0.8); }
@@ -521,6 +538,11 @@ export default function WardenFaceVerification({
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
+        }
+        @keyframes cornerBreathe {
+          0% { opacity: 0.4; }
+          50% { opacity: 1; }
+          100% { opacity: 0.4; }
         }
       `}</style>
     </div>
