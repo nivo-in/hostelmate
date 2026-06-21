@@ -65,11 +65,13 @@ export default function WardenFaceVerification({
   const failedAttemptsRef = useRef(0);
   const [failedAttempts, setFailedAttempts] = useState(0);
 
-  // Liveness
+  // Liveness tracking
   const blinkDetectedRef = useRef(false);
   const faceDetectedRef = useRef(false);
   const lastEARRef = useRef<number>(1.0);
 
+  const facePositionHistoryRef = useRef<FacePosition[]>([]);
+  // Frame-diff: store previous frame pixel data for comparison
   const prevFrameDataRef = useRef<Uint8ClampedArray | null>(null);
   const frameDiffScoresRef = useRef<number[]>([]);
 
