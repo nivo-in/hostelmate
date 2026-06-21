@@ -144,6 +144,22 @@ export default function WardenFaceVerification({
     []
   );
 
+  // ── Motion (face-position) liveness (secondary) ───────────────────────────
+  const checkPositionMotion = useCallback((pos: FacePosition): boolean => {
+    const history = facePositionHistoryRef.current;
+    history.push(pos);
+    if (history.length > MOTION_HISTORY_FRAMES) history.shift();
+    if (history.length < MOTION_HISTORY_FRAMES) return true; // collecting
+
+    const xs = history.map((p) => p.x);
+    const ys = history.map((p) => p.y);
+    const meanX = xs.reduce((a, b) => a + b, 0) / xs.length;
+    const meanY = ys.reduce((a, b) => a + b, 0) / ys.length;
+    const stdX = Math.sqrt(xs.reduce((s, x) => s + (x - meanX) ** 2, 0) / xs.length);
+    const stdY = Math.sqrt(ys.reduce((s, y) => s + (y - meanY) ** 2, 0) / ys.length);
+    return Math.max(stdX, stdY) >= MOTION_STD_THRESHOLD;
+  }, []);
+
   const startVerificationLoop = useCallback(() => {
     runningRef.current = true;
     
