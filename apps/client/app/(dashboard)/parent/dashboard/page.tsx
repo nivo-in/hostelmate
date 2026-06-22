@@ -111,7 +111,8 @@ export default function ParentDashboard() {
               style={{
                 background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '16px',
                 padding: '22px 20px', cursor: 'pointer', transition: 'background 0.2s, border-color 0.2s',
-                display: 'flex', flexDirection: 'column', gap: '10px', position: 'relative', overflow: 'hidden'
+                display: 'flex', flexDirection: 'column', gap: '10px', position: 'relative', overflow: 'hidden',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)'
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.055)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.13)' }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)' }}
