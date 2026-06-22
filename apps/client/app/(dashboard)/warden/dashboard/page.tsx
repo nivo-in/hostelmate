@@ -2,29 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { PageHeader } from '@/components/ui/PageHeader';
-import { Card } from '@/components/ui/Card';
+import { useRouter } from 'next/navigation';
 import { useApi } from '@/hooks/useApi';
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
 
 const WardenFaceRegistration = dynamic(() => import('@/components/face/WardenFaceRegistration'), {
   ssr: false,
 });
-
-const SkeletonCard = () => (
-  <div className="border border-gray-100 rounded-xl p-6 animate-pulse">
-    <div className="h-4 bg-gray-100 rounded w-1/3 mb-2" />
-    <div className="h-3 bg-gray-100 rounded w-2/3" />
-  </div>
-);
-
-const SkeletonStat = () => (
-  <div className="border border-gray-100 rounded-xl p-4 animate-pulse">
-    <div className="h-3 bg-gray-100 rounded w-1/2 mb-2" />
-    <div className="h-6 bg-gray-100 rounded w-1/3" />
-  </div>
-);
 
 interface StatsData {
   attendanceToday: number;
@@ -137,192 +121,148 @@ export default function WardenDashboard() {
     router.push('/login');
   };
 
-  return (
-    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
-      <PageHeader
-        title={loading ? 'Hello 👋' : `Hello ${firstName} 👋`}
-        onSignOut={handleSignOut}
-      />
+  const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {loading ? (
-          Array.from({ length: 4 }).map((_, i) => <SkeletonStat key={i} />)
-        ) : (
-          <>
-            <div className="border border-gray-100 rounded-xl p-4 bg-white">
-              <div className="flex items-center gap-2 mb-2">
-                <span>📋</span>
-                <span className="text-xs text-gray-400">Attendance Today</span>
-              </div>
-              <p className="text-2xl font-medium text-gray-900">{stats.attendanceToday}%</p>
-            </div>
-            <div className="border border-gray-100 rounded-xl p-4 bg-white">
-              <div className="flex items-center gap-2 mb-2">
-                <span>⏳</span>
-                <span className="text-xs text-gray-400">Pending Leaves</span>
-              </div>
-              <p className="text-2xl font-medium text-gray-900">{stats.pendingLeaves}</p>
-            </div>
-            <div className="border border-gray-100 rounded-xl p-4 bg-white">
-              <div className="flex items-center gap-2 mb-2">
-                <span>🔧</span>
-                <span className="text-xs text-gray-400">Open Complaints</span>
-              </div>
-              <p className="text-2xl font-medium text-gray-900">{stats.openComplaints}</p>
-            </div>
-            <div className="border border-gray-100 rounded-xl p-4 bg-white">
-              <div className="flex items-center gap-2 mb-2">
-                <span>📢</span>
-                <span className="text-xs text-gray-400">Active Notices</span>
-              </div>
-              <p className="text-2xl font-medium text-gray-900">{stats.activeNotices}</p>
-            </div>
-          </>
-        )}
+  return (
+    <div style={{ background: '#080810', minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
+      {/* Spotlight */}
+      <div style={{
+        position: 'fixed', top: '-20%', left: '50%', transform: 'translateX(-50%)',
+        width: '600px', height: '600px', pointerEvents: 'none', zIndex: 0,
+        background: 'radial-gradient(circle, rgba(124,92,252,0.1) 0%, transparent 70%)',
+        animation: 'spotlightFade 1.2s ease-out forwards',
+        opacity: 0,
+      }} />
+      <style>{`
+        @keyframes spotlightFade {
+          to { opacity: 1; }
+        }
+      `}</style>
+      
+      {/* Top bar */}
+      <div style={{ padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+        <div>
+          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>BY NIVO</div>
+          <div style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.5)' }}>HostelMate</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button onClick={handleSignOut} style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', background: 'transparent', border: 'none', cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.8)'} onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>Sign Out</button>
+        </div>
       </div>
 
-      {/* Cards Grid */}
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
+      <div style={{ padding: '24px 32px', maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <div style={{ marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', letterSpacing: '-0.3px', margin: 0 }}>Warden dashboard</h1>
+          <div suppressHydrationWarning style={{ fontSize: '12px', color: 'rgba(255,255,255,0.22)' }}>{dateStr}</div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Card
-            emoji="📋"
-            title="Attendance"
-            description="View and manage attendance"
-            href="/warden/attendance"
-          />
-          <Card
-            emoji="✅"
-            title="Leave Management"
-            description="Approve or reject leaves"
-            href="/warden/leaves"
-          />
-          <Card
-            emoji="🔧"
-            title="Complaints"
-            description="Track and resolve issues"
-            href="/warden/complaints"
-          />
-          <Card
-            emoji="🍽️"
-            title="Mess Management"
-            description="Update weekly menu"
-            href="/warden/mess"
-          />
-          <Card
-            emoji="📢"
-            title="Notices"
-            description="Post announcements"
-            href="/warden/notices"
-          />
-          <Card
-            emoji="👥"
-            title="Staff Directory"
-            description="Manage staff contacts"
-            href="/warden/staff"
-          />
-          <Card
-            emoji="🔍"
-            title="Lost & Found"
-            description="Oversee item directory"
-            href="/warden/lost-found"
-          />
-          <Card
-            emoji="🚨"
-            title="Emergency"
-            description="Send emergency alerts"
-            href="/warden/emergency"
-          />
-          <Card
-            emoji="🏠"
-            title="Room Allocation"
-            description="Manage rooms and assignments"
-            href="/warden/rooms"
-          />
-          <Card
-            emoji="🌙"
-            title="Curfew Management"
-            description="Track and notify curfew violations"
-            href="/warden/curfew"
-          />
-          <Card
-            emoji="📋"
-            title="Audit Log"
-            description="View all system activity"
-            href="/warden/audit"
-          />
-          <Card
-            emoji="🚪"
-            title="Visitor Management"
-            description="Manage guest check-ins"
-            href="/warden/visitors"
-          />
-          <Card
-            emoji="💰"
-            title="Fee Management"
-            description="Collect and track hostel fees"
-            href="/warden/payments"
-          />
-        </div>
-      )}
 
-      {/* Face Security Section */}
-      {!loading && (
-        <div className="mt-8 pt-6 border-t border-gray-100">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <p className="text-sm font-medium text-gray-900">Login Face Security</p>
-              <p className="text-xs text-gray-400 mt-0.5">
-                {faceRegistered
-                  ? 'Face data registered — verified on each login'
-                  : 'No face registered — add one to secure your login'}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              {faceRegistered && (
-                <span className="inline-flex items-center gap-1 text-xs text-green-600 font-medium">
-                  <svg
-                    className="w-3.5 h-3.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2.5}
-                  >
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  Active
-                </span>
-              )}
-              <button
-                id="warden-manage-face-btn"
-                onClick={() => setShowFaceRegister(!showFaceRegister)}
-                className="text-xs text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5 hover:border-gray-400 transition-colors"
-              >
-                {showFaceRegister ? 'Cancel' : faceRegistered ? 'Update Face' : 'Register Face'}
-              </button>
+        {/* Stats row */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '18px 20px' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.28)', marginBottom: '10px' }}>Attendance Today</div>
+            <div style={{ fontSize: '28px', fontWeight: 500, color: '#4ade80' }}>{stats.attendanceToday}%</div>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '18px 20px' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.28)', marginBottom: '10px' }}>Pending Leaves</div>
+            <div style={{ fontSize: '28px', fontWeight: 500, color: '#fbbf24' }}>{stats.pendingLeaves}</div>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '18px 20px' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.28)', marginBottom: '10px' }}>Open Complaints</div>
+            <div style={{ fontSize: '28px', fontWeight: 500, color: '#f87171' }}>{stats.openComplaints}</div>
+          </div>
+        </div>
+
+        {/* Progress cards row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: '14px', padding: '18px 20px' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', marginBottom: '6px' }}>Mess rating</div>
+            <div style={{ fontSize: '18px', fontWeight: 500, color: 'rgba(255,255,255,0.75)' }}>4.2 / 5.0</div>
+            <div style={{ marginTop: '12px', height: '3px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ width: '84%', height: '100%', background: '#4ade80' }} />
             </div>
           </div>
-
-          {showFaceRegister && wardenId && (
-            <div className="border border-gray-100 rounded-xl overflow-hidden">
-              <WardenFaceRegistration
-                wardenId={wardenId}
-                onSuccess={() => {
-                  setShowFaceRegister(false);
-                  setFaceRegistered(true);
-                }}
-                onSkip={() => setShowFaceRegister(false)}
-              />
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: '14px', padding: '18px 20px' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', marginBottom: '6px' }}>Curfew violations</div>
+            <div style={{ fontSize: '18px', fontWeight: 500, color: 'rgba(255,255,255,0.75)' }}>12 Active</div>
+            <div style={{ marginTop: '12px', height: '3px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ width: '24%', height: '100%', background: '#f87171' }} />
             </div>
-          )}
+          </div>
         </div>
-      )}
+
+        {/* Quick Actions */}
+        <div style={{ marginTop: '16px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          {[
+            { label: 'Attendance →', href: '/warden/attendance' },
+            { label: 'Leaves →', href: '/warden/leaves' },
+            { label: 'Complaints →', href: '/warden/complaints' },
+            { label: 'Staff →', href: '/warden/staff' },
+            { label: 'Rooms →', href: '/warden/rooms' },
+            { label: 'Notices →', href: '/warden/notices' },
+            { label: 'Lost & Found →', href: '/warden/lost-found' },
+            { label: 'Fee Payments →', href: '/warden/payments' },
+          ].map((action, i) => (
+            <button
+              key={i}
+              onClick={() => router.push(action.href)}
+              style={{
+                background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.09)', borderRadius: '100px',
+                padding: '7px 16px', fontSize: '12px', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)' }}
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+        
+        {/* Warden Face Registration section at the bottom */}
+        {!loading && (
+          <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '0.5px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <div>
+                <p style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.8)', margin: 0 }}>Login Face Security</p>
+                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '4px' }}>
+                  {faceRegistered ? 'Face data registered — verified on each login' : 'No face registered — add one to secure your login'}
+                </p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {faceRegistered && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#4ade80', fontWeight: 500 }}>
+                    <svg style={{ width: '14px', height: '14px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Active
+                  </span>
+                )}
+                <button
+                  id="warden-manage-face-btn"
+                  onClick={() => setShowFaceRegister(!showFaceRegister)}
+                  style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', transition: 'all 0.2s' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
+                >
+                  {showFaceRegister ? 'Cancel' : faceRegistered ? 'Update Face' : 'Register Face'}
+                </button>
+              </div>
+            </div>
+
+            {showFaceRegister && wardenId && (
+              <div style={{ border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: '14px', overflow: 'hidden', background: 'rgba(0,0,0,0.2)', marginTop: '16px' }}>
+                <WardenFaceRegistration
+                  wardenId={wardenId}
+                  onSuccess={() => {
+                    setShowFaceRegister(false);
+                    setFaceRegistered(true);
+                  }}
+                  onSkip={() => setShowFaceRegister(false)}
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

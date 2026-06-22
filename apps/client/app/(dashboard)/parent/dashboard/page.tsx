@@ -2,16 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Header } from '@/components/ui/Header';
-import { Card } from '@/components/ui/Card';
 import { useRouter } from 'next/navigation';
-
-const SkeletonCard = () => (
-  <div className="border border-gray-100 rounded-xl p-6 animate-pulse">
-    <div className="h-4 bg-gray-100 rounded w-1/3 mb-2" />
-    <div className="h-3 bg-gray-100 rounded w-2/3" />
-  </div>
-);
 
 export default function ParentDashboard() {
   const router = useRouter();
@@ -54,50 +45,76 @@ export default function ParentDashboard() {
     router.push('/login');
   };
 
-  return (
-    <div className="min-h-screen bg-white p-8 max-w-5xl mx-auto">
-      <Header title={loading ? 'Hello 👋' : `Hello ${firstName} 👋`} onSignOut={handleSignOut} />
+  const hour = new Date().getHours();
+  const greeting = hour >= 5 && hour < 12 ? 'Good morning,' : hour >= 12 && hour < 17 ? 'Good afternoon,' : 'Good evening,';
 
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <SkeletonCard key={i} />
+  return (
+    <div style={{ background: '#080810', minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
+      <div style={{
+        position: 'fixed', top: '-20%', left: '50%', transform: 'translateX(-50%)',
+        width: '600px', height: '600px', pointerEvents: 'none', zIndex: 0,
+        background: 'radial-gradient(circle, rgba(96,165,250,0.08) 0%, transparent 70%)',
+        animation: 'spotlightFade 1.2s ease-out forwards',
+        opacity: 0,
+      }} />
+      <style>{`
+        @keyframes spotlightFade {
+          to { opacity: 1; }
+        }
+      `}</style>
+
+      {/* Top bar */}
+      <div style={{ padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+        <div>
+          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>BY NIVO</div>
+          <div style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.5)' }}>HostelMate</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button onClick={handleSignOut} style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', background: 'transparent', border: 'none', cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.8)'} onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>Sign Out</button>
+        </div>
+      </div>
+
+      <div style={{ padding: '24px 32px', maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <div style={{ marginBottom: '32px' }}>
+          <div suppressHydrationWarning style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>{greeting}</div>
+          <h1 style={{ fontSize: '26px', fontWeight: 500, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>{loading ? 'Parent' : firstName}</h1>
+          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.28)', marginTop: '4px' }}>Tracking your ward</div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+          {[
+            { emoji:'📍', title:'Track Ward', desc:'Real-time location and attendance', href:'/parent/track' },
+            { emoji:'🌴', title:'Leave Status', desc:'View leave requests', href:'/parent/leaves' },
+            { emoji:'📢', title:'Notices', desc:'Read hostel announcements', href:'/parent/notices' },
+            { emoji:'📞', title:'Contact Warden', desc:'Get in touch', href:'/parent/contact' },
+            { emoji:'💳', title:'Fee Payments', desc:"Pay ward's hostel fees", href:'/parent/payments' },
+          ].map((item, i) => (
+            <div
+              key={i}
+              onClick={() => router.push(item.href)}
+              style={{
+                background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '16px',
+                padding: '22px 20px', cursor: 'pointer', transition: 'background 0.2s, border-color 0.2s',
+                display: 'flex', flexDirection: 'column', gap: '10px', position: 'relative', overflow: 'hidden'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.055)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.13)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)' }}
+              className="group"
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '20px' }}>{item.emoji}</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '14px', height: '14px', color: 'rgba(255,255,255,0.2)', transition: 'color 0.2s' }} className="group-hover:!text-white/60">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </div>
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.82)', margin: '0 0 4px 0' }}>{item.title}</div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.32)', lineHeight: 1.5 }}>{item.desc}</div>
+              </div>
+            </div>
           ))}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Card
-            emoji="📍"
-            title="Track Student"
-            description="View real-time attendance"
-            href="/parent/track"
-          />
-          <Card
-            emoji="🏖️"
-            title="Leave Status"
-            description="Check leave approvals"
-            href="/parent/leaves"
-          />
-          <Card
-            emoji="📞"
-            title="Contact Warden"
-            description="Get warden details"
-            href="/parent/contact"
-          />
-          <Card
-            emoji="📢"
-            title="Notices"
-            description="Read hostel announcements"
-            href="/parent/notices"
-          />
-          <Card
-            emoji="💳"
-            title="Fee Payments"
-            description="Pay ward's hostel fees"
-            href="/parent/payments"
-          />
-        </div>
-      )}
+      </div>
     </div>
   );
 }
