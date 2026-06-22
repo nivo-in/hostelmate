@@ -128,8 +128,8 @@ export default function WardenDashboard() {
       {/* Spotlight */}
       <div style={{
         position: 'fixed', top: '-20%', left: '50%', transform: 'translateX(-50%)',
-        width: '600px', height: '600px', pointerEvents: 'none', zIndex: 0,
-        background: 'radial-gradient(circle, rgba(124,92,252,0.1) 0%, transparent 70%)',
+        width: '900px', height: '600px', pointerEvents: 'none', zIndex: 0,
+        background: 'radial-gradient(ellipse at center, rgba(124,92,252,0.1) 0%, transparent 70%)',
         animation: 'spotlightFade 1.2s ease-out forwards',
         opacity: 0,
       }} />
