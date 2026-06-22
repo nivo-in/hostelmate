@@ -96,6 +96,10 @@ describe('Leaves API', () => {
   });
 
   describe('POST /api/leaves - Student submits leave', () => {
+    /**
+     * Test: should reject leave with missing fields
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject leave with missing fields', async () => {
       const res = await request(app).post('/api/v1/leaves').send({});
       expect(res.status).toBe(400);
