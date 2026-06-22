@@ -123,7 +123,7 @@ export default function FaceVerification({
         if (!detection) {
           setStatus('scanning');
         } else {
-          const { descriptor, landmarks, box } = detection;
+          const { descriptor, landmarks } = detection;
 
           // ── Face match FIRST ───────────────────────────────────────────
           const { match } = isSamePerson(descriptor, storedDescriptorsRef.current);
@@ -345,8 +345,7 @@ export default function FaceVerification({
 
       {/* Camera */}
       <div className="relative w-full max-w-sm">
-        {/* Hidden canvas for frame-diff liveness — never shown to user */}
-        <canvas ref={canvasRef} style={{ display: 'none' }} />
+
         <video
           ref={videoRef}
           muted
