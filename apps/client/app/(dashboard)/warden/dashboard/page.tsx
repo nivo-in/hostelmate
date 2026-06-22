@@ -268,6 +268,12 @@ export default function WardenDashboard() {
                 </p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#4ade80', fontWeight: 500 }}>
+                  <svg style={{ width: '14px', height: '14px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  Secure
+                </span>
                 <button
                   onClick={() => router.push('/warden/audit')}
                   style={{ width: '100px', display: 'flex', justifyContent: 'center', fontSize: '11px', color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', transition: 'all 0.2s' }}
