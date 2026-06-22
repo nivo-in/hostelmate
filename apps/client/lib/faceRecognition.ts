@@ -98,7 +98,7 @@ export function bestMatchDistance(
 
 /**
  * Compare live descriptor against all stored angle descriptors.
- * Uses threshold 0.45 (tighter than default 0.6 to reduce false positives).
+ * Uses threshold 0.42 (tighter than default 0.6 to reduce false positives).
  * confidence: 0–100, distance: raw euclidean distance (minimum across angles).
  */
 export function isSamePerson(
