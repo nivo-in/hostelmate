@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useApi } from '@/hooks/useApi';
 import { useSocket } from '@/hooks/useSocket';
 import { Notification } from '@/types';
@@ -51,6 +52,9 @@ export function NotificationBell() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
+  // Portal target only exists in the browser — gate render until mounted.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const { apiGet, apiPatch, apiDelete } = useApi();
   // Ref to track pending debounce timer for socket-triggered fetches
@@ -144,13 +148,17 @@ export function NotificationBell() {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      // Always refresh the list when the panel is opened so it never shows a
+      // stale or empty body (e.g. if the mount fetch failed or raced).
+      setPage(1);
+      fetchNotifications(1);
     } else {
       document.body.style.overflow = '';
     }
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isOpen]);
+  }, [isOpen, fetchNotifications]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -202,14 +210,30 @@ export function NotificationBell() {
   return (
     <>
       {/* ── Bell trigger button ─────────────────────────────────────────── */}
+      <style>{`
+        @keyframes bellRing {
+          0% { transform: rotate(0); }
+          15% { transform: rotate(15deg); }
+          30% { transform: rotate(-10deg); }
+          45% { transform: rotate(5deg); }
+          60% { transform: rotate(-3deg); }
+          75% { transform: rotate(1deg); }
+          100% { transform: rotate(0); }
+        }
+        .bell-trigger .bell-icon-anim { transform-origin: top center; }
+        .bell-trigger:hover .bell-icon-anim { animation: bellRing 0.6s ease-in-out; }
+      `}</style>
       <button
         onClick={() => setIsOpen(true)}
-        className="relative p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-50 focus:outline-none"
+        className="bell-trigger relative p-2 rounded-full transition-colors focus:outline-none"
+        style={{ color: 'rgba(255,255,255,0.45)' }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.85)')}
+        onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
         aria-label="Notifications"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="w-5 h-5 text-gray-600"
+          className="w-5 h-5 bell-icon-anim"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -228,33 +252,55 @@ export function NotificationBell() {
         )}
       </button>
 
-      {/* ── Overlay ─────────────────────────────────────────────────────── */}
-      <div
-        className={`fixed inset-0 bg-black/10 z-40 transition-opacity duration-300 ${
-          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setIsOpen(false)}
-        aria-hidden="true"
-      />
+      {/* Overlay + panel are portaled to <body> so they escape the PageHeader's
+          backdrop-filter stacking context (which would otherwise trap these
+          fixed elements inside the header bar on feature pages). */}
+      {mounted &&
+        createPortal(
+          <>
+            {/* ── Overlay ─────────────────────────────────────────────────── */}
+            <div
+              className={`fixed inset-0 z-40 transition-opacity duration-300 ${
+                isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+              }`}
+              style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)' }}
+              onClick={() => setIsOpen(false)}
+              aria-hidden="true"
+            />
 
       {/* ── Slide-in panel ──────────────────────────────────────────────── */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Notifications panel"
-        className={`fixed top-0 right-0 h-full w-96 max-w-full z-50 bg-white border-l border-gray-200 flex flex-col shadow-xl transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 h-full w-96 max-w-full z-50 flex flex-col transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
+        style={{
+          background: '#0c0c14',
+          borderLeft: '0.5px solid rgba(255,255,255,0.1)',
+          boxShadow: '-24px 0 60px rgba(0,0,0,0.5)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+        }}
       >
         {/* Panel header */}
-        <div className="h-16 px-5 flex items-center justify-between border-b border-gray-100 shrink-0">
-          <span className="text-base font-medium text-gray-900">Notifications</span>
+        <div
+          className="h-16 px-5 flex items-center justify-between shrink-0"
+          style={{ borderBottom: '0.5px solid rgba(255,255,255,0.08)' }}
+        >
+          <span className="text-base font-medium" style={{ color: 'rgba(255,255,255,0.9)' }}>
+            Notifications
+          </span>
 
           <div className="flex items-center gap-3">
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="text-xs text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                className="text-xs transition-colors cursor-pointer"
+                style={{ color: 'rgba(255,255,255,0.45)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.85)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
               >
                 Mark all read
               </button>
@@ -263,7 +309,16 @@ export function NotificationBell() {
             {/* X close button */}
             <button
               onClick={() => setIsOpen(false)}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
+              className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+              style={{ color: 'rgba(255,255,255,0.5)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'rgba(255,255,255,0.85)';
+                e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'rgba(255,255,255,0.5)';
+                e.currentTarget.style.background = 'transparent';
+              }}
               aria-label="Close notifications"
             >
               <svg
@@ -289,10 +344,14 @@ export function NotificationBell() {
             /* Loading skeletons */
             <>
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="px-5 py-4 border-b border-gray-50 animate-pulse">
-                  <div className="h-3 bg-gray-100 rounded w-2/3 mb-2" />
-                  <div className="h-2 bg-gray-100 rounded w-full mb-1.5" />
-                  <div className="h-2 bg-gray-100 rounded w-1/2" />
+                <div
+                  key={i}
+                  className="px-5 py-4 animate-pulse"
+                  style={{ borderBottom: '0.5px solid rgba(255,255,255,0.05)' }}
+                >
+                  <div className="h-3 rounded w-2/3 mb-2" style={{ background: 'rgba(255,255,255,0.08)' }} />
+                  <div className="h-2 rounded w-full mb-1.5" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                  <div className="h-2 rounded w-1/2" style={{ background: 'rgba(255,255,255,0.06)' }} />
                 </div>
               ))}
             </>
@@ -301,7 +360,8 @@ export function NotificationBell() {
             <div className="flex flex-col items-center justify-center h-full text-center px-6">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="w-12 h-12 text-gray-200 mb-3"
+                className="w-12 h-12 mb-3"
+                style={{ color: 'rgba(255,255,255,0.12)' }}
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -312,8 +372,8 @@ export function NotificationBell() {
                 <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
                 <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
               </svg>
-              <p className="text-sm text-gray-400">No notifications yet</p>
-              <p className="text-xs text-gray-300 mt-1">{"You're all caught up!"}</p>
+              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>No notifications yet</p>
+              <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>{"You're all caught up!"}</p>
             </div>
           ) : (
             /* Notification items */
@@ -321,29 +381,43 @@ export function NotificationBell() {
               <div
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification.id, notification.is_read)}
-                className={`group relative px-5 py-4 border-b border-gray-50 cursor-pointer transition-colors ${
-                  notification.is_read
-                    ? 'bg-white hover:bg-gray-50/50'
-                    : 'bg-blue-50/30 border-l-2 border-blue-500 hover:bg-blue-50/50'
-                }`}
+                className="group relative px-5 py-4 cursor-pointer transition-colors"
+                style={{
+                  borderBottom: '0.5px solid rgba(255,255,255,0.05)',
+                  borderLeft: notification.is_read ? '2px solid transparent' : '2px solid #7c5cfc',
+                  background: notification.is_read ? 'transparent' : 'rgba(124,92,252,0.08)',
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = notification.is_read
+                    ? 'rgba(255,255,255,0.03)'
+                    : 'rgba(124,92,252,0.13)')
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = notification.is_read
+                    ? 'transparent'
+                    : 'rgba(124,92,252,0.08)')
+                }
               >
                 {/* Top row: dot + title + time + dismiss */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
                     {typeDot(notification.type ?? '')}
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium truncate" style={{ color: 'rgba(255,255,255,0.85)' }}>
                       {notification.title}
                     </p>
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-xs text-gray-400 mt-0.5">
+                    <span className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
                       {timeAgo(notification.created_at)}
                     </span>
                     {/* Dismiss button — visible only on row hover */}
                     <button
                       onClick={(e) => handleDismiss(e, notification.id, notification.is_read)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 w-4 h-4 flex items-center justify-center rounded text-gray-300 hover:text-gray-500 hover:bg-gray-100"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 w-4 h-4 flex items-center justify-center rounded"
+                      style={{ color: 'rgba(255,255,255,0.3)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
                       aria-label="Dismiss notification"
                       title="Dismiss"
                     >
@@ -365,7 +439,10 @@ export function NotificationBell() {
                 </div>
 
                 {/* Message */}
-                <p className="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-2 pl-4">
+                <p
+                  className="text-xs mt-1 leading-relaxed line-clamp-2 pl-4"
+                  style={{ color: 'rgba(255,255,255,0.45)' }}
+                >
                   {notification.message}
                 </p>
               </div>
@@ -373,14 +450,17 @@ export function NotificationBell() {
           )}
 
           {hasNext && !loading && (
-            <div className="p-4 flex justify-center border-t border-gray-50">
+            <div className="p-4 flex justify-center" style={{ borderTop: '0.5px solid rgba(255,255,255,0.05)' }}>
               <button
                 onClick={() => {
                   const nextPage = page + 1;
                   setPage(nextPage);
                   fetchNotifications(nextPage);
                 }}
-                className="text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
+                className="text-xs font-medium transition-colors"
+                style={{ color: 'rgba(255,255,255,0.45)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.85)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
               >
                 Load older
               </button>
@@ -388,6 +468,9 @@ export function NotificationBell() {
           )}
         </div>
       </div>
+          </>,
+          document.body
+        )}
     </>
   );
 }
