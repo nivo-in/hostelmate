@@ -37,9 +37,6 @@ type Status =
 
 const MAX_ATTEMPTS = 5;
 
-// Frame-diff: avg pixel change < this over MANY frames = photo spoof
-const FRAME_DIFF_LIVE_THRESHOLD = 6; // minimum required avg pixel difference (out of 255) to pass liveness
-const FRAME_DIFF_MIN_FRAMES = 10; // need this many frames before hard-blocking
 
 export default function WardenFaceVerification({
   wardenId,
@@ -48,7 +45,7 @@ export default function WardenFaceVerification({
   onSkip,
 }: WardenFaceVerificationProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   const streamRef = useRef<MediaStream | null>(null);
   const runningRef = useRef(false); // controls recursive tick loop
   const storedDescriptorsRef = useRef<number[][] | null>(null);
@@ -66,9 +63,6 @@ export default function WardenFaceVerification({
   const closedFramesRef = useRef(0);
 
 
-  // Frame-diff: store previous frame pixel data for comparison
-  const prevFrameDataRef = useRef<Uint8ClampedArray | null>(null);
-  const frameDiffScoresRef = useRef<number[]>([]);
 
   const onVerifiedRef = useRef(onVerified);
   const onFailedRef = useRef(onFailed);
@@ -93,51 +87,7 @@ export default function WardenFaceVerification({
     }
   }, []);
 
-  // ── Frame-difference liveness ─────────────────────────────────────────────
-  const computeFrameDiff = useCallback(
-    (box: { x: number; y: number; width: number; height: number }): number | null => {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      if (!video || !canvas) return null;
 
-      const SAMPLE = 32;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return null;
-
-      canvas.width = SAMPLE;
-      canvas.height = SAMPLE;
-      ctx.drawImage(
-        video,
-        Math.max(0, box.x),
-        Math.max(0, box.y),
-        box.width,
-        box.height,
-        0,
-        0,
-        SAMPLE,
-        SAMPLE
-      );
-
-      const current = ctx.getImageData(0, 0, SAMPLE, SAMPLE).data;
-      const prev = prevFrameDataRef.current;
-
-      let avgDiff = 0;
-      if (prev && prev.length === current.length) {
-        let totalDiff = 0;
-        const pixelCount = SAMPLE * SAMPLE;
-        for (let i = 0; i < current.length; i += 4) {
-          const curGray = 0.299 * current[i] + 0.587 * current[i + 1] + 0.114 * current[i + 2];
-          const prevGray = 0.299 * prev[i] + 0.587 * prev[i + 1] + 0.114 * prev[i + 2];
-          totalDiff += Math.abs(curGray - prevGray);
-        }
-        avgDiff = totalDiff / pixelCount;
-      }
-
-      prevFrameDataRef.current = new Uint8ClampedArray(current);
-      return avgDiff;
-    },
-    []
-  );
 
 
 
@@ -225,21 +175,6 @@ export default function WardenFaceVerification({
           if (!blinkDetectedRef.current) {
             setStatus('verifying'); // Waiting for blink
           } else {
-            // ── Gate 2: Frame-diff hard-block ──────────────────────────────
-            const scores = frameDiffScoresRef.current;
-            if (scores.length >= FRAME_DIFF_MIN_FRAMES) {
-              const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-              if (avgScore < FRAME_DIFF_LIVE_THRESHOLD) {
-                runningRef.current = false;
-                stopCamera();
-                setStatus('liveness-failed');
-                onFailedRef.current(
-                  'Liveness check failed — please use a live camera, not a photo.'
-                );
-                return;
-              }
-            }
-
 
             // All clear!
             runningRef.current = false;
@@ -256,7 +191,7 @@ export default function WardenFaceVerification({
     };
 
     tick();
-  }, [stopCamera, computeFrameDiff]);
+  }, [stopCamera]);
 
   useEffect(() => {
     let cancelled = false;
@@ -412,7 +347,7 @@ export default function WardenFaceVerification({
       </div>
       
       {/* Hidden canvas for frame-diff liveness */}
-      <canvas ref={canvasRef} style={{ display: 'none' }} />
+
 
       {/* External floating status (Rendered outside the card via fixed positioning) */}
       <div style={{ position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 9999, textAlign: 'center', width: '100%', pointerEvents: 'none' }}>

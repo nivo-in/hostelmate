@@ -37,11 +37,7 @@ type Status =
 
 const MAX_ATTEMPTS = 5;
 
-// Frame-diff: avg pixel change < this over MANY frames = photo spoof
-// Only used to BLOCK after a blink is already confirmed + we have lots of data.
-// A blink alone is strong enough liveness — frame-diff is a secondary hard-block.
-const FRAME_DIFF_LIVE_THRESHOLD = 6; // minimum required avg pixel difference (out of 255) to pass liveness
-const FRAME_DIFF_MIN_FRAMES = 10; // need this many frames before we hard-block
+
 
 export default function FaceVerification({
   studentId,
@@ -50,7 +46,7 @@ export default function FaceVerification({
   onSkip,
 }: FaceVerificationProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null); // hidden canvas for frame-diff
+
   const streamRef = useRef<MediaStream | null>(null);
   // Simple running flag — avoids stacking async detections
   const runningRef = useRef(false);
@@ -67,10 +63,6 @@ export default function FaceVerification({
   const blinkDetectedRef = useRef(false);
   const closedFramesRef = useRef(0);
 
-
-  // Frame-diff: store previous frame pixel data for comparison
-  const prevFrameDataRef = useRef<Uint8ClampedArray | null>(null);
-  const frameDiffScoresRef = useRef<number[]>([]); // rolling avg pixel diffs
 
   const onVerifiedRef = useRef(onVerified);
   const onFailedRef = useRef(onFailed);
@@ -98,57 +90,7 @@ export default function FaceVerification({
   }, []);
 
   // ── Frame-difference liveness (primary anti-spoofing) ────────────────────
-  // Captures a downscaled snapshot of the face region each frame and computes
-  // average pixel change vs the previous frame. A photo on a phone screen
-  // shows near-zero change (very bright, static). A live face always has
-  // micro-expressions, breathing, and micro-movements that change pixels.
-  const computeFrameDiff = useCallback(
-    (box: { x: number; y: number; width: number; height: number }): number | null => {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      if (!video || !canvas) return null;
 
-      // Sample a 32x32 patch from the face bounding box for speed
-      const SAMPLE = 32;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return null;
-
-      canvas.width = SAMPLE;
-      canvas.height = SAMPLE;
-      ctx.drawImage(
-        video,
-        Math.max(0, box.x),
-        Math.max(0, box.y),
-        box.width,
-        box.height,
-        0,
-        0,
-        SAMPLE,
-        SAMPLE
-      );
-
-      const current = ctx.getImageData(0, 0, SAMPLE, SAMPLE).data;
-      const prev = prevFrameDataRef.current;
-
-      let avgDiff = 0;
-      if (prev && prev.length === current.length) {
-        let totalDiff = 0;
-        const pixelCount = SAMPLE * SAMPLE;
-        for (let i = 0; i < current.length; i += 4) {
-          // Compare grayscale value (avoid color-cast differences)
-          const curGray = 0.299 * current[i] + 0.587 * current[i + 1] + 0.114 * current[i + 2];
-          const prevGray = 0.299 * prev[i] + 0.587 * prev[i + 1] + 0.114 * prev[i + 2];
-          totalDiff += Math.abs(curGray - prevGray);
-        }
-        avgDiff = totalDiff / pixelCount;
-      }
-
-      // Store current frame as previous
-      prevFrameDataRef.current = new Uint8ClampedArray(current);
-      return avgDiff;
-    },
-    []
-  );
 
 
 
@@ -220,34 +162,11 @@ export default function FaceVerification({
             }
           }
 
-          // ── Frame-difference liveness ────────────────────────────────────
-          const frameDiff = computeFrameDiff(box);
-          if (frameDiff !== null) {
-            const scores = frameDiffScoresRef.current;
-            scores.push(frameDiff);
-            if (scores.length > 8) scores.shift();
-          }
-
 
           // ── Gate 1: Blink mandatory ──────────────────────────────────────
           if (!blinkDetectedRef.current) {
             setStatus('verifying');
           } else {
-            // ── Gate 2: Frame-diff hard-block ──────────────────────────────
-            const scores = frameDiffScoresRef.current;
-            if (scores.length >= FRAME_DIFF_MIN_FRAMES) {
-              const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-              if (avgScore < FRAME_DIFF_LIVE_THRESHOLD) {
-                runningRef.current = false;
-                stopCamera();
-                setStatus('liveness-failed');
-                onFailedRef.current(
-                  'Liveness check failed — please use a live camera, not a photo.'
-                );
-                return;
-              }
-            }
-
 
             // All clear!
             runningRef.current = false;
@@ -265,7 +184,7 @@ export default function FaceVerification({
     };
 
     tick();
-  }, [stopCamera, computeFrameDiff]);
+  }, [stopCamera]);
 
   useEffect(() => {
     let cancelled = false;
