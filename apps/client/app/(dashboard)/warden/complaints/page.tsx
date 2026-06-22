@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageShell } from '@/components/ui/PageShell';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { ComplaintWithStudent } from '@/types';
+import { ui, panel, buttonPrimary, buttonGhost, container } from '@/lib/ui';
 
 export default function WardenComplaints() {
   const [activeTab, setActiveTab] = useState('All');
@@ -71,145 +73,295 @@ export default function WardenComplaints() {
   });
 
   return (
-    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
-      <div className="flex justify-between items-start mb-6">
-        <PageHeader title="Complaints" showBack onSignOut={handleSignOut} />
-        <button
-          onClick={() => router.push('/warden/complaints/analytics')}
-          className="text-sm font-medium text-gray-900 bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded-lg transition-colors border border-gray-200"
+    <PageShell>
+      <PageHeader title="Complaints" showBack onSignOut={handleSignOut} />
+
+      <div style={container}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px',
+          }}
         >
-          View Analytics →
-        </button>
-      </div>
-
-      {message && (
-        <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm font-medium">
-          {message}
-        </div>
-      )}
-
-      <div className="flex gap-4 border-b border-gray-100 mb-8 pb-2 overflow-x-auto no-scrollbar">
-        {['All', 'Open', 'In Progress', 'Resolved'].map((tab) => (
+          <h2 style={{ fontSize: '15px', fontWeight: 500, color: ui.text, margin: 0 }}>
+            All Complaints
+          </h2>
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-1 py-1 text-sm font-medium whitespace-nowrap transition-colors ${activeTab === tab ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+            onClick={() => router.push('/warden/complaints/analytics')}
+            className="btn-ghost"
+            style={buttonGhost}
           >
-            {tab}
+            View Analytics →
           </button>
-        ))}
-      </div>
+        </div>
 
-      <div className="space-y-4">
-        {filteredComplaints.length === 0 ? (
-          <div className="border border-gray-100 rounded-xl p-8">
-            <EmptyState
-              message={`No ${activeTab !== 'All' ? activeTab.toLowerCase() : ''} complaints found`}
-            />
+        {message && (
+          <div
+            style={{
+              marginBottom: '20px',
+              padding: '12px 16px',
+              background: 'rgba(74,222,128,0.1)',
+              border: '0.5px solid rgba(74,222,128,0.25)',
+              borderRadius: ui.radiusXs,
+              color: ui.green,
+              fontSize: '13px',
+              fontWeight: 500,
+            }}
+          >
+            {message}
           </div>
-        ) : (
-          filteredComplaints.map((c) => (
-            <div
-              key={c.id}
-              className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors bg-white"
-            >
-              <div className="flex justify-between items-start mb-4 border-b border-gray-50 pb-4">
-                <div>
-                  <h3 className="font-medium text-gray-900">
-                    {c.students?.profiles?.full_name || 'Unknown Student'}
-                  </h3>
-                  <p className="text-xs text-gray-500 mb-2">
-                    Roll No: {c.students?.profiles?.id?.substring(0, 8) || '-'}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span className="capitalize text-xs font-medium text-gray-600 border border-gray-200 px-2 py-0.5 rounded-full">
-                      {c.category}
-                    </span>
-                    {c.is_urgent && <Badge variant="danger">URGENT</Badge>}
-                    {c.ai_classified === true && (
-                      <span className="bg-purple-50 text-purple-700 text-xs px-2 py-0.5 rounded-full">
-                        🤖 AI
+        )}
+
+        {/* Tabs */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '6px',
+            marginBottom: '24px',
+            borderBottom: ui.border,
+            paddingBottom: '2px',
+            overflowX: 'auto',
+          }}
+        >
+          {['All', 'Open', 'In Progress', 'Resolved'].map((tab) => {
+            const active = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  padding: '8px 14px',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  whiteSpace: 'nowrap',
+                  background: active ? 'rgba(124,92,252,0.12)' : 'transparent',
+                  border: active ? '0.5px solid rgba(124,92,252,0.3)' : '0.5px solid transparent',
+                  borderRadius: ui.radiusXs,
+                  color: active ? ui.text : ui.textMuted,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  if (!active) e.currentTarget.style.color = ui.textSoft;
+                }}
+                onMouseLeave={(e) => {
+                  if (!active) e.currentTarget.style.color = ui.textMuted;
+                }}
+              >
+                {tab}
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {filteredComplaints.length === 0 ? (
+            <div style={panel}>
+              <EmptyState
+                message={`No ${activeTab !== 'All' ? activeTab.toLowerCase() : ''} complaints found`}
+                icon="🔧"
+              />
+            </div>
+          ) : (
+            filteredComplaints.map((c) => (
+              <div
+                key={c.id}
+                className="glass-card"
+                style={{ ...panel, padding: '22px', overflow: 'hidden' }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    marginBottom: '16px',
+                    paddingBottom: '16px',
+                    borderBottom: '0.5px solid rgba(255,255,255,0.05)',
+                  }}
+                >
+                  <div>
+                    <h3 style={{ fontSize: '14px', fontWeight: 500, color: ui.text, margin: '0 0 4px' }}>
+                      {c.students?.profiles?.full_name || 'Unknown Student'}
+                    </h3>
+                    <p style={{ fontSize: '11px', color: ui.textMuted, margin: '0 0 10px' }}>
+                      Roll No: {c.students?.profiles?.id?.substring(0, 8) || '-'}
+                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span
+                        style={{
+                          textTransform: 'capitalize',
+                          fontSize: '11px',
+                          fontWeight: 500,
+                          color: ui.textSoft,
+                          border: ui.borderStrong,
+                          padding: '2px 10px',
+                          borderRadius: '9999px',
+                        }}
+                      >
+                        {c.category}
+                      </span>
+                      {c.is_urgent && <Badge variant="danger">URGENT</Badge>}
+                      {c.ai_classified === true && (
+                        <span
+                          style={{
+                            background: 'rgba(124,92,252,0.12)',
+                            border: '0.5px solid rgba(124,92,252,0.25)',
+                            color: ui.accent,
+                            fontSize: '11px',
+                            padding: '2px 10px',
+                            borderRadius: '9999px',
+                          }}
+                        >
+                          🤖 AI
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '11px', color: ui.textMuted, whiteSpace: 'nowrap' }}>
+                    {new Date(c.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: ui.textSoft,
+                    margin: '0 0 16px',
+                    whiteSpace: 'pre-wrap',
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {c.description}
+                </p>
+
+                {c.ai_summary && (
+                  <div
+                    style={{
+                      marginBottom: '16px',
+                      fontSize: '12px',
+                      color: ui.textMuted,
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    AI Summary: {c.ai_summary}
+                  </div>
+                )}
+
+                {c.ai_suggested_action && (
+                  <div
+                    style={{
+                      marginBottom: '16px',
+                      background: 'rgba(255,255,255,0.03)',
+                      padding: '14px 16px',
+                      borderRadius: ui.radiusXs,
+                      border: ui.border,
+                    }}
+                  >
+                    <div style={{ fontSize: '11px', fontWeight: 500, color: ui.textSoft, marginBottom: '6px' }}>
+                      💡 Suggested Action
+                    </div>
+                    <div style={{ fontSize: '12px', color: ui.textSoft, lineHeight: 1.5 }}>
+                      {c.ai_suggested_action}
+                    </div>
+
+                    {c.ai_confidence && (
+                      <div
+                        style={{
+                          marginTop: '8px',
+                          fontSize: '10px',
+                          fontWeight: 500,
+                          color:
+                            c.ai_confidence > 0.9
+                              ? ui.green
+                              : c.ai_confidence > 0.7
+                                ? ui.amber
+                                : ui.textMuted,
+                        }}
+                      >
+                        {c.ai_confidence > 0.9
+                          ? 'High confidence'
+                          : c.ai_confidence > 0.7
+                            ? 'Medium confidence'
+                            : 'Low confidence'}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginTop: '4px',
+                    paddingTop: '16px',
+                    borderTop: '0.5px solid rgba(255,255,255,0.05)',
+                  }}
+                >
+                  <Badge variant={getStatusVariant(c.status)}>
+                    {c.status.replace('_', ' ').toUpperCase()}
+                  </Badge>
+
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {c.status === 'open' && (
+                      <button
+                        onClick={() => handleStatusUpdate(c.id, 'in_progress')}
+                        className="btn-primary"
+                        style={{ ...buttonPrimary, padding: '7px 14px', fontSize: '12px' }}
+                      >
+                        Mark In Progress
+                      </button>
+                    )}
+                    {c.status === 'in_progress' && (
+                      <button
+                        onClick={() => handleStatusUpdate(c.id, 'resolved')}
+                        style={{
+                          background: 'rgba(74,222,128,0.12)',
+                          border: '0.5px solid rgba(74,222,128,0.25)',
+                          color: ui.green,
+                          borderRadius: ui.radiusXs,
+                          padding: '7px 14px',
+                          fontSize: '12px',
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(74,222,128,0.2)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(74,222,128,0.12)')}
+                      >
+                        Mark Resolved
+                      </button>
+                    )}
+                    {c.status === 'resolved' && (
+                      <span style={{ fontSize: '11px', color: ui.textMuted }}>
+                        Resolved on {new Date(c.resolution_date || c.created_at).toLocaleDateString()}
                       </span>
                     )}
                   </div>
                 </div>
-                <span className="text-xs text-gray-400">
-                  {new Date(c.created_at).toLocaleDateString()}
-                </span>
               </div>
-              <p className="text-sm text-gray-700 mb-4 whitespace-pre-wrap">{c.description}</p>
+            ))
+          )}
+        </div>
 
-              {c.ai_summary && (
-                <div className="mb-4 text-xs text-gray-500 italic">AI Summary: {c.ai_summary}</div>
-              )}
-
-              {c.ai_suggested_action && (
-                <div className="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                  <div className="text-xs font-medium text-gray-600 mb-1">💡 Suggested Action</div>
-                  <div className="text-xs text-gray-600">{c.ai_suggested_action}</div>
-
-                  {c.ai_confidence && (
-                    <div
-                      className={`mt-2 text-[10px] font-medium ${c.ai_confidence > 0.9 ? 'text-green-600' : c.ai_confidence > 0.7 ? 'text-yellow-600' : 'text-gray-500'}`}
-                    >
-                      {c.ai_confidence > 0.9
-                        ? 'High confidence'
-                        : c.ai_confidence > 0.7
-                          ? 'Medium confidence'
-                          : 'Low confidence'}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="flex justify-between items-center bg-gray-50 -mx-6 -mb-6 px-6 py-4 rounded-b-xl border-t border-gray-100">
-                <Badge variant={getStatusVariant(c.status)}>
-                  {c.status.replace('_', ' ').toUpperCase()}
-                </Badge>
-
-                <div className="flex gap-2">
-                  {c.status === 'open' && (
-                    <button
-                      onClick={() => handleStatusUpdate(c.id, 'in_progress')}
-                      className="bg-gray-900 text-white rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-gray-700 transition-colors"
-                    >
-                      Mark In Progress
-                    </button>
-                  )}
-                  {c.status === 'in_progress' && (
-                    <button
-                      onClick={() => handleStatusUpdate(c.id, 'resolved')}
-                      className="bg-green-500 text-white rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-green-600 transition-colors"
-                    >
-                      Mark Resolved
-                    </button>
-                  )}
-                  {c.status === 'resolved' && (
-                    <span className="text-xs text-gray-500">
-                      Resolved on {new Date(c.resolution_date || c.created_at).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))
+        {hasNext && (
+          <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'center' }}>
+            <button
+              onClick={() => {
+                const nextPage = page + 1;
+                setPage(nextPage);
+                fetchComplaints(nextPage);
+              }}
+              className="btn-ghost"
+              style={buttonGhost}
+            >
+              Load more
+            </button>
+          </div>
         )}
       </div>
-
-      {hasNext && (
-        <div className="mt-6 flex justify-center">
-          <button
-            onClick={() => {
-              const nextPage = page + 1;
-              setPage(nextPage);
-              fetchComplaints(nextPage);
-            }}
-            className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            Load more
-          </button>
-        </div>
-      )}
-    </div>
+    </PageShell>
   );
 }
