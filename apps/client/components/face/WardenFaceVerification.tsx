@@ -188,12 +188,10 @@ export default function WardenFaceVerification({
     const init = async () => {
       try {
         setStatus('loading-models');
-        await loadModels();
-        if (cancelled) return;
 
-        setStatus('fetching-descriptor');
         const supabase = createClient();
-        const { data, error } = await supabase
+
+        const fetchDbPromise = supabase
           .from('warden_face_descriptors')
           .select(
             'descriptor, descriptor_straight, descriptor_left, descriptor_right, descriptor_up, descriptor_down'
@@ -201,9 +199,26 @@ export default function WardenFaceVerification({
           .eq('warden_id', wardenId)
           .single();
 
-        if (cancelled) return;
+        const loadModelsPromise = loadModels();
 
+        const startCameraPromise = navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+        });
+
+        const [dbResult, _modelsLoaded, stream] = await Promise.all([
+          fetchDbPromise,
+          loadModelsPromise,
+          startCameraPromise,
+        ]);
+
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+
+        const { data, error } = dbResult;
         if (error || !data) {
+          stream.getTracks().forEach((t) => t.stop());
           onSkipRef.current();
           return;
         }
@@ -229,19 +244,12 @@ export default function WardenFaceVerification({
               ? (raw as number[][])
               : [raw as number[]];
           } else {
+            stream.getTracks().forEach((t) => t.stop());
             onSkipRef.current();
             return;
           }
         }
 
-        setStatus('requesting-camera');
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
-        });
-        if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
-          return;
-        }
         streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;

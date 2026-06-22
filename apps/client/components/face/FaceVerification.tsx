@@ -189,12 +189,11 @@ export default function FaceVerification({
     const init = async () => {
       try {
         setStatus('loading-models');
-        await loadModels();
-        if (cancelled) return;
 
-        setStatus('fetching-descriptor');
         const supabase = createClient();
-        const { data, error } = await supabase
+
+        // Fire all independent async tasks in PARALLEL
+        const fetchDbPromise = supabase
           .from('face_descriptors')
           .select(
             'descriptor, descriptor_straight, descriptor_left, descriptor_right, descriptor_up, descriptor_down'
@@ -202,9 +201,27 @@ export default function FaceVerification({
           .eq('student_id', studentId)
           .single();
 
-        if (cancelled) return;
+        const loadModelsPromise = loadModels();
 
+        const startCameraPromise = navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+        });
+
+        // Await them all simultaneously to drastically reduce the black-screen wait time
+        const [dbResult, _modelsLoaded, stream] = await Promise.all([
+          fetchDbPromise,
+          loadModelsPromise,
+          startCameraPromise,
+        ]);
+
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+
+        const { data, error } = dbResult;
         if (error || !data) {
+          stream.getTracks().forEach((t) => t.stop());
           setStatus('no-face-data');
           return;
         }
@@ -231,19 +248,12 @@ export default function FaceVerification({
               ? (raw as number[][])
               : [raw as number[]];
           } else {
+            stream.getTracks().forEach((t) => t.stop());
             setStatus('no-face-data');
             return;
           }
         }
 
-        setStatus('requesting-camera');
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
-        });
-        if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
-          return;
-        }
         streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
