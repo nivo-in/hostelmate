@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageShell } from '@/components/ui/PageShell';
+import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { useDebounce } from '@/hooks/useDebounce';
+import { ui, panel, panelElevated, input, buttonGhost, container } from '@/lib/ui';
 
 interface Visitor {
   id: string;
@@ -108,218 +111,342 @@ export default function WardenVisitors() {
   });
 
   const getStatusBadge = (status: string) => {
-    const base = 'text-xs px-2.5 py-1 rounded-full font-medium';
     switch (status) {
       case 'pending':
-        return <span className={`${base} bg-yellow-50 text-yellow-700`}>Pending</span>;
+        return <Badge variant="warning">Pending</Badge>;
       case 'approved':
-        return <span className={`${base} bg-green-50 text-green-700`}>Approved</span>;
+        return <Badge variant="success">Approved</Badge>;
       case 'rejected':
-        return <span className={`${base} bg-red-50 text-red-700`}>Rejected</span>;
+        return <Badge variant="danger">Rejected</Badge>;
       case 'checked_in':
-        return <span className={`${base} bg-blue-50 text-blue-700`}>Checked In</span>;
+        return <Badge variant="info">Checked In</Badge>;
       case 'checked_out':
-        return <span className={`${base} bg-gray-50 text-gray-600`}>Checked Out</span>;
+        return <Badge variant="default">Checked Out</Badge>;
       default:
         return null;
     }
   };
 
+  const statTiles = [
+    { label: 'Pending Requests', value: pendingCount, color: ui.amber },
+    { label: "Today's Expected Visitors", value: todayCount, color: ui.blue },
+    { label: 'Currently Checked In', value: checkedInCount, color: ui.green },
+    { label: 'Total This Month', value: monthCount, color: ui.text },
+  ];
+
   return (
-    <div className="min-h-screen bg-white px-6 py-10 max-w-5xl mx-auto">
+    <PageShell>
       <PageHeader title="Visitor Management" showBack onSignOut={handleSignOut} />
 
-      {/* Stats row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="border border-yellow-100 bg-yellow-50/30 rounded-xl p-4">
-          <div className="text-xs text-yellow-600 font-medium mb-1">Pending Requests</div>
-          <div className="text-2xl font-semibold text-gray-900">{pendingCount}</div>
-        </div>
-        <div className="border border-blue-100 bg-blue-50/30 rounded-xl p-4">
-          <div className="text-xs text-blue-600 font-medium mb-1">
-            Today&apos;s Expected Visitors
-          </div>
-          <div className="text-2xl font-semibold text-gray-900">{todayCount}</div>
-        </div>
-        <div className="border border-green-100 bg-green-50/30 rounded-xl p-4">
-          <div className="text-xs text-green-600 font-medium mb-1">Currently Checked In</div>
-          <div className="text-2xl font-semibold text-gray-900">{checkedInCount}</div>
-        </div>
-        <div className="border border-gray-100 bg-gray-50/30 rounded-xl p-4">
-          <div className="text-xs text-gray-500 font-medium mb-1">Total This Month</div>
-          <div className="text-2xl font-semibold text-gray-900">{monthCount}</div>
-        </div>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center mb-6">
-        <div className="relative w-full md:w-96">
-          <input
-            type="text"
-            placeholder="Search by visitor name or phone..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
-          />
-          <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-        </div>
-
-        <div className="flex gap-2 overflow-x-auto pb-2 w-full md:w-auto">
-          {['All', 'Pending', 'Approved', 'Checked In', 'Today'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setFilter(tab)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                filter === tab
-                  ? 'bg-gray-900 text-white'
-                  : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Visitor list */}
-      <div className="space-y-4">
-        {filteredVisitors.length === 0 ? (
-          <div className="border border-gray-100 rounded-xl p-8">
-            <EmptyState message="No visitors found" />
-          </div>
-        ) : (
-          filteredVisitors.map((v) => (
-            <div
-              key={v.id}
-              className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors"
-            >
-              <div className="flex flex-col md:flex-row justify-between gap-4">
-                {/* Left side */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-900">{v.visitor_name}</span>
-                    <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 capitalize">
-                      {v.relationship}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    For: {v.students?.profiles?.full_name || 'Unknown Student'}
-                  </div>
-                  <div className="text-xs text-gray-400 truncate max-w-md">{v.purpose}</div>
-                </div>
-
-                {/* Right side */}
-                <div className="flex flex-col items-end gap-2">
-                  <div className="flex items-center gap-3">
-                    <div className="text-xs text-gray-400">{v.expected_visit_date}</div>
-                    {getStatusBadge(v.status)}
-                  </div>
-
-                  {/* Action buttons */}
-                  <div className="flex gap-2 mt-2">
-                    {v.status === 'pending' && actionId !== v.id && (
-                      <>
-                        <button
-                          onClick={() => {
-                            setActionId(v.id);
-                            setActionType('approve');
-                          }}
-                          className="text-xs px-3 py-1.5 rounded-lg border border-green-200 text-green-700 hover:bg-green-50 transition-colors"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => {
-                            setActionId(v.id);
-                            setActionType('reject');
-                          }}
-                          className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-700 hover:bg-red-50 transition-colors"
-                        >
-                          Reject
-                        </button>
-                      </>
-                    )}
-                    {v.status === 'approved' && (
-                      <button
-                        onClick={() => handleAction(v.id, 'checkin')}
-                        className="text-xs px-4 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-                      >
-                        Check In
-                      </button>
-                    )}
-                    {v.status === 'checked_in' && (
-                      <button
-                        onClick={() => handleAction(v.id, 'checkout')}
-                        className="text-xs px-4 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
-                      >
-                        Check Out
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Inline Action Notes Form */}
-                  {actionId === v.id && actionType && (
-                    <div className="mt-2 w-full max-w-xs text-right space-y-2">
-                      <textarea
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Add notes (optional)"
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-500"
-                        rows={2}
-                      />
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => {
-                            setActionId(null);
-                            setActionType(null);
-                            setNotes('');
-                          }}
-                          className="text-xs text-gray-500 hover:text-gray-900"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={() => handleAction(v.id, actionType, notes)}
-                          className={`text-xs px-3 py-1.5 rounded-lg text-white ${actionType === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
-                        >
-                          Confirm {actionType === 'approve' ? 'Approval' : 'Rejection'}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+      <div style={container}>
+        {/* Stats row */}
+        <div
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}
+          className="vis-stats"
+        >
+          {statTiles.map((t) => (
+            <div key={t.label} style={{ ...panelElevated, padding: '16px 18px' }}>
+              <div style={{ fontSize: '11px', color: ui.textMuted, marginBottom: '8px' }}>{t.label}</div>
+              <div style={{ fontSize: '26px', fontWeight: 500, color: t.color, fontVariantNumeric: 'tabular-nums' }}>
+                {t.value}
               </div>
             </div>
-          ))
+          ))}
+        </div>
+
+        {/* Search and Filters */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '12px',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '24px',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ position: 'relative', flex: '1 1 280px', maxWidth: '380px' }}>
+            <input
+              type="text"
+              placeholder="Search by visitor name or phone..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="hm-input"
+              style={{ ...input, paddingLeft: '36px' }}
+            />
+            <svg
+              style={{
+                position: 'absolute',
+                left: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '16px',
+                height: '16px',
+                color: ui.textMuted,
+              }}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+
+          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto' }}>
+            {['All', 'Pending', 'Approved', 'Checked In', 'Today'].map((tab) => {
+              const active = filter === tab;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setFilter(tab)}
+                  style={{
+                    padding: '8px 14px',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    whiteSpace: 'nowrap',
+                    background: active ? 'rgba(124,92,252,0.12)' : 'rgba(255,255,255,0.04)',
+                    border: active ? '0.5px solid rgba(124,92,252,0.3)' : '0.5px solid rgba(255,255,255,0.08)',
+                    borderRadius: '9999px',
+                    color: active ? ui.text : ui.textMuted,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!active) e.currentTarget.style.color = ui.textSoft;
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!active) e.currentTarget.style.color = ui.textMuted;
+                  }}
+                >
+                  {tab}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Visitor list */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {filteredVisitors.length === 0 ? (
+            <div style={{ ...panel }}>
+              <EmptyState message="No visitors found" icon="🚪" />
+            </div>
+          ) : (
+            filteredVisitors.map((v) => (
+              <div key={v.id} className="glass-card" style={{ ...panel, padding: '20px 22px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: '16px',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  {/* Left side */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 500, color: ui.text }}>{v.visitor_name}</span>
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          padding: '3px 9px',
+                          borderRadius: '9999px',
+                          background: 'rgba(255,255,255,0.06)',
+                          border: '0.5px solid rgba(255,255,255,0.1)',
+                          color: ui.textSoft,
+                          textTransform: 'capitalize',
+                        }}
+                      >
+                        {v.relationship}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: ui.textMuted }}>
+                      For: {v.students?.profiles?.full_name || 'Unknown Student'}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        color: ui.textFaint,
+                        maxWidth: '28rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {v.purpose}
+                    </div>
+                  </div>
+
+                  {/* Right side */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ fontSize: '12px', color: ui.textMuted }}>{v.expected_visit_date}</div>
+                      {getStatusBadge(v.status)}
+                    </div>
+
+                    {/* Action buttons */}
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                      {v.status === 'pending' && actionId !== v.id && (
+                        <>
+                          <button
+                            onClick={() => {
+                              setActionId(v.id);
+                              setActionType('approve');
+                            }}
+                            style={{
+                              fontSize: '12px',
+                              padding: '6px 12px',
+                              borderRadius: ui.radiusXs,
+                              border: '0.5px solid rgba(74,222,128,0.25)',
+                              background: 'rgba(74,222,128,0.12)',
+                              color: ui.green,
+                              cursor: 'pointer',
+                              transition: 'all 0.2s',
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(74,222,128,0.2)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(74,222,128,0.12)')}
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => {
+                              setActionId(v.id);
+                              setActionType('reject');
+                            }}
+                            style={{
+                              fontSize: '12px',
+                              padding: '6px 12px',
+                              borderRadius: ui.radiusXs,
+                              border: '0.5px solid rgba(248,113,113,0.25)',
+                              background: 'rgba(248,113,113,0.12)',
+                              color: ui.red,
+                              cursor: 'pointer',
+                              transition: 'all 0.2s',
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(248,113,113,0.2)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(248,113,113,0.12)')}
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
+                      {v.status === 'approved' && (
+                        <button
+                          onClick={() => handleAction(v.id, 'checkin')}
+                          style={{
+                            fontSize: '12px',
+                            padding: '6px 16px',
+                            borderRadius: ui.radiusXs,
+                            border: '0.5px solid rgba(96,165,250,0.25)',
+                            background: 'rgba(96,165,250,0.12)',
+                            color: ui.blue,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(96,165,250,0.2)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(96,165,250,0.12)')}
+                        >
+                          Check In
+                        </button>
+                      )}
+                      {v.status === 'checked_in' && (
+                        <button
+                          onClick={() => handleAction(v.id, 'checkout')}
+                          className="btn-ghost"
+                          style={{ ...buttonGhost, fontSize: '12px', padding: '6px 16px' }}
+                        >
+                          Check Out
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Inline Action Notes Form */}
+                    {actionId === v.id && actionType && (
+                      <div style={{ marginTop: '8px', width: '100%', maxWidth: '20rem', textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <textarea
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                          placeholder="Add notes (optional)"
+                          className="hm-input"
+                          style={{ ...input, resize: 'vertical', fontFamily: 'inherit' }}
+                          rows={2}
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                          <button
+                            onClick={() => {
+                              setActionId(null);
+                              setActionType(null);
+                              setNotes('');
+                            }}
+                            style={{
+                              fontSize: '12px',
+                              color: ui.textMuted,
+                              background: 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              transition: 'color 0.2s',
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = ui.text)}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = ui.textMuted)}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleAction(v.id, actionType, notes)}
+                            style={{
+                              fontSize: '12px',
+                              padding: '6px 12px',
+                              borderRadius: ui.radiusXs,
+                              border:
+                                actionType === 'approve'
+                                  ? '0.5px solid rgba(74,222,128,0.25)'
+                                  : '0.5px solid rgba(248,113,113,0.25)',
+                              background:
+                                actionType === 'approve' ? 'rgba(74,222,128,0.12)' : 'rgba(248,113,113,0.12)',
+                              color: actionType === 'approve' ? ui.green : ui.red,
+                              cursor: 'pointer',
+                              transition: 'all 0.2s',
+                            }}
+                          >
+                            Confirm {actionType === 'approve' ? 'Approval' : 'Rejection'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {hasNext && (
+          <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'center' }}>
+            <button
+              onClick={() => {
+                const nextPage = page + 1;
+                setPage(nextPage);
+                fetchVisitors(nextPage, debouncedSearch);
+              }}
+              className="btn-ghost"
+              style={buttonGhost}
+            >
+              Load more
+            </button>
+          </div>
         )}
       </div>
 
-      {hasNext && (
-        <div className="mt-6 flex justify-center">
-          <button
-            onClick={() => {
-              const nextPage = page + 1;
-              setPage(nextPage);
-              fetchVisitors(nextPage, debouncedSearch);
-            }}
-            className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            Load more
-          </button>
-        </div>
-      )}
-    </div>
+      <style>{`
+        @media (max-width: 720px) {
+          .vis-stats { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+      `}</style>
+    </PageShell>
   );
 }
