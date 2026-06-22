@@ -60,7 +60,7 @@ export default function WardenFaceVerification({
   // Liveness tracking
   const blinkDetectedRef = useRef(false);
   const faceDetectedRef = useRef(false);
-  const closedFramesRef = useRef(0);
+  const lastEARRef = useRef<number>(1.0);
 
 
 
@@ -152,15 +152,12 @@ export default function WardenFaceVerification({
           // ── Blink detection ──────────────────────────────────────────────
           const ear = calculateEAR(landmarks);
           if (!blinkDetectedRef.current) {
-            if (ear < EAR_BLINK_THRESHOLD) {
-              closedFramesRef.current += 1;
-            } else if (closedFramesRef.current > 0 && closedFramesRef.current < 20) {
+            if (lastEARRef.current >= EAR_BLINK_THRESHOLD && ear < EAR_BLINK_THRESHOLD) {
               blinkDetectedRef.current = true;
               setBlinkDetected(true);
-            } else {
-              closedFramesRef.current = 0;
             }
           }
+          lastEARRef.current = ear;
 
 
           // ── Gate 1: Blink mandatory ──────────────────────────────────────
