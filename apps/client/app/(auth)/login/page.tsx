@@ -288,7 +288,10 @@ export default function LoginPage() {
 
     import("hls.js").then(({ default: HlsClass }) => {
       if (HlsClass.isSupported()) {
-        hlsInstance = new HlsClass();
+        hlsInstance = new HlsClass({
+          capLevelToPlayerSize: false,
+          abrEwmaDefaultEstimate: 50000000, // Tricks HLS into starting with the highest quality level instantly
+        });
         hlsInstance.loadSource(src);
         hlsInstance.attachMedia(video);
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
