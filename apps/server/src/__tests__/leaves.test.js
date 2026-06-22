@@ -135,6 +135,10 @@ describe('Leaves API', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should reject reason shorter than 20 characters
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject reason shorter than 20 characters', async () => {
       const futureDate1 = new Date(Date.now() + 86400000).toISOString().split('T')[0];
       const futureDate2 = new Date(Date.now() + 172800000).toISOString().split('T')[0];
