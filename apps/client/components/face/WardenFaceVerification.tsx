@@ -285,7 +285,7 @@ export default function WardenFaceVerification({
   // ── Derived UI ─────────────────────────────────────────────────────────────
   const isVerified = status === 'verified';
   // const isFailed = ['failed', 'liveness-failed', 'max-attempts'].includes(status);
-  // const isLoading = ['loading-models', 'requesting-camera', 'fetching-descriptor'].includes(status);
+  const isLoading = ['loading-models', 'requesting-camera', 'fetching-descriptor'].includes(status);
   const showVideo = ![
     'loading-models',
     'fetching-descriptor',
@@ -319,6 +319,32 @@ export default function WardenFaceVerification({
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '460px', background: '#04040a', overflow: 'hidden' }}>
+      {/* Loading Overlay */}
+      {!showVideo && isLoading && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#04040a',
+          zIndex: 5,
+        }}>
+          <svg className="animate-spin" style={{ width: '32px', height: '32px', color: '#3b82f6', marginBottom: '16px' }} fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+          </svg>
+          <div style={{ fontSize: '14px', fontWeight: 500, color: '#9ca3af', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}>
+            {status === 'loading-models'
+              ? 'Initializing secure environment...'
+              : status === 'fetching-descriptor'
+                ? 'Verifying identity access...'
+                : 'Starting camera stream...'}
+          </div>
+        </div>
+      )}
+
       {/* Camera Feed */}
       <video
         ref={videoRef}
