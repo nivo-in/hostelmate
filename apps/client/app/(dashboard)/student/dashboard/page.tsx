@@ -68,6 +68,8 @@ export default function StudentDashboard() {
         }
         .dash-card .arrow-icon { transition: all 0.3s ease; color: rgba(255,255,255,0.2); transform: translateX(0); }
         .dash-card:hover .arrow-icon { transform: translateX(6px); color: rgba(255,255,255,0.6); }
+        .signout-btn .signout-arrow { transition: transform 0.2s ease; }
+        .signout-btn:hover .signout-arrow { transform: translateX(3px); }
       `}</style>
 
       {/* Top bar */}
@@ -79,6 +81,7 @@ export default function StudentDashboard() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <button 
             onClick={handleSignOut} 
+            className="signout-btn"
             style={{ 
               display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'rgba(255,255,255,0.35)', 
               background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '8px', 
@@ -90,8 +93,10 @@ export default function StudentDashboard() {
             Sign out
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
+              <g className="signout-arrow">
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </g>
             </svg>
           </button>
         </div>
