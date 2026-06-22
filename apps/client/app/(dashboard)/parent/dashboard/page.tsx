@@ -110,11 +110,12 @@ export default function ParentDashboard() {
               onClick={() => router.push(item.href)}
               style={{
                 background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '16px',
-                padding: '22px 20px', cursor: 'pointer', transition: 'background 0.2s, border-color 0.2s',
+                padding: '22px 20px', cursor: 'pointer', transition: 'all 0.3s ease',
                 display: 'flex', flexDirection: 'column', gap: '10px', position: 'relative', overflow: 'hidden',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)'
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+                backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.055)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.13)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'radial-gradient(circle at top left, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)' }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)' }}
               className="group"
             >
@@ -125,7 +126,7 @@ export default function ParentDashboard() {
                 }}>
                   {item.emoji}
                 </div>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '14px', height: '14px', color: 'rgba(255,255,255,0.2)', transition: 'color 0.2s', marginTop: '4px' }} className="group-hover:!text-white/60">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '14px', height: '14px', color: 'rgba(255,255,255,0.2)', transition: 'all 0.3s ease', marginTop: '4px' }} className="group-hover:!text-white/60 group-hover:translate-x-1">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </div>
