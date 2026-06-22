@@ -329,23 +329,13 @@ export default function FaceVerification({
       </div>
 
       {/* Camera / Loading Container */}
-      <div className="relative w-full max-w-sm rounded-2xl overflow-hidden bg-gray-100 aspect-[4/3] shadow-inner">
+      <div className="relative w-full max-w-sm rounded-2xl overflow-hidden aspect-[4/3] shadow-inner" style={{ background: '#080810' }}>
         
         {/* Loading Overlay */}
         {!showVideo && isLoading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50/80 backdrop-blur-sm z-10">
-            <svg className="animate-spin w-8 h-8 text-blue-500 mb-4" fill="none" viewBox="0 0 24 24">
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-            </svg>
-            <div className="text-sm font-medium text-gray-600 animate-pulse">
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="animate-spin" style={{ width: '12px', height: '12px', border: '1.5px solid rgba(255,255,255,0.1)', borderTopColor: 'rgba(255,255,255,0.6)', borderRadius: '50%' }} />
               {status === 'loading-models'
                 ? 'Initializing secure environment...'
                 : status === 'fetching-descriptor'
