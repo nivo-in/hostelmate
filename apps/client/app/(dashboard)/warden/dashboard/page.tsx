@@ -158,62 +158,78 @@ export default function WardenDashboard() {
 
         {/* Stats row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '12px' }}>
-          <div style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '18px 20px' }}>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.28)', marginBottom: '10px' }}>Attendance Today</div>
+          <div style={{ background: 'rgba(255,255,255,0.08)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>Attendance Today</div>
             <div style={{ fontSize: '28px', fontWeight: 500, color: '#4ade80' }}>{stats.attendanceToday}%</div>
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '18px 20px' }}>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.28)', marginBottom: '10px' }}>Pending Leaves</div>
+          <div style={{ background: 'rgba(255,255,255,0.08)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>Pending Leaves</div>
             <div style={{ fontSize: '28px', fontWeight: 500, color: '#fbbf24' }}>{stats.pendingLeaves}</div>
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '18px 20px' }}>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.28)', marginBottom: '10px' }}>Open Complaints</div>
+          <div style={{ background: 'rgba(255,255,255,0.08)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>Open Complaints</div>
             <div style={{ fontSize: '28px', fontWeight: 500, color: '#f87171' }}>{stats.openComplaints}</div>
           </div>
         </div>
 
         {/* Progress cards row */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: '14px', padding: '18px 20px' }}>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', marginBottom: '6px' }}>Mess rating</div>
-            <div style={{ fontSize: '18px', fontWeight: 500, color: 'rgba(255,255,255,0.75)' }}>4.2 / 5.0</div>
-            <div style={{ marginTop: '12px', height: '3px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
+          <div style={{ background: 'rgba(255,255,255,0.07)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>Mess rating</div>
+            <div style={{ fontSize: '18px', fontWeight: 500, color: 'rgba(255,255,255,0.85)' }}>4.2 / 5.0</div>
+            <div style={{ marginTop: '12px', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
               <div style={{ width: '84%', height: '100%', background: '#4ade80' }} />
             </div>
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: '14px', padding: '18px 20px' }}>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.22)', marginBottom: '6px' }}>Curfew violations</div>
-            <div style={{ fontSize: '18px', fontWeight: 500, color: 'rgba(255,255,255,0.75)' }}>12 Active</div>
-            <div style={{ marginTop: '12px', height: '3px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
+          <div style={{ background: 'rgba(255,255,255,0.07)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>Curfew violations</div>
+            <div style={{ fontSize: '18px', fontWeight: 500, color: 'rgba(255,255,255,0.85)' }}>12 Active</div>
+            <div style={{ marginTop: '12px', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
               <div style={{ width: '24%', height: '100%', background: '#f87171' }} />
             </div>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div style={{ marginTop: '16px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        {/* Quick Actions Grid */}
+        <div style={{ marginTop: '24px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
           {[
-            { label: 'Attendance →', href: '/warden/attendance' },
-            { label: 'Leaves →', href: '/warden/leaves' },
-            { label: 'Complaints →', href: '/warden/complaints' },
-            { label: 'Staff →', href: '/warden/staff' },
-            { label: 'Rooms →', href: '/warden/rooms' },
-            { label: 'Notices →', href: '/warden/notices' },
-            { label: 'Lost & Found →', href: '/warden/lost-found' },
-            { label: 'Fee Payments →', href: '/warden/payments' },
-          ].map((action, i) => (
-            <button
+            { emoji:'📋', title:'Attendance', desc:'View and manage attendance', href:'/warden/attendance' },
+            { emoji:'✅', title:'Leave Management', desc:'Approve or reject leaves', href:'/warden/leaves' },
+            { emoji:'🔧', title:'Complaints', desc:'Track and resolve issues', href:'/warden/complaints' },
+            { emoji:'🍽️', title:'Mess Management', desc:'Update weekly menu', href:'/warden/mess' },
+            { emoji:'📢', title:'Notices', desc:'Post announcements', href:'/warden/notices' },
+            { emoji:'👥', title:'Staff Directory', desc:'Manage staff contacts', href:'/warden/staff' },
+            { emoji:'🔍', title:'Lost & Found', desc:'Oversee item directory', href:'/warden/lost-found' },
+            { emoji:'🚨', title:'Emergency', desc:'Send emergency alerts', href:'/warden/emergency' },
+            { emoji:'🏠', title:'Room Allocation', desc:'Manage rooms and assignments', href:'/warden/rooms' },
+            { emoji:'🌙', title:'Curfew Management', desc:'Track and notify curfew violations', href:'/warden/curfew' },
+            { emoji:'📋', title:'Audit Log', desc:'View all system activity', href:'/warden/audit' },
+            { emoji:'🚪', title:'Visitor Management', desc:'Manage guest check-ins', href:'/warden/visitors' },
+            { emoji:'💰', title:'Fee Management', desc:'Collect and track hostel fees', href:'/warden/payments' },
+          ].map((item, i) => (
+            <div
               key={i}
-              onClick={() => router.push(action.href)}
+              onClick={() => router.push(item.href)}
               style={{
-                background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.09)', borderRadius: '100px',
-                padding: '7px 16px', fontSize: '12px', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', transition: 'all 0.2s'
+                background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '16px',
+                padding: '22px 20px', cursor: 'pointer', transition: 'background 0.2s, border-color 0.2s',
+                display: 'flex', flexDirection: 'column', gap: '10px', position: 'relative', overflow: 'hidden'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)' }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.055)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.13)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)' }}
+              className="group"
             >
-              {action.label}
-            </button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '20px' }}>{item.emoji}</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '14px', height: '14px', color: 'rgba(255,255,255,0.2)', transition: 'color 0.2s' }} className="group-hover:!text-white/60">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </div>
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.82)', margin: '0 0 4px 0' }}>{item.title}</div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.32)', lineHeight: 1.5 }}>{item.desc}</div>
+              </div>
+            </div>
           ))}
         </div>
         
