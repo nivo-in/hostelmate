@@ -1,11 +1,22 @@
 type EmptyStateProps = {
   message: string;
+  icon?: string;
 };
 
-export function EmptyState({ message }: EmptyStateProps) {
+export function EmptyState({ message, icon }: EmptyStateProps) {
   return (
-    <div className="flex justify-center items-center py-8">
-      <p className="text-sm text-gray-400">{message}</p>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '10px',
+        padding: '48px 24px',
+      }}
+    >
+      {icon && <div style={{ fontSize: '28px', opacity: 0.5 }}>{icon}</div>}
+      <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', margin: 0, textAlign: 'center' }}>{message}</p>
     </div>
   );
 }
