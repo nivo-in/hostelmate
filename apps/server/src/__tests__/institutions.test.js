@@ -103,6 +103,10 @@ describe('Institutions API', () => {
       expect(res.status).toBe(200); // Should still succeed, just without hipo supplements
     });
 
+    /**
+     * Test: should handle internal errors gracefully
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should handle internal errors gracefully', async () => {
       getCache.mockRejectedValueOnce(new Error('Redis died'));
 
