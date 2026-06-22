@@ -2,9 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageShell } from '@/components/ui/PageShell';
+import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useApi } from '@/hooks/useApi';
+import { ui, panel, panelElevated, input, buttonPrimary, buttonGhost, container, label } from '@/lib/ui';
 
 interface StaffMember {
   id: string;
@@ -255,20 +260,22 @@ export default function StaffDirectory() {
   };
 
   // ── Helpers ──────────────────────────────────────────────────────────
-  const getRoleBadgeColor = (role: string) => {
+  const getRoleVariant = (role: string): 'success' | 'danger' | 'warning' | 'info' | 'default' => {
     switch (role) {
       case 'warden':
-        return 'bg-gray-900 text-white';
+        return 'info';
       case 'admin':
-        return 'bg-blue-50 text-blue-700';
+        return 'info';
       case 'cleaner':
-        return 'bg-green-50 text-green-700';
+        return 'success';
       case 'security':
-        return 'bg-orange-50 text-orange-700';
+        return 'warning';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'default';
     }
   };
+
+  const roleLabel = (role: string) => role.charAt(0).toUpperCase() + role.slice(1);
 
   const presentCount = staffList.filter((s) => s.is_present).length;
   const absentCount = staffList.filter((s) => !s.is_present).length;
@@ -277,92 +284,136 @@ export default function StaffDirectory() {
   // staff_members only (for Remove tab)
   const deletableStaff = staffList.filter((s) => !s.isWarden);
 
+  const tabBtn = (active: boolean): React.CSSProperties => ({
+    paddingBottom: '10px',
+    fontSize: '13px',
+    fontWeight: 500,
+    background: 'transparent',
+    border: 'none',
+    borderBottom: active ? `2px solid ${ui.accent}` : '2px solid transparent',
+    color: active ? ui.text : ui.textMuted,
+    cursor: 'pointer',
+    transition: 'color 0.2s',
+  });
+
   return (
-    <div className="min-h-screen bg-white p-8 max-w-5xl mx-auto">
+    <PageShell>
       <PageHeader title="Staff Directory" showBack onSignOut={handleSignOut} />
 
-      {/* ── Stats row ── */}
-      <div className="grid grid-cols-3 gap-4 mt-8 mb-8">
-        <div className="border border-gray-100 rounded-xl p-4">
-          <p className="text-xs text-gray-400 mb-1">Present Today</p>
-          <p className="text-2xl font-medium text-green-600">{presentCount}</p>
+      <div style={container}>
+        {/* ── Stats row ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
+          <div style={{ ...panelElevated, padding: '16px 18px' }}>
+            <p style={{ ...label, margin: '0 0 8px' }}>Present Today</p>
+            <p style={{ fontSize: '26px', fontWeight: 500, color: ui.green, margin: 0, fontVariantNumeric: 'tabular-nums' }}>{presentCount}</p>
+          </div>
+          <div style={{ ...panelElevated, padding: '16px 18px' }}>
+            <p style={{ ...label, margin: '0 0 8px' }}>Absent Today</p>
+            <p style={{ fontSize: '26px', fontWeight: 500, color: ui.red, margin: 0, fontVariantNumeric: 'tabular-nums' }}>{absentCount}</p>
+          </div>
+          <div style={{ ...panelElevated, padding: '16px 18px' }}>
+            <p style={{ ...label, margin: '0 0 8px' }}>Total Staff</p>
+            <p style={{ fontSize: '26px', fontWeight: 500, color: ui.text, margin: 0, fontVariantNumeric: 'tabular-nums' }}>{totalCount}</p>
+          </div>
         </div>
-        <div className="border border-gray-100 rounded-xl p-4">
-          <p className="text-xs text-gray-400 mb-1">Absent Today</p>
-          <p className="text-2xl font-medium text-red-500">{absentCount}</p>
-        </div>
-        <div className="border border-gray-100 rounded-xl p-4">
-          <p className="text-xs text-gray-400 mb-1">Total Staff</p>
-          <p className="text-2xl font-medium text-gray-600">{totalCount}</p>
-        </div>
-      </div>
 
-      {/* ── Staff list header ── */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-medium tracking-tight text-gray-900">Staff Members</h2>
-        <button
-          onClick={() => {
-            setModalOpen(true);
-            setActiveTab('add');
-          }}
-          className="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700 transition-colors"
-        >
-          Manage Staff
-        </button>
-      </div>
+        {/* ── Staff list header ── */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+          <h2 style={{ fontSize: '15px', fontWeight: 500, color: ui.text, margin: 0 }}>Staff Members</h2>
+          <button
+            onClick={() => {
+              setModalOpen(true);
+              setActiveTab('add');
+            }}
+            className="btn-primary"
+            style={buttonPrimary}
+          >
+            Manage Staff
+          </button>
+        </div>
 
-      {/* ── Staff list ── */}
-      {loading ? (
-        <p className="text-sm text-gray-400">Loading...</p>
-      ) : staffList.length === 0 ? (
-        <p className="text-sm text-gray-400">No staff members added yet.</p>
-      ) : (
-        <div className="space-y-3">
-          {staffList.map((staff) => (
-            <div
-              key={staff.id}
-              className="border border-gray-100 rounded-xl p-4 flex items-center justify-between hover:border-gray-300 transition-colors"
-            >
-              <div className="grid grid-cols-4 gap-4 flex-1 mr-4 items-center min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{staff.full_name}</p>
-                <span
-                  className={`text-xs px-2.5 py-1 rounded-full font-medium w-fit ${getRoleBadgeColor(staff.staff_role)}`}
-                >
-                  {staff.staff_role.charAt(0).toUpperCase() + staff.staff_role.slice(1)}
-                </span>
-                <p className="text-sm text-gray-500 truncate">{staff.phone || '—'}</p>
-                <p className="text-sm text-gray-500 truncate">{staff.email || '—'}</p>
-              </div>
-              <button
-                onClick={() => handleTogglePresence(staff.id, staff.is_present, staff.isWarden)}
-                className={`text-xs px-3 py-1 rounded-full font-medium transition-colors flex-shrink-0 ${
-                  staff.is_present
-                    ? 'bg-green-50 text-green-700 hover:bg-green-100'
-                    : 'bg-red-50 text-red-700 hover:bg-red-100'
-                }`}
+        {/* ── Staff list ── */}
+        {loading ? (
+          <LoadingSpinner />
+        ) : staffList.length === 0 ? (
+          <EmptyState message="No staff members added yet." icon="👥" />
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {staffList.map((staff) => (
+              <div
+                key={staff.id}
+                className="glass-card"
+                style={{ ...panel, padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
               >
-                {staff.is_present ? '✓ Present' : '✗ Absent'}
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', flex: 1, marginRight: '16px', alignItems: 'center', minWidth: 0 }}>
+                  <p style={{ fontSize: '13px', fontWeight: 500, color: ui.text, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{staff.full_name}</p>
+                  <div style={{ width: 'fit-content' }}>
+                    <Badge variant={getRoleVariant(staff.staff_role)}>{roleLabel(staff.staff_role)}</Badge>
+                  </div>
+                  <p style={{ fontSize: '13px', color: ui.textMuted, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{staff.phone || '—'}</p>
+                  <p style={{ fontSize: '13px', color: ui.textMuted, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{staff.email || '—'}</p>
+                </div>
+                <button
+                  onClick={() => handleTogglePresence(staff.id, staff.is_present, staff.isWarden)}
+                  style={{
+                    flexShrink: 0,
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    padding: '5px 12px',
+                    borderRadius: '9999px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    background: staff.is_present ? 'rgba(74,222,128,0.12)' : 'rgba(248,113,113,0.12)',
+                    border: staff.is_present ? '0.5px solid rgba(74,222,128,0.25)' : '0.5px solid rgba(248,113,113,0.25)',
+                    color: staff.is_present ? ui.green : ui.red,
+                  }}
+                >
+                  {staff.is_present ? '✓ Present' : '✗ Absent'}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* ── Manage Staff Modal ── */}
       {modalOpen && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            padding: '16px',
+          }}
           onClick={(e) => {
             if (e.target === e.currentTarget) setModalOpen(false);
           }}
         >
-          <div className="bg-white rounded-2xl p-6 w-full max-w-lg mx-4 border border-gray-200">
+          <div
+            style={{
+              background: '#14141f',
+              border: ui.borderStrong,
+              borderRadius: '16px',
+              padding: '24px',
+              width: '100%',
+              maxWidth: '512px',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+            }}
+          >
             {/* Modal header */}
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-base font-medium text-gray-900">Manage Staff</h3>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 500, color: ui.text, margin: 0 }}>Manage Staff</h3>
               <button
                 onClick={() => setModalOpen(false)}
-                className="text-gray-400 hover:text-gray-900 transition-colors"
+                style={{ background: 'transparent', border: 'none', color: ui.textMuted, cursor: 'pointer', display: 'flex', transition: 'color 0.2s' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = ui.text)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = ui.textMuted)}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -382,15 +433,8 @@ export default function StaffDirectory() {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-6 border-b border-gray-100 mb-5">
-              <button
-                onClick={() => setActiveTab('add')}
-                className={`pb-3 text-sm transition-colors ${
-                  activeTab === 'add'
-                    ? 'border-b-2 border-gray-900 text-gray-900 font-medium'
-                    : 'text-gray-400 hover:text-gray-600'
-                }`}
-              >
+            <div style={{ display: 'flex', gap: '24px', borderBottom: ui.border, marginBottom: '20px' }}>
+              <button onClick={() => setActiveTab('add')} style={tabBtn(activeTab === 'add')}>
                 Add Staff
               </button>
               <button
@@ -398,70 +442,63 @@ export default function StaffDirectory() {
                   setActiveTab('remove');
                   setConfirmingDeleteId(null);
                 }}
-                className={`pb-3 text-sm transition-colors ${
-                  activeTab === 'remove'
-                    ? 'border-b-2 border-gray-900 text-gray-900 font-medium'
-                    : 'text-gray-400 hover:text-gray-600'
-                }`}
+                style={tabBtn(activeTab === 'remove')}
               >
                 Remove Staff
               </button>
-              <button
-                onClick={() => setActiveTab('report')}
-                className={`pb-3 text-sm transition-colors ${
-                  activeTab === 'report'
-                    ? 'border-b-2 border-gray-900 text-gray-900 font-medium'
-                    : 'text-gray-400 hover:text-gray-600'
-                }`}
-              >
+              <button onClick={() => setActiveTab('report')} style={tabBtn(activeTab === 'report')}>
                 Monthly Report
               </button>
             </div>
 
             {/* ── Tab: Add Staff ── */}
             {activeTab === 'add' && (
-              <form onSubmit={handleSubmit} className="space-y-3">
-                {addMessage && <p className="text-xs text-green-600 font-medium">{addMessage}</p>}
-                {addError && <p className="text-xs text-red-500">{addError}</p>}
-                <div className="grid grid-cols-2 gap-3">
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {addMessage && <p style={{ fontSize: '12px', color: ui.green, fontWeight: 500, margin: 0 }}>{addMessage}</p>}
+                {addError && <p style={{ fontSize: '12px', color: ui.red, margin: 0 }}>{addError}</p>}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Full Name</label>
+                    <label style={{ ...label, display: 'block' }}>Full Name</label>
                     <input
                       required
                       type="text"
                       placeholder="e.g. Ramesh Kumar"
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:border-gray-500 outline-none"
+                      className="hm-input"
+                      style={input}
                       value={formData.full_name}
                       onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Phone</label>
+                    <label style={{ ...label, display: 'block' }}>Phone</label>
                     <input
                       required
                       type="tel"
                       placeholder="e.g. 9876543210"
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:border-gray-500 outline-none"
+                      className="hm-input"
+                      style={input}
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      Email <span className="text-gray-300">(optional)</span>
+                    <label style={{ ...label, display: 'block' }}>
+                      Email <span style={{ color: ui.textFaint }}>(optional)</span>
                     </label>
                     <input
                       type="email"
                       placeholder="e.g. ramesh@hostel.in"
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:border-gray-500 outline-none"
+                      className="hm-input"
+                      style={input}
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Role</label>
+                    <label style={{ ...label, display: 'block' }}>Role</label>
                     <select
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:border-gray-500 outline-none bg-white"
+                      className="hm-input"
+                      style={{ ...input, colorScheme: 'dark' }}
                       value={formData.staff_role}
                       onChange={(e) => setFormData({ ...formData, staff_role: e.target.value })}
                     >
@@ -472,10 +509,7 @@ export default function StaffDirectory() {
                     </select>
                   </div>
                 </div>
-                <button
-                  type="submit"
-                  className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors w-full mt-1"
-                >
+                <button type="submit" className="btn-primary" style={{ ...buttonPrimary, width: '100%', marginTop: '4px' }}>
                   Add Staff Member
                 </button>
               </form>
@@ -483,47 +517,60 @@ export default function StaffDirectory() {
 
             {/* ── Tab: Remove Staff ── */}
             {activeTab === 'remove' && (
-              <div className="space-y-2 max-h-72 overflow-y-auto">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '288px', overflowY: 'auto' }}>
                 {deletableStaff.length === 0 ? (
-                  <p className="text-sm text-gray-400">No removable staff members.</p>
+                  <EmptyState message="No removable staff members." icon="🗂️" />
                 ) : (
                   deletableStaff.map((staff) => (
-                    <div key={staff.id} className="border border-gray-100 rounded-xl p-3">
+                    <div key={staff.id} style={{ ...panel, padding: '12px 14px' }}>
                       {confirmingDeleteId === staff.id ? (
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm text-gray-700">
-                            Remove <span className="font-medium">{staff.full_name}</span>?
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <p style={{ fontSize: '13px', color: ui.textSoft, margin: 0 }}>
+                            Remove <span style={{ fontWeight: 500, color: ui.text }}>{staff.full_name}</span>?
                           </p>
-                          <div className="flex items-center gap-2">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <button
                               onClick={() => setConfirmingDeleteId(null)}
-                              className="border border-gray-200 text-gray-600 rounded-lg px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors"
+                              className="btn-ghost"
+                              style={{ ...buttonGhost, padding: '6px 12px', fontSize: '12px' }}
                             >
                               Cancel
                             </button>
                             <button
                               onClick={() => handleDelete(staff.id)}
-                              className="bg-red-600 text-white rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-red-700 transition-colors"
+                              style={{
+                                background: 'rgba(248,113,113,0.15)',
+                                border: '0.5px solid rgba(248,113,113,0.3)',
+                                color: ui.red,
+                                borderRadius: ui.radiusXs,
+                                padding: '6px 12px',
+                                fontSize: '12px',
+                                fontWeight: 500,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(248,113,113,0.25)')}
+                              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(248,113,113,0.15)')}
                             >
                               Delete
                             </button>
                           </div>
                         </div>
                       ) : (
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                            <p style={{ fontSize: '13px', fontWeight: 500, color: ui.text, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {staff.full_name}
                             </p>
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${getRoleBadgeColor(staff.staff_role)}`}
-                            >
-                              {staff.staff_role.charAt(0).toUpperCase() + staff.staff_role.slice(1)}
-                            </span>
+                            <div style={{ flexShrink: 0 }}>
+                              <Badge variant={getRoleVariant(staff.staff_role)}>{roleLabel(staff.staff_role)}</Badge>
+                            </div>
                           </div>
                           <button
                             onClick={() => setConfirmingDeleteId(staff.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors flex-shrink-0"
+                            style={{ flexShrink: 0, padding: '6px', background: 'transparent', border: 'none', color: ui.textMuted, borderRadius: '8px', cursor: 'pointer', transition: 'color 0.2s', display: 'flex' }}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = ui.red)}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = ui.textMuted)}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -551,52 +598,49 @@ export default function StaffDirectory() {
 
             {/* ── Tab: Monthly Report ── */}
             {activeTab === 'report' && (
-              <div className="space-y-4 max-h-96 overflow-y-auto">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '384px', overflowY: 'auto' }}>
                 <input
                   type="month"
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-gray-500 outline-none w-full"
+                  className="hm-input"
+                  style={{ ...input, colorScheme: 'dark' }}
                 />
 
                 {loadingReport ? (
-                  <p className="text-sm text-gray-400">Loading report...</p>
+                  <LoadingSpinner />
                 ) : reportData.length === 0 ? (
-                  <p className="text-sm text-gray-400">No staff members found.</p>
+                  <EmptyState message="No staff members found." icon="📊" />
                 ) : (
                   reportData.map((staff) => (
-                    <div key={staff.id} className="border border-gray-100 rounded-xl p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <p className="text-sm font-medium text-gray-900">{staff.full_name}</p>
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${getRoleBadgeColor(staff.staff_role)}`}
-                        >
-                          {staff.staff_role.charAt(0).toUpperCase() + staff.staff_role.slice(1)}
-                        </span>
+                    <div key={staff.id} style={{ ...panel, padding: '16px 18px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                        <p style={{ fontSize: '13px', fontWeight: 500, color: ui.text, margin: 0 }}>{staff.full_name}</p>
+                        <Badge variant={getRoleVariant(staff.staff_role)}>{roleLabel(staff.staff_role)}</Badge>
                       </div>
 
                       {!staff.hasData ? (
-                        <p className="text-xs text-gray-400">No data for this month</p>
+                        <p style={{ fontSize: '12px', color: ui.textMuted, margin: 0 }}>No data for this month</p>
                       ) : (
-                        <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', fontSize: '13px' }}>
                           <div>
-                            <p className="text-xs text-gray-400 mb-1">Attendance</p>
-                            <p className="text-gray-900">Days Present: {staff.daysPresent}</p>
-                            <p className="text-gray-900">Days Absent: {staff.daysAbsent}</p>
-                            <p className="text-gray-900 font-medium mt-1">
+                            <p style={{ ...label, margin: '0 0 6px' }}>Attendance</p>
+                            <p style={{ color: ui.textSoft, margin: 0 }}>Days Present: {staff.daysPresent}</p>
+                            <p style={{ color: ui.textSoft, margin: 0 }}>Days Absent: {staff.daysAbsent}</p>
+                            <p style={{ color: ui.text, fontWeight: 500, margin: '4px 0 0' }}>
                               Attendance %: {staff.attendancePercent}%
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-400 mb-1">Feedback</p>
-                            <p className="text-gray-900 flex items-center gap-1">
+                            <p style={{ ...label, margin: '0 0 6px' }}>Feedback</p>
+                            <p style={{ color: ui.text, display: 'flex', alignItems: 'center', gap: '4px', margin: 0 }}>
                               {Number(staff.average_rating || 0).toFixed(1)}{' '}
-                              <span className="text-yellow-400">★</span>
+                              <span style={{ color: ui.amber }}>★</span>
                             </p>
-                            <p className="text-gray-500 text-xs mt-1">
+                            <p style={{ color: ui.textMuted, fontSize: '11px', margin: '4px 0 0' }}>
                               {staff.total_reviews} total reviews
                             </p>
-                            <p className="text-gray-500 text-xs">
+                            <p style={{ color: ui.textMuted, fontSize: '11px', margin: 0 }}>
                               {staff.this_month_reviews} this month reviews
                             </p>
                           </div>
@@ -610,6 +654,6 @@ export default function StaffDirectory() {
           </div>
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }
