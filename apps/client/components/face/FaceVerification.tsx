@@ -70,7 +70,7 @@ export default function FaceVerification({
 
   // Liveness tracking
   const blinkDetectedRef = useRef(false);
-  const lastEARRef = useRef<number>(1.0);
+  const closedFramesRef = useRef(0);
 
   const facePositionHistoryRef = useRef<FacePosition[]>([]);
   // Frame-diff: store previous frame pixel data for comparison
@@ -175,6 +175,18 @@ export default function FaceVerification({
     runningRef.current = true;
     setShowBlinkPrompt(true);
 
+    // Fail if no blink is detected within 10 seconds
+    setTimeout(() => {
+      if (runningRef.current && !blinkDetectedRef.current) {
+        runningRef.current = false;
+        stopCamera();
+        setStatus('liveness-failed');
+        if (onFailedRef.current) {
+          onFailedRef.current('Liveness check timed out. Please try again.');
+        }
+      }
+    }, 10000);
+
     // Recursive async tick: next detection fires immediately after previous completes.
     // This is faster than setInterval which waits the full interval even when
     // the detection took longer than expected.
@@ -190,16 +202,42 @@ export default function FaceVerification({
         } else {
           const { descriptor, landmarks, box } = detection;
 
+          // ── Face match FIRST ───────────────────────────────────────────
+          const { match } = isSamePerson(descriptor, storedDescriptorsRef.current);
+          
+          if (!match) {
+            failedAttemptsRef.current += 1;
+            setFailedAttempts(failedAttemptsRef.current);
+            if (failedAttemptsRef.current >= MAX_ATTEMPTS) {
+              runningRef.current = false;
+              stopCamera();
+              setStatus('max-attempts');
+              onFailedRef.current('Maximum attempts reached. Switching to QR mode.');
+              return;
+            } else {
+              setStatus('scanning');
+              return; // skip liveness checks for a non-matching face
+            }
+          }
+
+          // ── EMA distance smoothing ───────────────────────────────────────
+          const rawDist = bestMatchDistance(descriptor, storedDescriptorsRef.current);
+          smoothedDistRef.current = applyEMA(smoothedDistRef.current, rawDist);
+          setSmoothedDist(smoothedDistRef.current);
+
           // ── Blink detection ──────────────────────────────────────────────
           const ear = calculateEAR(landmarks);
           if (!blinkDetectedRef.current) {
-            if (lastEARRef.current >= EAR_BLINK_THRESHOLD && ear < EAR_BLINK_THRESHOLD) {
+            if (ear < EAR_BLINK_THRESHOLD) {
+              closedFramesRef.current += 1;
+            } else if (closedFramesRef.current > 0 && closedFramesRef.current < 20) {
               blinkDetectedRef.current = true;
               setBlinkDetected(true);
               setShowBlinkPrompt(false);
+            } else {
+              closedFramesRef.current = 0;
             }
           }
-          lastEARRef.current = ear;
 
           // ── Frame-difference liveness ────────────────────────────────────
           const frameDiff = computeFrameDiff(box);
@@ -210,16 +248,11 @@ export default function FaceVerification({
           }
 
           // ── Position motion ──────────────────────────────────────────────
-          checkPositionMotion({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
-
-          // ── EMA distance smoothing ───────────────────────────────────────
-          const rawDist = bestMatchDistance(descriptor, storedDescriptorsRef.current);
-          smoothedDistRef.current = applyEMA(smoothedDistRef.current, rawDist);
-          setSmoothedDist(smoothedDistRef.current);
+          const isMoving = checkPositionMotion({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
 
           // ── Gate 1: Blink mandatory ──────────────────────────────────────
           if (!blinkDetectedRef.current) {
-            setStatus('scanning');
+            setStatus('verifying');
           } else {
             // ── Gate 2: Frame-diff hard-block ──────────────────────────────
             const scores = frameDiffScoresRef.current;
@@ -236,27 +269,21 @@ export default function FaceVerification({
               }
             }
 
-            // ── Face match ───────────────────────────────────────────────
-            const { match } = isSamePerson(descriptor, storedDescriptorsRef.current);
-            if (match) {
+            // ── Gate 3: Motion Check ──────────────────────────────
+            if (!isMoving) {
               runningRef.current = false;
               stopCamera();
-              setStatus('verified');
-              setTimeout(() => onVerifiedRef.current(), 300);
+              setStatus('liveness-failed');
+              onFailedRef.current('Liveness check failed — face is unnaturally still.');
               return;
-            } else {
-              failedAttemptsRef.current += 1;
-              setFailedAttempts(failedAttemptsRef.current);
-              if (failedAttemptsRef.current >= MAX_ATTEMPTS) {
-                runningRef.current = false;
-                stopCamera();
-                setStatus('max-attempts');
-                onFailedRef.current('Maximum attempts reached. Switching to QR mode.');
-                return;
-              } else {
-                setStatus('scanning');
-              }
             }
+
+            // All clear!
+            runningRef.current = false;
+            stopCamera();
+            setStatus('verified');
+            setTimeout(() => onVerifiedRef.current(), 300);
+            return;
           }
         }
       } catch {

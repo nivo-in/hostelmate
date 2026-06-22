@@ -68,7 +68,7 @@ export default function WardenFaceVerification({
   // Liveness tracking
   const blinkDetectedRef = useRef(false);
   const faceDetectedRef = useRef(false);
-  const lastEARRef = useRef<number>(1.0);
+  const closedFramesRef = useRef(0);
 
   const facePositionHistoryRef = useRef<FacePosition[]>([]);
   // Frame-diff: store previous frame pixel data for comparison
@@ -163,7 +163,7 @@ export default function WardenFaceVerification({
   const startVerificationLoop = useCallback(() => {
     runningRef.current = true;
     
-    // Fail if no blink is detected within 12 seconds
+    // Fail if no blink is detected within 10 seconds
     setTimeout(() => {
       if (runningRef.current && !blinkDetectedRef.current) {
         runningRef.current = false;
@@ -173,7 +173,7 @@ export default function WardenFaceVerification({
           onFailedRef.current('Liveness check timed out. Please try again.');
         }
       }
-    }, 12000);
+    }, 10000);
 
     const tick = async () => {
       if (!runningRef.current || !videoRef.current || !storedDescriptorsRef.current) return;
@@ -194,16 +194,42 @@ export default function WardenFaceVerification({
           }
           const { descriptor, landmarks, box } = detection;
 
+          // ── Face match FIRST ───────────────────────────────────────────
+          if (!storedDescriptorsRef.current) return;
+          const { match } = isSamePerson(descriptor, storedDescriptorsRef.current);
+          
+          if (!match) {
+            failedAttemptsRef.current += 1;
+            setFailedAttempts(failedAttemptsRef.current);
+            if (failedAttemptsRef.current >= MAX_ATTEMPTS) {
+              runningRef.current = false;
+              stopCamera();
+              setStatus('max-attempts');
+              onFailedRef.current('Identity could not be verified. Access denied.');
+              return;
+            } else {
+              setStatus('scanning');
+              return; // skip liveness checks for a non-matching face
+            }
+          }
+
+          // ── EMA distance smoothing ───────────────────────────────────────
+          const rawDist = bestMatchDistance(descriptor, storedDescriptorsRef.current);
+          smoothedDistRef.current = applyEMA(smoothedDistRef.current, rawDist);
+          // setSmoothedDist(smoothedDistRef.current);
+
           // ── Blink detection ──────────────────────────────────────────────
           const ear = calculateEAR(landmarks);
           if (!blinkDetectedRef.current) {
-            if (lastEARRef.current >= EAR_BLINK_THRESHOLD && ear < EAR_BLINK_THRESHOLD) {
+            if (ear < EAR_BLINK_THRESHOLD) {
+              closedFramesRef.current += 1;
+            } else if (closedFramesRef.current > 0 && closedFramesRef.current < 20) {
               blinkDetectedRef.current = true;
               setBlinkDetected(true);
-              // setShowBlinkPrompt(false);
+            } else {
+              closedFramesRef.current = 0;
             }
           }
-          lastEARRef.current = ear;
 
           // ── Frame-difference liveness ────────────────────────────────────
           const frameDiff = computeFrameDiff(box);
@@ -214,16 +240,11 @@ export default function WardenFaceVerification({
           }
 
           // ── Position motion ──────────────────────────────────────────────
-          checkPositionMotion({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
-
-          // ── EMA distance smoothing ───────────────────────────────────────
-          const rawDist = bestMatchDistance(descriptor, storedDescriptorsRef.current);
-          smoothedDistRef.current = applyEMA(smoothedDistRef.current, rawDist);
-          // setSmoothedDist(smoothedDistRef.current);
+          const isMoving = checkPositionMotion({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
 
           // ── Gate 1: Blink mandatory ──────────────────────────────────────
           if (!blinkDetectedRef.current) {
-            setStatus('scanning');
+            setStatus('verifying'); // Waiting for blink
           } else {
             // ── Gate 2: Frame-diff hard-block ──────────────────────────────
             const scores = frameDiffScoresRef.current;
@@ -240,28 +261,21 @@ export default function WardenFaceVerification({
               }
             }
 
-            // ── Face match ────────────────────────────────────────────────
-            if (!storedDescriptorsRef.current) return;
-            const { match } = isSamePerson(descriptor, storedDescriptorsRef.current);
-            if (match) {
+            // ── Gate 3: Motion Check ──────────────────────────────
+            if (!isMoving) {
               runningRef.current = false;
               stopCamera();
-              setStatus('verified');
-              onVerifiedRef.current(); // Redirect immediately
+              setStatus('liveness-failed');
+              onFailedRef.current('Liveness check failed — face is unnaturally still.');
               return;
-            } else {
-              failedAttemptsRef.current += 1;
-              setFailedAttempts(failedAttemptsRef.current);
-              if (failedAttemptsRef.current >= MAX_ATTEMPTS) {
-                runningRef.current = false;
-                stopCamera();
-                setStatus('max-attempts');
-                onFailedRef.current('Identity could not be verified. Access denied.');
-                return;
-              } else {
-                setStatus('scanning');
-              }
             }
+
+            // All clear!
+            runningRef.current = false;
+            stopCamera();
+            setStatus('verified');
+            onVerifiedRef.current(); // Redirect immediately
+            return;
           }
         }
       } catch {
