@@ -5,6 +5,21 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useApi } from '@/hooks/useApi';
 import dynamic from 'next/dynamic';
+import { Reveal } from '@/components/ui/Reveal';
+import {
+  ClipboardList,
+  PlaneTakeoff,
+  Wrench,
+  UtensilsCrossed,
+  Megaphone,
+  BookUser,
+  PackageSearch,
+  Siren,
+  BedDouble,
+  Moon,
+  DoorOpen,
+  Banknote,
+} from 'lucide-react';
 
 const WardenFaceRegistration = dynamic(() => import('@/components/face/WardenFaceRegistration'), {
   ssr: false,
@@ -154,11 +169,12 @@ export default function WardenDashboard() {
         }
         .dash-card { transition: all 0.3s ease; }
         .dash-card:hover {
-          background: radial-gradient(circle at top left, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%) !important;
-          border-color: rgba(255,255,255,0.15) !important;
+          background: radial-gradient(circle at top left, rgba(124,92,252,0.13) 0%, rgba(255,255,255,0.03) 100%) !important;
+          border-color: rgba(124,92,252,0.28) !important;
         }
         .dash-card .arrow-icon { transition: all 0.3s ease; color: rgba(255,255,255,0.2); transform: translateX(0); }
-        .dash-card:hover .arrow-icon { transform: translateX(6px); color: rgba(255,255,255,0.6); }
+        .dash-card:hover .arrow-icon { transform: translateX(6px); color: rgba(124,92,252,0.85); }
+        .dash-card:hover .icon-tile { border-color: rgba(124,92,252,0.35) !important; background: rgba(124,92,252,0.12) !important; color: #a78bfa !important; }
         .signout-btn .signout-arrow { transition: transform 0.2s ease; }
         .signout-btn:hover .signout-arrow { transform: translateX(3px); }
         .bell-icon { transform-origin: top center; transition: stroke 0.2s ease; }
@@ -196,6 +212,7 @@ export default function WardenDashboard() {
       </div>
 
       <div style={{ padding: '24px 32px', maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <Reveal>
         <div style={{ marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <h1 style={{ fontSize: '22px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', letterSpacing: '-0.3px', margin: 0, transform: 'translateY(5px)' }}>Warden dashboard</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -203,8 +220,10 @@ export default function WardenDashboard() {
             <div suppressHydrationWarning style={{ fontSize: '12px', color: 'rgba(255,255,255,0.22)' }}>{dateStr}</div>
           </div>
         </div>
+        </Reveal>
 
         {/* Stats row */}
+        <Reveal delay={70}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '12px' }}>
           <div style={{ background: 'rgba(255,255,255,0.08)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>Attendance Today</div>
@@ -219,8 +238,10 @@ export default function WardenDashboard() {
             <div style={{ fontSize: '28px', fontWeight: 500, color: '#f87171' }}>{stats.openComplaints}</div>
           </div>
         </div>
+        </Reveal>
 
         {/* Progress cards row */}
+        <Reveal delay={140}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div style={{ background: 'rgba(255,255,255,0.07)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>Mess rating</div>
@@ -237,29 +258,30 @@ export default function WardenDashboard() {
             </div>
           </div>
         </div>
+        </Reveal>
 
         {/* Quick Actions Grid */}
         <div style={{ marginTop: '24px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
           {[
-            { emoji:'📋', title:'Attendance', desc:'View and manage attendance', href:'/warden/attendance' },
-            { emoji:'✅', title:'Leave Management', desc:'Approve or reject leaves', href:'/warden/leaves' },
-            { emoji:'🔧', title:'Complaints', desc:'Track and resolve issues', href:'/warden/complaints' },
-            { emoji:'🍽️', title:'Mess Management', desc:'Update weekly menu', href:'/warden/mess' },
-            { emoji:'📢', title:'Notices', desc:'Post announcements', href:'/warden/notices' },
-            { emoji:'👥', title:'Staff Directory', desc:'Manage staff contacts', href:'/warden/staff' },
-            { emoji:'🔍', title:'Lost & Found', desc:'Oversee item directory', href:'/warden/lost-found' },
-            { emoji:'🚨', title:'Emergency', desc:'Send emergency alerts', href:'/warden/emergency' },
-            { emoji:'🏠', title:'Room Allocation', desc:'Manage rooms and assignments', href:'/warden/rooms' },
-            { emoji:'🌙', title:'Curfew Management', desc:'Track and notify curfew violations', href:'/warden/curfew' },
-            { emoji:'🚪', title:'Visitor Management', desc:'Manage guest check-ins', href:'/warden/visitors' },
-            { emoji:'💰', title:'Fee Management', desc:'Collect and track hostel fees', href:'/warden/payments' },
+            { Icon: ClipboardList, title:'Attendance', desc:'View and manage attendance', href:'/warden/attendance' },
+            { Icon: PlaneTakeoff, title:'Leave Management', desc:'Approve or reject leaves', href:'/warden/leaves' },
+            { Icon: Wrench, title:'Complaints', desc:'Track and resolve issues', href:'/warden/complaints' },
+            { Icon: UtensilsCrossed, title:'Mess Management', desc:'Update weekly menu', href:'/warden/mess' },
+            { Icon: Megaphone, title:'Notices', desc:'Post announcements', href:'/warden/notices' },
+            { Icon: BookUser, title:'Staff Directory', desc:'Manage staff contacts', href:'/warden/staff' },
+            { Icon: PackageSearch, title:'Lost & Found', desc:'Oversee item directory', href:'/warden/lost-found' },
+            { Icon: Siren, title:'Emergency', desc:'Send emergency alerts', href:'/warden/emergency' },
+            { Icon: BedDouble, title:'Room Allocation', desc:'Manage rooms and assignments', href:'/warden/rooms' },
+            { Icon: Moon, title:'Curfew Management', desc:'Track and notify curfew violations', href:'/warden/curfew' },
+            { Icon: DoorOpen, title:'Visitor Management', desc:'Manage guest check-ins', href:'/warden/visitors' },
+            { Icon: Banknote, title:'Fee Management', desc:'Collect and track hostel fees', href:'/warden/payments' },
           ].map((item, i) => (
+            <Reveal key={i} delay={Math.min(i * 22, 120)} style={{ height: '100%' }}>
             <div
-              key={i}
               onClick={() => router.push(item.href)}
               style={{
                 background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '16px',
-                padding: '22px 20px', cursor: 'pointer',
+                padding: '22px 20px', cursor: 'pointer', height: '100%',
                 display: 'flex', flexDirection: 'column', gap: '10px', position: 'relative', overflow: 'hidden',
                 boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
                 backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)'
@@ -267,11 +289,14 @@ export default function WardenDashboard() {
               className="dash-card group"
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{
-                  width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '10px', fontSize: '18px'
-                }}>
-                  {item.emoji}
+                <div
+                  className="icon-tile"
+                  style={{
+                    width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '10px',
+                    color: 'rgba(255,255,255,0.8)', transition: 'all 0.3s ease'
+                  }}>
+                  <item.Icon size={18} strokeWidth={1.75} />
                 </div>
                 <div className="flex mt-1">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-[14px] h-[14px] arrow-icon">
@@ -284,11 +309,13 @@ export default function WardenDashboard() {
                 <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.32)', lineHeight: 1.5 }}>{item.desc}</div>
               </div>
             </div>
+            </Reveal>
           ))}
         </div>
-        
+
         {/* Settings & Security section at the bottom */}
         {!loading && (
+          <Reveal>
           <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '0.5px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -359,6 +386,7 @@ export default function WardenDashboard() {
             )}
           </div>
         </div>
+          </Reveal>
         )}
       </div>
     </div>

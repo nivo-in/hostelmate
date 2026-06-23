@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { usePathname } from 'next/navigation';
 import { useApi } from '@/hooks/useApi';
 import { useSocket } from '@/hooks/useSocket';
 import { Notification } from '@/types';
@@ -45,7 +46,20 @@ function typeDot(type: string) {
   );
 }
 
+// Unread-row accent follows the role's theme (warden purple, student orange, parent blue).
+const ACCENTS = {
+  student: { line: '#fb923c', bg: 'rgba(251,146,60,0.10)', bgHover: 'rgba(251,146,60,0.15)' },
+  parent: { line: '#60a5fa', bg: 'rgba(96,165,250,0.10)', bgHover: 'rgba(96,165,250,0.15)' },
+  warden: { line: '#7c5cfc', bg: 'rgba(124,92,252,0.08)', bgHover: 'rgba(124,92,252,0.13)' },
+};
+
 export function NotificationBell() {
+  const pathname = usePathname();
+  const accent = pathname?.startsWith('/student')
+    ? ACCENTS.student
+    : pathname?.startsWith('/parent')
+      ? ACCENTS.parent
+      : ACCENTS.warden;
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -384,18 +398,18 @@ export function NotificationBell() {
                 className="group relative px-5 py-4 cursor-pointer transition-colors"
                 style={{
                   borderBottom: '0.5px solid rgba(255,255,255,0.05)',
-                  borderLeft: notification.is_read ? '2px solid transparent' : '2px solid #7c5cfc',
-                  background: notification.is_read ? 'transparent' : 'rgba(124,92,252,0.08)',
+                  borderLeft: notification.is_read ? '2px solid transparent' : `2px solid ${accent.line}`,
+                  background: notification.is_read ? 'transparent' : accent.bg,
                 }}
                 onMouseEnter={(e) =>
                   (e.currentTarget.style.background = notification.is_read
                     ? 'rgba(255,255,255,0.03)'
-                    : 'rgba(124,92,252,0.13)')
+                    : accent.bgHover)
                 }
                 onMouseLeave={(e) =>
                   (e.currentTarget.style.background = notification.is_read
                     ? 'transparent'
-                    : 'rgba(124,92,252,0.08)')
+                    : accent.bg)
                 }
               >
                 {/* Top row: dot + title + time + dismiss */}

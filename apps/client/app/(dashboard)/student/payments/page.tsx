@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { PageShell } from '@/components/ui/PageShell';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { container } from '@/lib/ui';
 
 // ─── Razorpay window type ────────────────────────────────
 
@@ -83,53 +85,140 @@ interface UserProfile {
 type PlanKey = 'combined' | 'hostel' | 'mess';
 type FreqKey = 'yearly' | 'monthly';
 
+// ─── Theme tokens ────────────────────────────────────────
+
+const ORANGE = '#fb923c';
+const ORANGE_SOFT = 'rgba(251,146,60,0.12)';
+const ORANGE_BORDER = 'rgba(251,146,60,0.35)';
+const GREEN = '#4ade80';
+const AMBER = '#fbbf24';
+const RED = '#f87171';
+const BLUE = '#60a5fa';
+
+const panelStyle: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.03)',
+  border: '0.5px solid rgba(255,255,255,0.07)',
+  borderRadius: '16px',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+};
+
+const tileStyle: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.08)',
+  border: '0.5px solid rgba(255,255,255,0.12)',
+  borderRadius: '14px',
+  padding: '18px 20px',
+  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+};
+
+const errorBox: React.CSSProperties = {
+  marginBottom: '16px',
+  background: 'rgba(248,113,113,0.08)',
+  border: '0.5px solid rgba(248,113,113,0.25)',
+  borderRadius: '10px',
+  padding: '10px 14px',
+  fontSize: '13px',
+  color: RED,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '12px',
+};
+
+const successBox: React.CSSProperties = {
+  marginBottom: '16px',
+  background: 'rgba(74,222,128,0.08)',
+  border: '0.5px solid rgba(74,222,128,0.25)',
+  borderRadius: '10px',
+  padding: '10px 14px',
+  fontSize: '13px',
+  color: GREEN,
+};
+
+const pill: React.CSSProperties = {
+  fontSize: '11px',
+  fontWeight: 600,
+  letterSpacing: '0.3px',
+  padding: '3px 9px',
+  borderRadius: '999px',
+  display: 'inline-block',
+};
+
 // ─── Helpers ─────────────────────────────────────────────
 
 const fmt = (n: number) => '₹' + n.toLocaleString('en-IN');
 
 const statusBadge = (status: string, isOverdue?: boolean) => {
-  const base = 'text-xs px-2.5 py-1 rounded-full font-medium';
-  if (isOverdue) return <span className={`${base} bg-red-100 text-red-700`}>OVERDUE</span>;
+  const make = (color: string, label: string) => (
+    <span
+      style={{
+        ...pill,
+        color,
+        background: `${color}1f`,
+        border: `0.5px solid ${color}40`,
+      }}
+    >
+      {label}
+    </span>
+  );
+  if (isOverdue) return make(RED, 'OVERDUE');
   switch (status) {
     case 'paid':
-      return <span className={`${base} bg-green-50 text-green-700`}>Paid</span>;
+      return make(GREEN, 'Paid');
     case 'pending':
-      return <span className={`${base} bg-yellow-50 text-yellow-700`}>Pending</span>;
+      return make(AMBER, 'Pending');
     case 'processing':
-      return <span className={`${base} bg-blue-50 text-blue-700`}>Processing</span>;
+      return make(BLUE, 'Processing');
     case 'failed':
-      return <span className={`${base} bg-red-50 text-red-700`}>Failed</span>;
+      return make(RED, 'Failed');
     case 'refunded':
-      return <span className={`${base} bg-gray-100 text-gray-600`}>Refunded</span>;
+      return make('rgba(255,255,255,0.5)', 'Refunded');
     default:
       return null;
   }
 };
 
 const typeBadge = (type: string) => {
-  const base = 'text-xs px-2.5 py-1 rounded-full font-medium';
   switch (type) {
     case 'combined':
-      return <span className={`${base} bg-indigo-50 text-indigo-700`}>Hostel + Mess</span>;
+      return (
+        <span style={{ ...pill, color: '#a5b4fc', background: 'rgba(165,180,252,0.12)', border: '0.5px solid rgba(165,180,252,0.25)' }}>
+          Hostel + Mess
+        </span>
+      );
     case 'hostel':
-      return <span className={`${base} bg-orange-50 text-orange-700`}>Hostel</span>;
+      return (
+        <span style={{ ...pill, color: ORANGE, background: ORANGE_SOFT, border: `0.5px solid ${ORANGE_BORDER}` }}>
+          Hostel
+        </span>
+      );
     case 'mess':
-      return <span className={`${base} bg-teal-50 text-teal-700`}>Mess</span>;
+      return (
+        <span style={{ ...pill, color: '#5eead4', background: 'rgba(94,234,212,0.12)', border: '0.5px solid rgba(94,234,212,0.25)' }}>
+          Mess
+        </span>
+      );
     default:
-      return <span className={`${base} bg-gray-100 text-gray-600`}>{type}</span>;
+      return (
+        <span style={{ ...pill, color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.12)' }}>
+          {type}
+        </span>
+      );
   }
 };
 
 const methodBadge = (method: string | null) => {
   if (!method) return null;
-  const base = 'text-xs px-2.5 py-1 rounded-full font-medium bg-gray-100 text-gray-600';
   const labels: Record<string, string> = {
     razorpay: 'Online',
     cash: 'Cash',
     bank_transfer: 'Bank Transfer',
     dd: 'DD',
   };
-  return <span className={base}>{labels[method] || method}</span>;
+  return (
+    <span style={{ ...pill, fontWeight: 500, color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.12)' }}>
+      {labels[method] || method}
+    </span>
+  );
 };
 
 // ─── Plan config (static pricing) ────────────────────────
@@ -361,295 +450,377 @@ export default function StudentPaymentsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white px-6 py-10 max-w-5xl mx-auto">
+    <PageShell spotlight="rgba(251,146,60,0.12)">
       <PageHeader title="Fee Payments" showBack onSignOut={handleSignOut} />
 
-      {/* ── Alerts ── */}
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-600">
-          {error}
-          <button
-            className="float-right text-red-400 hover:text-red-600"
-            onClick={() => setError('')}
-          >
-            ✕
-          </button>
-        </div>
-      )}
-      {success && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-100 rounded-lg text-sm text-green-700">
-          {success}
-        </div>
-      )}
+      <div style={container}>
+        {/* ── Alerts ── */}
+        {error && (
+          <div style={errorBox}>
+            <p className="text-red-500" style={{ margin: 0, flex: 1 }}>{error}</p>
+            <button
+              type="button"
+              onClick={() => setError('')}
+              style={{ background: 'transparent', border: 'none', color: RED, cursor: 'pointer', fontSize: '14px', lineHeight: 1 }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+        {success && <div style={successBox}>{success}</div>}
 
-      {/* ── SECTION 1: Summary cards ── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
-          <p className="text-xs text-gray-400 mb-1">Total Paid</p>
-          <p className="text-2xl font-medium text-green-600">{fmt(totals?.total_paid ?? 0)}</p>
-        </div>
-        <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
-          <p className="text-xs text-gray-400 mb-1">Total Pending</p>
-          <p
-            className={`text-2xl font-medium ${(totals?.total_pending ?? 0) > 0 ? 'text-red-500' : 'text-gray-400'}`}
-          >
-            {fmt(totals?.total_pending ?? 0)}
-          </p>
-        </div>
-        <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
-          <p className="text-xs text-gray-400 mb-1">Next Due</p>
-          <p className="text-2xl font-medium text-yellow-600">
-            {totals?.next_due
-              ? new Date(totals.next_due).toLocaleDateString('en-IN', {
-                  day: 'numeric',
-                  month: 'short',
-                })
-              : '—'}
-          </p>
-        </div>
-      </div>
-
-      {/* ── SECTION 2: Plan Selector ── */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-sm font-medium text-gray-900">Choose Your Fee Plan</h2>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Select what you want to pay for and how often
+        {/* ── SECTION 1: Summary tiles ── */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '14px',
+            marginBottom: '32px',
+          }}
+        >
+          <div style={tileStyle}>
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Total Paid</p>
+            <p style={{ fontSize: '26px', fontWeight: 600, color: GREEN, margin: 0 }}>{fmt(totals?.total_paid ?? 0)}</p>
+          </div>
+          <div style={tileStyle}>
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Total Pending</p>
+            <p
+              style={{
+                fontSize: '26px',
+                fontWeight: 600,
+                margin: 0,
+                color: (totals?.total_pending ?? 0) > 0 ? AMBER : 'rgba(255,255,255,0.35)',
+              }}
+            >
+              {fmt(totals?.total_pending ?? 0)}
             </p>
           </div>
-          <button
-            className="border border-gray-200 text-gray-600 rounded-lg px-4 py-2.5 text-sm hover:border-gray-400 transition-colors"
-            onClick={() => {
-              setShowPlanSelector((v) => !v);
-              setSelectedPlan(null);
-              setSelectedFreq(null);
-            }}
-          >
-            {showPlanSelector ? 'Cancel' : '+ Select Plan'}
-          </button>
+          <div style={tileStyle}>
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Next Due</p>
+            <p style={{ fontSize: '26px', fontWeight: 600, color: ORANGE, margin: 0 }}>
+              {totals?.next_due
+                ? new Date(totals.next_due).toLocaleDateString('en-IN', {
+                    day: 'numeric',
+                    month: 'short',
+                  })
+                : '—'}
+            </p>
+          </div>
         </div>
 
-        {showPlanSelector && (
-          <div className="border border-gray-100 rounded-xl p-6 space-y-6">
-            {/* Step 1 — plan type */}
+        {/* ── SECTION 2: Plan Selector ── */}
+        <div style={{ marginBottom: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' }}>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
-                Step 1 — What do you want to pay for?
+              <h2 style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', margin: 0 }}>Choose Your Fee Plan</h2>
+              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
+                Select what you want to pay for and how often
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {(Object.keys(PLANS) as PlanKey[]).map((key) => {
-                  const plan = PLANS[key];
-                  const isSelected = selectedPlan === key;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => {
-                        setSelectedPlan(key);
-                        setSelectedFreq(null);
-                      }}
-                      className={`text-left border rounded-xl p-5 transition-colors ${isSelected ? 'border-gray-900 bg-gray-50' : 'border-gray-100 hover:border-gray-300'}`}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xl">{plan.emoji}</span>
-                        <span className="text-sm font-medium text-gray-900">{plan.label}</span>
-                        {plan.recommended && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-gray-900 text-white font-medium">
-                            Best
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 mb-3">{plan.subtitle}</p>
-                      <div className="space-y-1">
-                        <p className="text-xs text-gray-700">
-                          Yearly: <span className="font-medium">{fmt(plan.yearly.amount)}</span>
-                        </p>
-                        {plan.yearly.note && (
-                          <p className="text-xs text-green-600">{plan.yearly.note}</p>
-                        )}
-                        <p className="text-xs text-gray-700 mt-1">
-                          Monthly:{' '}
-                          <span className="font-medium">{fmt(plan.monthly.amount)}/mo</span>
-                        </p>
-                        {plan.monthly.note && (
-                          <p className="text-xs text-orange-500">{plan.monthly.note}</p>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                setShowPlanSelector((v) => !v);
+                setSelectedPlan(null);
+                setSelectedFreq(null);
+              }}
+              style={{
+                border: '0.5px solid rgba(255,255,255,0.15)',
+                color: 'rgba(255,255,255,0.7)',
+                background: 'transparent',
+                borderRadius: '10px',
+                padding: '9px 16px',
+                fontSize: '13px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              {showPlanSelector ? 'Cancel' : '+ Select Plan'}
+            </button>
+          </div>
 
-            {/* Step 2 — frequency */}
-            {selectedPlan && (
+          {showPlanSelector && (
+            <div style={{ ...panelStyle, padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Step 1 — plan type */}
               <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
-                  Step 2 — Payment Frequency
+                <p style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '12px' }}>
+                  Step 1 — What do you want to pay for?
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Yearly card */}
-                  <button
-                    onClick={() => setSelectedFreq('yearly')}
-                    className={`text-left border rounded-xl p-5 transition-colors ${selectedFreq === 'yearly' ? 'border-gray-900 bg-gray-50' : 'border-gray-100 hover:border-gray-300'}`}
-                  >
-                    <p className="text-xs text-gray-400 mb-1">Pay Yearly</p>
-                    <p className="text-3xl font-medium text-gray-900 mb-1">
-                      {fmt(PLANS[selectedPlan].yearly.amount)}
-                    </p>
-                    <p className="text-xs text-gray-500 mb-2">Pay once, save more</p>
-                    {selectedPlan === 'combined' && (
-                      <p className="text-xs text-green-600">
-                        Save{' '}
-                        {fmt(
-                          PLANS[selectedPlan].monthly.amount * 12 -
-                            PLANS[selectedPlan].yearly.amount
-                        )}{' '}
-                        vs monthly
-                      </p>
-                    )}
-                    {PLANS[selectedPlan].yearly.note && (
-                      <p className="text-xs text-gray-400 mt-1">
-                        {PLANS[selectedPlan].yearly.note}
-                      </p>
-                    )}
-                  </button>
-
-                  {/* Monthly card */}
-                  <button
-                    onClick={() => setSelectedFreq('monthly')}
-                    className={`text-left border rounded-xl p-5 transition-colors ${selectedFreq === 'monthly' ? 'border-gray-900 bg-gray-50' : 'border-gray-100 hover:border-gray-300'}`}
-                  >
-                    <p className="text-xs text-gray-400 mb-1">Pay Monthly</p>
-                    <p className="text-3xl font-medium text-gray-900 mb-1">
-                      {fmt(PLANS[selectedPlan].monthly.amount)}
-                      <span className="text-base text-gray-400">/mo</span>
-                    </p>
-                    <p className="text-xs text-gray-500 mb-2">Spread across 12 months</p>
-                    <p className="text-xs text-gray-400">
-                      Total yearly: {fmt(PLANS[selectedPlan].monthly.amount * 12)}
-                    </p>
-                    {PLANS[selectedPlan].monthly.note && (
-                      <p className="text-xs text-orange-500 mt-1">
-                        {PLANS[selectedPlan].monthly.note}
-                      </p>
-                    )}
-                  </button>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                  {(Object.keys(PLANS) as PlanKey[]).map((key) => {
+                    const plan = PLANS[key];
+                    const isSelected = selectedPlan === key;
+                    return (
+                      <button
+                        type="button"
+                        key={key}
+                        onClick={() => {
+                          setSelectedPlan(key);
+                          setSelectedFreq(null);
+                        }}
+                        style={{
+                          textAlign: 'left',
+                          borderRadius: '14px',
+                          padding: '18px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          border: isSelected ? `1px solid ${ORANGE_BORDER}` : '0.5px solid rgba(255,255,255,0.1)',
+                          background: isSelected ? ORANGE_SOFT : 'rgba(255,255,255,0.03)',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '18px' }}>{plan.emoji}</span>
+                          <span style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.9)' }}>{plan.label}</span>
+                          {plan.recommended && (
+                            <span style={{ ...pill, color: '#1a0f04', background: ORANGE, border: 'none' }}>Best</span>
+                          )}
+                        </div>
+                        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginBottom: '12px' }}>{plan.subtitle}</p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', margin: 0 }}>
+                            Yearly: <span style={{ fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>{fmt(plan.yearly.amount)}</span>
+                          </p>
+                          {plan.yearly.note && <p style={{ fontSize: '12px', color: GREEN, margin: 0 }}>{plan.yearly.note}</p>}
+                          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginTop: '4px', marginBottom: 0 }}>
+                            Monthly:{' '}
+                            <span style={{ fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>{fmt(plan.monthly.amount)}/mo</span>
+                          </p>
+                          {plan.monthly.note && <p style={{ fontSize: '12px', color: ORANGE, margin: 0 }}>{plan.monthly.note}</p>}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-            )}
 
-            {/* Confirmation */}
-            {selectedPlan && selectedFreq && (
-              <div className="border border-gray-200 rounded-xl p-5 bg-gray-50">
-                <p className="text-sm font-medium text-gray-900 mb-1">
-                  You selected: {PLANS[selectedPlan].label} (
-                  {selectedFreq === 'yearly' ? 'Yearly' : 'Monthly'})
-                </p>
-                <p className="text-sm text-gray-600 mb-1">
-                  Amount:{' '}
-                  <span className="font-medium text-gray-900">
-                    {fmt(PLANS[selectedPlan][selectedFreq].amount)}
-                    {selectedFreq === 'monthly' ? '/month' : '/year'}
-                  </span>
-                </p>
-                {matchedStructure ? (
-                  <p className="text-xs text-gray-400 mb-4">{matchedStructure.description}</p>
-                ) : (
-                  <p className="text-xs text-orange-500 mb-4">
-                    Fee structure not found — ask warden to configure fees first.
+              {/* Step 2 — frequency */}
+              {selectedPlan && (
+                <div>
+                  <p style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '12px' }}>
+                    Step 2 — Payment Frequency
                   </p>
-                )}
-                <button
-                  onClick={handlePayNewPlan}
-                  disabled={loading}
-                  className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50"
-                >
-                  Proceed to Payment
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
+                    {/* Yearly card */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFreq('yearly')}
+                      style={{
+                        textAlign: 'left',
+                        borderRadius: '14px',
+                        padding: '18px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        border: selectedFreq === 'yearly' ? `1px solid ${ORANGE_BORDER}` : '0.5px solid rgba(255,255,255,0.1)',
+                        background: selectedFreq === 'yearly' ? ORANGE_SOFT : 'rgba(255,255,255,0.03)',
+                      }}
+                    >
+                      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Pay Yearly</p>
+                      <p style={{ fontSize: '28px', fontWeight: 600, color: 'rgba(255,255,255,0.95)', marginBottom: '4px' }}>
+                        {fmt(PLANS[selectedPlan].yearly.amount)}
+                      </p>
+                      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginBottom: '8px' }}>Pay once, save more</p>
+                      {selectedPlan === 'combined' && (
+                        <p style={{ fontSize: '12px', color: GREEN, margin: 0 }}>
+                          Save{' '}
+                          {fmt(
+                            PLANS[selectedPlan].monthly.amount * 12 -
+                              PLANS[selectedPlan].yearly.amount
+                          )}{' '}
+                          vs monthly
+                        </p>
+                      )}
+                      {PLANS[selectedPlan].yearly.note && (
+                        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
+                          {PLANS[selectedPlan].yearly.note}
+                        </p>
+                      )}
+                    </button>
 
-      {/* ── SECTION 3: Payment History ── */}
-      <div>
-        <h2 className="text-sm font-medium text-gray-900 mb-4">
-          Payment History
-          {hasPending && (
-            <span className="ml-2 text-xs px-2.5 py-1 rounded-full bg-red-50 text-red-600 font-medium">
-              {pendingPayments.length} due
-            </span>
-          )}
-        </h2>
+                    {/* Monthly card */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFreq('monthly')}
+                      style={{
+                        textAlign: 'left',
+                        borderRadius: '14px',
+                        padding: '18px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        border: selectedFreq === 'monthly' ? `1px solid ${ORANGE_BORDER}` : '0.5px solid rgba(255,255,255,0.1)',
+                        background: selectedFreq === 'monthly' ? ORANGE_SOFT : 'rgba(255,255,255,0.03)',
+                      }}
+                    >
+                      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Pay Monthly</p>
+                      <p style={{ fontSize: '28px', fontWeight: 600, color: 'rgba(255,255,255,0.95)', marginBottom: '4px' }}>
+                        {fmt(PLANS[selectedPlan].monthly.amount)}
+                        <span style={{ fontSize: '16px', color: 'rgba(255,255,255,0.4)' }}>/mo</span>
+                      </p>
+                      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginBottom: '8px' }}>Spread across 12 months</p>
+                      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+                        Total yearly: {fmt(PLANS[selectedPlan].monthly.amount * 12)}
+                      </p>
+                      {PLANS[selectedPlan].monthly.note && (
+                        <p style={{ fontSize: '12px', color: ORANGE, marginTop: '4px' }}>
+                          {PLANS[selectedPlan].monthly.note}
+                        </p>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
 
-        {allPayments.length === 0 ? (
-          <div className="border border-gray-100 rounded-xl p-12 text-center">
-            <p className="text-gray-400 text-sm">No fee payments yet.</p>
-            <p className="text-gray-400 text-xs mt-1">Your warden will generate bills for you.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {allPayments.map((payment) => (
-              <div
-                key={payment.id}
-                className={`border rounded-xl p-6 transition-colors ${payment.is_overdue ? 'border-red-200 bg-red-50' : 'border-gray-100 hover:border-gray-300'}`}
-              >
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span className="text-sm font-medium text-gray-900">
-                        {payment.fee_structures?.name}
-                      </span>
-                      {typeBadge(payment.fee_structures?.fee_type)}
-                      {statusBadge(payment.status, payment.is_overdue)}
-                      {methodBadge(payment.payment_method)}
-                    </div>
-                    <p className="text-xl font-medium text-gray-900 mb-1">{fmt(payment.amount)}</p>
-                    <p className="text-xs text-gray-500 mb-1">
-                      Period: <span className="font-medium">{payment.period_label}</span>
+              {/* Confirmation */}
+              {selectedPlan && selectedFreq && (
+                <div style={{ ...tileStyle, padding: '18px 20px' }}>
+                  <p style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.9)', marginBottom: '4px' }}>
+                    You selected: {PLANS[selectedPlan].label} (
+                    {selectedFreq === 'yearly' ? 'Yearly' : 'Monthly'})
+                  </p>
+                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '4px' }}>
+                    Amount:{' '}
+                    <span style={{ fontWeight: 600, color: 'rgba(255,255,255,0.95)' }}>
+                      {fmt(PLANS[selectedPlan][selectedFreq].amount)}
+                      {selectedFreq === 'monthly' ? '/month' : '/year'}
+                    </span>
+                  </p>
+                  {matchedStructure ? (
+                    <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '16px' }}>{matchedStructure.description}</p>
+                  ) : (
+                    <p style={{ fontSize: '12px', color: ORANGE, marginBottom: '16px' }}>
+                      Fee structure not found — ask warden to configure fees first.
                     </p>
-                    <div className="flex gap-4 text-xs text-gray-400">
-                      <span>Due: {new Date(payment.due_date).toLocaleDateString('en-IN')}</span>
-                      {payment.paid_at && (
-                        <span>Paid: {new Date(payment.paid_at).toLocaleDateString('en-IN')}</span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handlePayNewPlan}
+                    disabled={loading}
+                    style={{
+                      background: ORANGE,
+                      color: '#1a0f04',
+                      border: 'none',
+                      borderRadius: '10px',
+                      padding: '9px 16px',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                      opacity: loading ? 0.5 : 1,
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    Proceed to Payment
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ── SECTION 3: Payment History ── */}
+        <div>
+          <h2 style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            Payment History
+            {hasPending && (
+              <span style={{ ...pill, color: RED, background: 'rgba(248,113,113,0.12)', border: '0.5px solid rgba(248,113,113,0.25)' }}>
+                {pendingPayments.length} due
+              </span>
+            )}
+          </h2>
+
+          {allPayments.length === 0 ? (
+            <div style={{ ...panelStyle, padding: '48px', textAlign: 'center' }}>
+              <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '13px', margin: 0 }}>No fee payments yet.</p>
+              <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px', marginTop: '4px' }}>Your warden will generate bills for you.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {allPayments.map((payment) => (
+                <div
+                  key={payment.id}
+                  className="glass-card"
+                  style={{
+                    ...panelStyle,
+                    padding: '20px 24px',
+                    border: payment.is_overdue ? '0.5px solid rgba(248,113,113,0.3)' : '0.5px solid rgba(255,255,255,0.07)',
+                    background: payment.is_overdue ? 'rgba(248,113,113,0.06)' : 'rgba(255,255,255,0.03)',
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: '220px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.9)' }}>
+                          {payment.fee_structures?.name}
+                        </span>
+                        {typeBadge(payment.fee_structures?.fee_type)}
+                        {statusBadge(payment.status, payment.is_overdue)}
+                        {methodBadge(payment.payment_method)}
+                      </div>
+                      <p style={{ fontSize: '20px', fontWeight: 600, color: 'rgba(255,255,255,0.95)', marginBottom: '4px' }}>{fmt(payment.amount)}</p>
+                      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>
+                        Period: <span style={{ fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>{payment.period_label}</span>
+                      </p>
+                      <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: 'rgba(255,255,255,0.4)', flexWrap: 'wrap' }}>
+                        <span>Due: {new Date(payment.due_date).toLocaleDateString('en-IN')}</span>
+                        {payment.paid_at && (
+                          <span>Paid: {new Date(payment.paid_at).toLocaleDateString('en-IN')}</span>
+                        )}
+                      </div>
+                      {payment.receipt_number && (
+                        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '4px', fontFamily: 'monospace' }}>
+                          {payment.receipt_number}
+                        </p>
                       )}
                     </div>
-                    {payment.receipt_number && (
-                      <p className="text-xs text-gray-400 mt-1 font-mono">
-                        {payment.receipt_number}
-                      </p>
+
+                    {(payment.status === 'pending' || payment.status === 'processing') && (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={() => handlePay(payment)}
+                          disabled={loading}
+                          style={{
+                            borderRadius: '10px',
+                            padding: '9px 16px',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            whiteSpace: 'nowrap',
+                            cursor: loading ? 'not-allowed' : 'pointer',
+                            opacity: loading ? 0.5 : 1,
+                            transition: 'all 0.2s',
+                            border: 'none',
+                            background: payment.is_overdue ? RED : ORANGE,
+                            color: payment.is_overdue ? '#fff' : '#1a0f04',
+                          }}
+                        >
+                          {payment.is_overdue ? '⚠️ Pay Overdue ' : 'Pay Now '}
+                          {fmt(payment.amount)}
+                        </button>
+                        {payment.status === 'processing' && (
+                          <button
+                            type="button"
+                            onClick={() => handleCancelPayment(payment.id)}
+                            disabled={loading}
+                            style={{
+                              fontSize: '12px',
+                              color: RED,
+                              background: 'transparent',
+                              border: 'none',
+                              textDecoration: 'underline',
+                              cursor: loading ? 'not-allowed' : 'pointer',
+                              opacity: loading ? 0.5 : 1,
+                            }}
+                          >
+                            Cancel process
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
-
-                  {(payment.status === 'pending' || payment.status === 'processing') && (
-                    <div className="flex flex-col items-end gap-2">
-                      <button
-                        onClick={() => handlePay(payment)}
-                        disabled={loading}
-                        className={`rounded-lg px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap disabled:opacity-50 ${payment.is_overdue ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-gray-900 text-white hover:bg-gray-700'}`}
-                      >
-                        {payment.is_overdue ? '⚠️ Pay Overdue ' : 'Pay Now '}
-                        {fmt(payment.amount)}
-                      </button>
-                      {payment.status === 'processing' && (
-                        <button
-                          onClick={() => handleCancelPayment(payment.id)}
-                          disabled={loading}
-                          className="text-xs text-red-600 hover:text-red-800 underline disabled:opacity-50"
-                        >
-                          Cancel process
-                        </button>
-                      )}
-                    </div>
-                  )}
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

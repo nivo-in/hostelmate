@@ -1,13 +1,67 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { PageShell } from '@/components/ui/PageShell';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
+import { container } from '@/lib/ui';
 import { Complaint } from '@/types';
+
+const ORANGE = '#fb923c';
+
+const panelStyle: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.03)',
+  border: '0.5px solid rgba(255,255,255,0.07)',
+  borderRadius: '16px',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+};
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  background: 'rgba(255,255,255,0.04)',
+  border: '0.5px solid rgba(255,255,255,0.1)',
+  borderRadius: '10px',
+  padding: '10px 12px',
+  fontSize: '13px',
+  color: 'rgba(255,255,255,0.85)',
+  outline: 'none',
+  colorScheme: 'dark',
+  transition: 'border-color 0.2s',
+};
+
+const STATUS_STYLES: Record<string, { color: string; bg: string; border: string }> = {
+  open: { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.25)' },
+  pending: { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.25)' },
+  in_progress: { color: '#60a5fa', bg: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.25)' },
+  resolved: { color: '#4ade80', bg: 'rgba(74,222,128,0.1)', border: 'rgba(74,222,128,0.25)' },
+  closed: { color: '#4ade80', bg: 'rgba(74,222,128,0.1)', border: 'rgba(74,222,128,0.25)' },
+  default: { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.25)' },
+};
+
+const URGENT_STYLE = { color: '#f87171', bg: 'rgba(248,113,113,0.1)', border: 'rgba(248,113,113,0.25)' };
+
+function StatusPill({ status }: { status: string }) {
+  const s = STATUS_STYLES[status] || STATUS_STYLES.default;
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        fontSize: '11px',
+        fontWeight: 600,
+        color: s.color,
+        background: s.bg,
+        border: `0.5px solid ${s.border}`,
+        borderRadius: '6px',
+        padding: '3px 8px',
+      }}
+    >
+      {status.replace('_', ' ').toUpperCase()}
+    </span>
+  );
+}
 
 export default function StudentComplaints() {
   const [description, setDescription] = useState('');
@@ -87,105 +141,139 @@ export default function StudentComplaints() {
     router.push('/login');
   };
 
-  const getStatusVariant = (status: string) => {
-    if (status === 'resolved') return 'success';
-    if (status === 'open') return 'danger';
-    return 'warning';
-  };
-
   return (
-    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
+    <PageShell spotlight="rgba(251,146,60,0.12)">
       <PageHeader title="Complaints" showBack onSignOut={handleSignOut} />
 
-      <div className="mb-8 p-6 border border-gray-100 rounded-xl hover:border-gray-300 transition-colors">
-        <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              placeholder="Describe your issue in detail — AI will auto-categorize"
-              className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 transition-colors w-full"
-              rows={3}
-            ></textarea>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setUrgent(!urgent)}
-              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${urgent ? 'bg-gray-900' : 'bg-gray-200'}`}
-            >
-              <span
-                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${urgent ? 'translate-x-5' : 'translate-x-1'}`}
-              />
-            </button>
-            <label
-              className="text-sm text-gray-900 cursor-pointer"
-              onClick={() => setUrgent(!urgent)}
-            >
-              Mark as urgent (AI may override)
-            </label>
-          </div>
-          {error && <p className="text-xs text-red-500">{error}</p>}
-          {success && <p className="text-xs text-green-600">{success}</p>}
-          {aiInfo && (
-            <div className="border border-blue-100 bg-blue-50/50 rounded-lg p-3 mt-3">
-              <div className="text-xs font-medium text-blue-700">🤖 AI Analysis</div>
-              {aiInfo.category_changed && (
-                <div className="text-xs text-blue-600 mt-1">
-                  Category updated to: {aiInfo.finalCategory}
-                </div>
-              )}
-              {aiInfo.urgency_changed && aiInfo.finalUrgency && (
-                <div className="text-xs text-orange-600 mt-1">
-                  ⚠️ Marked as urgent based on description
-                </div>
-              )}
-              <div className="text-xs text-gray-400 mt-1">
-                AI Confidence: {Math.round((aiInfo.confidence || 0) * 100)}%
-              </div>
+      <div style={container}>
+        <div style={{ ...panelStyle, padding: '24px', marginBottom: '28px' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '480px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>
+                Description
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+                placeholder="Describe your issue in detail — AI will auto-categorize"
+                rows={3}
+                style={inputStyle}
+                onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(251,146,60,0.5)')}
+                onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+              ></textarea>
             </div>
-          )}
-          <button
-            type="submit"
-            className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors"
-          >
-            Submit Complaint
-          </button>
-        </form>
-      </div>
 
-      <div className="space-y-4">
-        {complaints.length === 0 ? (
-          <div className="border border-gray-100 rounded-xl p-8">
-            <EmptyState message="No complaints raised yet" />
-          </div>
-        ) : (
-          complaints.map((c) => (
-            <div
-              key={c.id}
-              className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors bg-white"
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="capitalize text-sm font-medium text-gray-900">{c.category}</span>
-                  {c.is_urgent && <Badge variant="danger">URGENT</Badge>}
-                </div>
-                <span className="text-xs text-gray-400">
-                  {new Date(c.created_at).toLocaleDateString()}
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 mb-4">{c.description}</p>
-              <div className="flex justify-end">
-                <Badge variant={getStatusVariant(c.status)}>
-                  {c.status.replace('_', ' ').toUpperCase()}
-                </Badge>
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setUrgent(!urgent)}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors`}
+                style={{ background: urgent ? ORANGE : 'rgba(255,255,255,0.15)' }}
+              >
+                <span
+                  className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${urgent ? 'translate-x-5' : 'translate-x-1'}`}
+                />
+              </button>
+              <label
+                style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', cursor: 'pointer' }}
+                onClick={() => setUrgent(!urgent)}
+              >
+                Mark as urgent (AI may override)
+              </label>
             </div>
-          ))
-        )}
+
+            {error && <p className="text-red-500" style={{ fontSize: '12px' }}>{error}</p>}
+            {success && <p style={{ fontSize: '12px', color: '#4ade80' }}>{success}</p>}
+
+            {aiInfo && (
+              <div
+                style={{
+                  background: 'rgba(96,165,250,0.08)',
+                  border: '0.5px solid rgba(96,165,250,0.25)',
+                  borderRadius: '8px',
+                  padding: '10px 12px',
+                }}
+              >
+                <div style={{ fontSize: '12px', fontWeight: 500, color: '#60a5fa' }}>🤖 AI Analysis</div>
+                {aiInfo.category_changed && (
+                  <div style={{ fontSize: '12px', color: 'rgba(96,165,250,0.85)', marginTop: '4px' }}>
+                    Category updated to: {aiInfo.finalCategory}
+                  </div>
+                )}
+                {aiInfo.urgency_changed && aiInfo.finalUrgency && (
+                  <div style={{ fontSize: '12px', color: ORANGE, marginTop: '4px' }}>
+                    ⚠️ Marked as urgent based on description
+                  </div>
+                )}
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
+                  AI Confidence: {Math.round((aiInfo.confidence || 0) * 100)}%
+                </div>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              style={{
+                alignSelf: 'flex-start',
+                background: ORANGE,
+                color: '#1a0f04',
+                fontWeight: 600,
+                fontSize: '13px',
+                borderRadius: '10px',
+                padding: '9px 16px',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Submit Complaint
+            </button>
+          </form>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {complaints.length === 0 ? (
+            <div style={{ ...panelStyle, padding: '32px' }}>
+              <EmptyState message="No complaints raised yet" />
+            </div>
+          ) : (
+            complaints.map((c) => (
+              <div key={c.id} className="glass-card" style={{ ...panelStyle, padding: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ textTransform: 'capitalize', fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.85)' }}>
+                      {c.category}
+                    </span>
+                    {c.is_urgent && (
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          color: URGENT_STYLE.color,
+                          background: URGENT_STYLE.bg,
+                          border: `0.5px solid ${URGENT_STYLE.border}`,
+                          borderRadius: '6px',
+                          padding: '3px 8px',
+                        }}
+                      >
+                        URGENT
+                      </span>
+                    )}
+                  </div>
+                  <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+                    {new Date(c.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '16px' }}>{c.description}</p>
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <StatusPill status={c.status} />
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

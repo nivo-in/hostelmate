@@ -1,10 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { PageShell } from '@/components/ui/PageShell';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useApi } from '@/hooks/useApi';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { container } from '@/lib/ui';
+
+const ORANGE = '#fb923c';
 
 type Room = {
   id: string;
@@ -28,11 +32,44 @@ type CurrentRoomInfo = {
   roommates: string[];
 };
 
+const panelStyle: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.03)',
+  border: '0.5px solid rgba(255,255,255,0.07)',
+  borderRadius: '16px',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+};
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  background: 'rgba(255,255,255,0.04)',
+  border: '0.5px solid rgba(255,255,255,0.1)',
+  borderRadius: '10px',
+  padding: '10px 12px',
+  fontSize: '13px',
+  color: 'rgba(255,255,255,0.85)',
+  outline: 'none',
+};
+
+const sectionLabel: React.CSSProperties = {
+  fontSize: '11px',
+  fontWeight: 600,
+  letterSpacing: '1.5px',
+  textTransform: 'uppercase',
+  color: 'rgba(255,255,255,0.4)',
+  marginBottom: '16px',
+};
+
+const STATUS_STYLES: Record<MyTransferRequest['status'], { color: string; bg: string; border: string }> = {
+  pending: { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.25)' },
+  approved: { color: '#4ade80', bg: 'rgba(74,222,128,0.1)', border: 'rgba(74,222,128,0.25)' },
+  rejected: { color: '#f87171', bg: 'rgba(248,113,113,0.1)', border: 'rgba(248,113,113,0.25)' },
+};
+
 const SkeletonCard = () => (
-  <div className="border border-gray-100 rounded-xl p-6 animate-pulse">
-    <div className="h-4 bg-gray-100 rounded w-1/3 mb-3" />
-    <div className="h-3 bg-gray-100 rounded w-2/3 mb-2" />
-    <div className="h-3 bg-gray-100 rounded w-1/2" />
+  <div className="animate-pulse" style={{ ...panelStyle, padding: '24px' }}>
+    <div style={{ height: '16px', width: '33%', marginBottom: '12px', borderRadius: '6px', background: 'rgba(255,255,255,0.06)' }} />
+    <div style={{ height: '12px', width: '66%', marginBottom: '8px', borderRadius: '6px', background: 'rgba(255,255,255,0.04)' }} />
+    <div style={{ height: '12px', width: '50%', borderRadius: '6px', background: 'rgba(255,255,255,0.04)' }} />
   </div>
 );
 
@@ -176,177 +213,205 @@ export default function StudentRoomTransferPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
+    <PageShell spotlight="rgba(251,146,60,0.12)">
       <PageHeader title="Room Transfer" showBack={true} onSignOut={handleSignOut} />
 
-      {loading ? (
-        <div className="space-y-4">
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-        </div>
-      ) : error ? (
-        <div className="border border-red-100 rounded-xl p-6 bg-red-50">
-          <p className="text-sm text-red-600 mb-3">{error}</p>
-          <button
-            onClick={fetchData}
-            className="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700 transition-colors"
-          >
-            Retry
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {/* Current Room Info */}
-          <div className="border border-gray-100 rounded-xl p-6">
-            <h2 className="text-xs uppercase text-gray-400 tracking-widest mb-4">Current Room</h2>
-            {currentRoom ? (
-              <div>
-                <div className="text-2xl font-medium text-gray-900 mb-1">
-                  {currentRoom.room_number}
-                </div>
-                <div className="text-xs text-gray-400 mb-4">{currentRoom.block_name}</div>
-                <div className="text-sm text-gray-600">
-                  <span className="text-gray-400 mr-1">Roommates:</span>
-                  {currentRoom.roommates.length > 0 ? currentRoom.roommates.join(', ') : 'None'}
-                </div>
-              </div>
-            ) : noRoomAssigned ? (
-              <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-                <svg
-                  className="w-5 h-5 text-yellow-500 flex-shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+      <div style={container}>
+        {loading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : error ? (
+          <div style={{ ...panelStyle, padding: '24px', background: 'rgba(248,113,113,0.08)', border: '0.5px solid rgba(248,113,113,0.25)' }}>
+            <p className="text-red-500" style={{ fontSize: '13px', color: '#f87171', marginBottom: '14px' }}>{error}</p>
+            <button
+              type="button"
+              onClick={fetchData}
+              style={{ background: ORANGE, color: '#1a0f04', borderRadius: '10px', padding: '9px 16px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+            >
+              Retry
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Current Room Info */}
+            <div style={{ ...panelStyle, padding: '24px' }}>
+              <h2 style={sectionLabel}>Current Room</h2>
+              {currentRoom ? (
                 <div>
-                  <div className="text-sm font-medium text-yellow-800">No room assigned yet</div>
-                  <div className="text-xs text-yellow-600 mt-0.5">
-                    Contact your warden to get a room assigned.
+                  <div style={{ fontSize: '24px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', marginBottom: '4px' }}>
+                    {currentRoom.room_number}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '16px' }}>{currentRoom.block_name}</div>
+                  <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.4)', marginRight: '4px' }}>Roommates:</span>
+                    {currentRoom.roommates.length > 0 ? currentRoom.roommates.join(', ') : 'None'}
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="text-sm text-gray-400">Loading room info...</div>
-            )}
-          </div>
-
-          {/* Transfer Request Form */}
-          <div className="border border-gray-100 rounded-xl p-6">
-            <h2 className="text-xs uppercase text-gray-400 tracking-widest mb-4">
-              Request a Transfer
-            </h2>
-
-            {message && (
-              <div
-                className={`mb-4 p-3 text-sm rounded-lg border ${
-                  messageType === 'success'
-                    ? 'bg-green-50 text-green-700 border-green-200'
-                    : 'bg-red-50 text-red-700 border-red-200'
-                }`}
-              >
-                {message}
-              </div>
-            )}
-
-            {availableRooms.length === 0 ? (
-              <div className="text-sm text-gray-400">
-                No rooms with available capacity right now.
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Select Requested Room</label>
-                  <select
-                    value={selectedRoomId}
-                    onChange={(e) => setSelectedRoomId(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full bg-white"
-                    required
+              ) : noRoomAssigned ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', background: 'rgba(251,191,36,0.08)', border: '0.5px solid rgba(251,191,36,0.25)', borderRadius: '12px' }}>
+                  <svg
+                    style={{ width: '20px', height: '20px', color: '#fbbf24', flexShrink: 0 }}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
                   >
-                    <option value="">Choose a room...</option>
-                    {availableRooms.map((room) => (
-                      <option key={room.id} value={room.id}>
-                        {room.room_number} ({room.block_name}) — {room.capacity - room.occupancy}{' '}
-                        slot{room.capacity - room.occupancy !== 1 ? 's' : ''} available
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">
-                    Reason <span className="text-gray-400">(min 20 characters)</span>
-                  </label>
-                  <textarea
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                    placeholder="Explain why you want to transfer..."
-                    className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-500 w-full min-h-[100px] resize-none"
-                    required
-                    minLength={20}
-                  />
-                  <div className="text-[10px] text-gray-400 mt-1">{reason.length}/20 minimum</div>
-                </div>
-                <button
-                  type="submit"
-                  disabled={submitting || reason.length < 20 || !selectedRoomId}
-                  className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 disabled:opacity-40 transition-colors"
-                >
-                  {submitting ? 'Submitting...' : 'Submit Request'}
-                </button>
-              </form>
-            )}
-          </div>
-
-          {/* My Requests */}
-          <div>
-            <h2 className="text-xs uppercase text-gray-400 tracking-widest mb-4">
-              My Transfer Requests
-            </h2>
-            {myRequests.length === 0 ? (
-              <div className="border border-gray-100 rounded-xl p-6 text-sm text-gray-400 text-center">
-                No transfer requests yet.
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {myRequests.map((req) => (
-                  <div
-                    key={req.id}
-                    className="border border-gray-100 rounded-xl p-4 flex justify-between items-start hover:border-gray-300 transition-colors"
-                  >
-                    <div className="flex-1 min-w-0 mr-4">
-                      <div className="text-sm font-medium text-gray-900 mb-1">
-                        Room {req.requested_room}
-                      </div>
-                      <div className="text-xs text-gray-500 mb-2 line-clamp-2">
-                        &quot;{req.reason}&quot;
-                      </div>
-                      <div className="text-[10px] text-gray-400">{formatDate(req.created_at)}</div>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 500, color: '#fbbf24' }}>No room assigned yet</div>
+                    <div style={{ fontSize: '12px', color: 'rgba(251,191,36,0.7)', marginTop: '2px' }}>
+                      Contact your warden to get a room assigned.
                     </div>
-                    <span
-                      className={`flex-shrink-0 text-[10px] px-2 py-1 rounded-full font-medium ${
-                        req.status === 'approved'
-                          ? 'bg-green-50 text-green-600'
-                          : req.status === 'rejected'
-                            ? 'bg-red-50 text-red-600'
-                            : 'bg-yellow-50 text-yellow-600'
-                      }`}
-                    >
-                      {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
-                    </span>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ) : (
+                <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>Loading room info...</div>
+              )}
+            </div>
+
+            {/* Transfer Request Form */}
+            <div style={{ ...panelStyle, padding: '24px' }}>
+              <h2 style={sectionLabel}>Request a Transfer</h2>
+
+              {message && (
+                <div
+                  style={{
+                    marginBottom: '16px',
+                    padding: '10px 12px',
+                    fontSize: '13px',
+                    borderRadius: '10px',
+                    ...(messageType === 'success'
+                      ? { background: 'rgba(74,222,128,0.1)', color: '#4ade80', border: '0.5px solid rgba(74,222,128,0.25)' }
+                      : { background: 'rgba(248,113,113,0.1)', color: '#f87171', border: '0.5px solid rgba(248,113,113,0.25)' }),
+                  }}
+                >
+                  {message}
+                </div>
+              )}
+
+              {availableRooms.length === 0 ? (
+                <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)' }}>
+                  No rooms with available capacity right now.
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', color: 'rgba(255,255,255,0.6)', marginBottom: '8px' }}>Select Requested Room</label>
+                    <select
+                      value={selectedRoomId}
+                      onChange={(e) => setSelectedRoomId(e.target.value)}
+                      className="hm-input"
+                      style={{ ...inputStyle, colorScheme: 'dark' }}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(251,146,60,0.5)')}
+                      onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                      required
+                    >
+                      <option value="">Choose a room...</option>
+                      {availableRooms.map((room) => (
+                        <option key={room.id} value={room.id}>
+                          {room.room_number} ({room.block_name}) — {room.capacity - room.occupancy}{' '}
+                          slot{room.capacity - room.occupancy !== 1 ? 's' : ''} available
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', color: 'rgba(255,255,255,0.6)', marginBottom: '8px' }}>
+                      Reason <span style={{ color: 'rgba(255,255,255,0.4)' }}>(min 20 characters)</span>
+                    </label>
+                    <textarea
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
+                      placeholder="Explain why you want to transfer..."
+                      className="hm-input"
+                      style={{ ...inputStyle, minHeight: '100px', resize: 'none' }}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(251,146,60,0.5)')}
+                      onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                      required
+                      minLength={20}
+                    />
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>{reason.length}/20 minimum</div>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={submitting || reason.length < 20 || !selectedRoomId}
+                    style={{
+                      alignSelf: 'flex-start',
+                      background: ORANGE,
+                      color: '#1a0f04',
+                      borderRadius: '10px',
+                      padding: '9px 16px',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      border: 'none',
+                      cursor: submitting || reason.length < 20 || !selectedRoomId ? 'not-allowed' : 'pointer',
+                      opacity: submitting || reason.length < 20 || !selectedRoomId ? 0.4 : 1,
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {submitting ? 'Submitting...' : 'Submit Request'}
+                  </button>
+                </form>
+              )}
+            </div>
+
+            {/* My Requests */}
+            <div>
+              <h2 style={sectionLabel}>My Transfer Requests</h2>
+              {myRequests.length === 0 ? (
+                <div style={{ ...panelStyle, padding: '24px', fontSize: '13px', color: 'rgba(255,255,255,0.35)', textAlign: 'center' }}>
+                  No transfer requests yet.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {myRequests.map((req) => {
+                    const s = STATUS_STYLES[req.status] || STATUS_STYLES.pending;
+                    return (
+                      <div
+                        key={req.id}
+                        className="glass-card"
+                        style={{ ...panelStyle, padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
+                      >
+                        <div style={{ flex: 1, minWidth: 0, marginRight: '16px' }}>
+                          <div style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.85)', marginBottom: '4px' }}>
+                            Room {req.requested_room}
+                          </div>
+                          <div className="line-clamp-2" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px' }}>
+                            &quot;{req.reason}&quot;
+                          </div>
+                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>{formatDate(req.created_at)}</div>
+                        </div>
+                        <span
+                          style={{
+                            flexShrink: 0,
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            padding: '3px 10px',
+                            borderRadius: '999px',
+                            color: s.color,
+                            background: s.bg,
+                            border: `0.5px solid ${s.border}`,
+                          }}
+                        >
+                          {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </PageShell>
   );
 }

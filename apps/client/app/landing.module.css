@@ -859,6 +859,18 @@
 .stagger3 { transition-delay: 0.3s; }
 .stagger4 { transition-delay: 0.4s; }
 
+/* Respect users who prefer reduced motion — show content instantly. */
+@media (prefers-reduced-motion: reduce) {
+  .revealUp,
+  .cardReveal,
+  .sectionReveal {
+    transition: none !important;
+    transition-delay: 0s !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 .footerLeft {
   font-size: 13px;
   color: rgba(255,255,255,0.18);
