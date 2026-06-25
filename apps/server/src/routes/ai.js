@@ -121,6 +121,12 @@ router.get('/analysis/:type', authenticate, async (req, res, next) => {
     } else if (type === 'visitors') {
       query = supabaseAdmin.from('visitors').select('visitor_name, purpose, status').order('created_at', { ascending: false }).limit(20);
       if (isStudent) query = query.eq('student_id', req.user.id);
+    } else if (type === 'mess') {
+      if (isStudent) {
+        query = supabaseAdmin.from('mess_reviews').select('meal_type, rating, comments').eq('student_id', req.user.id).order('created_at', { ascending: false }).limit(10);
+      } else {
+        query = supabaseAdmin.from('mess_reviews').select('meal_type, rating, comments').order('created_at', { ascending: false }).limit(30);
+      }
     } else {
       return res.status(400).json({ success: false, error: 'Invalid analysis type' });
     }

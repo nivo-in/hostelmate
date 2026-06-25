@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { PageShell } from '@/components/ui/PageShell';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { createClient } from '@/lib/supabase/client';
+import { AiAnalysisCard } from '@/components/ui/AiAnalysisCard';
 import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { LeaveRequest } from '@/types';
@@ -96,6 +97,9 @@ export default function StudentLeaves() {
       <PageHeader title="Leave Requests" showBack onSignOut={handleSignOut} />
 
       <div style={container}>
+        <div style={{ marginBottom: 24 }}>
+          <AiAnalysisCard type="leaves" themeColor="#fb923c" themeRgb="251,146,60" />
+        </div>
         {/* ── REQUEST FORM ── */}
         <div style={{ ...panelStyle, padding: '24px', marginBottom: '28px' }}>
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '480px' }}>
