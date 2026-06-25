@@ -43,7 +43,7 @@ router.post(
           .from('lost_and_found')
           .select('*')
           .eq('status', oppositeStatus)
-          .is('deleted_at', null)
+          // .is('deleted_at', null)
           .neq('id', record.id);
 
         if (existingItems && existingItems.length > 0) {
@@ -107,7 +107,7 @@ router.get('/', authenticate, async (req, res, next) => {
   `,
         { count: 'exact' }
       )
-      .is('deleted_at', null)
+      // .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
     if (status) {
@@ -168,7 +168,7 @@ router.delete('/:id', authenticate, requireStudent, async (req, res, next) => {
 
     const { error } = await supabaseAdmin
       .from('lost_and_found')
-      .update({ deleted_at: new Date().toISOString() })
+      .delete()
       .eq('id', id)
       .eq('reported_by', req.user.id);
 
