@@ -8,6 +8,8 @@ import dynamic from 'next/dynamic';
 import { Reveal } from '@/components/ui/Reveal';
 import { TiltCard } from '@/components/ui/TiltCard';
 import { CursorGlow } from '@/components/ui/CursorGlow';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
+import { AnimatedProgress } from '@/components/ui/AnimatedProgress';
 import { AiAssistant } from '@/components/ui/AiAssistant';
 import {
   ClipboardCheck,
@@ -191,8 +193,8 @@ export default function StudentDashboard() {
         }
         .dash-card { transition: all 0.3s ease; }
         .dash-card:hover {
-          background: radial-gradient(circle at top left, rgba(251,146,60,0.13) 0%, rgba(255,255,255,0.03) 100%) !important;
-          border-color: rgba(251,146,60,0.28) !important;
+          background: radial-gradient(circle at top left, rgba(251,146,60,0.07) 0%, rgba(255,255,255,0.015) 100%) !important;
+          border-color: rgba(251,146,60,0.16) !important;
         }
         .dash-card .arrow-icon { transition: all 0.3s ease; color: rgba(255,255,255,0.2); transform: translateX(0); }
         .dash-card:hover .arrow-icon { transform: translateX(6px); color: rgba(251,146,60,0.85); }
@@ -253,15 +255,15 @@ export default function StudentDashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '12px' }}>
           <div style={{ background: 'rgba(255,255,255,0.08)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>Attendance Rate</div>
-            <div style={{ fontSize: '28px', fontWeight: 500, color: '#4ade80' }}>{stats.attendanceRate}%</div>
+            <div style={{ fontSize: '28px', fontWeight: 500, color: '#4ade80' }}><AnimatedNumber value={stats.attendanceRate} />%</div>
           </div>
           <div style={{ background: 'rgba(255,255,255,0.08)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>Pending Leaves</div>
-            <div style={{ fontSize: '28px', fontWeight: 500, color: '#fbbf24' }}>{stats.pendingLeaves}</div>
+            <div style={{ fontSize: '28px', fontWeight: 500, color: '#fbbf24' }}><AnimatedNumber value={stats.pendingLeaves} /></div>
           </div>
           <div style={{ background: 'rgba(255,255,255,0.08)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>Open Complaints</div>
-            <div style={{ fontSize: '28px', fontWeight: 500, color: '#f87171' }}>{stats.openComplaints}</div>
+            <div style={{ fontSize: '28px', fontWeight: 500, color: '#f87171' }}><AnimatedNumber value={stats.openComplaints} /></div>
           </div>
         </div>
         </Reveal>
@@ -272,19 +274,19 @@ export default function StudentDashboard() {
           <div style={{ background: 'rgba(255,255,255,0.07)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>Attendance this month</div>
             <div style={{ fontSize: '18px', fontWeight: 500, color: 'rgba(255,255,255,0.85)' }}>
-              {stats.monthPresent} / {stats.monthTotal} days
+              <AnimatedNumber value={stats.monthPresent} /> / <AnimatedNumber value={stats.monthTotal} /> days
             </div>
             <div style={{ marginTop: '12px', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
-              <div style={{ width: `${monthPct}%`, height: '100%', background: '#fb923c' }} />
+              <AnimatedProgress value={monthPct} color="#fb923c" />
             </div>
           </div>
           <div style={{ background: 'rgba(255,255,255,0.07)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>Fees</div>
             <div style={{ fontSize: '18px', fontWeight: 500, color: stats.feesPending > 0 ? '#fbbf24' : 'rgba(255,255,255,0.85)' }}>
-              {stats.feesPending > 0 ? `₹${stats.feesPending.toLocaleString('en-IN')} due` : feesTotal > 0 ? 'All paid' : 'No dues'}
+              {stats.feesPending > 0 ? <><span style={{ fontFamily: 'sans-serif' }}>₹</span><AnimatedNumber value={stats.feesPending} format /> due</> : feesTotal > 0 ? 'All paid' : 'No dues'}
             </div>
             <div style={{ marginTop: '12px', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
-              <div style={{ width: `${feesPaidPct}%`, height: '100%', background: stats.feesPending > 0 ? '#fb923c' : '#4ade80' }} />
+              <AnimatedProgress value={feesPaidPct} color={stats.feesPending > 0 ? '#fb923c' : '#4ade80'} />
             </div>
           </div>
         </div>

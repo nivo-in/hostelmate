@@ -32,6 +32,7 @@ interface FaceEnrollmentProps {
 
 const RING = 150;
 const TICKS = 48;
+const REQUIRED_TICKS = 42; // Finish when almost all ticks are filled
 
 export default function FaceEnrollment({ subjectId, role, onSuccess, onCancel }: FaceEnrollmentProps) {
   const cfg = CONFIG[role];
@@ -43,6 +44,7 @@ export default function FaceEnrollment({ subjectId, role, onSuccess, onCancel }:
 
   const [status, setStatus] = useState<Status>('loading');
   const [filledTicks, setFilledTicks] = useState<Set<number>>(new Set());
+  const [activeTicks, setActiveTicks] = useState<Set<number>>(new Set());
   const [promptText, setPromptText] = useState('Position your face in the circle');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -93,6 +95,49 @@ export default function FaceEnrollment({ subjectId, role, onSuccess, onCancel }:
     }
   };
 
+  const getHeadAngleIndex = (landmarks: import('face-api.js').FaceLandmarks68) => {
+    const pts = landmarks.positions;
+    
+    // Center of eyes
+    const leftEyeX = (pts[36].x + pts[39].x) / 2;
+    const leftEyeY = (pts[36].y + pts[39].y) / 2;
+    const rightEyeX = (pts[42].x + pts[45].x) / 2;
+    const rightEyeY = (pts[42].y + pts[45].y) / 2;
+    
+    const noseX = pts[30].x;
+    const noseY = pts[30].y;
+    
+    const mouthY = (pts[51].y + pts[57].y) / 2;
+    
+    const leftEyeDist = noseX - leftEyeX;
+    const rightEyeDist = rightEyeX - noseX;
+    let yaw = (leftEyeDist - rightEyeDist) / ((leftEyeDist + rightEyeDist) || 1);
+
+    const eyeLineY = (leftEyeY + rightEyeY) / 2;
+    const noseToEye = noseY - eyeLineY;
+    const mouthToNose = mouthY - noseY;
+    let pitch = (noseToEye - mouthToNose) / ((noseToEye + mouthToNose) || 1);
+    
+    // INCREASED SENSITIVITY LOOKING DOWN: Multiply downward pitch by 1.8x
+    if (pitch > 0) {
+      pitch *= 1.8;
+    } else {
+      pitch *= 1.2;
+    }
+    yaw *= 1.5;
+
+    const radius = Math.sqrt(yaw * yaw + pitch * pitch);
+    if (radius < 0.12) {
+       return -1; // Looking straight, not rotating
+    }
+    
+    // Calculate angle (-yaw because video is mirrored horizontally)
+    let angle = Math.atan2(pitch, -yaw) * 180 / Math.PI; 
+    if (angle < 0) angle += 360;
+    
+    return Math.floor((angle / 360) * TICKS) % TICKS;
+  };
+
   const startScanning = useCallback(async () => {
     try {
       setStatus('loading');
@@ -107,8 +152,8 @@ export default function FaceEnrollment({ subjectId, role, onSuccess, onCancel }:
       }
       setStatus('guiding');
 
-      let tickProgress = 0;
       const descriptors: Float32Array[] = [];
+      const currentFilled = new Set<number>();
       
       intervalRef.current = setInterval(async () => {
         if (!videoRef.current) return;
@@ -116,27 +161,33 @@ export default function FaceEnrollment({ subjectId, role, onSuccess, onCancel }:
         
         if (!detection) {
           setStatus('no-face');
-          setPromptText('Bring your face into view');
+          setActiveTicks(new Set());
           return;
         }
 
         setStatus('guiding');
-        setPromptText('Slowly turn your head in a circle');
+        setPromptText("Re-scan to confirm it's you, then update");
 
         descriptors.push(detection.descriptor);
         
-        tickProgress += 1;
+        const centerTick = getHeadAngleIndex(detection.landmarks);
         
-        setFilledTicks((prev) => {
-          const next = new Set(prev);
-          for (let i = 0; i < 3; i++) {
-             const tickIdx = (tickProgress * 3 + i) % TICKS;
-             next.add(tickIdx);
+        if (centerTick === -1) {
+          // Looking straight, no new lines glow
+          setActiveTicks(new Set());
+        } else {
+          // GLOW 4 LINES AT A TIME
+          const newActive = new Set<number>();
+          for (let i = -1; i <= 2; i++) {
+            const t = (centerTick + i + TICKS) % TICKS;
+            newActive.add(t);
+            currentFilled.add(t);
           }
-          return next;
-        });
+          setActiveTicks(newActive);
+          setFilledTicks(new Set(currentFilled));
+        }
 
-        if (tickProgress > (TICKS / 3)) {
+        if (currentFilled.size >= REQUIRED_TICKS) {
            clearInterval(intervalRef.current!);
            intervalRef.current = null;
            
@@ -148,6 +199,7 @@ export default function FaceEnrollment({ subjectId, role, onSuccess, onCancel }:
            }
            
            setFilledTicks(new Set(Array.from({ length: TICKS }, (_, i) => i)));
+           setActiveTicks(new Set());
            setPromptText('Scan complete');
            
            setTimeout(() => handleSave(finalDescs), 800);
@@ -169,76 +221,116 @@ export default function FaceEnrollment({ subjectId, role, onSuccess, onCancel }:
   }, [startScanning, stopCamera]);
 
   return (
-    <div ref={containerRef} className="flex flex-col items-center gap-6 py-8 select-none">
-      <div className="text-center">
-        <h2 className="text-xl font-bold text-gray-900">Set up Face ID</h2>
-        <p className="text-sm text-gray-500 mt-2">{promptText}</p>
+    <div 
+      ref={containerRef} 
+      className="relative flex flex-col items-center justify-center w-full min-h-[550px] select-none py-10 overflow-hidden" 
+      style={{ background: '#0a0a0c', borderRadius: '16px' }}
+    >
+      {/* Background radial glow */}
+      <div 
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] pointer-events-none opacity-[0.15]"
+        style={{
+          background: `radial-gradient(circle, ${cfg.accent} 0%, transparent 65%)`
+        }}
+      />
+
+      <div className="text-center z-10 mb-10">
+        <h2 className="text-[22px] font-semibold tracking-wide text-[#f4f4f5]">Update Face ID</h2>
+        <p className="text-[14px] text-[#a1a1aa] mt-2 font-medium">{promptText}</p>
       </div>
 
-      <div className="relative w-[300px] h-[300px] flex items-center justify-center">
+      <div className="relative flex items-center justify-center mb-10" style={{ width: RING * 2, height: RING * 2 }}>
         {status !== 'loading' && status !== 'camera-denied' && status !== 'error' && (
           <video
             ref={videoRef}
             muted
             playsInline
-            className="absolute rounded-full object-cover"
-            style={{ width: RING * 2 - 40, height: RING * 2 - 40, transform: 'scaleX(-1)' }}
+            className="absolute rounded-full object-cover shadow-2xl"
+            style={{ 
+              width: RING * 2 - 60, 
+              height: RING * 2 - 60, 
+              transform: 'scaleX(-1)',
+              background: '#18181b'
+            }}
           />
         )}
 
         {/* The Apple ID ring */}
-        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 300 300">
+        <svg className="absolute inset-0 w-full h-full z-10" viewBox="0 0 300 300" style={{ transform: 'rotate(-90deg)' }}>
           {Array.from({ length: TICKS }).map((_, i) => {
-            const angle = (i * 360) / TICKS - 90;
+            const angle = (i * 360) / TICKS;
             const isFilled = filledTicks.has(i);
+            const isActive = activeTicks.has(i);
+            
+            let strokeColor = 'rgba(255, 255, 255, 0.12)';
+            let strokeWidth = "3";
+            let lineLength = "21"; // y2 value
+            
+            if (isFilled) {
+              strokeColor = cfg.accent;
+              strokeWidth = "3.5";
+              lineLength = "26";
+            }
+            if (isActive) {
+              strokeColor = '#ffffff';
+              strokeWidth = "4";
+              lineLength = "28";
+            }
+
             return (
               <line
                 key={i}
                 x1="150"
-                y1="20"
+                y1="10"
                 x2="150"
-                y2="35"
-                stroke={isFilled ? cfg.accent : '#e5e7eb'}
-                strokeWidth="4"
+                y2={lineLength}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
                 strokeLinecap="round"
                 transform={`rotate(${angle} 150 150)`}
-                className="transition-colors duration-300"
+                className="transition-all duration-300 ease-out"
+                style={{
+                  filter: isActive ? `drop-shadow(0 0 8px ${cfg.accent})` : 'none'
+                }}
               />
             );
           })}
         </svg>
 
         {status === 'loading' && (
-          <div className="absolute inset-0 flex items-center justify-center">
-             <div className="animate-spin w-8 h-8 border-4 border-gray-200 border-t-gray-500 rounded-full" />
+          <div className="absolute inset-0 flex items-center justify-center z-20">
+             <div className="animate-spin w-10 h-10 border-4 border-white/10 border-t-white rounded-full" />
           </div>
         )}
       </div>
 
-      {status === 'processing' && (
-        <div className="text-center animate-pulse text-sm text-gray-500">
-          Saving biometric data...
+      <div className="flex flex-col items-center gap-5 z-10">
+        <div className="px-5 py-2 rounded-full bg-black/50 border border-white/10 text-[#d4d4d8] text-[13px] font-medium backdrop-blur-md">
+          {status === 'guiding' ? 'Rotate your head slowly' : 
+           status === 'no-face' ? 'Bring your face into view' :
+           status === 'processing' ? 'Saving biometric data...' : 
+           'Position your face in the circle'}
         </div>
-      )}
 
-      {status === 'registered' && (
-        <div className="text-green-600 font-medium">
-          Successfully enrolled!
-        </div>
-      )}
+        {status === 'registered' && (
+          <div className="text-green-400 text-sm font-medium tracking-wide">
+            Successfully updated!
+          </div>
+        )}
 
-      {status === 'error' && (
-        <div className="text-red-500 text-sm">
-          {errorMsg}
-        </div>
-      )}
+        {status === 'error' && (
+          <div className="text-red-400 text-sm">
+            {errorMsg}
+          </div>
+        )}
 
-      <button
-        onClick={() => onCancelRef.current()}
-        className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        Cancel
-      </button>
+        <button
+          onClick={() => onCancelRef.current()}
+          className="mt-2 px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-[#a1a1aa] hover:text-white transition-colors text-[14px] font-medium"
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   );
 }

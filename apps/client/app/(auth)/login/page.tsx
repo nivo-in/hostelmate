@@ -238,13 +238,19 @@ export default function LoginPage() {
     }
 
     if (data.user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', data.user.id)
-        .single()
+      let userRole = data.user.app_metadata?.role || data.user.user_metadata?.role;
+      
+      // Only fetch from profiles if role is not in the JWT metadata (saves ~1-1.5s)
+      if (!userRole) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single()
+        userRole = profile?.role;
+      }
 
-      if (profile?.role === 'warden') {
+      if (userRole === 'warden') {
         setAuthenticatedUserId(data.user.id)
         setShowFaceVerification(true)
         setIsLoading(false)
@@ -257,7 +263,7 @@ export default function LoginPage() {
         parent: '/parent/dashboard'
       }
 
-      const route = routes[profile?.role || 'student']
+      const route = routes[userRole || 'student']
       if (route) router.push(route)
       else {
         setError('No role assigned.')
