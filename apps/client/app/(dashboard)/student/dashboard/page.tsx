@@ -7,6 +7,7 @@ import { useApi } from '@/hooks/useApi';
 import dynamic from 'next/dynamic';
 import { Reveal } from '@/components/ui/Reveal';
 import { TiltCard } from '@/components/ui/TiltCard';
+import { CursorGlow } from '@/components/ui/CursorGlow';
 import { AiAssistant } from '@/components/ui/AiAssistant';
 import {
   ClipboardCheck,
@@ -231,6 +232,7 @@ export default function StudentDashboard() {
       </div>
 
       <div style={{ padding: '24px 32px', maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <CursorGlow color="rgba(251, 146, 60, 0.12)" size={600} />
         {/* Greeting header */}
         <Reveal>
         <div style={{ marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
