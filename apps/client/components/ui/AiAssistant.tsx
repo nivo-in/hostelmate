@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
 import { Sparkles, X, Send, Loader2 } from 'lucide-react';
@@ -9,6 +10,7 @@ import { useRouter } from 'next/navigation';
 export function AiAssistant() {
   const [role, setRole] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,6 +19,7 @@ export function AiAssistant() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setMounted(true);
     const checkRole = async () => {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
@@ -135,17 +138,17 @@ export function AiAssistant() {
         <Sparkles size={16} />
       </button>
 
-      {isOpen && (
+      {isOpen && mounted && createPortal(
         <>
         <div 
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 99 }} 
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 9999 }} 
           onClick={() => setIsOpen(false)} 
         />
         <div style={{
           position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '400px', height: '520px',
           background: 'rgba(15,15,22,0.95)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
           border: '1px solid rgba(124,92,252,0.2)', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-          display: 'flex', flexDirection: 'column', zIndex: 100, overflow: 'hidden'
+          display: 'flex', flexDirection: 'column', zIndex: 10000, overflow: 'hidden'
         }}>
           {/* Header */}
           <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(124,92,252,0.05)' }}>
@@ -212,7 +215,8 @@ export function AiAssistant() {
             </form>
           </div>
         </div>
-        </>
+        </>,
+        document.body
       )}
     </>
   );
