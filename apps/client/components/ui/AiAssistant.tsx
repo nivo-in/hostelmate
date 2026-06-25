@@ -70,17 +70,31 @@ export function AiAssistant() {
     }
   };
 
-  const parseMessage = (content: string) => {
+  const isWarden = role === 'warden';
+  const theme = {
+    primary: isWarden ? '#7c5cfc' : '#fb923c',
+    primaryLight: isWarden ? '#a78bfa' : '#fdba74',
+    primaryBg: isWarden ? 'rgba(124,92,252,0.2)' : 'rgba(251,146,60,0.2)',
+    primaryBgHover: isWarden ? 'rgba(124,92,252,0.1)' : 'rgba(251,146,60,0.1)',
+    primaryBorder: isWarden ? 'rgba(124,92,252,0.4)' : 'rgba(251,146,60,0.4)',
+    primaryBorderFocus: isWarden ? 'rgba(124,92,252,0.5)' : 'rgba(251,146,60,0.5)',
+    headerBg: isWarden ? 'rgba(124,92,252,0.05)' : 'rgba(251,146,60,0.05)',
+    basePath: isWarden ? '/warden' : '/student',
+  };
+
+  const parseMessage = (content: string, isAssistant: boolean) => {
+    if (!isAssistant) return [content];
+
     // Simple parser to make keywords clickable
     const keywords = [
-      { word: 'leave', href: '/warden/leaves' },
-      { word: 'leaves', href: '/warden/leaves' },
-      { word: 'complaint', href: '/warden/complaints' },
-      { word: 'complaints', href: '/warden/complaints' },
-      { word: 'visitor', href: '/warden/visitors' },
-      { word: 'visitors', href: '/warden/visitors' },
-      { word: 'mess', href: '/warden/mess' },
-      { word: 'attendance', href: '/warden/attendance' },
+      { word: 'leave', href: `${theme.basePath}/leaves` },
+      { word: 'leaves', href: `${theme.basePath}/leaves` },
+      { word: 'complaint', href: `${theme.basePath}/complaints` },
+      { word: 'complaints', href: `${theme.basePath}/complaints` },
+      { word: 'visitor', href: `${theme.basePath}/visitors` },
+      { word: 'visitors', href: `${theme.basePath}/visitors` },
+      { word: 'mess', href: `${theme.basePath}/mess` },
+      { word: 'attendance', href: `${theme.basePath}/attendance` },
     ];
 
     let elements: (string | React.JSX.Element)[] = [content];
@@ -98,7 +112,7 @@ export function AiAssistant() {
               <span
                 key={`${word}-${i}`}
                 onClick={() => router.push(href)}
-                style={{ color: '#fb923c', textDecoration: 'underline', cursor: 'pointer', fontWeight: 500 }}
+                style={{ color: theme.primaryLight, textDecoration: 'underline', cursor: 'pointer', fontWeight: 500 }}
               >
                 {part}
               </span>
@@ -117,15 +131,15 @@ export function AiAssistant() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         style={{
-          width: '32px', height: '32px', borderRadius: '50%', background: isOpen ? 'rgba(124,92,252,0.2)' : 'transparent',
-          border: '1px solid', borderColor: isOpen ? 'rgba(124,92,252,0.4)' : 'transparent',
+          width: '32px', height: '32px', borderRadius: '50%', background: isOpen ? theme.primaryBg : 'transparent',
+          border: '1px solid', borderColor: isOpen ? theme.primaryBorder : 'transparent',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: isOpen ? '#a78bfa' : 'rgba(255,255,255,0.4)', cursor: 'pointer', transition: 'all 0.2s',
+          color: isOpen ? theme.primaryLight : 'rgba(255,255,255,0.4)', cursor: 'pointer', transition: 'all 0.2s',
         }}
         onMouseEnter={(e) => {
           if (!isOpen) {
-            e.currentTarget.style.color = '#a78bfa';
-            e.currentTarget.style.background = 'rgba(124,92,252,0.1)';
+            e.currentTarget.style.color = theme.primaryLight;
+            e.currentTarget.style.background = theme.primaryBgHover;
           }
         }}
         onMouseLeave={(e) => {
@@ -147,16 +161,16 @@ export function AiAssistant() {
         <div style={{
           position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '400px', height: '520px',
           background: 'rgba(15,15,22,0.95)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-          border: '1px solid rgba(124,92,252,0.2)', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+          border: `1px solid ${theme.primaryBg}`, borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
           display: 'flex', flexDirection: 'column', zIndex: 10000, overflow: 'hidden'
         }}>
           {/* Header */}
-          <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(124,92,252,0.05)' }}>
+          <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: theme.headerBg }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: 'rgba(124,92,252,0.2)', color: '#a78bfa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: theme.primaryBg, color: theme.primaryLight, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Sparkles size={12} />
               </div>
-              <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.9)' }}>{role === 'warden' ? 'Warden AI' : 'Student AI'}</span>
+              <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.9)' }}>{isWarden ? 'Warden AI' : 'Student AI'}</span>
             </div>
             <button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
               <X size={16} />
@@ -169,18 +183,18 @@ export function AiAssistant() {
               <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
                 <div style={{
                   maxWidth: '85%', padding: '10px 14px', borderRadius: '12px', fontSize: '13px', lineHeight: 1.5,
-                  background: m.role === 'user' ? '#7c5cfc' : 'rgba(255,255,255,0.05)',
+                  background: m.role === 'user' ? theme.primary : 'rgba(255,255,255,0.05)',
                   color: m.role === 'user' ? '#fff' : 'rgba(255,255,255,0.85)',
                   borderBottomRightRadius: m.role === 'user' ? '4px' : '12px',
                   borderBottomLeftRadius: m.role === 'assistant' ? '4px' : '12px',
                   whiteSpace: 'pre-wrap'
                 }}>
-                  {parseMessage(m.content)}
+                  {parseMessage(m.content, m.role === 'assistant')}
                 </div>
               </div>
             ))}
             {loading && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#a78bfa', fontSize: '12px', padding: '0 4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.primaryLight, fontSize: '12px', padding: '0 4px' }}>
                 <Loader2 size={12} className="animate-spin" /> Thinking...
               </div>
             )}
@@ -198,14 +212,14 @@ export function AiAssistant() {
                   flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
                   borderRadius: '20px', padding: '8px 14px', fontSize: '13px', color: '#fff', outline: 'none',
                 }}
-                onFocus={(e) => e.currentTarget.style.borderColor = 'rgba(124,92,252,0.5)'}
+                onFocus={(e) => e.currentTarget.style.borderColor = theme.primaryBorderFocus}
                 onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
               />
               <button
                 type="submit"
                 disabled={!input.trim() || loading}
                 style={{
-                  width: '34px', height: '34px', borderRadius: '50%', background: input.trim() && !loading ? '#7c5cfc' : 'rgba(255,255,255,0.05)',
+                  width: '34px', height: '34px', borderRadius: '50%', background: input.trim() && !loading ? theme.primary : 'rgba(255,255,255,0.05)',
                   border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: input.trim() && !loading ? '#fff' : 'rgba(255,255,255,0.3)',
                   cursor: input.trim() && !loading ? 'pointer' : 'default', transition: 'all 0.2s'
                 }}
