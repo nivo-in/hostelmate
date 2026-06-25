@@ -33,7 +33,7 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getSession();
   const path = request.nextUrl.pathname;
 
-  const publicPaths = ['/', '/login'];
+  const publicPaths = ['/', '/login', '/demo'];
   const isPublicPath = publicPaths.includes(path);
 
   // No session → redirect to login
@@ -58,5 +58,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };

@@ -1,3 +1,6 @@
+// Sentry instrumentation — MUST be imported before express/http.
+import { Sentry, sentryEnabled } from './instrument.js';
+
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -35,6 +38,8 @@ import parentRoutes from './routes/parent.js';
 import visitorsRoutes from './routes/visitors.js';
 import paymentsRoutes from './routes/payments.js';
 import healthRoutes from './routes/health.js';
+import demoRoutes from './routes/demo.js';
+import institutionsRoutes from './routes/institutions.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -66,20 +71,37 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Middleware
 app.use(helmet());
+
+// Trust the first proxy hop (Render/Vercel/Nginx) so req.ip reflects the real
+// client for rate limiting rather than the load balancer.
+app.set('trust proxy', 1);
+
+// Production origins come from env (comma-separated CORS_ALLOWED_ORIGINS and/or
+// FRONTEND_URL); local + LAN origins stay allowed for development.
+const explicitOrigins = [
+  ...(process.env.CORS_ALLOWED_ORIGINS || '').split(','),
+  process.env.FRONTEND_URL || '',
+]
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+const isAllowedOrigin = (origin) => {
+  if (explicitOrigins.includes(origin)) return true;
+  return (
+    origin.includes('localhost') ||
+    origin.includes('127.0.0.1') ||
+    /^https?:\/\/192\.168\.\d+\.\d+/.test(origin) ||
+    /^https?:\/\/10\.\d+\.\d+\.\d+/.test(origin)
+  );
+};
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, curl)
+      // Allow requests with no origin (mobile apps, curl, server-to-server).
       if (!origin) return callback(null, true);
-      // Allow localhost and local network IPs
-      if (
-        origin.includes('localhost') ||
-        origin.includes('127.0.0.1') ||
-        origin.match(/^https?:\/\/192\.168\.\d+\.\d+/) ||
-        origin.match(/^https?:\/\/10\.\d+\.\d+\.\d+/)
-      ) {
-        return callback(null, true);
-      }
+      if (isAllowedOrigin(origin)) return callback(null, true);
+      logger.warn(`CORS blocked origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
@@ -120,6 +142,8 @@ app.use('/api/v1/students', studentsRoutes);
 app.use('/api/v1/parent', parentRoutes);
 app.use('/api/v1/visitors', visitorsRoutes);
 app.use('/api/v1/payments', paymentsRoutes);
+app.use('/api/v1/demo', demoRoutes);
+app.use('/api/v1/institutions', institutionsRoutes);
 
 // Backward compatibility redirect
 app.use('/api', (req, res, next) => {
@@ -132,6 +156,11 @@ app.use((req, res) => {
   res.status(404).json({ success: false, error: 'Route not found' });
 });
 
+// Sentry must capture errors before our handler formats the response.
+if (sentryEnabled) {
+  Sentry.setupExpressErrorHandler(app);
+}
+
 // Global error handler
 app.use(errorHandler);
 
@@ -143,12 +172,10 @@ if (process.env.NODE_ENV !== 'test') {
 
     try {
       await redis.ping();
-      let redisStatus = 'connected';
       logger.info('Redis connected successfully');
       startCurfewJob();
     } catch (err) {
-      let redisStatus = 'disconnected';
-      logger.warn('Redis connection failed — caching disabled');
+      logger.warn(`Redis connection failed — caching disabled: ${err.message}`);
     }
   });
 
