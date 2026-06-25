@@ -90,3 +90,93 @@ Return ONLY this JSON format:
 }
 
 export default openai;
+
+export async function processWardenChat(messages, context, wardenId) {
+  try {
+    const systemPrompt = `You are an AI assistant for a hostel warden at HostelMate. You have access to real-time hostel data.
+Current hostel context:
+- Total students: ${context.totalStudents}
+- Attendance today: ${context.attendanceToday} students marked
+- Pending leave requests: ${context.pendingLeaves?.length || 0}
+- Open complaints: ${context.openComplaints?.length || 0}
+- Pending visitors: ${context.pendingVisitors?.length || 0}
+- Average mess rating: ${context.averageMessRating}/5
+
+Be concise, professional, and helpful. If asked about specific data, refer to the context above. Help the warden manage the hostel effectively.`;
+
+    const response = await openai.chat.completions.create({
+      model: 'llama-3.1-8b-instant',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...messages.slice(-10),
+      ],
+      temperature: 0.3,
+      max_tokens: 400,
+    });
+
+    return { response: response.choices[0].message.content };
+  } catch (err) {
+    logger.error('Warden chat failed', { error: err.message });
+    return { error: 'AI assistant is temporarily unavailable.' };
+  }
+}
+
+export async function processStudentChat(messages, context, studentId) {
+  try {
+    const systemPrompt = `You are a helpful AI assistant for a student living in a hostel managed by HostelMate.
+Your student's context:
+- Recent leave requests: ${context.myLeaves?.length || 0} requests
+- Recent complaints: ${context.myComplaints?.length || 0} complaints
+- Upcoming visitors: ${context.myVisitors?.length || 0} pending
+
+Help the student with questions about hostel life, how to file leaves, complaints, visitor requests, mess menu, fees, etc. Be friendly and concise.`;
+
+    const response = await openai.chat.completions.create({
+      model: 'llama-3.1-8b-instant',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...messages.slice(-10),
+      ],
+      temperature: 0.4,
+      max_tokens: 400,
+    });
+
+    return { response: response.choices[0].message.content };
+  } catch (err) {
+    logger.error('Student chat failed', { error: err.message });
+    return { error: 'AI assistant is temporarily unavailable.' };
+  }
+}
+
+export async function analyzeGeneric(data, type, role) {
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'llama-3.1-8b-instant',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a hostel data analyst. Analyze the provided ${type} data for a ${role} and return JSON only.
+Return ONLY this JSON format:
+{
+  "summary": "2-3 sentence summary of the data",
+  "insights": ["key insight 1", "key insight 2", "key insight 3"],
+  "recommendation": "main actionable recommendation"
+}`,
+        },
+        {
+          role: 'user',
+          content: `Analyze this ${type} data: ${JSON.stringify(data)}`,
+        },
+      ],
+      temperature: 0.2,
+      max_tokens: 300,
+      response_format: { type: 'json_object' },
+    });
+
+    return JSON.parse(response.choices[0].message.content);
+  } catch (err) {
+    logger.error('Generic analysis failed', { error: err.message });
+    return { summary: 'Analysis unavailable.', insights: [], recommendation: '' };
+  }
+}
+
