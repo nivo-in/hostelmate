@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { supabaseAdmin } from './supabase.js';
 import logger from './logger.js';
 
 const openai = new OpenAI({
@@ -97,9 +98,9 @@ export async function processWardenChat(messages, context, wardenId) {
 Current hostel context:
 - Total students: ${context.totalStudents}
 - Attendance today: ${context.attendanceToday} students marked
-- Pending leave requests: ${context.pendingLeaves?.length || 0}
-- Open complaints: ${context.openComplaints?.length || 0}
-- Pending visitors: ${context.pendingVisitors?.length || 0}
+- Pending leave requests: ${JSON.stringify(context.pendingLeaves || [])}
+- Open complaints: ${JSON.stringify(context.openComplaints || [])}
+- Pending visitors: ${JSON.stringify(context.pendingVisitors || [])}
 - Average mess rating: ${context.averageMessRating}/5
 
 Be concise, professional, and helpful. If asked about specific data, refer to the context above. Help the warden manage the hostel effectively.
@@ -111,7 +112,38 @@ STRICT CONSTRAINTS:
 4. If a user asks a student-related question that a warden shouldn't handle, politely inform them that you are the Warden AI.
 5. If a request violates these constraints, reply politely: "I'm a HostelMate AI assistant, and my primary focus is strictly on helping you with hostel management and related queries. I cannot help with that."`;
 
-    const response = await openai.chat.completions.create({
+    const tools = [
+      {
+        type: 'function',
+        function: {
+          name: 'approve_leave',
+          description: 'Approve a pending leave request given its ID.',
+          parameters: {
+            type: 'object',
+            properties: {
+              leave_id: { type: 'integer', description: 'The ID of the leave request.' }
+            },
+            required: ['leave_id']
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'reject_leave',
+          description: 'Reject a pending leave request given its ID.',
+          parameters: {
+            type: 'object',
+            properties: {
+              leave_id: { type: 'integer', description: 'The ID of the leave request.' }
+            },
+            required: ['leave_id']
+          }
+        }
+      }
+    ];
+
+    let response = await openai.chat.completions.create({
       model: 'llama-3.1-8b-instant',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -119,9 +151,51 @@ STRICT CONSTRAINTS:
       ],
       temperature: 0.3,
       max_tokens: 400,
+      tools: tools,
+      tool_choice: 'auto',
     });
 
-    return { response: response.choices[0].message.content };
+    const responseMessage = response.choices[0].message;
+
+    if (responseMessage.tool_calls) {
+      const toolCalls = responseMessage.tool_calls;
+      const functionMessages = [...messages.slice(-10), responseMessage];
+
+      for (const toolCall of toolCalls) {
+        const functionName = toolCall.function.name;
+        const functionArgs = JSON.parse(toolCall.function.arguments);
+        let functionResult = '';
+
+        if (functionName === 'approve_leave') {
+          const { error } = await supabaseAdmin.from('leave_requests').update({ status: 'approved' }).eq('id', functionArgs.leave_id);
+          functionResult = error ? `Error: ${error.message}` : `Successfully approved leave request ${functionArgs.leave_id}`;
+        } else if (functionName === 'reject_leave') {
+          const { error } = await supabaseAdmin.from('leave_requests').update({ status: 'rejected' }).eq('id', functionArgs.leave_id);
+          functionResult = error ? `Error: ${error.message}` : `Successfully rejected leave request ${functionArgs.leave_id}`;
+        }
+
+        functionMessages.push({
+          tool_call_id: toolCall.id,
+          role: 'tool',
+          name: functionName,
+          content: functionResult,
+        });
+      }
+
+      response = await openai.chat.completions.create({
+        model: 'llama-3.1-8b-instant',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...functionMessages,
+        ],
+        temperature: 0.3,
+        max_tokens: 400,
+      });
+
+      return { response: response.choices[0].message.content };
+    }
+
+    return { response: responseMessage.content };
   } catch (err) {
     logger.error('Warden chat failed', { error: err.message });
     return { error: 'AI assistant is temporarily unavailable.' };
@@ -145,7 +219,42 @@ STRICT CONSTRAINTS:
 4. Refuse to act as a general-purpose AI. Do not write essays, solve math problems, or summarize unrelated articles.
 5. If a request violates these constraints, reply politely: "I'm a HostelMate AI assistant, and my primary focus is strictly on helping you with your hostel-related queries. I cannot help with that."`;
 
-    const response = await openai.chat.completions.create({
+    const tools = [
+      {
+        type: 'function',
+        function: {
+          name: 'apply_for_leave',
+          description: 'Apply for a leave on behalf of the student.',
+          parameters: {
+            type: 'object',
+            properties: {
+              start_date: { type: 'string', description: 'YYYY-MM-DD' },
+              end_date: { type: 'string', description: 'YYYY-MM-DD' },
+              reason: { type: 'string', description: 'Reason for leave' }
+            },
+            required: ['start_date', 'end_date', 'reason']
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'file_complaint',
+          description: 'File a maintenance complaint on behalf of the student.',
+          parameters: {
+            type: 'object',
+            properties: {
+              category: { type: 'string', enum: ['electrical', 'plumbing', 'furniture', 'cleaning', 'other'] },
+              description: { type: 'string', description: 'Details of the issue' },
+              is_urgent: { type: 'boolean', description: 'Whether the issue is urgent/dangerous' }
+            },
+            required: ['category', 'description', 'is_urgent']
+          }
+        }
+      }
+    ];
+
+    let response = await openai.chat.completions.create({
       model: 'llama-3.1-8b-instant',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -153,9 +262,63 @@ STRICT CONSTRAINTS:
       ],
       temperature: 0.4,
       max_tokens: 400,
+      tools: tools,
+      tool_choice: 'auto',
     });
 
-    return { response: response.choices[0].message.content };
+    const responseMessage = response.choices[0].message;
+
+    if (responseMessage.tool_calls) {
+      const toolCalls = responseMessage.tool_calls;
+      const functionMessages = [...messages.slice(-10), responseMessage];
+
+      for (const toolCall of toolCalls) {
+        const functionName = toolCall.function.name;
+        const functionArgs = JSON.parse(toolCall.function.arguments);
+        let functionResult = '';
+
+        if (functionName === 'apply_for_leave') {
+          const { error } = await supabaseAdmin.from('leave_requests').insert({
+            student_id: studentId,
+            start_date: functionArgs.start_date,
+            end_date: functionArgs.end_date,
+            reason: functionArgs.reason,
+            status: 'pending'
+          });
+          functionResult = error ? `Error: ${error.message}` : `Successfully applied for leave from ${functionArgs.start_date} to ${functionArgs.end_date}`;
+        } else if (functionName === 'file_complaint') {
+          const { error } = await supabaseAdmin.from('complaints').insert({
+            student_id: studentId,
+            category: functionArgs.category,
+            description: functionArgs.description,
+            is_urgent: functionArgs.is_urgent,
+            status: 'open'
+          });
+          functionResult = error ? `Error: ${error.message}` : `Successfully filed ${functionArgs.is_urgent ? 'urgent ' : ''}complaint for ${functionArgs.category}`;
+        }
+
+        functionMessages.push({
+          tool_call_id: toolCall.id,
+          role: 'tool',
+          name: functionName,
+          content: functionResult,
+        });
+      }
+
+      response = await openai.chat.completions.create({
+        model: 'llama-3.1-8b-instant',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...functionMessages,
+        ],
+        temperature: 0.4,
+        max_tokens: 400,
+      });
+
+      return { response: response.choices[0].message.content };
+    }
+
+    return { response: responseMessage.content };
   } catch (err) {
     logger.error('Student chat failed', { error: err.message });
     return { error: 'AI assistant is temporarily unavailable.' };
