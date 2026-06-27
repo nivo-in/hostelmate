@@ -1,4 +1,5 @@
 'use client';
+import { Wrench } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -165,7 +166,7 @@ export default function WardenComplaints() {
             <div style={panel}>
               <EmptyState
                 message={`No ${activeTab !== 'All' ? activeTab.toLowerCase() : ''} complaints found`}
-                icon="🔧"
+                icon={<Wrench strokeWidth={1.5} />}
               />
             </div>
           ) : (

@@ -9,6 +9,7 @@ import { AiAnalysisCard } from '@/components/ui/AiAnalysisCard';
 import { useRouter } from 'next/navigation';
 import { container } from '@/lib/ui';
 import { MessMenu } from '@/types';
+import { Star } from 'lucide-react';
 
 const ORANGE = '#fb923c';
 const ORANGE_BORDER = 'rgba(251,146,60,0.4)';
@@ -180,8 +181,6 @@ export default function StudentMess() {
                       type="button"
                       onClick={() => handleRatingChange(meal, star)}
                       style={{
-                        fontSize: '20px',
-                        lineHeight: 1,
                         background: 'transparent',
                         border: 'none',
                         cursor: 'pointer',
@@ -191,7 +190,7 @@ export default function StudentMess() {
                         color: (ratings[meal]?.rating ?? 0) >= star ? ORANGE : 'rgba(255,255,255,0.2)',
                       }}
                     >
-                      ★
+                      <Star size={20} fill={(ratings[meal]?.rating ?? 0) >= star ? 'currentColor' : 'transparent'} strokeWidth={1.5} />
                     </button>
                   ))}
                 </div>

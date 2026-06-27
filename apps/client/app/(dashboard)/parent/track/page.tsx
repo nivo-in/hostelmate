@@ -1,4 +1,5 @@
 'use client';
+import { X, Check } from 'lucide-react';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -130,7 +131,7 @@ export default function ParentTrack() {
       return (
         <div className="flex flex-col items-center justify-center p-8 border border-green-100 bg-green-50 rounded-xl mb-8">
           <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mb-4">
-            <span className="text-3xl text-green-600">✓</span>
+            <span className="text-3xl text-green-600"><Check size={16} strokeWidth={1.5} /></span>
           </div>
           <h2 className="text-lg font-medium text-gray-900">Present Today</h2>
           {today_attendance.scan_time && (
@@ -146,7 +147,7 @@ export default function ParentTrack() {
       return (
         <div className="flex flex-col items-center justify-center p-8 border border-red-100 bg-red-50 rounded-xl mb-8">
           <div className="w-24 h-24 rounded-full bg-red-100 flex items-center justify-center mb-4">
-            <span className="text-3xl text-red-600">✗</span>
+            <span className="text-3xl text-red-600"><X size={16} strokeWidth={1.5} /></span>
           </div>
           <h2 className="text-lg font-medium text-gray-900">Absent Today</h2>
         </div>

@@ -1,4 +1,5 @@
 'use client';
+import { DoorOpen } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -234,7 +235,7 @@ export default function WardenVisitors() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {filteredVisitors.length === 0 ? (
             <div style={{ ...panel }}>
-              <EmptyState message="No visitors found" icon="🚪" />
+              <EmptyState message="No visitors found" icon={<DoorOpen strokeWidth={1.5} />} />
             </div>
           ) : (
             filteredVisitors.map((v) => (

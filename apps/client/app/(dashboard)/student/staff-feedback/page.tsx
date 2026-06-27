@@ -1,4 +1,5 @@
 'use client';
+import { Star } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
 import { PageShell } from '@/components/ui/PageShell';
@@ -75,9 +76,7 @@ export default function StaffFeedbackPage() {
 
   const renderStars = (ratingValue: number) => {
     return Array.from({ length: 5 }).map((_, i) => (
-      <span key={i} style={{ color: i < ratingValue ? ORANGE : STAR_EMPTY }}>
-        ★
-      </span>
+      <span key={i} style={{ color: i < ratingValue ? ORANGE : STAR_EMPTY }}><Star size={16} strokeWidth={1.5} /></span>
     ));
   };
 
@@ -149,9 +148,7 @@ export default function StaffFeedbackPage() {
                             onMouseEnter={() => setHoverRating(i + 1)}
                             onMouseLeave={() => setHoverRating(0)}
                             style={{ color: active ? (hoverRating ? '#fdba74' : ORANGE) : STAR_EMPTY, transition: 'color 0.15s' }}
-                          >
-                            ★
-                          </span>
+                          ><Star size={16} strokeWidth={1.5} /></span>
                         );
                       })}
                     </div>

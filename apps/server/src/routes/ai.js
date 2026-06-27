@@ -81,16 +81,24 @@ router.post('/chat', authenticate, async (req, res, next) => {
       return res.json({ success: true, data: { message: reply.response } });
 
     } else if (req.profile.role === 'student') {
-      const { data: myLeaves } = await supabaseAdmin.from('leave_requests').select('id, start_date, end_date, reason, status').eq('student_id', req.user.id).order('created_at', { ascending: false }).limit(5);
-      const { data: myComplaints } = await supabaseAdmin.from('complaints').select('id, category, description, status, is_urgent').eq('student_id', req.user.id).order('created_at', { ascending: false }).limit(5);
-      const { data: myVisitors } = await supabaseAdmin.from('visitors').select('id, visitor_name, expected_visit_date, status').eq('student_id', req.user.id).order('created_at', { ascending: false }).limit(5);
+      const { data: myLeaves } = await supabaseAdmin.from('leave_requests').select('id, start_date, end_date, reason, status, created_at').eq('student_id', req.user.id).order('created_at', { ascending: false }).limit(10);
+      const { data: myComplaints } = await supabaseAdmin.from('complaints').select('id, category, description, status, is_urgent, created_at').eq('student_id', req.user.id).order('created_at', { ascending: false }).limit(10);
+      const { data: myVisitors } = await supabaseAdmin.from('visitors').select('id, visitor_name, expected_visit_date, purpose, status').eq('student_id', req.user.id).order('created_at', { ascending: false }).limit(10);
       const { data: messMenu } = await supabaseAdmin.from('mess_menu').select('*');
-      
+      // Fetch last 30 days attendance for this student
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const { data: myAttendance } = await supabaseAdmin.from('attendance').select('date, status').eq('student_id', req.user.id).gte('date', thirtyDaysAgo.toISOString().split('T')[0]).order('date', { ascending: false }).limit(30);
+      const presentDays = (myAttendance || []).filter(a => a.status === 'present').length;
+      const totalDays = (myAttendance || []).length;
+
       const context = {
         myLeaves: myLeaves || [],
         myComplaints: myComplaints || [],
         myVisitors: myVisitors || [],
         messMenu: messMenu || [],
+        myAttendance: myAttendance || [],
+        attendanceSummary: { presentDays, totalDays, absentDays: totalDays - presentDays, percentPresent: totalDays > 0 ? ((presentDays / totalDays) * 100).toFixed(1) : 'N/A' },
         timestamp: new Date().toISOString()
       };
 

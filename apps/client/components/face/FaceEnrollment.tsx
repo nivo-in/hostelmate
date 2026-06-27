@@ -192,9 +192,20 @@ export default function FaceEnrollment({ subjectId, role, onSuccess, onCancel }:
            intervalRef.current = null;
            
            const descsArray = Array.from(descriptors);
-           const finalDescs: number[][] = [];
-           for (let i = 0; i < 5; i++) {
-             const idx = Math.floor((i / 5) * descsArray.length);
+           
+           // Compute the mean descriptor from ALL captured frames —
+           // this produces the most stable, robust canonical vector.
+           const len = descsArray[0].length;
+           const mean = new Array<number>(len).fill(0);
+           for (const d of descsArray) {
+             for (let j = 0; j < len; j++) mean[j] += d[j];
+           }
+           for (let j = 0; j < len; j++) mean[j] /= descsArray.length;
+           
+           // Also pick 4 evenly-spaced angle snapshots for multi-angle matching
+           const finalDescs: number[][] = [mean]; // index 0 = mean (descriptor_straight)
+           for (let i = 1; i <= 4; i++) {
+             const idx = Math.floor((i / 4) * (descsArray.length - 1));
              finalDescs.push(Array.from(descsArray[idx]));
            }
            

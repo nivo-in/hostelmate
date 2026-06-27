@@ -1,4 +1,5 @@
 'use client';
+import { AlertTriangle } from 'lucide-react';
 
 import { useEffect, useState, useCallback } from 'react';
 import { PageShell } from '@/components/ui/PageShell';
@@ -791,7 +792,7 @@ export default function StudentPaymentsPage() {
                             color: payment.is_overdue ? '#fff' : '#1a0f04',
                           }}
                         >
-                          {payment.is_overdue ? '⚠️ Pay Overdue ' : 'Pay Now '}
+                          {payment.is_overdue ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={14} strokeWidth={2.5} />️ Pay Overdue </span> : 'Pay Now '}
                           {fmt(payment.amount)}
                         </button>
                         {payment.status === 'processing' && (

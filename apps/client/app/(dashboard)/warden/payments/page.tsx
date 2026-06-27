@@ -1,4 +1,5 @@
 'use client';
+import { Banknote, ClipboardList } from 'lucide-react';
 
 import { useEffect, useState, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -532,7 +533,7 @@ export default function WardenPaymentsPage() {
                     {payments.length === 0 ? (
                       <tr>
                         <td colSpan={8}>
-                          <EmptyState message="No payments found" icon="💰" />
+                          <EmptyState message="No payments found" icon={<Banknote strokeWidth={1.5} />} />
                         </td>
                       </tr>
                     ) : (
@@ -867,7 +868,7 @@ export default function WardenPaymentsPage() {
                   {feeStructures.length === 0 ? (
                     <tr>
                       <td colSpan={5}>
-                        <EmptyState message="No fee structures yet" icon="📋" />
+                        <EmptyState message="No fee structures yet" icon={<ClipboardList strokeWidth={1.5} />} />
                       </td>
                     </tr>
                   ) : (

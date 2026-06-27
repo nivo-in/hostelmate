@@ -21,7 +21,7 @@ export function TiltCard({
   onClick,
   onMouseEnter,
   accent = '#ffffff',
-  max = 7,
+  max = 3,
   className,
   style,
 }: TiltCardProps) {
@@ -36,20 +36,21 @@ export function TiltCard({
     const animate = () => {
       const c = cur.current;
       const t = tgt.current;
-      c.rx += (t.rx - c.rx) * 0.12;
-      c.ry += (t.ry - c.ry) * 0.12;
-      c.gx += (t.gx - c.gx) * 0.2;
-      c.gy += (t.gy - c.gy) * 0.2;
-      c.glow += (t.glow - c.glow) * 0.12;
+      // Increased from 0.12 to 0.35 for much faster, snappier response
+      c.rx += (t.rx - c.rx) * 0.35;
+      c.ry += (t.ry - c.ry) * 0.35;
+      c.gx += (t.gx - c.gx) * 0.4;
+      c.gy += (t.gy - c.gy) * 0.4;
+      c.glow += (t.glow - c.glow) * 0.35;
 
       const el = ref.current;
       if (el) {
-        el.style.transform = `perspective(900px) rotateX(${c.rx.toFixed(3)}deg) rotateY(${c.ry.toFixed(3)}deg)`;
+        el.style.transform = `perspective(1200px) rotateX(${c.rx.toFixed(3)}deg) rotateY(${c.ry.toFixed(3)}deg)`;
       }
       const g = glowRef.current;
       if (g) {
         g.style.opacity = c.glow.toFixed(3);
-        g.style.background = `radial-gradient(240px circle at ${c.gx.toFixed(1)}% ${c.gy.toFixed(1)}%, ${accent}24, transparent 60%)`;
+        g.style.background = `radial-gradient(240px circle at ${c.gx.toFixed(1)}% ${c.gy.toFixed(1)}%, ${accent}18, transparent 60%)`;
       }
 
       const settled =

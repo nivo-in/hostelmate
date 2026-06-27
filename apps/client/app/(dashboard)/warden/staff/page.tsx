@@ -1,4 +1,5 @@
 'use client';
+import { Star, Users, BarChart, FolderArchive, X, Check } from 'lucide-react';
 
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -336,7 +337,7 @@ export default function StaffDirectory() {
         {loading ? (
           <LoadingSpinner />
         ) : staffList.length === 0 ? (
-          <EmptyState message="No staff members added yet." icon="👥" />
+          <EmptyState message="No staff members added yet." icon={<Users strokeWidth={1.5} />} />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {staffList.map((staff) => (
@@ -368,7 +369,7 @@ export default function StaffDirectory() {
                     color: staff.is_present ? ui.green : ui.red,
                   }}
                 >
-                  {staff.is_present ? '✓ Present' : '✗ Absent'}
+                  {staff.is_present ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Check size={14} strokeWidth={2.5} />Present</span> : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><X size={14} strokeWidth={2.5} />Absent</span>}
                 </button>
               </div>
             ))}
@@ -519,7 +520,7 @@ export default function StaffDirectory() {
             {activeTab === 'remove' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '288px', overflowY: 'auto' }}>
                 {deletableStaff.length === 0 ? (
-                  <EmptyState message="No removable staff members." icon="🗂️" />
+                  <EmptyState message="No removable staff members." icon={<FolderArchive strokeWidth={1.5} />} />
                 ) : (
                   deletableStaff.map((staff) => (
                     <div key={staff.id} style={{ ...panel, padding: '12px 14px' }}>
@@ -610,7 +611,7 @@ export default function StaffDirectory() {
                 {loadingReport ? (
                   <LoadingSpinner />
                 ) : reportData.length === 0 ? (
-                  <EmptyState message="No staff members found." icon="📊" />
+                  <EmptyState message="No staff members found." icon={<BarChart strokeWidth={1.5} />} />
                 ) : (
                   reportData.map((staff) => (
                     <div key={staff.id} style={{ ...panel, padding: '16px 18px' }}>
@@ -635,7 +636,7 @@ export default function StaffDirectory() {
                             <p style={{ ...label, margin: '0 0 6px' }}>Feedback</p>
                             <p style={{ color: ui.text, display: 'flex', alignItems: 'center', gap: '4px', margin: 0 }}>
                               {Number(staff.average_rating || 0).toFixed(1)}{' '}
-                              <span style={{ color: ui.amber }}>★</span>
+                              <span style={{ color: ui.amber }}><Star size={16} strokeWidth={1.5} /></span>
                             </p>
                             <p style={{ color: ui.textMuted, fontSize: '11px', margin: '4px 0 0' }}>
                               {staff.total_reviews} total reviews

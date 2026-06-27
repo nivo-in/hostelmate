@@ -314,8 +314,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (videoLoaded) {
-      // Start fade-in immediately when the first frame is ready
-      setVideoOpacity(0.65);
+      // Wait 1.3s after first frame before starting the fade-in
+      const timer = setTimeout(() => setVideoOpacity(0.82), 1000)
+      return () => clearTimeout(timer)
     }
   }, [videoLoaded]);
 
@@ -446,7 +447,7 @@ export default function LoginPage() {
           objectFit: 'cover',
           zIndex: 0,
           opacity: videoOpacity,
-          transition: 'opacity 1.9s ease-in-out',
+          transition: 'opacity 1.2s ease-in-out',
           pointerEvents: 'none',
         }}
       />

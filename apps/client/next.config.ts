@@ -11,6 +11,8 @@ const cspHeader = `
     form-action 'self';
     frame-ancestors 'none';
     connect-src 'self' wss: http: https:;
+    media-src 'self' blob: https://*.mux.com https://stream.mux.com;
+    worker-src 'self' blob:;
 `
 
 const nextConfig: NextConfig = {

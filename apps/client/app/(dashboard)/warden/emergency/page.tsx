@@ -1,4 +1,5 @@
 'use client';
+import { Siren } from 'lucide-react';
 
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -290,7 +291,7 @@ export default function EmergencyAlert() {
           {loading ? (
             <LoadingSpinner />
           ) : notices.length === 0 ? (
-            <EmptyState message="No emergency alerts sent." icon="🚨" />
+            <EmptyState message="No emergency alerts sent." icon={<Siren strokeWidth={1.5} />} />
           ) : (
             notices.map((notice) => (
               <div

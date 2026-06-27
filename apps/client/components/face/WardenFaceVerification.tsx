@@ -219,7 +219,7 @@ export default function WardenFaceVerification({
         const { data, error } = dbResult;
         if (error || !data) {
           stream.getTracks().forEach((t) => t.stop());
-          onSkipRef.current();
+          setStatus('no-face-data'); // Show enrollment prompt — don't silently bypass auth
           return;
         }
 
@@ -245,7 +245,7 @@ export default function WardenFaceVerification({
               : [raw as number[]];
           } else {
             stream.getTracks().forEach((t) => t.stop());
-            onSkipRef.current();
+            setStatus('no-face-data'); // No usable descriptors — show enrollment prompt
             return;
           }
         }
@@ -313,12 +313,42 @@ export default function WardenFaceVerification({
   //         : '#ef4444';
 
   // const livenessColor = blinkDetected ? '#16a34a' : '#f59e0b';
-  // const livenessText = blinkDetected
-  //   ? '👁 Liveness: ✓ Confirmed'
-  //   : "👁 Blink once to verify you're real";
+  // const livenessText = hasBlinked
+  //   ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Eye size={14} strokeWidth={2.5} />Liveness: <Check size={14} strokeWidth={2.5} /> Confirmed</span>
+  //   : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Eye size={14} strokeWidth={2.5} />Blink once to verify you're real</span>;
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '460px', background: '#04040a', overflow: 'hidden' }}>
+      {/* No-face-data: Enrollment required prompt */}
+      {status === 'no-face-data' && (
+        <div style={{
+          position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', background: '#080810', zIndex: 5, gap: '16px', padding: '32px',
+        }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.75"><path d="M12 2a5 5 0 1 0 5 5A5 5 0 0 0 12 2zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1" /></svg>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ fontSize: '15px', fontWeight: 500, color: 'rgba(255,255,255,0.9)', margin: '0 0 6px' }}>No face data registered</p>
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, margin: 0 }}>
+              You haven&apos;t enrolled your face yet.<br />Go to your dashboard to set up face recognition.
+            </p>
+          </div>
+          <button
+            onClick={() => onSkipRef.current()}
+            style={{
+              marginTop: '8px', padding: '9px 22px', borderRadius: '10px', fontSize: '13px', fontWeight: 500,
+              background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.35)', color: '#a78bfa',
+              cursor: 'pointer', transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(167,139,250,0.25)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(167,139,250,0.15)'; }}
+          >
+            Continue to dashboard →
+          </button>
+        </div>
+      )}
+
       {/* Loading Overlay */}
       {!showVideo && isLoading && (
         <div style={{

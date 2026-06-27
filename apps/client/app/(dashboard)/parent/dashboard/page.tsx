@@ -1,4 +1,5 @@
 'use client';
+import { MapPin } from 'lucide-react';
 
 import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
@@ -111,7 +112,7 @@ export default function ParentDashboard() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
           {[
-            { emoji:'📍', title:'Track Ward', desc:'Real-time location and attendance', href:'/parent/track' },
+            { emoji:<span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><MapPin size={14} strokeWidth={2.5} /></span>, title:'Track Ward', desc:'Real-time location and attendance', href:'/parent/track' },
             { emoji:'🌴', title:'Leave Status', desc:'View leave requests', href:'/parent/leaves' },
             { emoji:'📢', title:'Notices', desc:'Read hostel announcements', href:'/parent/notices' },
             { emoji:'📞', title:'Contact Warden', desc:'Get in touch', href:'/parent/contact' },

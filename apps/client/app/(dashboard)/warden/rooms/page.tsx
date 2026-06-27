@@ -1,4 +1,5 @@
 'use client';
+import { Home } from 'lucide-react';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -448,7 +449,7 @@ export default function WardenRoomsPage() {
             {/* Empty state */}
             {rooms.length === 0 ? (
               <div style={{ ...panel, padding: '12px' }}>
-                <EmptyState message="No rooms configured yet. Add your first room using the button above." icon="🏠" />
+                <EmptyState message="No rooms configured yet. Add your first room using the button above." icon={<Home strokeWidth={1.5} />} />
                 <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: '32px' }}>
                   <button onClick={() => setShowAddRoom(true)} className="btn-primary" style={buttonPrimary}>
                     + Add Room

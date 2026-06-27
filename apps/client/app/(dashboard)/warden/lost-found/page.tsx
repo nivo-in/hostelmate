@@ -1,4 +1,5 @@
 'use client';
+import { Search } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -166,7 +167,7 @@ export default function WardenLostFound() {
                     <td colSpan={7}>
                       <EmptyState
                         message={`No ${activeTab !== 'All' ? activeTab.toLowerCase() : ''} items found`}
-                        icon="🔍"
+                        icon={<Search strokeWidth={1.5} />}
                       />
                     </td>
                   </tr>
