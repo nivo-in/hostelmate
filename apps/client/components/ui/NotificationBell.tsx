@@ -1,12 +1,16 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
 import { useApi } from '@/hooks/useApi';
 import { useSocket } from '@/hooks/useSocket';
 import { Notification } from '@/types';
 import { toast } from 'sonner';
+import { 
+  Bell, Check, Trash2, X, AlertCircle, Info, 
+  Calendar, FileText, CheckCircle2, ShieldAlert
+} from 'lucide-react';
 
 function timeAgo(dateString: string) {
   const date = new Date(dateString);
@@ -26,55 +30,70 @@ function timeAgo(dateString: string) {
   return Math.floor(seconds) + 's ago';
 }
 
-const TYPE_DOT: Record<string, string> = {
-  leave: 'bg-blue-500',
-  complaint: 'bg-orange-500',
-  notice: 'bg-purple-500',
-  emergency: 'bg-red-500',
-  attendance: 'bg-green-500',
-  curfew: 'bg-yellow-500',
-  lost_found: 'bg-gray-400',
+const getIconForType = (type: string, color: string) => {
+  const props = { size: 16, color };
+  switch (type) {
+    case 'leave': return <Calendar {...props} />;
+    case 'complaint': return <AlertCircle {...props} />;
+    case 'notice': return <FileText {...props} />;
+    case 'emergency': return <ShieldAlert {...props} />;
+    case 'attendance': return <CheckCircle2 {...props} />;
+    default: return <Info {...props} />;
+  }
 };
 
-function typeDot(type: string) {
-  const color = TYPE_DOT[type] ?? 'bg-gray-400';
-  return (
-    <span
-      className={`inline-block w-2 h-2 rounded-full shrink-0 mt-0.5 ${color}`}
-      aria-hidden="true"
-    />
-  );
-}
-
-// Unread-row accent follows the role's theme (warden purple, student orange, parent blue).
-const ACCENTS = {
-  student: { line: '#fb923c', bg: 'rgba(251,146,60,0.10)', bgHover: 'rgba(251,146,60,0.15)' },
-  parent: { line: '#60a5fa', bg: 'rgba(96,165,250,0.10)', bgHover: 'rgba(96,165,250,0.15)' },
-  warden: { line: '#7c5cfc', bg: 'rgba(124,92,252,0.08)', bgHover: 'rgba(124,92,252,0.13)' },
+const getThemeTokens = (pathname: string) => {
+  if (pathname?.startsWith('/student')) {
+    return {
+      primary: '#fb923c', // Orange
+      primaryLight: '#fdba74',
+      bgGlow: 'rgba(251, 146, 60, 0.15)',
+      border: 'rgba(251, 146, 60, 0.3)',
+      bgSoft: 'rgba(251, 146, 60, 0.08)',
+      bgHover: 'rgba(251, 146, 60, 0.12)',
+      gradient: 'linear-gradient(135deg, rgba(251,146,60,0.2) 0%, rgba(251,146,60,0) 100%)',
+    };
+  }
+  if (pathname?.startsWith('/parent')) {
+    return {
+      primary: '#3b82f6', // Blue
+      primaryLight: '#93c5fd',
+      bgGlow: 'rgba(59, 130, 246, 0.15)',
+      border: 'rgba(59, 130, 246, 0.3)',
+      bgSoft: 'rgba(59, 130, 246, 0.08)',
+      bgHover: 'rgba(59, 130, 246, 0.12)',
+      gradient: 'linear-gradient(135deg, rgba(59,130,246,0.2) 0%, rgba(59,130,246,0) 100%)',
+    };
+  }
+  // Default to Warden (Purple)
+  return {
+    primary: '#7c5cfc', // Purple
+    primaryLight: '#a78bfa',
+    bgGlow: 'rgba(124, 92, 252, 0.15)',
+    border: 'rgba(124, 92, 252, 0.3)',
+    bgSoft: 'rgba(124, 92, 252, 0.08)',
+    bgHover: 'rgba(124, 92, 252, 0.12)',
+    gradient: 'linear-gradient(135deg, rgba(124,92,252,0.2) 0%, rgba(124,92,252,0) 100%)',
+  };
 };
 
 export function NotificationBell() {
   const pathname = usePathname();
-  const accent = pathname?.startsWith('/student')
-    ? ACCENTS.student
-    : pathname?.startsWith('/parent')
-      ? ACCENTS.parent
-      : ACCENTS.warden;
+  const theme = getThemeTokens(pathname ?? '');
+  
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
-  // Portal target only exists in the browser — gate render until mounted.
   const [mounted, setMounted] = useState(false);
+  
   useEffect(() => setMounted(true), []);
 
   const { apiGet, apiPatch, apiDelete } = useApi();
-  // Ref to track pending debounce timer for socket-triggered fetches
-  const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchNotifications = useCallback(async (currentPage = 1) => {
     try {
       const res = await apiGet(`/api/v1/notifications?page=${currentPage}&limit=20`);
@@ -83,7 +102,6 @@ export function NotificationBell() {
           setNotifications(res.data.notifications);
         } else {
           setNotifications((prev) => {
-            // Deduplicate if any overlapping updates
             const newNotifs = res.data.notifications.filter(
               (n: Notification) => !prev.some((p) => p.id === n.id)
             );
@@ -94,36 +112,28 @@ export function NotificationBell() {
         setHasNext(res.pagination?.hasNext || false);
       }
     } catch {
-      // Silently fail — never surface polling errors to UI
+      // Silently fail
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [apiGet]);
 
-  // Debounced version for socket events — prevents rapid-fire fetches
   const debouncedFetch = useCallback(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       fetchNotifications();
-    }, 2000); // 2s debounce: bursts of socket events → single fetch
+    }, 2000);
   }, [fetchNotifications]);
 
   useEffect(() => {
-    // Fetch immediately on mount
     fetchNotifications(1);
-
-    // Fallback poll every 5 minutes (WebSocket handles real-time updates)
-    const intervalId = setInterval(() => {
-      fetchNotifications(1);
-    }, 300000);
-
+    const intervalId = setInterval(() => fetchNotifications(1), 300000);
     return () => {
       clearInterval(intervalId);
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [fetchNotifications]);
 
-  // WebSocket: refresh on any real-time event (debounced to avoid rapid API calls)
   useSocket({
     'notice:new': (_data: unknown) => {
       const data = _data as { message?: string };
@@ -133,9 +143,7 @@ export function NotificationBell() {
     'leave:updated': (_data: unknown) => {
       const data = _data as { message?: string };
       debouncedFetch();
-      toast('Leave Request Updated', {
-        description: data?.message || 'Your leave request status changed.',
-      });
+      toast('Leave Request Updated', { description: data?.message || 'Your leave request status changed.' });
     },
     'complaint:updated': (_data: unknown) => {
       const data = _data as { message?: string };
@@ -145,48 +153,34 @@ export function NotificationBell() {
     'attendance:marked': (_data: unknown) => {
       const data = _data as { message?: string };
       debouncedFetch();
-      toast('Attendance Marked', {
-        description: data?.message || 'Attendance has been recorded.',
-      });
+      toast('Attendance Marked', { description: data?.message || 'Attendance has been recorded.' });
     },
     'notification:new': (_data: unknown) => {
       const data = _data as { title?: string; message?: string };
       debouncedFetch();
-      toast(data?.title || 'New Notification', {
-        description: data?.message || 'You have a new notification.',
-      });
+      toast(data?.title || 'New Notification', { description: data?.message || 'You have a new notification.' });
     },
   });
 
-  // ── Panel open / close side-effects ───────────────────────────────────────
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
-      // Always refresh the list when the panel is opened so it never shows a
-      // stale or empty body (e.g. if the mount fetch failed or raced).
       setPage(1);
       fetchNotifications(1);
     } else {
       document.body.style.overflow = '';
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
+    return () => { document.body.style.overflow = ''; };
   }, [isOpen, fetchNotifications]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsOpen(false);
     };
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-    }
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
+    if (isOpen) document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  // ── Actions ────────────────────────────────────────────────────────────────
   const handleMarkAllRead = async () => {
     try {
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
@@ -210,7 +204,6 @@ export function NotificationBell() {
 
   const handleDismiss = async (e: React.MouseEvent, id: string, isRead: boolean) => {
     e.stopPropagation();
-    // Optimistically remove from UI
     setNotifications((prev) => prev.filter((n) => n.id !== id));
     if (!isRead) setUnreadCount((prev) => Math.max(0, prev - 1));
     try {
@@ -220,10 +213,8 @@ export function NotificationBell() {
     }
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ── Bell trigger button ─────────────────────────────────────────── */}
       <style>{`
         @keyframes bellRing {
           0% { transform: rotate(0); }
@@ -234,257 +225,288 @@ export function NotificationBell() {
           75% { transform: rotate(1deg); }
           100% { transform: rotate(0); }
         }
-        .bell-trigger .bell-icon-anim { transform-origin: top center; }
         .bell-trigger:hover .bell-icon-anim { animation: bellRing 0.6s ease-in-out; }
+        .bell-icon-anim { transform-origin: top center; }
+        
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+          from { transform: translateX(0); opacity: 1; }
+          to { transform: translateX(100%); opacity: 0; }
+        }
+        .notif-panel-open {
+          animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .notif-panel-closed {
+          animation: slideOutRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .notif-scrollbar::-webkit-scrollbar { width: 4px; }
+        .notif-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .notif-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        .notif-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
       `}</style>
+
+      {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="bell-trigger relative p-2 rounded-full transition-colors focus:outline-none"
-        style={{ color: 'rgba(255,255,255,0.45)' }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.85)')}
-        onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
+        className="bell-trigger relative p-2 rounded-xl transition-all duration-300 focus:outline-none flex items-center justify-center"
+        style={{ 
+          color: unreadCount > 0 ? theme.primaryLight : 'rgba(255,255,255,0.45)',
+          background: unreadCount > 0 ? theme.bgSoft : 'transparent',
+          boxShadow: unreadCount > 0 ? `0 0 12px ${theme.bgGlow}` : 'none',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = theme.primaryLight;
+          e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = unreadCount > 0 ? theme.primaryLight : 'rgba(255,255,255,0.45)';
+          e.currentTarget.style.background = unreadCount > 0 ? theme.bgSoft : 'transparent';
+        }}
         aria-label="Notifications"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-5 h-5 bell-icon-anim"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.75"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-          <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-        </svg>
-
+        <Bell className="w-5 h-5 bell-icon-anim" strokeWidth={2} />
+        
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-red-500 text-white text-[10px] font-medium rounded-full flex items-center justify-center px-1">
+          <span 
+            className="absolute -top-1 -right-1 min-w-[18px] h-[18px] text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-lg border border-[#0a0a0f]"
+            style={{ 
+              background: theme.primary, 
+              color: '#fff',
+              boxShadow: `0 0 10px ${theme.bgGlow}`
+            }}
+          >
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
 
-      {/* Overlay + panel are portaled to <body> so they escape the PageHeader's
-          backdrop-filter stacking context (which would otherwise trap these
-          fixed elements inside the header bar on feature pages). */}
-      {mounted &&
-        createPortal(
-          <>
-            {/* ── Overlay ─────────────────────────────────────────────────── */}
-            <div
-              className={`fixed inset-0 z-40 transition-opacity duration-300 ${
-                isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-              }`}
-              style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)' }}
-              onClick={() => setIsOpen(false)}
-              aria-hidden="true"
+      {/* Portal */}
+      {mounted && createPortal(
+        <div 
+          className="fixed inset-0 z-50 pointer-events-none flex justify-end"
+          style={{ visibility: isOpen ? 'visible' : 'hidden', transition: 'visibility 0.4s' }}
+        >
+          {/* Backdrop */}
+          <div
+            className={`absolute inset-0 transition-opacity duration-300 pointer-events-auto ${
+              isOpen ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{ 
+              background: 'rgba(0,0,0,0.4)', 
+              backdropFilter: 'blur(4px)', 
+              WebkitBackdropFilter: 'blur(4px)' 
+            }}
+            onClick={() => setIsOpen(false)}
+            aria-hidden="true"
+          />
+
+          {/* Panel */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            className={`relative w-full max-w-sm h-full pointer-events-auto flex flex-col ${
+              isOpen ? 'notif-panel-open' : 'notif-panel-closed'
+            }`}
+            style={{
+              background: 'rgba(14, 14, 22, 0.75)',
+              backdropFilter: 'blur(24px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+              borderLeft: '1px solid rgba(255,255,255,0.06)',
+              boxShadow: `-20px 0 80px rgba(0,0,0,0.6), inset 1px 0 0 rgba(255,255,255,0.02)`,
+            }}
+          >
+            {/* Ambient Top Glow */}
+            <div 
+              className="absolute top-0 left-0 right-0 h-32 pointer-events-none opacity-40"
+              style={{ background: theme.gradient }}
             />
 
-      {/* ── Slide-in panel ──────────────────────────────────────────────── */}
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Notifications panel"
-        className={`fixed top-0 right-0 h-full w-96 max-w-full z-50 flex flex-col transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-        style={{
-          background: '#0c0c14',
-          borderLeft: '0.5px solid rgba(255,255,255,0.1)',
-          boxShadow: '-24px 0 60px rgba(0,0,0,0.5)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-        }}
-      >
-        {/* Panel header */}
-        <div
-          className="h-16 px-5 flex items-center justify-between shrink-0"
-          style={{ borderBottom: '0.5px solid rgba(255,255,255,0.08)' }}
-        >
-          <span className="text-base font-medium" style={{ color: 'rgba(255,255,255,0.9)' }}>
-            Notifications
-          </span>
-
-          <div className="flex items-center gap-3">
-            {unreadCount > 0 && (
-              <button
-                onClick={handleMarkAllRead}
-                className="text-xs transition-colors cursor-pointer"
-                style={{ color: 'rgba(255,255,255,0.45)' }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.85)')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
-              >
-                Mark all read
-              </button>
-            )}
-
-            {/* X close button */}
-            <button
-              onClick={() => setIsOpen(false)}
-              className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
-              style={{ color: 'rgba(255,255,255,0.5)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'rgba(255,255,255,0.85)';
-                e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'rgba(255,255,255,0.5)';
-                e.currentTarget.style.background = 'transparent';
-              }}
-              aria-label="Close notifications"
+            {/* Header */}
+            <div 
+              className="relative h-16 px-6 flex items-center justify-between shrink-0 z-10"
+              style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Notification list */}
-        <div className="overflow-y-auto flex-1">
-          {loading ? (
-            /* Loading skeletons */
-            <>
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="px-5 py-4 animate-pulse"
-                  style={{ borderBottom: '0.5px solid rgba(255,255,255,0.05)' }}
+              <div className="flex items-center gap-2.5">
+                <div 
+                  className="w-8 h-8 rounded-lg flex items-center justify-center shadow-lg"
+                  style={{ background: theme.bgSoft, border: `1px solid ${theme.border}` }}
                 >
-                  <div className="h-3 rounded w-2/3 mb-2" style={{ background: 'rgba(255,255,255,0.08)' }} />
-                  <div className="h-2 rounded w-full mb-1.5" style={{ background: 'rgba(255,255,255,0.06)' }} />
-                  <div className="h-2 rounded w-1/2" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                  <Bell size={16} color={theme.primaryLight} />
                 </div>
-              ))}
-            </>
-          ) : notifications.length === 0 ? (
-            /* Empty state */
-            <div className="flex flex-col items-center justify-center h-full text-center px-6">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-12 h-12 mb-3"
-                style={{ color: 'rgba(255,255,255,0.12)' }}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-              </svg>
-              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>No notifications yet</p>
-              <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>{"You're all caught up!"}</p>
-            </div>
-          ) : (
-            /* Notification items */
-            notifications.map((notification) => (
-              <div
-                key={notification.id}
-                onClick={() => handleNotificationClick(notification.id, notification.is_read)}
-                className="group relative px-5 py-4 cursor-pointer transition-colors"
-                style={{
-                  borderBottom: '0.5px solid rgba(255,255,255,0.05)',
-                  borderLeft: notification.is_read ? '2px solid transparent' : `2px solid ${accent.line}`,
-                  background: notification.is_read ? 'transparent' : accent.bg,
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = notification.is_read
-                    ? 'rgba(255,255,255,0.03)'
-                    : accent.bgHover)
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = notification.is_read
-                    ? 'transparent'
-                    : accent.bg)
-                }
-              >
-                {/* Top row: dot + title + time + dismiss */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    {typeDot(notification.type ?? '')}
-                    <p className="text-sm font-medium truncate" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                      {notification.title}
-                    </p>
-                  </div>
+                <h2 className="text-base font-semibold text-white/90 tracking-wide">
+                  Notifications
+                </h2>
+              </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                      {timeAgo(notification.created_at)}
-                    </span>
-                    {/* Dismiss button — visible only on row hover */}
+              <div className="flex items-center gap-3">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={handleMarkAllRead}
+                    className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md transition-all duration-200"
+                    style={{ color: theme.primaryLight, background: theme.bgSoft }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = theme.bgHover}
+                    onMouseLeave={(e) => e.currentTarget.style.background = theme.bgSoft}
+                  >
+                    <Check size={12} strokeWidth={2.5} />
+                    Mark all read
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full transition-all duration-200"
+                  style={{ color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.03)' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = '#fff';
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'rgba(255,255,255,0.4)';
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                  }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Content List */}
+            <div className="notif-scrollbar flex-1 overflow-y-auto relative z-10 p-4 space-y-3">
+              {loading ? (
+                <>
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="p-4 rounded-xl border border-white/5 bg-white/[0.02] animate-pulse">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-full bg-white/5 shrink-0" />
+                        <div className="h-3 rounded bg-white/5 w-1/3" />
+                      </div>
+                      <div className="h-2 rounded bg-white/5 w-full mb-2 ml-11" />
+                      <div className="h-2 rounded bg-white/5 w-2/3 ml-11" />
+                    </div>
+                  ))}
+                </>
+              ) : notifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center px-6 opacity-60">
+                  <div 
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 border border-white/10"
+                    style={{ background: 'rgba(255,255,255,0.02)', boxShadow: 'inset 0 2px 10px rgba(255,255,255,0.02)' }}
+                  >
+                    <Bell size={28} className="text-white/20" />
+                  </div>
+                  <p className="text-sm font-medium text-white/70">No notifications yet</p>
+                  <p className="text-xs text-white/40 mt-1.5 leading-relaxed">
+                    When you get notifications, they&apos;ll show up here.
+                  </p>
+                </div>
+              ) : (
+                notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    onClick={() => handleNotificationClick(notification.id, notification.is_read)}
+                    className="group relative p-4 rounded-2xl cursor-pointer transition-all duration-300 border"
+                    style={{
+                      background: notification.is_read ? 'rgba(255,255,255,0.02)' : theme.bgSoft,
+                      borderColor: notification.is_read ? 'rgba(255,255,255,0.05)' : theme.border,
+                      boxShadow: notification.is_read ? 'none' : `0 4px 20px -2px ${theme.bgGlow}`,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.background = notification.is_read ? 'rgba(255,255,255,0.04)' : theme.bgHover;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.background = notification.is_read ? 'rgba(255,255,255,0.02)' : theme.bgSoft;
+                    }}
+                  >
+                    <div className="flex items-start gap-3.5">
+                      {/* Icon */}
+                      <div 
+                        className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 shadow-sm"
+                        style={{ 
+                          background: notification.is_read ? 'rgba(255,255,255,0.05)' : theme.bgSoft,
+                          border: `1px solid ${notification.is_read ? 'rgba(255,255,255,0.08)' : theme.border}`
+                        }}
+                      >
+                        {getIconForType(notification.type ?? '', notification.is_read ? 'rgba(255,255,255,0.6)' : theme.primaryLight)}
+                      </div>
+                      
+                      {/* Text content */}
+                      <div className="flex-1 min-w-0 pt-0.5">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <p 
+                            className="text-[13px] font-semibold truncate" 
+                            style={{ color: notification.is_read ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.95)' }}
+                          >
+                            {notification.title}
+                          </p>
+                          <span className="text-[10px] font-medium whitespace-nowrap pt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                            {timeAgo(notification.created_at)}
+                          </span>
+                        </div>
+                        <p 
+                          className="text-[12px] leading-relaxed line-clamp-2"
+                          style={{ color: notification.is_read ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.7)' }}
+                        >
+                          {notification.message}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Unread dot indicator */}
+                    {!notification.is_read && (
+                      <div 
+                        className="absolute top-4 -left-1.5 w-3 h-3 rounded-full border-2 border-[#0e0e16]"
+                        style={{ background: theme.primary, boxShadow: `0 0 8px ${theme.primary}` }}
+                      />
+                    )}
+
+                    {/* Hover actions (Delete) */}
                     <button
                       onClick={(e) => handleDismiss(e, notification.id, notification.is_read)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 w-4 h-4 flex items-center justify-center rounded"
-                      style={{ color: 'rgba(255,255,255,0.3)' }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
-                      aria-label="Dismiss notification"
-                      title="Dismiss"
+                      className="absolute right-3 bottom-3 opacity-0 group-hover:opacity-100 transition-all duration-200 p-1.5 rounded-md hover:bg-red-500/10 hover:text-red-400 text-white/30"
+                      title="Remove notification"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="w-3 h-3"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                      </svg>
+                      <Trash2 size={14} />
                     </button>
                   </div>
+                ))
+              )}
+
+              {hasNext && !loading && (
+                <div className="pt-2 pb-4 flex justify-center">
+                  <button
+                    onClick={() => {
+                      const nextPage = page + 1;
+                      setPage(nextPage);
+                      fetchNotifications(nextPage);
+                    }}
+                    className="text-xs font-semibold px-4 py-2 rounded-full transition-all duration-200 border"
+                    style={{ 
+                      color: 'rgba(255,255,255,0.6)', 
+                      background: 'rgba(255,255,255,0.03)',
+                      borderColor: 'rgba(255,255,255,0.08)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = '#fff';
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = 'rgba(255,255,255,0.6)';
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                    }}
+                  >
+                    Load earlier notifications
+                  </button>
                 </div>
-
-                {/* Message */}
-                <p
-                  className="text-xs mt-1 leading-relaxed line-clamp-2 pl-4"
-                  style={{ color: 'rgba(255,255,255,0.45)' }}
-                >
-                  {notification.message}
-                </p>
-              </div>
-            ))
-          )}
-
-          {hasNext && !loading && (
-            <div className="p-4 flex justify-center" style={{ borderTop: '0.5px solid rgba(255,255,255,0.05)' }}>
-              <button
-                onClick={() => {
-                  const nextPage = page + 1;
-                  setPage(nextPage);
-                  fetchNotifications(nextPage);
-                }}
-                className="text-xs font-medium transition-colors"
-                style={{ color: 'rgba(255,255,255,0.45)' }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.85)')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
-              >
-                Load older
-              </button>
+              )}
             </div>
-          )}
+          </div>
         </div>
-      </div>
-          </>,
-          document.body
-        )}
+      )}
     </>
   );
 }
