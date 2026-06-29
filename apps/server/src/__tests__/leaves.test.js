@@ -191,6 +191,10 @@ describe('Leaves API', () => {
       expect(res.body.data).toEqual([{ id: '1' }]);
     });
 
+    /**
+     * Test: should respect the limit query parameter for student leaves
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should respect the limit query parameter for student leaves', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/leaves/my?limit=5');
