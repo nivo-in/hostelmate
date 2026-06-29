@@ -10,6 +10,7 @@ import { AiAnalysisCard } from '@/components/ui/AiAnalysisCard';
 import { useRouter } from 'next/navigation';
 import { container } from '@/lib/ui';
 import { Complaint } from '@/types';
+import { Bot, AlertTriangle } from 'lucide-react';
 
 const ORANGE = '#fb923c';
 
@@ -199,15 +200,15 @@ export default function StudentComplaints() {
                   padding: '10px 12px',
                 }}
               >
-                <div style={{ fontSize: '12px', fontWeight: 500, color: '#60a5fa' }}>🤖 AI Analysis</div>
+                <div style={{ fontSize: '12px', fontWeight: 500, color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '4px' }}><Bot size={14} /> AI Analysis</div>
                 {aiInfo.category_changed && (
                   <div style={{ fontSize: '12px', color: 'rgba(96,165,250,0.85)', marginTop: '4px' }}>
                     Category updated to: {aiInfo.finalCategory}
                   </div>
                 )}
                 {aiInfo.urgency_changed && aiInfo.finalUrgency && (
-                  <div style={{ fontSize: '12px', color: ORANGE, marginTop: '4px' }}>
-                    ⚠️ Marked as urgent based on description
+                  <div style={{ fontSize: '12px', color: ORANGE, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <AlertTriangle size={14} /> Marked as urgent based on description
                   </div>
                 )}
                 <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>

@@ -9,6 +9,7 @@ import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { MessMenu, MessReview } from '@/types';
 import { ui, panel, panelElevated, input, buttonPrimary, container, label, sectionTitle } from '@/lib/ui';
+import { Star } from 'lucide-react';
 
 export default function WardenMess() {
   const [day, setDay] = useState('monday');
@@ -188,8 +189,8 @@ export default function WardenMess() {
                   <span style={{ fontSize: '13px', fontWeight: 500, color: ui.text, textTransform: 'capitalize' }}>
                     {m}
                   </span>
-                  <span style={{ fontSize: '13px', fontWeight: 500, color: ui.amber, fontVariantNumeric: 'tabular-nums' }}>
-                    {getAverageRating(m)} ⭐
+                  <span style={{ fontSize: '13px', fontWeight: 500, color: ui.amber, fontVariantNumeric: 'tabular-nums', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    {getAverageRating(m)} <Star size={12} className="fill-current" />
                   </span>
                 </div>
               ))}

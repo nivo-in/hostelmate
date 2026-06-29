@@ -11,6 +11,7 @@ import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { LeaveWithStudent } from '@/types';
 import { ui, panel, buttonGhost, container } from '@/lib/ui';
+import { Calendar } from 'lucide-react';
 
 export default function WardenLeaves() {
   const [activeTab, setActiveTab] = useState('All');
@@ -169,7 +170,7 @@ export default function WardenLeaves() {
                   <td colSpan={7}>
                     <EmptyState
                       message={`No ${activeTab !== 'All' ? activeTab.toLowerCase() : ''} leave requests`}
-                      icon="🗓️"
+                      icon={<Calendar strokeWidth={1.5} />}
                     />
                   </td>
                 </tr>

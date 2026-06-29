@@ -1,4 +1,4 @@
-import { MapPin } from 'lucide-react';
+import { MapPin, Palmtree, Phone, CreditCard } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
@@ -33,25 +33,25 @@ export default async function ParentDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[
           {
-            emoji: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><MapPin size={14} strokeWidth={2.5} /></span>,
+            icon: <MapPin size={24} strokeWidth={2.5} />,
             title: 'Track Student',
             desc: 'View student location and attendance',
             href: null,
           },
           {
-            emoji: '📋',
+            icon: <Palmtree size={24} />,
             title: 'Leave Status',
             desc: 'Track pending and approved leaves',
             href: null,
           },
           {
-            emoji: '📞',
+            icon: <Phone size={24} />,
             title: 'Contact Warden',
             desc: 'Get in touch with hostel warden',
             href: null,
           },
           {
-            emoji: '💳',
+            icon: <CreditCard size={24} />,
             title: 'Fee Payments',
             desc: "Pay ward's hostel fees",
             href: '/parent/payments',
@@ -60,7 +60,7 @@ export default async function ParentDashboard() {
           card.href ? (
             <Link href={card.href} key={card.title}>
               <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors cursor-pointer group">
-                <div className="text-2xl mb-3">{card.emoji}</div>
+                <div className="mb-3 text-gray-500">{card.icon}</div>
                 <h2 className="font-medium text-gray-900 group-hover:text-black">{card.title}</h2>
                 <p className="text-sm text-gray-400 mt-2">{card.desc}</p>
               </div>
@@ -70,7 +70,7 @@ export default async function ParentDashboard() {
               key={card.title}
               className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors cursor-pointer group"
             >
-              <div className="text-2xl mb-3">{card.emoji}</div>
+              <div className="mb-3 text-gray-500">{card.icon}</div>
               <h2 className="font-medium text-gray-900 group-hover:text-black">{card.title}</h2>
               <p className="text-sm text-gray-400 mt-2">{card.desc}</p>
             </div>

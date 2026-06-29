@@ -9,6 +9,7 @@ import { useApi } from '@/hooks/useApi';
 import { useProfile } from '@/hooks/useProfile';
 import { useRouter } from 'next/navigation';
 import { container } from '@/lib/ui';
+import { Lock, Smartphone } from 'lucide-react';
 
 // Lazy-load face components so face-api.js is not bundled in the initial chunk
 const FaceEnrollment = lazy(() => import('@/components/face/FaceEnrollment'));
@@ -308,7 +309,7 @@ export default function StudentAttendance() {
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '18px' }}>🔐</span>
+                      <span style={{ display: 'flex', alignItems: 'center' }}><Lock size={18} /></span>
                       <span style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.9)' }}>Face Recognition</span>
                     </div>
                     <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>Secure • Fast • No QR needed</p>
@@ -329,7 +330,7 @@ export default function StudentAttendance() {
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '18px' }}>📱</span>
+                      <span style={{ display: 'flex', alignItems: 'center' }}><Smartphone size={18} /></span>
                       <span style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>QR Code</span>
                     </div>
                     <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>Scan warden&apos;s QR code</p>

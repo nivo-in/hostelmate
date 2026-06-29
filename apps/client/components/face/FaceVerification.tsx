@@ -1,5 +1,5 @@
 'use client';
-import { Lock, MapPin, Eye } from 'lucide-react';
+import { Lock, MapPin, Eye, Camera, Search } from 'lucide-react';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import {
@@ -534,7 +534,7 @@ export default function FaceVerification({
       {/* Error states */}
       {status === 'camera-denied' && (
         <div className="flex flex-col items-center gap-2 text-center max-w-xs">
-          <span className="text-2xl">📷</span>
+          <span className="text-2xl flex items-center justify-center"><Camera size={24} strokeWidth={1.5} /></span>
           <p className="text-sm font-medium text-gray-700">Camera access required</p>
           <p className="text-xs text-gray-400">
             Camera access required for face verification. Enable permissions in your browser
@@ -545,7 +545,7 @@ export default function FaceVerification({
 
       {status === 'no-face-data' && (
         <div className="flex flex-col items-center gap-2 text-center max-w-xs">
-          <span className="text-2xl">🔍</span>
+          <span className="text-2xl flex items-center justify-center"><Search size={24} strokeWidth={1.5} /></span>
           <p className="text-sm font-medium text-gray-700">No face data found</p>
           <p className="text-xs text-gray-400">
             No face data found — please register first or use QR code attendance.

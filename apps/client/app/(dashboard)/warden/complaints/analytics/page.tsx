@@ -8,6 +8,7 @@ import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { ui, panel, panelElevated, buttonPrimary, container } from '@/lib/ui';
+import { Bot } from 'lucide-react';
 
 export default function ComplaintsAnalytics() {
   const [stats, setStats] = useState<{
@@ -174,8 +175,8 @@ export default function ComplaintsAnalytics() {
               marginBottom: aiAnalysis ? '20px' : 0,
             }}
           >
-            <h2 style={{ fontSize: '15px', fontWeight: 500, color: ui.text, margin: 0 }}>
-              🤖 AI Maintenance Insights
+            <h2 style={{ fontSize: '15px', fontWeight: 500, color: ui.text, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Bot size={18} /> AI Maintenance Insights
             </h2>
             {!aiAnalysis && (
               <button

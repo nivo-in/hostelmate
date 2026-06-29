@@ -1,5 +1,5 @@
 'use client';
-import { Home } from 'lucide-react';
+import { Home, RefreshCcw } from 'lucide-react';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -571,7 +571,7 @@ export default function WardenRoomsPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {requests.length === 0 ? (
               <div style={{ ...panel, overflow: 'hidden' }}>
-                <EmptyState message="No pending transfer requests." icon="🔁" />
+                <EmptyState message="No pending transfer requests." icon={<RefreshCcw strokeWidth={1.5} />} />
               </div>
             ) : (
               requests.map((req) => (

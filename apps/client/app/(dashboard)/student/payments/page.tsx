@@ -1,5 +1,5 @@
 'use client';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Home, UtensilsCrossed } from 'lucide-react';
 
 import { useEffect, useState, useCallback } from 'react';
 import { PageShell } from '@/components/ui/PageShell';
@@ -226,7 +226,7 @@ const methodBadge = (method: string | null) => {
 
 const PLANS = {
   combined: {
-    emoji: '🏠',
+    icon: <Home size={20} />,
     label: 'Hostel + Mess',
     subtitle: 'Complete package — best value',
     recommended: true,
@@ -235,7 +235,7 @@ const PLANS = {
     feeType: 'combined' as const,
   },
   hostel: {
-    emoji: '🏠',
+    icon: <Home size={20} />,
     label: 'Hostel Only',
     subtitle: 'Room rent only, self-arrangement for meals',
     recommended: false,
@@ -244,7 +244,7 @@ const PLANS = {
     feeType: 'hostel' as const,
   },
   mess: {
-    emoji: '🍽',
+    icon: <UtensilsCrossed size={20} />,
     label: 'Mess Only',
     subtitle: 'Meals only, external accommodation',
     recommended: false,
@@ -570,7 +570,7 @@ export default function StudentPaymentsPage() {
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '18px' }}>{plan.emoji}</span>
+                          <span style={{ display: 'flex', alignItems: 'center' }}>{plan.icon}</span>
                           <span style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.9)' }}>{plan.label}</span>
                           {plan.recommended && (
                             <span style={{ ...pill, color: '#1a0f04', background: ORANGE, border: 'none' }}>Best</span>
@@ -792,7 +792,7 @@ export default function StudentPaymentsPage() {
                             color: payment.is_overdue ? '#fff' : '#1a0f04',
                           }}
                         >
-                          {payment.is_overdue ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={14} strokeWidth={2.5} />️ Pay Overdue </span> : 'Pay Now '}
+                          {payment.is_overdue ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={14} strokeWidth={2.5} /> Pay Overdue </span> : 'Pay Now '}
                           {fmt(payment.amount)}
                         </button>
                         {payment.status === 'processing' && (

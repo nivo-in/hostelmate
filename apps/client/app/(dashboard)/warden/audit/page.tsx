@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useDebounce } from '@/hooks/useDebounce';
 import { ui, panel, input, buttonGhost, container, label } from '@/lib/ui';
+import { Shield } from 'lucide-react';
 
 type AuditLog = {
   id: string;
@@ -383,5 +384,5 @@ export default function WardenAuditPage() {
 }
 
 function EmptyStateRow() {
-  return <EmptyState message="No audit logs found." icon="🛡️" />;
+  return <EmptyState message="No audit logs found." icon={<Shield strokeWidth={1.5} />} />;
 }

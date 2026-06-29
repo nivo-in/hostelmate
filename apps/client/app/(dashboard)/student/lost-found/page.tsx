@@ -10,6 +10,7 @@ import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { LostAndFound } from '@/types';
 import { container } from '@/lib/ui';
+import { Target, MapPin, Calendar } from 'lucide-react';
 
 const ORANGE = '#fb923c';
 const ORANGE_SOFT = 'rgba(251,146,60,0.12)';
@@ -287,8 +288,8 @@ export default function StudentLostFound() {
               >
                 ✕
               </button>
-              <h3 style={{ fontSize: '13px', fontWeight: 600, color: '#fbbf24', marginBottom: '6px' }}>
-                🎯 Potential Match Found! ({matchData.confidence}% confidence)
+              <h3 style={{ fontSize: '13px', fontWeight: 600, color: '#fbbf24', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Target size={14} /> Potential Match Found! ({matchData.confidence}% confidence)
               </h3>
               <p style={{ fontSize: '13px', color: 'rgba(251,191,36,0.85)' }}>
                 Someone reported {matchData.item?.status === 'found' ? 'finding' : 'losing'}:{' '}
@@ -365,8 +366,8 @@ export default function StudentLostFound() {
                   </div>
                   <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '14px' }}>{item.description}</p>
                   <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    {item.location_found && <span>📍 {item.location_found}</span>}
-                    <span>📅 {new Date(item.created_at).toLocaleDateString()}</span>
+                    {item.location_found && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> {item.location_found}</span>}
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={12} /> {new Date(item.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>
               ))

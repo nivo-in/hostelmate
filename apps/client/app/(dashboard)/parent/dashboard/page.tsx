@@ -1,6 +1,5 @@
 'use client';
-import { MapPin } from 'lucide-react';
-
+import { MapPin, Palmtree, Megaphone, Phone, CreditCard } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -112,11 +111,11 @@ export default function ParentDashboard() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
           {[
-            { emoji:<span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><MapPin size={14} strokeWidth={2.5} /></span>, title:'Track Ward', desc:'Real-time location and attendance', href:'/parent/track' },
-            { emoji:'🌴', title:'Leave Status', desc:'View leave requests', href:'/parent/leaves' },
-            { emoji:'📢', title:'Notices', desc:'Read hostel announcements', href:'/parent/notices' },
-            { emoji:'📞', title:'Contact Warden', desc:'Get in touch', href:'/parent/contact' },
-            { emoji:'💳', title:'Fee Payments', desc:"Pay ward's hostel fees", href:'/parent/payments' },
+            { icon:<MapPin size={18} />, title:'Track Ward', desc:'Real-time location and attendance', href:'/parent/track' },
+            { icon:<Palmtree size={18} />, title:'Leave Status', desc:'View leave requests', href:'/parent/leaves' },
+            { icon:<Megaphone size={18} />, title:'Notices', desc:'Read hostel announcements', href:'/parent/notices' },
+            { icon:<Phone size={18} />, title:'Contact Warden', desc:'Get in touch', href:'/parent/contact' },
+            { icon:<CreditCard size={18} />, title:'Fee Payments', desc:"Pay ward's hostel fees", href:'/parent/payments' },
           ].map((item, i) => (
             <div
               key={i}
@@ -135,7 +134,7 @@ export default function ParentDashboard() {
                   width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '10px', fontSize: '18px'
                 }}>
-                  {item.emoji}
+                  {item.icon}
                 </div>
                 <div className="flex mt-1">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-[14px] h-[14px] arrow-icon">
