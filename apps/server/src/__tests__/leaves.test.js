@@ -202,6 +202,10 @@ describe('Leaves API', () => {
       expect(supabaseMock.limit).toHaveBeenCalledWith(5);
     });
 
+    /**
+     * Test: should return empty array if no leaves
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return empty array if no leaves', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/leaves/my');
