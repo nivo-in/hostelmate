@@ -213,6 +213,10 @@ describe('Leaves API', () => {
       expect(res.body.data).toEqual([]);
     });
 
+    /**
+     * Test: should handle DB errors gracefully
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should handle DB errors gracefully', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: null, error: new Error('DB error') });
       const res = await request(app).get('/api/v1/leaves/my');
