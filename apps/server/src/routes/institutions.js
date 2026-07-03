@@ -27,7 +27,7 @@ router.get('/search', async (req, res) => {
       return res.json({ success: true, results: cached, metadata: { count: institutionCount, cached: true } });
     }
 
-    let results = searchInstitutions(q, limit);
+    const results = searchInstitutions(q, limit);
 
     // Supplement with Hipolabs API to reach 50k+ colleges
     if (results.length < limit) {

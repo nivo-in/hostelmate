@@ -92,7 +92,7 @@ Return ONLY this JSON format:
 
 export default openai;
 
-export async function processWardenChat(messages, context, wardenId) {
+export async function processWardenChat(messages, context) {
   try {
     const systemPrompt = `You are an AI assistant for the Hostel Warden at HostelMate. You have full access to real-time hostel data and can take administrative actions.
 

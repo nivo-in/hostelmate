@@ -7,7 +7,7 @@ import { lostFoundSchema } from '../config/validation.js';
 import logger from '../config/logger.js';
 import { findMatches } from '../config/matcher.js';
 import { notifyLostFoundMatch } from '../config/notifications.js';
-import { getCache, setCache, deleteCache } from '../config/redis.js';
+import { deleteCache } from '../config/redis.js';
 
 const router = Router();
 
