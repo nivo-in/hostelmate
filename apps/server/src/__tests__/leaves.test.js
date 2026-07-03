@@ -291,6 +291,10 @@ describe('Leaves API', () => {
   });
 
   describe('PATCH /api/leaves/:id/reject - Warden rejects', () => {
+    /**
+     * Test: should reject leave and return updated record
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject leave and return updated record', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.single.mockResolvedValue({ data: { id: '1', status: 'rejected' }, error: null });
