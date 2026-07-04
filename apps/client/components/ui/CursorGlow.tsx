@@ -68,6 +68,7 @@ export function CursorGlow({ color = 'rgba(124,92,252,0.07)', size = 600 }: Curs
         pointerEvents: 'none',
         zIndex: 0,
         willChange: 'transform',
+        mixBlendMode: 'plus-lighter',
       }}
     />
   );
