@@ -83,7 +83,7 @@ router.get('/', authenticate, async (req, res, next) => {
       query = query.in('target_audience', ['parents', 'all']);
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    const { data, error } = await query.order('created_at', { ascending: false }).limit(50);
 
     if (error) throw error;
 
