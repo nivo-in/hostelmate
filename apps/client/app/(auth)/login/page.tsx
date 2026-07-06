@@ -402,14 +402,22 @@ export default function LoginPage() {
             fontSize: '13px',
             color: 'rgba(255,255,255,0.35)',
             textDecoration: 'none',
-            transition: 'color 0.2s',
+            transition: 'color 0.2s, transform 0.2s, background 0.2s',
             padding: '6px 10px',
             borderRadius: '8px',
             background: 'rgba(255,255,255,0.04)',
             border: '0.5px solid rgba(255,255,255,0.08)',
           }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}
+          onMouseEnter={e => {
+            e.currentTarget.style.color = 'rgba(255,255,255,0.75)'
+            e.currentTarget.style.transform = 'translateX(-2px)'
+            e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.color = 'rgba(255,255,255,0.35)'
+            e.currentTarget.style.transform = 'translateX(0)'
+            e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+          }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M19 12H5M5 12l7-7M5 12l7 7"/>
@@ -604,7 +612,11 @@ export default function LoginPage() {
                 padding: '10px 12px',
                 fontSize: '12px',
                 color: '#f87171',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
               }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 {error}
               </div>
             )}
