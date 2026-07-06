@@ -51,7 +51,8 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
         (s) =>
           (s.full_name && s.full_name.toLowerCase().includes(q)) ||
           (s.roll_number && s.roll_number.toLowerCase().includes(q)) ||
-          (s.email && s.email.toLowerCase().includes(q))
+          (s.email && s.email.toLowerCase().includes(q)) ||
+          (s.room_number && s.room_number.toLowerCase().includes(q))
       );
     }
 
