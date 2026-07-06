@@ -203,6 +203,17 @@ router.patch('/:id/checkin', authenticate, requireWarden, async (req, res, next)
   try {
     const { id } = req.params;
 
+    const { data: existing, error: fetchError } = await supabaseAdmin
+      .from('visitors')
+      .select('status')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (existing.status !== 'approved') {
+      return res.status(400).json({ success: false, error: 'Visitor must be approved before check-in' });
+    }
+
     const { data, error } = await supabaseAdmin
       .from('visitors')
       .update({ status: 'checked_in', check_in_time: new Date().toISOString() })
@@ -222,6 +233,17 @@ router.patch('/:id/checkin', authenticate, requireWarden, async (req, res, next)
 router.patch('/:id/checkout', authenticate, requireWarden, async (req, res, next) => {
   try {
     const { id } = req.params;
+
+    const { data: existing, error: fetchError } = await supabaseAdmin
+      .from('visitors')
+      .select('status')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (existing.status !== 'checked_in') {
+      return res.status(400).json({ success: false, error: 'Visitor must be checked in before check-out' });
+    }
 
     const { data, error } = await supabaseAdmin
       .from('visitors')

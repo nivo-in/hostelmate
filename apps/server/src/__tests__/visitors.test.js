@@ -316,7 +316,10 @@ describe('Visitors API', () => {
   describe('PATCH /api/visitors/:id/checkin — Warden checks in', () => {
     it('should set status to checked_in with check_in_time', async () => {
       currentProfile = mockWardenProfile;
-      queryResults = [{ data: { id: 'visitor-1', student_id: 'student-id' }, error: null }];
+      queryResults = [
+        { data: { status: 'approved' }, error: null },
+        { data: { id: 'visitor-1', student_id: 'student-id' }, error: null }
+      ];
       const res = await request(app).patch('/api/v1/visitors/visitor-1/checkin');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
@@ -332,7 +335,10 @@ describe('Visitors API', () => {
   describe('PATCH /api/visitors/:id/checkout — Warden checks out', () => {
     it('should set status to checked_out with check_out_time', async () => {
       currentProfile = mockWardenProfile;
-      queryResults = [{ data: { id: 'visitor-1', student_id: 'student-id' }, error: null }];
+      queryResults = [
+        { data: { status: 'checked_in' }, error: null },
+        { data: { id: 'visitor-1', student_id: 'student-id' }, error: null }
+      ];
       const res = await request(app).patch('/api/v1/visitors/visitor-1/checkout');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
