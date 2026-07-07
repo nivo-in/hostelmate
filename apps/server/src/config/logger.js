@@ -34,6 +34,7 @@ const logger = winston.createLogger({
     http: 3,
     debug: 4,
   },
+  defaultMeta: { service: 'hostelmate-api' },
   format: combine(timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), logFormat),
   transports,
 });
