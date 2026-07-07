@@ -66,14 +66,17 @@ router.post('/', authenticate, requireWarden, validate(noticeSchema), async (req
 router.get('/', authenticate, async (req, res, next) => {
   try {
     const role = req.profile.role;
+    const search = req.query.search?.trim();
     const cacheKey = `notices:${role}`;
 
-    const cached = await getCache(cacheKey);
-    if (cached) {
-      logger.info(`Cache hit: notices ${role}`);
-      return res.json({ success: true, data: cached });
+    if (!search) {
+      const cached = await getCache(cacheKey);
+      if (cached) {
+        logger.info(`Cache hit: notices ${role}`);
+        return res.json({ success: true, data: cached });
+      }
+      logger.info(`Cache miss: notices ${role}`);
     }
-    logger.info(`Cache miss: notices ${role}`);
 
     let query = supabaseAdmin.from('notices').select('*');
 
@@ -83,11 +86,17 @@ router.get('/', authenticate, async (req, res, next) => {
       query = query.in('target_audience', ['parents', 'all']);
     }
 
+    if (search) {
+      query = query.ilike('title', `%${search}%`);
+    }
+
     const { data, error } = await query.order('created_at', { ascending: false }).limit(50);
 
     if (error) throw error;
 
-    await setCache(cacheKey, data, 180);
+    if (!search) {
+      await setCache(cacheKey, data, 180);
+    }
     res.json({ success: true, data });
   } catch (error) {
     next(error);
