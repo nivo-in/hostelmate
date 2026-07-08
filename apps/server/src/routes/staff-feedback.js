@@ -17,9 +17,14 @@ const staffFeedbackSchema = z.object({
 // GET / — requireWarden
 router.get('/', authenticate, async (req, res, next) => {
   try {
-    const { data: staffMembers, error: staffError } = await supabaseAdmin
-      .from('staff_members')
-      .select('*');
+    const { role } = req.query;
+    let query = supabaseAdmin.from('staff_members').select('*');
+
+    if (role) {
+      query = query.eq('role', role);
+    }
+
+    const { data: staffMembers, error: staffError } = await query;
 
     if (staffError) throw staffError;
 
