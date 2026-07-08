@@ -32,6 +32,10 @@ describe('Lost & Found Matcher', () => {
       expect(res.filter((k) => k === 'wallet').length).toBe(1);
     });
 
+    /**
+     * Test: should handle empty string
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should handle empty string', () => {
       expect(extractKeywords('')).toEqual([]);
     });
