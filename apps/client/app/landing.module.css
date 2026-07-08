@@ -822,6 +822,7 @@
   border-radius: 50%;
   flex-shrink: 0;
   margin-top: 3px;
+  animation: pulse 2s infinite;
 }
 
 .loginHintText {
