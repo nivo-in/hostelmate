@@ -237,6 +237,10 @@ describe('Lost and Found API', () => {
       expect(supabaseMock.range).toHaveBeenCalledWith(15, 29);
     });
 
+    /**
+     * Test: should return 401 without auth
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 401 without auth', async () => {
       currentProfile = null;
       const res = await request(app).get('/api/v1/lost-found');
