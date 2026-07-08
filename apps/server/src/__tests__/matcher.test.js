@@ -4,6 +4,10 @@ const { extractKeywords, calculateSimilarity, findMatches } = await import('../c
 
 describe('Lost & Found Matcher', () => {
   describe('extractKeywords', () => {
+    /**
+     * Test: should remove stop words
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should remove stop words', () => {
       const res = extractKeywords('the quick brown fox and the dog');
       expect(res).not.toContain('the');
