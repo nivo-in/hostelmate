@@ -51,6 +51,10 @@ describe('Lost & Found Matcher', () => {
       expect(score).toBe(1.0);
     });
 
+    /**
+     * Test: should return 0 for completely different sets
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 0 for completely different sets', () => {
       const score = calculateSimilarity(['key'], ['phone']);
       expect(score).toBe(0);
