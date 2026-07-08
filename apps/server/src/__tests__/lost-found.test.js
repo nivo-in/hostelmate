@@ -179,6 +179,10 @@ describe('Lost and Found API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should return match info if found
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return match info if found', async () => {
       supabaseMock.single.mockResolvedValueOnce({
         data: { id: '1', status: 'lost', item_name: 'Keys' },
