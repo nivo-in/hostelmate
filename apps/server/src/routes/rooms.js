@@ -54,6 +54,7 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
 
 router.get('/available', authenticate, requireStudent, async (req, res, next) => {
   try {
+    const { block } = req.query;
     const { data: roomsData, error: roomsError } = await supabaseAdmin
       .from('rooms')
       .select('id, room_number, capacity, blocks!rooms_block_id_fkey(name)')
@@ -68,7 +69,7 @@ router.get('/available', authenticate, requireStudent, async (req, res, next) =>
 
     if (studentsError) throw studentsError;
 
-    const available = roomsData
+    let available = roomsData
       .map((room) => {
         const occupants = studentsData.filter((s) => s.room_id === room.id).length;
         return {
@@ -80,6 +81,10 @@ router.get('/available', authenticate, requireStudent, async (req, res, next) =>
         };
       })
       .filter((r) => r.occupancy < r.capacity);
+
+    if (block) {
+      available = available.filter((r) => r.block_name.toLowerCase() === block.toLowerCase());
+    }
 
     res.json({ success: true, data: available });
   } catch (error) {
