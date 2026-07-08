@@ -42,6 +42,10 @@ describe('Lost & Found Matcher', () => {
   });
 
   describe('calculateSimilarity', () => {
+    /**
+     * Test: should return 1.0 for identical keyword sets
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 1.0 for identical keyword sets', () => {
       const score = calculateSimilarity(['key', 'wallet'], ['key', 'wallet']);
       expect(score).toBe(1.0);
