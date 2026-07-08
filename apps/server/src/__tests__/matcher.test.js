@@ -14,6 +14,10 @@ describe('Lost & Found Matcher', () => {
       expect(res).not.toContain('and');
     });
 
+    /**
+     * Test: should return lowercase keywords
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return lowercase keywords', () => {
       const res = extractKeywords('KEYS WALLET');
       expect(res).toEqual(expect.arrayContaining(['key', 'wallet']));
