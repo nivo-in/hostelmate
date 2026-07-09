@@ -143,6 +143,10 @@ describe('Mess API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should reject invalid day_of_week
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject invalid day_of_week', async () => {
       currentProfile = mockWardenProfile;
       const res = await request(app)
