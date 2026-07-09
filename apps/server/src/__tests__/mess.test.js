@@ -233,6 +233,10 @@ describe('Mess API', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should return 403 for warden
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 403 for warden', async () => {
       currentProfile = mockWardenProfile;
       const res = await request(app).post('/api/v1/mess/review').send({
