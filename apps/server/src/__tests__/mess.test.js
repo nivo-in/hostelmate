@@ -207,6 +207,10 @@ describe('Mess API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should reject rating below 1
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject rating below 1', async () => {
       const res = await request(app).post('/api/v1/mess/review').send({
         rating: 0,
