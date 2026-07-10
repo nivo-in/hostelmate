@@ -555,6 +555,7 @@ export default function LoginPage() {
                 type="email"
                 required
                 autoComplete="username"
+                spellCheck={false}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@college.edu"
