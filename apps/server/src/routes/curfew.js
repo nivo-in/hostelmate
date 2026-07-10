@@ -38,7 +38,9 @@ router.get('/violations', authenticate, requireWarden, async (req, res, next) =>
 
     const { data: students, error: studentsError } = await supabaseAdmin
       .from('students')
-      .select('id, roll_number, room_id, profiles!students_id_fkey(full_name)');
+      .select(
+        'id, roll_number, profiles!students_id_fkey(full_name), rooms!students_room_id_fkey(room_number, blocks!rooms_block_id_fkey(name))'
+      );
 
     if (studentsError) throw studentsError;
 
@@ -60,11 +62,15 @@ router.get('/violations', authenticate, requireWarden, async (req, res, next) =>
         .map(async (s) => {
           const key = `curfew_parent_notified:${todayKolkata}:${s.id}`;
           const isNotified = await redis.get(key);
+          const roomStr = s.rooms?.room_number 
+            ? `${s.rooms.blocks?.name || ''}-${s.rooms.room_number}` 
+            : 'Unassigned';
+          
           return {
             student_id: s.id,
             full_name: s.profiles?.full_name,
             roll_number: s.roll_number,
-            room_number: s.room_id,
+            room_number: roomStr,
             parent_notified: !!isNotified,
           };
         })
