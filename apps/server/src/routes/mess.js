@@ -135,7 +135,8 @@ router.get('/reviews', authenticate, requireWarden, async (req, res, next) => {
     }, {});
 
     Object.keys(averages).forEach((meal_type) => {
-      averages[meal_type] = averages[meal_type].totalRating / averages[meal_type].count;
+      const avg = averages[meal_type].totalRating / averages[meal_type].count;
+      averages[meal_type] = Number(avg.toFixed(1));
     });
 
     const responseData = { reviews: data, averages };
