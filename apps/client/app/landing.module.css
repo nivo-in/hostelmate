@@ -607,11 +607,12 @@
 .featureCell {
   background: #080810;
   padding: 28px 24px;
-  transition: background 0.2s;
+  transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .featureCell:hover {
   background: rgba(255,255,255,0.03);
+  transform: translateY(-2px);
 }
 
 .featureIconRow {
