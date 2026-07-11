@@ -249,6 +249,10 @@ describe('Mess API', () => {
   });
 
   describe('GET /api/mess/reviews - Warden views', () => {
+    /**
+     * Test: should return reviews with averages
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return reviews with averages', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
