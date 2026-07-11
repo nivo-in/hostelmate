@@ -186,6 +186,10 @@ describe('Notices API', () => {
   });
 
   describe('GET /api/notices - Any authenticated user', () => {
+    /**
+     * Test: should return notices for student (filtered)
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return notices for student (filtered)', async () => {
       currentProfile = mockStudentProfile;
       supabaseMock.limit.mockResolvedValueOnce({ data: [], error: null });
