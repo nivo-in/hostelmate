@@ -108,5 +108,14 @@ describe('Parent API Integration', () => {
       const res = await request(app).get('/api/v1/parent/my-student');
       expect(res.status).toBe(403);
     });
+
+    it('should catch unhandled exceptions gracefully', async () => {
+      queryResults = [
+        { data: { student_id: 'student-id' }, error: null }, // parent lookup passes
+        { data: null, error: new Error('Unexpected Database Failure') }, // profile lookup fails
+      ];
+      const res = await request(app).get('/api/v1/parent/my-student');
+      expect(res.status).toBe(500);
+    });
   });
 });
