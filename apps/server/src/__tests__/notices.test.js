@@ -152,6 +152,10 @@ describe('Notices API', () => {
       expect(res.status).toBe(403);
     });
 
+    /**
+     * Test: should accept notice targeting students
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept notice targeting students', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '2' }, error: null });
