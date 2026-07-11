@@ -197,6 +197,10 @@ describe('Notices API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should return all notices for warden
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return all notices for warden', async () => {
       supabaseMock.limit.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/notices');
