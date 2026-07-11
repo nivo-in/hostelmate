@@ -119,6 +119,10 @@ describe('Notices API', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should accept valid notice
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept valid notice', async () => {
       // Return notice data on insert
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '1' }, error: null });
