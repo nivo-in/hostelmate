@@ -138,6 +138,10 @@ describe('Notices API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should return 403 for student
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 403 for student', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).post('/api/v1/notices').send({
