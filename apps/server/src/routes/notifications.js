@@ -80,7 +80,7 @@ router.patch('/read-all', authenticate, async (req, res) => {
       .eq('is_read', false);
 
     // Invalidate cache so next GET returns fresh data
-    await deleteCache(`notifications:${req.user.id}`).catch(() => {});
+    await deleteCache(`notifications:${req.user.id}:p1`).catch(() => {});
 
     if (error) {
       return res.json({ success: true });
@@ -102,7 +102,7 @@ router.patch('/:id/read', authenticate, async (req, res) => {
       .eq('id', id)
       .eq('user_id', req.user.id);
 
-    await deleteCache(`notifications:${req.user.id}`).catch(() => {});
+    await deleteCache(`notifications:${req.user.id}:p1`).catch(() => {});
 
     if (error) {
       return res.json({ success: true });
@@ -124,7 +124,7 @@ router.delete('/:id', authenticate, async (req, res) => {
       .eq('id', id)
       .eq('user_id', req.user.id); // guard: only own notifications
 
-    await deleteCache(`notifications:${req.user.id}`).catch(() => {});
+    await deleteCache(`notifications:${req.user.id}:p1`).catch(() => {});
 
     if (error) return res.json({ success: true });
     res.json({ success: true });
