@@ -54,7 +54,7 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
 
 router.get('/available', authenticate, requireStudent, async (req, res, next) => {
   try {
-    const { block } = req.query;
+    const { block, capacity } = req.query;
     const { data: roomsData, error: roomsError } = await supabaseAdmin
       .from('rooms')
       .select('id, room_number, capacity, blocks!rooms_block_id_fkey(name)')
@@ -84,6 +84,13 @@ router.get('/available', authenticate, requireStudent, async (req, res, next) =>
 
     if (block) {
       available = available.filter((r) => r.block_name.toLowerCase() === block.toLowerCase());
+    }
+
+    if (capacity) {
+      const capNum = parseInt(capacity);
+      if (!isNaN(capNum)) {
+        available = available.filter((r) => r.capacity === capNum);
+      }
     }
 
     available.sort((a, b) => {
