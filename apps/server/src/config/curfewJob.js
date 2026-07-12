@@ -74,6 +74,9 @@ export const startCurfewJob = () => {
               await createNotification(warden.id, 'Curfew Alert', message, 'notice');
             }
           }
+          logger.info(`Curfew job completed: ${violations.length} violations recorded and wardens notified.`);
+        } else {
+          logger.info('Curfew job completed: 0 violations. All students are present.');
         }
       }
     } catch (err) {
