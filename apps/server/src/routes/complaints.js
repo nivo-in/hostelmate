@@ -103,7 +103,7 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
 
 router.get('/all', authenticate, requireWarden, async (req, res, next) => {
   try {
-    const { status } = req.query;
+    const { status, category } = req.query;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
     const from = (page - 1) * limit;
@@ -124,6 +124,10 @@ router.get('/all', authenticate, requireWarden, async (req, res, next) => {
 
     if (status) {
       query = query.eq('status', status);
+    }
+
+    if (category) {
+      query = query.eq('category', category);
     }
 
     if (req.query.urgent === 'true') {
