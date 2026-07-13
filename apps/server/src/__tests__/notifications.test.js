@@ -171,6 +171,10 @@ describe('Notifications API Integration', () => {
   });
 
   describe('PATCH /api/notifications/read-all', () => {
+    /**
+     * Test: should mark all as read
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should mark all as read', async () => {
       queryResults = [{ error: null }];
       const res = await request(app).patch('/api/v1/notifications/read-all');
