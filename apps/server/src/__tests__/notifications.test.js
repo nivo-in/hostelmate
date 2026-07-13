@@ -118,6 +118,10 @@ describe('Notifications API Integration', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should return unread_count
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return unread_count', async () => {
       queryResults = [
         { data: [{ is_read: false }], count: 1, error: null },
