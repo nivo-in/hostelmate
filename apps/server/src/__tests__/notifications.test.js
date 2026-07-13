@@ -105,6 +105,10 @@ describe('Notifications API Integration', () => {
   });
 
   describe('GET /api/notifications', () => {
+    /**
+     * Test: should return notifications for authenticated user
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return notifications for authenticated user', async () => {
       queryResults = [
         { data: [], count: 0, error: null },
