@@ -130,6 +130,14 @@ describe('Curfew API', () => {
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(0);
     });
+
+    it('should return empty if curfew is disabled', async () => {
+      mockRedisGet.mockResolvedValueOnce(JSON.stringify({ curfew_time: '00:00', enabled: false }));
+
+      const res = await request(app).get('/api/v1/curfew/violations');
+      expect(res.status).toBe(200);
+      expect(res.body.data).toHaveLength(0);
+    });
   });
 
   describe('POST /api/curfew/notify', () => {
