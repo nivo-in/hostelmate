@@ -170,6 +170,29 @@ describe('Attendance API Integration', () => {
         .send({ qr_data: 'invalid json {' });
       expect(res.status).toBe(400);
     });
+
+    it('should reject invalid QR token', async () => {
+      queryResults = [
+        { data: null, error: null }, // existing check
+      ];
+      
+      const today = new Date().toISOString().split('T')[0];
+      const invalidQR = {
+        hostel: 'hostelmate',
+        date: today,
+        token: 'invalid-token',
+        nonce: Date.now(),
+      };
+
+      const res = await request(app)
+        .post('/api/v1/attendance/mark')
+        .send({
+          qr_data: JSON.stringify(invalidQR),
+          lat: 28.6139,
+          lng: 77.209,
+        });
+      expect(res.status).toBe(400);
+    });
   });
 
   describe('GET /api/attendance/today', () => {
