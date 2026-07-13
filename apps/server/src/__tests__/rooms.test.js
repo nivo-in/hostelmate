@@ -136,6 +136,23 @@ describe('Rooms API', () => {
       expect(res.body.data[0].room_number).toBe('101');
       expect(res.body.data[0].occupancy).toBe(1);
     });
+    it('should filter available rooms by capacity if specified', async () => {
+      queryResults = [
+        {
+          data: [
+            { id: 'room-1', room_number: '101', capacity: 2, blocks: { name: 'A' } },
+            { id: 'room-2', room_number: '102', capacity: 3, blocks: { name: 'A' } }
+          ],
+          error: null,
+        },
+        { data: [], error: null }, // no occupants
+      ];
+
+      const res = await request(app).get('/api/v1/rooms/available?capacity=3');
+      expect(res.status).toBe(200);
+      expect(res.body.data).toHaveLength(1);
+      expect(res.body.data[0].capacity).toBe(3);
+    });
   });
 
   describe('GET /api/rooms - Warden views all rooms', () => {
