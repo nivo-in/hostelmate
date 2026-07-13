@@ -133,6 +133,10 @@ describe('Notifications API Integration', () => {
       expect(res.body.data.unread_count).toBe(1);
     });
 
+    /**
+     * Test: should handle supabase error safely
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should handle supabase error safely', async () => {
       queryResults = [{ data: null, error: new Error('DB Error') }];
       const res = await request(app).get('/api/v1/notifications');
