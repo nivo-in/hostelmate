@@ -155,6 +155,10 @@ describe('Notifications API Integration', () => {
       expect(res.body.data.notifications).toHaveLength(0);
     });
 
+    /**
+     * Test: should respect the limit and page query parameters
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should respect the limit and page query parameters', async () => {
       queryResults = [
         { data: [], count: 0, error: null },
