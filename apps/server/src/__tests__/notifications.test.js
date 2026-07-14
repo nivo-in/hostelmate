@@ -203,6 +203,10 @@ describe('Notifications API Integration', () => {
   });
 
   describe('PATCH /api/notifications/:id/read', () => {
+    /**
+     * Test: should mark single notification as read
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should mark single notification as read', async () => {
       queryResults = [{ error: null }];
       const res = await request(app).patch('/api/v1/notifications/1/read');
