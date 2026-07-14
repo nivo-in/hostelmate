@@ -99,7 +99,8 @@ router.post(
 
 router.get('/reviews', authenticate, requireWarden, async (req, res, next) => {
   try {
-    const cacheKey = 'mess:reviews';
+    const limit = parseInt(req.query.limit) || 100;
+    const cacheKey = `mess:reviews:limit:${limit}`;
     const cached = await getCache(cacheKey);
     if (cached) {
       logger.info('Cache hit: mess reviews');
@@ -120,6 +121,7 @@ router.get('/reviews', authenticate, requireWarden, async (req, res, next) => {
     )
   `
       )
+      .limit(limit)
       .order('date', { ascending: false });
 
     if (error) throw error;
