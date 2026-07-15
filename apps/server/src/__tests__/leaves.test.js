@@ -163,6 +163,13 @@ describe('Leaves API', () => {
       expect(res.body.data).toEqual([{ id: '1' }]);
     });
 
+    it('should respect the limit query parameter for student leaves', async () => {
+      supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
+      const res = await request(app).get('/api/v1/leaves/my?limit=5');
+      expect(res.status).toBe(200);
+      expect(supabaseMock.limit).toHaveBeenCalledWith(5);
+    });
+
     it('should return empty array if no leaves', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/leaves/my');
