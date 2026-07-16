@@ -167,6 +167,10 @@ describe('Payments API', () => {
     expect(res.body.success).toBe(true);
   });
 
+  /**
+   * Test: GET /api/v1/payments/all should return all payments for warden
+   * Verifies behaviour under correct inputs and constraints.
+   */
   it('GET /api/v1/payments/all should return all payments for warden', async () => {
     currentProfile = { id: 'warden-id', role: 'warden' };
     queryResults = [
