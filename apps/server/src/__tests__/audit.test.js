@@ -97,6 +97,13 @@ describe('Audit API', () => {
       expect(res.body.data).toHaveLength(1);
     });
 
+    it('should respect the limit and page query parameters', async () => {
+      queryResults = [{ data: [], count: 0, error: null }];
+      const res = await request(app).get('/api/v1/audit?limit=10&page=3');
+      expect(res.status).toBe(200);
+      expect(supabaseMock.range).toHaveBeenCalledWith(20, 29);
+    });
+
     it('should reject non-warden access', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).get('/api/v1/audit');
