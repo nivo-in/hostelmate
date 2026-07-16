@@ -146,6 +146,10 @@ describe('Payments API', () => {
     expect(res.body.data.order_id).toBe('order_123');
   });
 
+  /**
+   * Test: POST /api/v1/payments/verify should verify a successful payment
+   * Verifies behaviour under correct inputs and constraints.
+   */
   it('POST /api/v1/payments/verify should verify a successful payment', async () => {
     queryResults = [
       { data: { id: 'payment-1', status: 'pending', student_id: 'student-id', amount: 5000 }, error: null },
