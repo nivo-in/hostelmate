@@ -100,6 +100,10 @@ describe('Parent API Integration', () => {
       expect(res.body.data.today_attendance.status).toBe('present');
     });
 
+    /**
+     * Test: should return 404 if no linked student
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 404 if no linked student', async () => {
       queryResults = [{ data: null, error: new Error('No rows') }];
 
