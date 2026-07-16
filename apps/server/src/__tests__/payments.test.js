@@ -265,6 +265,10 @@ describe('Payments API', () => {
     expect(res.body.data.id).toBe('p1');
   });
 
+  /**
+   * Test: GET /api/v1/payments/receipt/:id should return receipt details
+   * Verifies behaviour under correct inputs and constraints.
+   */
   it('GET /api/v1/payments/receipt/:id should return receipt details', async () => {
     currentProfile = { id: 'warden-id', role: 'warden' };
     queryResults = [
