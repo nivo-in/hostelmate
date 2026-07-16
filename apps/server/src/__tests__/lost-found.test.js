@@ -194,7 +194,7 @@ describe('Lost and Found API', () => {
     it('should filter by status', async () => {
       supabaseMock.range.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/lost-found?status=claimed');
-      if (res.status === 500) console.error('GET STATUS ERROR:', res.body);
+      if (res.status === 500) {console.error('GET STATUS ERROR:', res.body);}
       expect(res.status).toBe(200);
     });
 

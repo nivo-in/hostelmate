@@ -26,13 +26,13 @@ router.get('/', authenticate, async (req, res, next) => {
 
     const { data: staffMembers, error: staffError } = await query;
 
-    if (staffError) throw staffError;
+    if (staffError) {throw staffError;}
 
     const { data: allFeedback, error: feedbackError } = await supabaseAdmin
       .from('staff_feedback')
       .select('*');
 
-    if (feedbackError) throw feedbackError;
+    if (feedbackError) {throw feedbackError;}
 
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
@@ -87,7 +87,7 @@ router.get('/:staffId', authenticate, async (req, res, next) => {
       .limit(limit)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     const total_reviews = feedbackData.length;
     const average_rating =
@@ -140,7 +140,7 @@ router.post(
         .gte('created_at', `${today}T00:00:00.000Z`)
         .lte('created_at', `${today}T23:59:59.999Z`);
 
-      if (reviewError) throw reviewError;
+      if (reviewError) {throw reviewError;}
 
       if (existingReview && existingReview.length > 0) {
         return res
@@ -160,7 +160,7 @@ router.post(
         .select()
         .single();
 
-      if (insertError) throw insertError;
+      if (insertError) {throw insertError;}
 
       logger.info(`Staff feedback submitted by student ${student_id} for staff ${staff_id}`);
       res.json({ success: true, data: record });

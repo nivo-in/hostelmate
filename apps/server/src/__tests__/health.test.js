@@ -26,7 +26,7 @@ jest.unstable_mockModule('../config/redis.js', () => ({
   publishEvent: jest.fn(),
   redis: {
     ping: jest.fn(async () => {
-      if (redisPingThrows) throw new Error('Redis down');
+      if (redisPingThrows) {throw new Error('Redis down');}
       return 'PONG';
     }),
   },

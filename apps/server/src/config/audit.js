@@ -11,7 +11,7 @@ export async function auditLog(userId, action, resource, resourceId, details = {
       details,
     });
 
-    if (error) throw error;
+    if (error) {throw error;}
     logger.info(`Audit: User ${userId} performed ${action} on ${resource} ${resourceId}`);
   } catch (err) {
     logger.error('Failed to create audit log:', err);

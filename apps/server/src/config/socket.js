@@ -42,7 +42,7 @@ export function initSocket(httpServer) {
  * @returns {import('socket.io').Server}
  */
 export function getIO() {
-  if (!io) throw new Error('Socket.io not initialized');
+  if (!io) {throw new Error('Socket.io not initialized');}
   return io;
 }
 
@@ -53,7 +53,7 @@ export function getIO() {
  * @param {object} data
  */
 export function emitToUser(userId, event, data) {
-  if (!io) return;
+  if (!io) {return;}
   io.to(`user:${userId}`).emit(event, data);
 }
 
@@ -63,6 +63,6 @@ export function emitToUser(userId, event, data) {
  * @param {object} data
  */
 export function emitToAll(event, data) {
-  if (!io) return;
+  if (!io) {return;}
   io.emit(event, data);
 }

@@ -33,7 +33,7 @@ router.post(
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {throw error;}
 
       logger.info(`Lost/found item "${item_name}" reported by ${req.user.id}`);
 
@@ -119,7 +119,7 @@ router.get('/', authenticate, async (req, res, next) => {
 
     const { data, count, error } = await query;
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     const totalPages = Math.ceil(count / limit);
 
@@ -151,7 +151,7 @@ router.patch('/:id/claim', authenticate, async (req, res, next) => {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     logger.info(`Lost/found item ${id} claimed/resolved by ${req.user.id}`);
     await deleteCache('lost-found:all');
@@ -173,7 +173,7 @@ router.delete('/:id', authenticate, requireStudent, async (req, res, next) => {
       .eq('id', id)
       .eq('reported_by', req.user.id);
 
-    if (error) throw error;
+    if (error) {throw error;}
     res.json({ success: true });
   } catch (err) {
     next(err);

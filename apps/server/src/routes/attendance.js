@@ -52,7 +52,7 @@ router.post(
           .select()
           .single();
 
-        if (insertError) throw insertError;
+        if (insertError) {throw insertError;}
 
         logger.info(`Face-only attendance marked for user ${req.user.id}`);
         await auditLog(req.user.id, 'mark_attendance', 'attendance', record.id);
@@ -154,7 +154,7 @@ router.post(
         .select()
         .single();
 
-      if (insertError) throw insertError;
+      if (insertError) {throw insertError;}
 
       logger.info(`Attendance marked successfully for user ${req.user.id}`);
       await auditLog(req.user.id, 'mark_attendance', 'attendance', record.id);
@@ -228,7 +228,7 @@ router.get('/today', authenticate, requireWarden, async (req, res, next) => {
       )
       .eq('date', today);
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     const formattedData = data.map((item) => ({
       id: item.id,
@@ -268,7 +268,7 @@ router.get('/student/:studentId', authenticate, async (req, res, next) => {
     }
 
     const { data, error } = await query;
-    if (error) throw error;
+    if (error) {throw error;}
 
     res.json({ success: true, data });
   } catch (error) {

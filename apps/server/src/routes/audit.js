@@ -36,7 +36,7 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
 
     const { data, count, error } = await query;
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     const totalPages = Math.ceil(count / limit);
 

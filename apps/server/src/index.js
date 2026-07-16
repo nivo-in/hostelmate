@@ -73,7 +73,7 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (mobile apps, curl)
-      if (!origin) return callback(null, true);
+      if (!origin) {return callback(null, true);}
       // Allow localhost and local network IPs
       if (
         origin.includes('localhost') ||
@@ -129,7 +129,7 @@ app.use('/api/v1/demo', demoRoutes);
 
 // Backward compatibility redirect
 app.use('/api', (req, res, next) => {
-  if (req.path.startsWith('/v1')) return next();
+  if (req.path.startsWith('/v1')) {return next();}
   res.redirect(307, `/api/v1${req.url}`);
 });
 

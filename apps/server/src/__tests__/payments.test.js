@@ -57,7 +57,7 @@ jest.unstable_mockModule('../middleware/rateLimit.js', () => ({
 
 jest.unstable_mockModule('../middleware/auth.js', () => ({
   authenticate: (req, res, next) => {
-    if (!authEnabled) return res.status(401).json({ error: 'Unauthorized' });
+    if (!authEnabled) {return res.status(401).json({ error: 'Unauthorized' });}
     req.user = { id: currentProfile.id };
     req.profile = currentProfile;
     next();

@@ -34,7 +34,7 @@ router.post('/', authenticate, requireStudent, validate(visitorSchema), async (r
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     // Fetch student profile for notification
     const { data: profile } = await supabaseAdmin
@@ -79,7 +79,7 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
       .limit(limit)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     res.json({ success: true, data });
   } catch (error) {
@@ -108,10 +108,10 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
       { count: 'exact' }
     );
 
-    if (status) query = query.eq('status', status);
-    if (date) query = query.eq('expected_visit_date', date);
-    if (student_id) query = query.eq('student_id', student_id);
-    if (search) query = query.or(`visitor_name.ilike.%${search}%,visitor_phone.ilike.%${search}%`);
+    if (status) {query = query.eq('status', status);}
+    if (date) {query = query.eq('expected_visit_date', date);}
+    if (student_id) {query = query.eq('student_id', student_id);}
+    if (search) {query = query.or(`visitor_name.ilike.%${search}%,visitor_phone.ilike.%${search}%`);}
 
     if (sort === 'date') {
       query = query.range(from, to).order('expected_visit_date', { ascending: false });
@@ -121,7 +121,7 @@ router.get('/', authenticate, requireWarden, async (req, res, next) => {
 
     const { data, count, error } = await query;
 
-    if (error) throw error;
+    if (error) {throw error;}
 
     const totalPages = Math.ceil(count / limit);
 
@@ -148,7 +148,7 @@ router.patch('/:id/approve', authenticate, requireWarden, async (req, res, next)
     const { warden_notes } = req.body;
 
     const updates = { status: 'approved' };
-    if (warden_notes !== undefined) updates.warden_notes = warden_notes;
+    if (warden_notes !== undefined) {updates.warden_notes = warden_notes;}
 
     const { data, error } = await supabaseAdmin
       .from('visitors')
@@ -157,8 +157,8 @@ router.patch('/:id/approve', authenticate, requireWarden, async (req, res, next)
       .select()
       .single();
 
-    if (error) throw error;
-    if (!data) return res.status(404).json({ success: false, error: 'Visitor request not found' });
+    if (error) {throw error;}
+    if (!data) {return res.status(404).json({ success: false, error: 'Visitor request not found' });}
 
     await createNotification(
       data.student_id,
@@ -180,7 +180,7 @@ router.patch('/:id/reject', authenticate, requireWarden, async (req, res, next) 
     const { warden_notes } = req.body;
 
     const updates = { status: 'rejected' };
-    if (warden_notes !== undefined) updates.warden_notes = warden_notes;
+    if (warden_notes !== undefined) {updates.warden_notes = warden_notes;}
 
     const { data, error } = await supabaseAdmin
       .from('visitors')
@@ -189,8 +189,8 @@ router.patch('/:id/reject', authenticate, requireWarden, async (req, res, next) 
       .select()
       .single();
 
-    if (error) throw error;
-    if (!data) return res.status(404).json({ success: false, error: 'Visitor request not found' });
+    if (error) {throw error;}
+    if (!data) {return res.status(404).json({ success: false, error: 'Visitor request not found' });}
 
     await createNotification(
       data.student_id,
@@ -216,7 +216,7 @@ router.patch('/:id/checkin', authenticate, requireWarden, async (req, res, next)
       .eq('id', id)
       .single();
 
-    if (fetchError) throw fetchError;
+    if (fetchError) {throw fetchError;}
     if (existing.status !== 'approved') {
       return res.status(400).json({ success: false, error: 'Visitor must be approved before check-in' });
     }
@@ -228,8 +228,8 @@ router.patch('/:id/checkin', authenticate, requireWarden, async (req, res, next)
       .select()
       .single();
 
-    if (error) throw error;
-    if (!data) return res.status(404).json({ success: false, error: 'Visitor request not found' });
+    if (error) {throw error;}
+    if (!data) {return res.status(404).json({ success: false, error: 'Visitor request not found' });}
 
     res.json({ success: true, data });
   } catch (error) {
@@ -247,7 +247,7 @@ router.patch('/:id/checkout', authenticate, requireWarden, async (req, res, next
       .eq('id', id)
       .single();
 
-    if (fetchError) throw fetchError;
+    if (fetchError) {throw fetchError;}
     if (existing.status !== 'checked_in') {
       return res.status(400).json({ success: false, error: 'Visitor must be checked in before check-out' });
     }
@@ -259,8 +259,8 @@ router.patch('/:id/checkout', authenticate, requireWarden, async (req, res, next
       .select()
       .single();
 
-    if (error) throw error;
-    if (!data) return res.status(404).json({ success: false, error: 'Visitor request not found' });
+    if (error) {throw error;}
+    if (!data) {return res.status(404).json({ success: false, error: 'Visitor request not found' });}
 
     res.json({ success: true, data });
   } catch (error) {

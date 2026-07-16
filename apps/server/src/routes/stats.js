@@ -81,9 +81,9 @@ router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => 
 
     if (lostFoundData) {
       for (const item of lostFoundData) {
-        if (item.status === 'lost') totalLost++;
-        else if (item.status === 'found') totalFound++;
-        else if (item.status === 'claimed') totalClaimed++;
+        if (item.status === 'lost') {totalLost++;}
+        else if (item.status === 'found') {totalFound++;}
+        else if (item.status === 'claimed') {totalClaimed++;}
       }
     }
 

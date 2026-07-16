@@ -15,7 +15,7 @@ router.get('/violations', authenticate, requireWarden, async (req, res, next) =>
     let settings = { curfew_time: '22:00', enabled: true };
     try {
       const cached = await redis.get('curfew:settings');
-      if (cached) settings = JSON.parse(cached);
+      if (cached) {settings = JSON.parse(cached);}
     } catch (e) {
       // ignore
     }
@@ -42,7 +42,7 @@ router.get('/violations', authenticate, requireWarden, async (req, res, next) =>
         'id, roll_number, profiles!students_id_fkey(full_name), rooms!students_room_id_fkey(room_number, blocks!rooms_block_id_fkey(name))'
       );
 
-    if (studentsError) throw studentsError;
+    if (studentsError) {throw studentsError;}
 
     const { data: attendance, error: attendanceError } = await supabaseAdmin
       .from('attendance')
@@ -50,7 +50,7 @@ router.get('/violations', authenticate, requireWarden, async (req, res, next) =>
       .eq('date', today)
       .eq('status', 'present');
 
-    if (attendanceError) throw attendanceError;
+    if (attendanceError) {throw attendanceError;}
 
     const presentStudentIds = new Set(attendance.map((a) => a.student_id));
 
@@ -143,7 +143,7 @@ router.get('/settings', authenticate, requireWarden, async (req, res, next) => {
     let settings = { curfew_time: '22:00', enabled: true };
     try {
       const cached = await redis.get('curfew:settings');
-      if (cached) settings = JSON.parse(cached);
+      if (cached) {settings = JSON.parse(cached);}
     } catch (e) {
       // ignore
     }
