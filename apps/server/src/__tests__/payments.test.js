@@ -220,6 +220,10 @@ describe('Payments API', () => {
     expect(res.body.success).toBe(true);
   });
 
+  /**
+   * Test: GET /api/v1/payments/students-list should return students
+   * Verifies behaviour under correct inputs and constraints.
+   */
   it('GET /api/v1/payments/students-list should return students', async () => {
     currentProfile = { id: 'warden-id', role: 'warden' };
     queryResults = [{ data: [{ id: 's1', roll_number: '123' }], error: null }];
