@@ -138,6 +138,16 @@ describe('Notifications API Integration', () => {
       expect(res.status).toBe(200);
       expect(res.body.data.notifications).toHaveLength(0);
     });
+
+    it('should respect the limit and page query parameters', async () => {
+      queryResults = [
+        { data: [], count: 0, error: null },
+        { count: 0, error: null },
+      ];
+      const res = await request(app).get('/api/v1/notifications?limit=5&page=2');
+      expect(res.status).toBe(200);
+      expect(supabaseMock.range).toHaveBeenCalledWith(5, 9);
+    });
   });
 
   describe('PATCH /api/notifications/read-all', () => {
