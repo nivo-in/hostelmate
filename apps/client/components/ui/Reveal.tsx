@@ -42,7 +42,7 @@ export function Reveal({
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el) {return;}
 
     // No IO or reduced motion → show immediately, no animation.
     const reduce =
@@ -57,7 +57,7 @@ export function Reveal({
       ([entry]) => {
         if (entry.isIntersecting) {
           setShown(true);
-          if (!replay) observer.disconnect();
+          if (!replay) {observer.disconnect();}
         } else if (replay) {
           setShown(false);
         }

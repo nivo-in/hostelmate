@@ -74,7 +74,7 @@ function PreviewGooglyEyes() {
       const eyes = [eye1Ref, eye2Ref]
       eyes.forEach(eyeRef => {
         const eye = eyeRef.current
-        if (!eye) return
+        if (!eye) {return}
         const rect = eye.getBoundingClientRect()
         const eyeCX = rect.left + rect.width / 2
         const eyeCY = rect.top + rect.height / 2
@@ -229,7 +229,7 @@ export default function Home() {
   const faqAskRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined') {return}
 
     // Disable browser scroll restoration completely
     if ('scrollRestoration' in history) {
@@ -441,10 +441,10 @@ export default function Home() {
 
   const tickWheel = useCallback(function tickWheelFn() {
     if (window.innerWidth <= 768) {
-      if (cylinderRef.current) cylinderRef.current.style.transform = ''
+      if (cylinderRef.current) {cylinderRef.current.style.transform = ''}
       const cards = cylinderRef.current ? Array.from(cylinderRef.current.children) as HTMLElement[] : []
       cards.forEach(card => {
-        if (!card) return
+        if (!card) {return}
         card.style.transform = ''
         card.style.opacity = ''
         card.style.pointerEvents = ''
@@ -471,12 +471,12 @@ export default function Home() {
 
     const cards = cylinderRef.current ? Array.from(cylinderRef.current.children) as HTMLElement[] : []
     cards.forEach((card, i) => {
-      if (!card) return
+      if (!card) {return}
       const cardAngle = i * 40
       
       let absRot = (cardAngle + currentRot.current) % 360
-      if (absRot < 0) absRot += 360
-      if (absRot > 180) absRot = 360 - absRot
+      if (absRot < 0) {absRot += 360}
+      if (absRot > 180) {absRot = 360 - absRot}
 
       let opacity = 1
       let scale = 1
@@ -509,8 +509,8 @@ export default function Home() {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.innerWidth <= 768) return
-      if (!scrollWrapperRef.current) return
+      if (window.innerWidth <= 768) {return}
+      if (!scrollWrapperRef.current) {return}
 
       const rect = scrollWrapperRef.current.getBoundingClientRect()
 
@@ -597,14 +597,14 @@ export default function Home() {
       const safeProgress = Math.max(0, Math.min(1, progress))
       targetRot.current = safeProgress * -360
       
-      if (!wheelAnimRef.current) wheelAnimRef.current = requestAnimationFrame(tickWheel)
+      if (!wheelAnimRef.current) {wheelAnimRef.current = requestAnimationFrame(tickWheel)}
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll()
     currentRot.current = targetRot.current
     
-    if (!wheelAnimRef.current) wheelAnimRef.current = requestAnimationFrame(tickWheel)
+    if (!wheelAnimRef.current) {wheelAnimRef.current = requestAnimationFrame(tickWheel)}
 
     const onResize = () => {
       handleScroll()
@@ -627,10 +627,10 @@ export default function Home() {
     // Listen for BFCache restores and tab-switches directly here so there is no
     // timing race with the separate navigation useEffect that calls the ref.
     const onPageShow = (e: PageTransitionEvent) => {
-      if (e.persisted) forceRestartLoop()
+      if (e.persisted) {forceRestartLoop()}
     }
     const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') forceRestartLoop()
+      if (document.visibilityState === 'visible') {forceRestartLoop()}
     }
     const onPopState = () => {
       // Browser back/forward button within Next.js SPA navigation also kills rAF
@@ -647,7 +647,7 @@ export default function Home() {
       window.removeEventListener('pageshow', onPageShow)
       document.removeEventListener('visibilitychange', onVisibilityChange)
       window.removeEventListener('popstate', onPopState)
-      if (wheelAnimRef.current) cancelAnimationFrame(wheelAnimRef.current)
+      if (wheelAnimRef.current) {cancelAnimationFrame(wheelAnimRef.current)}
     }
   }, [tickWheel])
   const cardRef = useRef<HTMLDivElement>(null)
@@ -684,20 +684,20 @@ export default function Home() {
       })
     }, { threshold: 0.12 })
 
-    if (footerRef.current) observer.observe(footerRef.current)
-    if (whatsInsideRef.current) observer.observe(whatsInsideRef.current)
-    if (loginLeftRef.current) observer.observe(loginLeftRef.current)
-    if (loginRightRef.current) observer.observe(loginRightRef.current)
+    if (footerRef.current) {observer.observe(footerRef.current)}
+    if (whatsInsideRef.current) {observer.observe(whatsInsideRef.current)}
+    if (loginLeftRef.current) {observer.observe(loginLeftRef.current)}
+    if (loginRightRef.current) {observer.observe(loginRightRef.current)}
 
     // New sections
-    if (howItWorksRef.current) observer.observe(howItWorksRef.current)
-    if (pricingRef.current) observer.observe(pricingRef.current)
-    if (faqRef.current) observer.observe(faqRef.current)
-    if (faqAskRef.current) cardObserver.observe(faqAskRef.current)
+    if (howItWorksRef.current) {observer.observe(howItWorksRef.current)}
+    if (pricingRef.current) {observer.observe(pricingRef.current)}
+    if (faqRef.current) {observer.observe(faqRef.current)}
+    if (faqAskRef.current) {cardObserver.observe(faqAskRef.current)}
 
-    howItWorksCardsRef.current.forEach(el => { if (el) cardObserver.observe(el) })
-    pricingCardsRef.current.forEach(el => { if (el) cardObserver.observe(el) })
-    faqCardsRef.current.forEach(el => { if (el) cardObserver.observe(el) })
+    howItWorksCardsRef.current.forEach(el => { if (el) {cardObserver.observe(el)} })
+    pricingCardsRef.current.forEach(el => { if (el) {cardObserver.observe(el)} })
+    faqCardsRef.current.forEach(el => { if (el) {cardObserver.observe(el)} })
 
     return () => { observer.disconnect(); cardObserver.disconnect() }
   }, [])
@@ -708,7 +708,7 @@ export default function Home() {
 
   const tick = useCallback(function tickFn() {
     const el = cardRef.current
-    if (!el) return
+    if (!el) {return}
     current.current.x = lerp(current.current.x, target.current.x, 0.025)
     current.current.y = lerp(current.current.y, target.current.y, 0.025)
     el.style.transform = `rotateY(${current.current.y}deg) rotateX(${current.current.x}deg)`
@@ -720,11 +720,11 @@ export default function Home() {
   }, [])
 
   const startAnim = useCallback(() => {
-    if (!animRef.current) animRef.current = requestAnimationFrame(tick)
+    if (!animRef.current) {animRef.current = requestAnimationFrame(tick)}
   }, [tick])
 
   const handleLoginCardClick = useCallback(() => {
-    if (transitioning) return
+    if (transitioning) {return}
     setTransitioning(true)
 
     try {
@@ -767,7 +767,7 @@ export default function Home() {
 
   const handleNavSigninClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
-    if (transitioning) return
+    if (transitioning) {return}
     setTransitioning(true)
 
     try {
@@ -794,7 +794,7 @@ export default function Home() {
   // rather than the inner <section> — that's what was landing "in between".
   const getSectionTargetY = useCallback((id: string): number | null => {
     const el = document.getElementById(id)
-    if (!el) return null
+    if (!el) {return null}
     const wrapper =
       (el.closest(`.${styles.sectionStickyWrapper}`) as HTMLElement | null) ||
       (el.closest(`.${styles.featuresScrollWrapper}`) as HTMLElement | null) ||
@@ -808,7 +808,7 @@ export default function Home() {
     (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
       e.preventDefault()
       const targetY = getSectionTargetY(id)
-      if (targetY == null) return
+      if (targetY === null) {return}
 
       const destIdx = NAV_TARGET_IDS.indexOf(id)
       // Which section are we currently looking at?
@@ -816,7 +816,7 @@ export default function Home() {
       let srcIdx = 0
       NAV_TARGET_IDS.forEach((nid, i) => {
         const t = getSectionTargetY(nid)
-        if (t != null && probe >= t - 4) srcIdx = i
+        if (t !== null && probe >= t - 4) {srcIdx = i}
       })
 
       const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -900,7 +900,7 @@ export default function Home() {
         loginCardRef.current.style.boxShadow = ''
         loginCardRef.current.style.zIndex = ''
         requestAnimationFrame(() => {
-          if (loginCardRef.current) loginCardRef.current.style.transition = ''
+          if (loginCardRef.current) {loginCardRef.current.style.transition = ''}
         })
       }
 
@@ -922,7 +922,7 @@ export default function Home() {
         })
 
         setTimeout(() => {
-          if (overlayRef.current) overlayRef.current.style.transition = 'opacity 0.4s ease'
+          if (overlayRef.current) {overlayRef.current.style.transition = 'opacity 0.4s ease'}
         }, 350)
       }
     }
@@ -1058,7 +1058,7 @@ export default function Home() {
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const el = cardRef.current
-    if (!el) return
+    if (!el) {return}
 
     // Tilt
     const rect = el.getBoundingClientRect()
@@ -1118,21 +1118,21 @@ export default function Home() {
       timers.current.fc1 = null
     }
     activeStates.current.fc1 = false
-    if (fc1Ref.current) resetCard(fc1Ref.current, '4px, 4px')
+    if (fc1Ref.current) {resetCard(fc1Ref.current, '4px, 4px')}
 
     if (timers.current.fc2) {
       window.clearTimeout(timers.current.fc2)
       timers.current.fc2 = null
     }
     activeStates.current.fc2 = false
-    if (fc2Ref.current) resetCard(fc2Ref.current, '-4px, -4px')
+    if (fc2Ref.current) {resetCard(fc2Ref.current, '-4px, -4px')}
   }, [startAnim])
 
   useEffect(() => {
     return () => {
-      if (animRef.current) cancelAnimationFrame(animRef.current)
-      if (timers.current.fc1) window.clearTimeout(timers.current.fc1)
-      if (timers.current.fc2) window.clearTimeout(timers.current.fc2)
+      if (animRef.current) {cancelAnimationFrame(animRef.current)}
+      if (timers.current.fc1) {window.clearTimeout(timers.current.fc1)}
+      if (timers.current.fc2) {window.clearTimeout(timers.current.fc2)}
     }
   }, [])
 

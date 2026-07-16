@@ -94,7 +94,7 @@ export function AiAssistant() {
     const checkRole = async () => {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) return;
+      if (!session?.user) {return;}
 
       // Role lives in the profiles table — not in the Supabase JWT metadata
       const { data: profile } = await supabase
@@ -133,7 +133,7 @@ export function AiAssistant() {
 
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed || loading) return;
+    if (!trimmed || loading) {return;}
     setInput('');
     const newMessages = [...messages, { role: 'user', content: trimmed }];
     setMessages(newMessages);
@@ -152,7 +152,7 @@ export function AiAssistant() {
     }
   }, [messages, loading, apiPost]);
 
-  if (!role) return null;
+  if (!role) {return null;}
 
   const isWarden = role === 'warden';
   const chips = isWarden ? WARDEN_CHIPS : STUDENT_CHIPS;

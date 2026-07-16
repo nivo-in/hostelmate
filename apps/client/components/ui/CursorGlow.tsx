@@ -47,13 +47,13 @@ export function CursorGlow({ color = 'rgba(124,92,252,0.07)', size = 600 }: Curs
     const onMove = (e: PointerEvent) => {
       tgt.x = e.clientX;
       tgt.y = e.clientY;
-      if (raf == null) raf = requestAnimationFrame(tick);
+      if (raf === null) {raf = requestAnimationFrame(tick);}
     };
 
     window.addEventListener('pointermove', onMove, { passive: true });
     return () => {
       window.removeEventListener('pointermove', onMove);
-      if (raf != null) cancelAnimationFrame(raf);
+      if (raf !== null) {cancelAnimationFrame(raf);}
     };
   }, []);
 

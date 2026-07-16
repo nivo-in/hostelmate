@@ -28,7 +28,10 @@ const eslintConfig = defineConfig([
       "prefer-const": "error",
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_" }],
-      "no-duplicate-imports": "error"
+      "no-duplicate-imports": "error",
+      "eqeqeq": "error",
+      "curly": "error",
+      "no-var": "error"
     }
   }
 ]);

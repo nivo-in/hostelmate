@@ -19,15 +19,15 @@ function timeAgo(dateString: string) {
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
   let interval = Math.floor(seconds / 31536000);
-  if (interval >= 1) return interval + 'y ago';
+  if (interval >= 1) {return interval + 'y ago';}
   interval = Math.floor(seconds / 2592000);
-  if (interval >= 1) return interval + 'mo ago';
+  if (interval >= 1) {return interval + 'mo ago';}
   interval = Math.floor(seconds / 86400);
-  if (interval >= 1) return interval + 'd ago';
+  if (interval >= 1) {return interval + 'd ago';}
   interval = Math.floor(seconds / 3600);
-  if (interval >= 1) return interval + 'h ago';
+  if (interval >= 1) {return interval + 'h ago';}
   interval = Math.floor(seconds / 60);
-  if (interval >= 1) return interval + 'm ago';
+  if (interval >= 1) {return interval + 'm ago';}
   return Math.floor(seconds) + 's ago';
 }
 
@@ -124,7 +124,7 @@ export function NotificationBell() {
   }, [apiGet]);
 
   const debouncedFetch = useCallback(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (debounceRef.current) {clearTimeout(debounceRef.current);}
     debounceRef.current = setTimeout(() => {
       fetchNotifications();
     }, 2000);
@@ -135,7 +135,7 @@ export function NotificationBell() {
     const intervalId = setInterval(() => fetchNotifications(1), 300000);
     return () => {
       clearInterval(intervalId);
-      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (debounceRef.current) {clearTimeout(debounceRef.current);}
     };
   }, [fetchNotifications]);
 
@@ -180,9 +180,9 @@ export function NotificationBell() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false);
+      if (e.key === 'Escape') {setIsOpen(false);}
     };
-    if (isOpen) document.addEventListener('keydown', handleKeyDown);
+    if (isOpen) {document.addEventListener('keydown', handleKeyDown);}
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
@@ -197,7 +197,7 @@ export function NotificationBell() {
   };
 
   const handleNotificationClick = async (id: string, isRead: boolean) => {
-    if (isRead) return;
+    if (isRead) {return;}
     try {
       setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
       setUnreadCount((prev) => Math.max(0, prev - 1));
@@ -210,7 +210,7 @@ export function NotificationBell() {
   const handleDismiss = async (e: React.MouseEvent, id: string, isRead: boolean) => {
     e.stopPropagation();
     setNotifications((prev) => prev.filter((n) => n.id !== id));
-    if (!isRead) setUnreadCount((prev) => Math.max(0, prev - 1));
+    if (!isRead) {setUnreadCount((prev) => Math.max(0, prev - 1));}
     try {
       await apiDelete(`/api/v1/notifications/${id}`);
     } catch {

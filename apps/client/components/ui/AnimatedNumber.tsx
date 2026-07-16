@@ -19,7 +19,7 @@ export function AnimatedNumber({ value, duration = 1200, suffix = '', prefix = '
     startTimeRef.current = null;
 
     const animate = (timestamp: number) => {
-      if (!startTimeRef.current) startTimeRef.current = timestamp;
+      if (!startTimeRef.current) {startTimeRef.current = timestamp;}
       const progress = timestamp - startTimeRef.current;
       const percentage = Math.min(progress / duration, 1);
       

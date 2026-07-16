@@ -12,7 +12,7 @@ export function Header({ title, onSignOut: _onSignOut }: HeaderProps) {
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const executeSignOut = () => {
-    if (isSigningOut) return;
+    if (isSigningOut) {return;}
     setIsSigningOut(true);
     
     // Fire-and-forget sign out without awaiting

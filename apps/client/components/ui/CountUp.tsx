@@ -30,7 +30,7 @@ export function CountUp({ value, durationMs = 1000, decimals = 0, prefix = '', s
 
     const from = fromRef.current;
     const to = value;
-    if (from === to) return;
+    if (from === to) {return;}
 
     const start = performance.now();
     const ease = (t: number) => 1 - Math.pow(1 - t, 4);
@@ -46,10 +46,10 @@ export function CountUp({ value, durationMs = 1000, decimals = 0, prefix = '', s
       }
     };
 
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (rafRef.current) {cancelAnimationFrame(rafRef.current);}
     rafRef.current = requestAnimationFrame(tick);
     return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (rafRef.current) {cancelAnimationFrame(rafRef.current);}
     };
   }, [value, durationMs]);
 

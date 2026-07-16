@@ -63,18 +63,18 @@ export function TiltCard({
     };
 
     kickRef.current = () => {
-      if (raf == null) raf = requestAnimationFrame(animate);
+      if (raf === null) {raf = requestAnimationFrame(animate);}
     };
     return () => {
-      if (raf) cancelAnimationFrame(raf);
+      if (raf) {cancelAnimationFrame(raf);}
     };
   }, [accent]);
 
   const onMove = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (e.pointerType === 'touch' || reduced()) return;
+      if (e.pointerType === 'touch' || reduced()) {return;}
       const el = ref.current;
-      if (!el) return;
+      if (!el) {return;}
       const r = el.getBoundingClientRect();
       const px = (e.clientX - r.left) / r.width;
       const py = (e.clientY - r.top) / r.height;
