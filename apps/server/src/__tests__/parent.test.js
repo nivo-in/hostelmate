@@ -79,6 +79,10 @@ describe('Parent API Integration', () => {
   });
 
   describe('GET /api/parent/my-student', () => {
+    /**
+     * Test: should return linked student profile and attendance
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return linked student profile and attendance', async () => {
       queryResults = [
         { data: { student_id: 'student-id', relation: 'Father' }, error: null }, // parent lookup
