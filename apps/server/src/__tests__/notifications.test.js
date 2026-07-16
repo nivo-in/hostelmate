@@ -255,6 +255,10 @@ describe('Notifications API Integration', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should catch exceptions safely
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should catch exceptions safely', async () => {
       queryResults = [{ throwMsg: 'Network Error' }];
       const res = await request(app).delete('/api/v1/notifications/1');
