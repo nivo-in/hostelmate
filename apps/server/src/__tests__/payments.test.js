@@ -115,6 +115,10 @@ describe('Payments API', () => {
     expect(res.body.data.id).toBe('3');
   });
 
+  /**
+   * Test: GET /api/v1/payments/my should return student fees
+   * Verifies behaviour under correct inputs and constraints.
+   */
   it('GET /api/v1/payments/my should return student fees', async () => {
     queryResults = [
       { data: [{ id: 'payment-1', status: 'pending', amount: 1000 }], error: null },
