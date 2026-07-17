@@ -157,7 +157,7 @@ export default function DemoPage() {
     }, { threshold: 0.1 });
 
     revealRefs.current.forEach(el => {
-      if (el) observer.observe(el);
+      if (el) {observer.observe(el);}
     });
 
     return () => {
@@ -264,7 +264,7 @@ export default function DemoPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isVerified) return;
+    if (!isVerified) {return;}
 
     setLoading(true);
     setError('');
@@ -297,7 +297,7 @@ export default function DemoPage() {
   const scrollToSection = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     const el = document.getElementById(id);
-    if (!el) return;
+    if (!el) {return;}
     const nb = navBottom();
     const absoluteTop = window.scrollY + el.getBoundingClientRect().top;
     // The form (#book) is tall — always pin its top just below the nav. Short
@@ -307,7 +307,7 @@ export default function DemoPage() {
       ? absoluteTop - (window.innerHeight - el.offsetHeight) / 2
       : absoluteTop - (nb + GAP_BELOW_NAV);
     // Nudge the Features section 3px lower in the scroll.
-    if (id === 'features') target -= 3;
+    if (id === 'features') {target -= 3;}
     window.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
 
     // The form's exact rest position matters (rounded corners must clear the
@@ -316,7 +316,7 @@ export default function DemoPage() {
     if (id === 'book') {
       setTimeout(() => {
         const diff = el.getBoundingClientRect().top - (navBottom() + GAP_BELOW_NAV + 36);
-        if (Math.abs(diff) > 1) window.scrollBy({ top: diff, behavior: 'smooth' });
+        if (Math.abs(diff) > 1) {window.scrollBy({ top: diff, behavior: 'smooth' });}
       }, 550);
     }
   };
