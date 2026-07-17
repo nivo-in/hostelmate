@@ -296,6 +296,10 @@ describe('Payments API', () => {
     expect(res.body.data.id).toBe('p1');
   });
 
+  /**
+   * Test: GET /api/v1/payments/last-reminder should return last reminder for warden
+   * Verifies behaviour under correct inputs and constraints.
+   */
   it('GET /api/v1/payments/last-reminder should return last reminder for warden', async () => {
     currentProfile = { id: 'warden-id', role: 'warden' };
     const { getCache } = await import('../config/redis.js');
