@@ -45,6 +45,9 @@ jobs:
       - name: Lint client
         run: cd apps/client && pnpm lint
 
+      - name: Lint server
+        run: cd apps/server && pnpm lint
+
       - name: Build client
         run: cd apps/client && pnpm build
         env:
