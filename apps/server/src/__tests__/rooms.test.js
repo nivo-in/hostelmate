@@ -126,6 +126,10 @@ describe('Rooms API', () => {
   });
 
   describe('GET /api/rooms/available - Student views available rooms', () => {
+    /**
+     * Test: should return rooms with occupancy < capacity
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return rooms with occupancy < capacity', async () => {
       queryResults = [
         {
