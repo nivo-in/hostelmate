@@ -498,7 +498,7 @@ export default function StudentPaymentsPage() {
           </div>
           <div style={tileStyle}>
             <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Next Due</p>
-            <p style={{ fontSize: '26px', fontWeight: 600, color: ORANGE, margin: 0 }}>
+            <p suppressHydrationWarning style={{ fontSize: '26px', fontWeight: 600, color: ORANGE, margin: 0 }}>
               {totals?.next_due
                 ? new Date(totals.next_due).toLocaleDateString('en-IN', {
                     day: 'numeric',
@@ -760,9 +760,9 @@ export default function StudentPaymentsPage() {
                         Period: <span style={{ fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>{payment.period_label}</span>
                       </p>
                       <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: 'rgba(255,255,255,0.4)', flexWrap: 'wrap' }}>
-                        <span>Due: {new Date(payment.due_date).toLocaleDateString('en-IN')}</span>
+                        <span suppressHydrationWarning>Due: {new Date(payment.due_date).toLocaleDateString('en-IN')}</span>
                         {payment.paid_at && (
-                          <span>Paid: {new Date(payment.paid_at).toLocaleDateString('en-IN')}</span>
+                          <span suppressHydrationWarning>Paid: {new Date(payment.paid_at).toLocaleDateString('en-IN')}</span>
                         )}
                       </div>
                       {payment.receipt_number && (
