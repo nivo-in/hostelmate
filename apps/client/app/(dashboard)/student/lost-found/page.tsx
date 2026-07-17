@@ -93,7 +93,7 @@ export default function StudentLostFound() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!itemName || !description || (status === 'found' && !location))
-      return setError('All fields required');
+      {return setError('All fields required');}
 
     // Optimistic UI update
     setItems((prev) => [
@@ -147,7 +147,7 @@ export default function StudentLostFound() {
   };
 
   const filteredItems = items.filter((item) => {
-    if (filter === 'All') return true;
+    if (filter === 'All') {return true;}
     return item.status.toLowerCase() === filter.toLowerCase();
   });
 

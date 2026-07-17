@@ -36,7 +36,7 @@ export default function StudentMess() {
     const fetchMenu = async () => {
       try {
         const res = await apiGet('/api/v1/mess/menu');
-        if (res.success) setMenu(res.data || []);
+        if (res.success) {setMenu(res.data || []);}
       } catch {}
     };
     fetchMenu();
@@ -63,7 +63,7 @@ export default function StudentMess() {
 
   const handleSubmitRatings = async () => {
     const entries = Object.entries(ratings).filter(([_, data]) => data.rating > 0);
-    if (entries.length === 0) return;
+    if (entries.length === 0) {return;}
 
     try {
       await Promise.all(

@@ -177,7 +177,7 @@ export default function StudentRoomTransferPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (reason.length < 20 || !selectedRoomId) return;
+    if (reason.length < 20 || !selectedRoomId) {return;}
 
     setSubmitting(true);
     setMessage('');
@@ -208,7 +208,7 @@ export default function StudentRoomTransferPage() {
   };
 
   const formatDate = (dateString: string) => {
-    if (!mounted) return '—';
+    if (!mounted) {return '—';}
     return new Date(dateString).toLocaleDateString();
   };
 

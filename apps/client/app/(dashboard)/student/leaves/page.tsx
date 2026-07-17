@@ -35,7 +35,7 @@ export default function StudentLeaves() {
   const fetchLeaves = async () => {
     try {
       const res = await apiGet('/api/v1/leaves/my');
-      if (res.success) setLeaves(res.data || []);
+      if (res.success) {setLeaves(res.data || []);}
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error(e);
@@ -48,7 +48,7 @@ export default function StudentLeaves() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (reason.length < 20) return setError('Reason must be at least 20 chars');
+    if (reason.length < 20) {return setError('Reason must be at least 20 chars');}
 
     // Optimistic UI update
     setLeaves((prev) => [

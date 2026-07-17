@@ -128,22 +128,22 @@ export default function StudentAttendance() {
   const supabase = createClient();
 
   const fetchHistory = useCallback(async () => {
-    if (!profile?.id) return;
+    if (!profile?.id) {return;}
     try {
       const res = await apiGet(`/api/v1/attendance/student/${profile.id}`);
-      if (res.success) setHistory(res.data.slice(0, 30) || []);
+      if (res.success) {setHistory(res.data.slice(0, 30) || []);}
     } catch {
       /* silently fail */
     }
   }, [profile, apiGet]);
 
   useEffect(() => {
-    if (profile?.id) fetchHistory();
+    if (profile?.id) {fetchHistory();}
   }, [profile?.id, fetchHistory]);
 
   // Check if face is registered — runs exactly once when profile.id is ready
   useEffect(() => {
-    if (!profile?.id) return;
+    if (!profile?.id) {return;}
     let cancelled = false;
     const check = async () => {
       try {
@@ -152,9 +152,9 @@ export default function StudentAttendance() {
           .select('student_id')
           .eq('student_id', profile.id)
           .single();
-        if (!cancelled) setView(data ? 'main' : 'face-registration');
+        if (!cancelled) {setView(data ? 'main' : 'face-registration');}
       } catch {
-        if (!cancelled) setView('face-registration');
+        if (!cancelled) {setView('face-registration');}
       }
     };
     check();
@@ -198,7 +198,7 @@ export default function StudentAttendance() {
         async (text) => {
           scanner.clear();
           const el = document.getElementById('qr-reader');
-          if (el) el.innerHTML = '';
+          if (el) {el.innerHTML = '';}
 
           if (!navigator.geolocation) {
             setError('Geolocation not supported by this browser.');
@@ -382,7 +382,7 @@ export default function StudentAttendance() {
                 <button
                   onClick={() => {
                     const el = document.getElementById('qr-reader');
-                    if (el) el.innerHTML = '';
+                    if (el) {el.innerHTML = '';}
                     setMode('choose');
                   }}
                   style={{ border: '0.5px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.7)', borderRadius: '10px', padding: '9px 16px', fontSize: '13px', background: 'transparent', cursor: 'pointer' }}

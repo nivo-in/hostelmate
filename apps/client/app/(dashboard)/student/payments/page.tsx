@@ -161,7 +161,7 @@ const statusBadge = (status: string, isOverdue?: boolean) => {
       {label}
     </span>
   );
-  if (isOverdue) return make(RED, 'OVERDUE');
+  if (isOverdue) {return make(RED, 'OVERDUE');}
   switch (status) {
     case 'paid':
       return make(GREEN, 'Paid');
@@ -208,7 +208,7 @@ const typeBadge = (type: string) => {
 };
 
 const methodBadge = (method: string | null) => {
-  if (!method) return null;
+  if (!method) {return null;}
   const labels: Record<string, string> = {
     razorpay: 'Online',
     cash: 'Cash',
@@ -278,7 +278,7 @@ export default function StudentPaymentsPage() {
   const fetchPayments = useCallback(async () => {
     try {
       const res = await apiGet('/api/v1/payments/my');
-      if (res.success) setPaymentsData(res.data);
+      if (res.success) {setPaymentsData(res.data);}
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error(e);
@@ -288,7 +288,7 @@ export default function StudentPaymentsPage() {
   const fetchFeeStructures = useCallback(async () => {
     try {
       const res = await apiGet('/api/v1/payments/fee-structures');
-      if (res.success) setFeeStructures(res.data);
+      if (res.success) {setFeeStructures(res.data);}
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error(e);
@@ -307,7 +307,7 @@ export default function StudentPaymentsPage() {
           .eq('id', session.user.id)
           .single()
           .then(({ data }) => {
-            if (data) setProfile(data);
+            if (data) {setProfile(data);}
           });
       }
     });
@@ -332,7 +332,7 @@ export default function StudentPaymentsPage() {
       const orderRes = await apiPost('/api/v1/payments/create-order', {
         fee_payment_id: payment.id,
       });
-      if (!orderRes.success) throw new Error(orderRes.error || 'Failed to create order');
+      if (!orderRes.success) {throw new Error(orderRes.error || 'Failed to create order');}
 
       const orderData = orderRes.data;
       const options = {
@@ -417,7 +417,7 @@ export default function StudentPaymentsPage() {
 
   // ── Pay new plan (from plan selector) ──
   const handlePayNewPlan = async () => {
-    if (!selectedPlan || !selectedFreq || !feeStructures) return;
+    if (!selectedPlan || !selectedFreq || !feeStructures) {return;}
     const plan = PLANS[selectedPlan];
     const pool = selectedFreq === 'yearly' ? feeStructures.yearly : feeStructures.monthly;
     const structure = pool.find((f) => f.fee_type === plan.feeType);
