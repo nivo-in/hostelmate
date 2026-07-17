@@ -393,7 +393,7 @@ export default function StaffDirectory() {
             padding: '16px',
           }}
           onClick={(e) => {
-            if (e.target === e.currentTarget) setModalOpen(false);
+            if (e.target === e.currentTarget) {setModalOpen(false);}
           }}
         >
           <div

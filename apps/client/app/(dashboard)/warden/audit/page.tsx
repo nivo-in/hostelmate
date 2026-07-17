@@ -168,21 +168,21 @@ export default function WardenAuditPage() {
 
   // Hydration-safe: only runs on client after mount
   const getRelativeTime = (dateString: string): string => {
-    if (!mounted || !now) return '—';
+    if (!mounted || !now) {return '—';}
     const date = new Date(dateString);
     const diffMs = now - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffMins < 1) {return 'Just now';}
+    if (diffMins < 60) {return `${diffMins}m ago`;}
+    if (diffHours < 24) {return `${diffHours}h ago`;}
     return `${diffDays}d ago`;
   };
 
   const formatFullDate = (dateString: string): string => {
-    if (!mounted) return '';
+    if (!mounted) {return '';}
     return new Date(dateString).toLocaleString();
   };
 

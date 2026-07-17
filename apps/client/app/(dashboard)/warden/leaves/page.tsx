@@ -63,13 +63,13 @@ export default function WardenLeaves() {
   };
 
   const getStatusVariant = (status: string) => {
-    if (status === 'approved') return 'success';
-    if (status === 'rejected') return 'danger';
+    if (status === 'approved') {return 'success';}
+    if (status === 'rejected') {return 'danger';}
     return 'warning';
   };
 
   const filteredLeaves = leaves.filter((l) => {
-    if (activeTab === 'All') return true;
+    if (activeTab === 'All') {return true;}
     return l.status.toLowerCase() === activeTab.toLowerCase();
   });
 
@@ -128,10 +128,10 @@ export default function WardenLeaves() {
                   transition: 'all 0.2s',
                 }}
                 onMouseEnter={(e) => {
-                  if (!active) e.currentTarget.style.color = ui.textSoft;
+                  if (!active) {e.currentTarget.style.color = ui.textSoft;}
                 }}
                 onMouseLeave={(e) => {
-                  if (!active) e.currentTarget.style.color = ui.textMuted;
+                  if (!active) {e.currentTarget.style.color = ui.textMuted;}
                 }}
               >
                 {tab}

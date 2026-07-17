@@ -63,14 +63,14 @@ export default function WardenComplaints() {
   };
 
   const getStatusVariant = (status: string) => {
-    if (status === 'resolved') return 'success';
-    if (status === 'open') return 'danger';
+    if (status === 'resolved') {return 'success';}
+    if (status === 'open') {return 'danger';}
     return 'warning';
   };
 
   const filteredComplaints = complaints.filter((c) => {
-    if (activeTab === 'All') return true;
-    if (activeTab === 'In Progress') return c.status === 'in_progress';
+    if (activeTab === 'All') {return true;}
+    if (activeTab === 'In Progress') {return c.status === 'in_progress';}
     return c.status.toLowerCase() === activeTab.toLowerCase();
   });
 
@@ -149,10 +149,10 @@ export default function WardenComplaints() {
                   transition: 'all 0.2s',
                 }}
                 onMouseEnter={(e) => {
-                  if (!active) e.currentTarget.style.color = ui.textSoft;
+                  if (!active) {e.currentTarget.style.color = ui.textSoft;}
                 }}
                 onMouseLeave={(e) => {
-                  if (!active) e.currentTarget.style.color = ui.textMuted;
+                  if (!active) {e.currentTarget.style.color = ui.textMuted;}
                 }}
               >
                 {tab}
