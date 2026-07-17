@@ -100,6 +100,10 @@ describe('Rooms API', () => {
   });
 
   describe('GET /api/rooms/my - Student views room', () => {
+    /**
+     * Test: should return student room details and roommates
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return student room details and roommates', async () => {
       queryResults = [
         // Mock student query
