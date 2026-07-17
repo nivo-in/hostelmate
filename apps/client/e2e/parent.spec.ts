@@ -50,7 +50,7 @@ test.describe('Parent – Leave Status', () => {
 
   test('leave status shows table or empty state', async ({ page }) => {
     await page.goto('/parent/leaves');
-    if (page.url().includes('/login')) return;
+    if (page.url().includes('/login')) {return;}
 
     const content = page.locator('table, [data-testid="empty-state"], p').first();
     await expect(content).toBeVisible({ timeout: 8000 });
@@ -70,7 +70,7 @@ test.describe('Parent – Track Student', () => {
 
   test('track page shows content', async ({ page }) => {
     await page.goto('/parent/track');
-    if (page.url().includes('/login')) return;
+    if (page.url().includes('/login')) {return;}
 
     const content = page.locator('table, p, [data-testid="empty-state"]').first();
     await expect(content).toBeVisible({ timeout: 8000 });
@@ -90,7 +90,7 @@ test.describe('Parent – Fee Payments', () => {
 
   test('fee payments page renders payment section', async ({ page }) => {
     await page.goto('/parent/payments');
-    if (page.url().includes('/login')) return;
+    if (page.url().includes('/login')) {return;}
 
     const content = page.locator('table, p, [data-testid="empty-state"], button').first();
     await expect(content).toBeVisible({ timeout: 8000 });

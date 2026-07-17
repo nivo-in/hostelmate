@@ -38,9 +38,9 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 
       // Determine required role from path
       let requiredRole: string | null = null;
-      if (pathname.startsWith('/warden')) requiredRole = 'warden';
-      if (pathname.startsWith('/student')) requiredRole = 'student';
-      if (pathname.startsWith('/parent')) requiredRole = 'parent';
+      if (pathname.startsWith('/warden')) {requiredRole = 'warden';}
+      if (pathname.startsWith('/student')) {requiredRole = 'student';}
+      if (pathname.startsWith('/parent')) {requiredRole = 'parent';}
 
       if (requiredRole && role !== requiredRole) {
         router.push(`/${role}/dashboard`);

@@ -108,7 +108,7 @@ export default function ParentTrack() {
     );
   }
 
-  if (!data) return null;
+  if (!data) {return null;}
 
   const { student, today_attendance } = data;
 
@@ -187,9 +187,9 @@ export default function ParentTrack() {
     const getColor = (day: number) => {
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const status = attendanceMap.get(dateStr);
-      if (status === 'present') return 'bg-green-100 text-green-700';
-      if (status === 'absent') return 'bg-red-100 text-red-600';
-      if (status === 'leave') return 'bg-yellow-100 text-yellow-600';
+      if (status === 'present') {return 'bg-green-100 text-green-700';}
+      if (status === 'absent') {return 'bg-red-100 text-red-600';}
+      if (status === 'leave') {return 'bg-yellow-100 text-yellow-600';}
       return 'bg-gray-50 text-gray-400';
     };
 

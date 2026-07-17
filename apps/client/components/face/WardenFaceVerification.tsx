@@ -107,10 +107,10 @@ export default function WardenFaceVerification({
     }, 10000);
 
     const tick = async () => {
-      if (!runningRef.current || !videoRef.current || !storedDescriptorsRef.current) return;
+      if (!runningRef.current || !videoRef.current || !storedDescriptorsRef.current) {return;}
       try {
         const detection = await getFaceDetection(videoRef.current);
-        if (!runningRef.current) return;
+        if (!runningRef.current) {return;}
 
         if (!detection) {
           if (faceDetectedRef.current) {
@@ -126,7 +126,7 @@ export default function WardenFaceVerification({
           const { descriptor, landmarks } = detection;
 
           // ── Face match FIRST ───────────────────────────────────────────
-          if (!storedDescriptorsRef.current) return;
+          if (!storedDescriptorsRef.current) {return;}
           const { match } = isSamePerson(descriptor, storedDescriptorsRef.current);
           
           if (!match) {
@@ -176,7 +176,7 @@ export default function WardenFaceVerification({
       } catch {
         setStatus('scanning');
       }
-      if (runningRef.current) setTimeout(tick, 50);
+      if (runningRef.current) {setTimeout(tick, 50);}
     };
 
     tick();
@@ -259,7 +259,7 @@ export default function WardenFaceVerification({
         setStatus('scanning');
         startVerificationLoop();
       } catch (err: unknown) {
-        if (cancelled) return;
+        if (cancelled) {return;}
         const msg = err instanceof Error ? err.message : String(err);
         if (
           msg.toLowerCase().includes('permission') ||
@@ -501,7 +501,7 @@ export default function WardenFaceVerification({
         {failedAttempts >= 3 && (
           <button
             onClick={() => {
-              if (onSkipRef.current) onSkipRef.current();
+              if (onSkipRef.current) {onSkipRef.current();}
             }}
             style={{
               fontSize: '12px',

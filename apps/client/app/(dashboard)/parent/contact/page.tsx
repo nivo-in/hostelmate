@@ -24,7 +24,7 @@ export default function ParentContact() {
           .limit(1)
           .single();
 
-        if (data) setWarden(data.profiles);
+        if (data) {setWarden(data.profiles);}
       } catch {
         // Silently fail
       } finally {
@@ -41,11 +41,11 @@ export default function ParentContact() {
   };
 
   if (loading)
-    return (
+    {return (
       <div className="min-h-screen bg-white px-6 py-10">
         <LoadingSpinner />
       </div>
-    );
+    );}
 
   return (
     <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">

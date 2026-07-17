@@ -54,7 +54,7 @@ test.describe('Student – Leave Requests', () => {
 
   test('leave form has date and textarea inputs', async ({ page }) => {
     await page.goto('/student/leaves');
-    if (page.url().includes('/login')) return;
+    if (page.url().includes('/login')) {return;}
 
     await expect(page.locator('input[type="date"]').first()).toBeVisible();
     await expect(page.locator('textarea')).toBeVisible();
@@ -63,7 +63,7 @@ test.describe('Student – Leave Requests', () => {
 
   test('shows validation error for reason shorter than 20 chars', async ({ page }) => {
     await page.goto('/student/leaves');
-    if (page.url().includes('/login')) return;
+    if (page.url().includes('/login')) {return;}
 
     const today    = new Date();
     const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
@@ -87,7 +87,7 @@ test.describe('Student – Complaints', () => {
 
   test('complaint form has description textarea and submit button', async ({ page }) => {
     await page.goto('/student/complaints');
-    if (page.url().includes('/login')) return;
+    if (page.url().includes('/login')) {return;}
 
     await expect(page.locator('textarea')).toBeVisible();
     await expect(page.locator('button[type="submit"]')).toBeVisible();
@@ -95,7 +95,7 @@ test.describe('Student – Complaints', () => {
 
   test('urgent toggle can be clicked without crashing', async ({ page }) => {
     await page.goto('/student/complaints');
-    if (page.url().includes('/login')) return;
+    if (page.url().includes('/login')) {return;}
 
     const toggle = page.locator('button[type="button"]').first();
     await expect(toggle).toBeVisible();
@@ -153,7 +153,7 @@ test.describe('Student – Visitors', () => {
 
   test('visitor form has required inputs visible', async ({ page }) => {
     await page.goto('/student/visitors');
-    if (page.url().includes('/login')) return;
+    if (page.url().includes('/login')) {return;}
 
     await expect(page.locator('button[type="submit"]')).toBeVisible();
   });

@@ -6,7 +6,7 @@
 let modelsLoaded = false;
 
 export async function loadModels(): Promise<void> {
-  if (modelsLoaded) return;
+  if (modelsLoaded) {return;}
 
   const faceapi = await import('face-api.js');
   const MODEL_URL = '/models';
@@ -55,7 +55,7 @@ export async function getFaceDetection(videoElement: HTMLVideoElement): Promise<
     .withFaceLandmarks()
     .withFaceDescriptors();
 
-  if (detections.length !== 1) return null;
+  if (detections.length !== 1) {return null;}
 
   const det = detections[0];
   return {
@@ -87,11 +87,11 @@ export function bestMatchDistance(
   liveDescriptor: Float32Array,
   storedDescriptors: number[][]
 ): number {
-  if (storedDescriptors.length === 0) return Infinity;
+  if (storedDescriptors.length === 0) {return Infinity;}
   let minDist = Infinity;
   for (const stored of storedDescriptors) {
     const dist = euclideanDistance(liveDescriptor, stored);
-    if (dist < minDist) minDist = dist;
+    if (dist < minDist) {minDist = dist;}
   }
   return minDist;
 }
@@ -116,7 +116,7 @@ export function isSamePerson(
  * Used per-phase in registration to get a stable descriptor for that angle.
  */
 export function computeMeanDescriptor(descriptors: Float32Array[]): number[] {
-  if (descriptors.length === 0) throw new Error('No descriptors provided');
+  if (descriptors.length === 0) {throw new Error('No descriptors provided');}
   const len = descriptors[0].length;
   const mean = new Array<number>(len).fill(0);
   for (const d of descriptors) {

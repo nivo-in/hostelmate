@@ -27,7 +27,7 @@ export function useProfile() {
         error: sessionError,
       } = await supabase.auth.getSession();
 
-      if (sessionError) throw sessionError;
+      if (sessionError) {throw sessionError;}
       if (!session?.user) {
         setProfile(null);
         return;
@@ -39,7 +39,7 @@ export function useProfile() {
         .eq('id', session.user.id)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {throw profileError;}
       setProfile(data as Profile);
     } catch (err: unknown) {
       setError((err as Error).message);
