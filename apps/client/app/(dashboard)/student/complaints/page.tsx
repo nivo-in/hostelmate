@@ -267,7 +267,7 @@ export default function StudentComplaints() {
                     )}
                   </div>
                   <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
-                    {new Date(c.created_at).toLocaleDateString()}
+                    <span suppressHydrationWarning>{new Date(c.created_at).toLocaleDateString()}</span>
                   </span>
                 </div>
                 <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '16px' }}>{c.description}</p>
