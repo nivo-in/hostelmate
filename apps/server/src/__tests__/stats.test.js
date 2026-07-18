@@ -95,6 +95,10 @@ describe('Stats API', () => {
   });
 
   describe('GET /api/stats/dashboard - Warden', () => {
+    /**
+     * Test: GET /api/v1/stats/dashboard should return dashboard stats
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('GET /api/v1/stats/dashboard should return dashboard stats', async () => {
       queryResults = [
         { count: 100 }, // totalStudents
