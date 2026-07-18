@@ -79,6 +79,10 @@ describe('Staff Feedback API Integration', () => {
   });
 
   describe('GET /api/staff-feedback', () => {
+    /**
+     * Test: should return aggregated staff feedback for warden
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return aggregated staff feedback for warden', async () => {
       queryResults = [
         { data: [{ id: 'staff-1', name: 'John Doe' }], error: null }, // staff members
