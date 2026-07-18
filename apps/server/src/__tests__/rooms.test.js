@@ -296,6 +296,10 @@ describe('Rooms API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: GET /transfer-requests - should return requests for warden
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('GET /transfer-requests - should return requests for warden', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: [{ id: 'req-1' }], error: null }];
