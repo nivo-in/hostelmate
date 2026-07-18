@@ -177,6 +177,10 @@ describe('Staff Feedback API Integration', () => {
       expect(res.body.error).toMatch(/already reviewed/);
     });
 
+    /**
+     * Test: should reject invalid payload
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject invalid payload', async () => {
       const res = await request(app).post('/api/v1/staff-feedback').send({
         staff_id: 'not-a-uuid',
