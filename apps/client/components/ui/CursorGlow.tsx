@@ -71,7 +71,7 @@ export function CursorGlow({ color = 'rgba(124,92,252,0.07)', size = 600 }: Curs
         pointerEvents: 'none',
         zIndex: 0,
         opacity: 0,
-        transition: 'opacity 1.5s ease-out',
+        transition: 'opacity 1.2s ease-out',
         willChange: 'transform, opacity',
         mixBlendMode: 'plus-lighter',
       }}
