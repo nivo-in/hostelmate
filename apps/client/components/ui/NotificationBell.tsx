@@ -272,6 +272,7 @@ export function NotificationBell() {
           e.currentTarget.style.background = unreadCount > 0 ? theme.bgSoft : 'transparent';
         }}
         aria-label="Notifications"
+        title="Notifications"
       >
         <Bell className="w-5 h-5 bell-icon-anim" strokeWidth={2} />
         
