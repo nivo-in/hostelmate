@@ -43,10 +43,13 @@ router.post('/', authenticate, requireWarden, validate(noticeSchema), async (req
         .select('id')
         .in('role', targetRoles);
 
-      if (users) {
-        for (const u of users) {
-          await createNotification(u.id, 'New Notice: ' + title, title, 'notice', record.id);
-        }
+      if (users && users.length > 0) {
+        // Run bulk notifications concurrently to prevent blocking the response
+        await Promise.all(
+          users.map((u) =>
+            createNotification(u.id, 'New Notice: ' + title, title, 'notice', record.id)
+          )
+        );
       }
     }
 
