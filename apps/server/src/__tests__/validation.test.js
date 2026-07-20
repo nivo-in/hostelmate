@@ -37,6 +37,10 @@ describe('Zod Validation Schemas', () => {
       expect(result.success).toBe(true);
     });
 
+    /**
+     * Test: should reject invalid date format
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject invalid date format', () => {
       const result = leaveSchema.safeParse({
         start_date: '10-05-2026',
