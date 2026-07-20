@@ -145,6 +145,10 @@ describe('Students API', () => {
       expect(res.status).toBe(500);
     });
 
+    /**
+     * Test: should reject non-warden access
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject non-warden access', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).get('/api/v1/students');
