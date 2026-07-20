@@ -135,6 +135,10 @@ describe('Students API', () => {
       expect(res.body.data.students[0].id).toBe('s1');
     });
 
+    /**
+     * Test: should throw error on db failure
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should throw error on db failure', async () => {
       queryResults = [{ data: null, error: new Error('DB error') }];
       const res = await request(app).get('/api/v1/students');
