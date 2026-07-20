@@ -106,6 +106,10 @@ describe('Zod Validation Schemas', () => {
       expect(result.success).toBe(false);
     });
 
+    /**
+     * Test: should reject invalid target audience
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject invalid target audience', () => {
       const result = noticeSchema.safeParse({
         title: 'Important Notice',
