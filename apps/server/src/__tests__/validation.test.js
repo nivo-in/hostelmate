@@ -147,6 +147,10 @@ describe('Zod Validation Schemas', () => {
       expect(result.success).toBe(true);
     });
 
+    /**
+     * Test: should accept attendance without location
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept attendance without location', () => {
       const result = attendanceSchema.safeParse({
         qr_data: '{"date":"2026-05-10","token":"2026-05-10-secret123"}',
