@@ -106,6 +106,10 @@ describe('Students API', () => {
       expect(res.body.data.students[0].block_name).toBe('A');
     });
 
+    /**
+     * Test: should filter students by search query
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should filter students by search query', async () => {
       queryResults = [
         {
