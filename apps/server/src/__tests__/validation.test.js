@@ -52,6 +52,10 @@ describe('Zod Validation Schemas', () => {
   });
 
   describe('Complaint Schema', () => {
+    /**
+     * Test: should reject invalid category
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject invalid category', () => {
       const result = complaintSchema.safeParse({
         category: 'invalid_category',
