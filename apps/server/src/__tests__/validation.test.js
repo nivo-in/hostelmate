@@ -180,6 +180,10 @@ describe('Zod Validation Schemas', () => {
       expect(result.success).toBe(true);
     });
     
+    /**
+     * Test: should reject missing items
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject missing items', () => {
       const result = messMenuSchema.safeParse({ day_of_week: 'monday', meal_type: 'breakfast', items: [] });
       expect(result.success).toBe(false);
