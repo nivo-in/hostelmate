@@ -17,7 +17,7 @@ export function EmptyState({ message, icon }: EmptyStateProps) {
         padding: '48px 24px',
       }}
     >
-      {icon && <div style={{ fontSize: '28px', opacity: 0.5 }}>{icon}</div>}
+      {icon && <div style={{ fontSize: '32px', opacity: 0.5 }}>{icon}</div>}
       <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', margin: 0, textAlign: 'center' }}>{message}</p>
     </div>
   );
