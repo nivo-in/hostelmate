@@ -189,6 +189,10 @@ describe('Zod Validation Schemas', () => {
       expect(result.success).toBe(false);
     });
     
+    /**
+     * Test: should reject invalid day
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject invalid day', () => {
       const result = messMenuSchema.safeParse({ day_of_week: 'funday', meal_type: 'breakfast', items: ['Poha'] });
       expect(result.success).toBe(false);
