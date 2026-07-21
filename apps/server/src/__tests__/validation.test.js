@@ -158,6 +158,10 @@ describe('Zod Validation Schemas', () => {
       expect(result.success).toBe(true);
     });
 
+    /**
+     * Test: should reject empty qr_data
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject empty qr_data', () => {
       const result = attendanceSchema.safeParse({
         qr_data: '',
