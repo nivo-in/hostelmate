@@ -114,6 +114,7 @@ router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => 
     };
 
     await setCache(cacheKey, statsData, 180);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.json({
       success: true,
       data: statsData,
