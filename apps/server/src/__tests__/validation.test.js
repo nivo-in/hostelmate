@@ -284,6 +284,10 @@ describe('Zod Validation Schemas', () => {
       expect(lostFoundSchema.safeParse({ item_name: 'K', status: 'lost' }).success).toBe(false);
     });
     
+    /**
+     * Test: should reject invalid status
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject invalid status', () => {
       expect(lostFoundSchema.safeParse({ item_name: 'Keys', status: 'missing' }).success).toBe(false);
     });
