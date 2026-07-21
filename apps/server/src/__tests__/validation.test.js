@@ -198,6 +198,10 @@ describe('Zod Validation Schemas', () => {
       expect(result.success).toBe(false);
     });
     
+    /**
+     * Test: should accept all valid days
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept all valid days', () => {
       ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].forEach(day => {
         expect(messMenuSchema.safeParse({ day_of_week: day, meal_type: 'lunch', items: ['Rice'] }).success).toBe(true);
