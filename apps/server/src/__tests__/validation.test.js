@@ -208,6 +208,10 @@ describe('Zod Validation Schemas', () => {
       });
     });
     
+    /**
+     * Test: should reject invalid meal type
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject invalid meal type', () => {
       expect(messMenuSchema.safeParse({ day_of_week: 'monday', meal_type: 'brunch', items: ['Food'] }).success).toBe(false);
     });
