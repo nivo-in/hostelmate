@@ -171,6 +171,10 @@ describe('Zod Validation Schemas', () => {
   });
 
   describe('Mess Menu Schema', () => {
+    /**
+     * Test: should accept valid mess menu
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept valid mess menu', () => {
       const result = messMenuSchema.safeParse({ day_of_week: 'monday', meal_type: 'breakfast', items: ['Poha', 'Tea'] });
       expect(result.success).toBe(true);
