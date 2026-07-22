@@ -371,12 +371,12 @@ export default function StudentDashboard() {
                   </span>
                 )}
                 <button
-                  onClick={() => router.push('/student/attendance')}
+                  onClick={() => router.push(faceRegistered ? '/student/attendance?updateFace=true' : '/student/attendance')}
                   style={{ minWidth: '110px', display: 'flex', justifyContent: 'center', fontSize: '11px', color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', transition: 'all 0.2s' }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; e.currentTarget.style.borderColor = 'rgba(251,146,60,0.4)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
                 >
-                  {faceRegistered ? 'Manage Face' : 'Set up Face'}
+                  {faceRegistered ? 'Update Face' : 'Set up Face'}
                 </button>
               </div>
             </div>

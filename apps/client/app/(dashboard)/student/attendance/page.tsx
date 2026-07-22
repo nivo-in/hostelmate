@@ -153,7 +153,12 @@ export default function StudentAttendance() {
           .select('student_id')
           .eq('student_id', profile.id)
           .single();
-        if (!cancelled) {setView(data ? 'main' : 'face-registration');}
+        if (!cancelled) {
+          setView(data ? 'main' : 'face-registration');
+          if (typeof window !== 'undefined' && window.location.search.includes('updateFace=true')) {
+            setShowReRegister(true);
+          }
+        }
       } catch {
         if (!cancelled) {setView('face-registration');}
       }
