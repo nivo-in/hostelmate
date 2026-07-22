@@ -94,7 +94,7 @@ export default function ParentLeaves() {
           <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '16px', overflow: 'hidden', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
             <div style={{ padding: '18px 22px', borderBottom: '0.5px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Palmtree size={18} color="#fb923c" />
+                <Palmtree size={18} color="#60a5fa" />
                 <h2 style={{ fontSize: '15px', fontWeight: 500, color: '#ffffff', margin: 0 }}>
                   {student ? `${student.full_name}'s Leave Requests` : 'Leave Requests'}
                 </h2>
