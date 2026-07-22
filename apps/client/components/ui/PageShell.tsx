@@ -4,6 +4,8 @@ type PageShellProps = {
   children: ReactNode;
   /** Spotlight tint at the top of the page. Defaults to the warden purple accent. */
   spotlight?: string;
+  title?: string;
+  subtitle?: string;
 };
 
 /**
@@ -11,7 +13,7 @@ type PageShellProps = {
  * #080810 base, a soft radial spotlight, and the shared hover/animation classes
  * (.glass-card, .row-hover) used across feature pages.
  */
-export function PageShell({ children, spotlight = 'rgba(124,92,252,0.1)' }: PageShellProps) {
+export function PageShell({ children, spotlight = 'rgba(124,92,252,0.1)', title, subtitle }: PageShellProps) {
   return (
     <div style={{ background: '#080810', minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
       <div
@@ -49,7 +51,15 @@ export function PageShell({ children, spotlight = 'rgba(124,92,252,0.1)' }: Page
         .btn-primary:hover { filter: brightness(1.1); }
         .btn-ghost:hover { color: rgba(255,255,255,0.9) !important; border-color: rgba(255,255,255,0.2) !important; }
       `}</style>
-      <div className="page-enter">{children}</div>
+      <div className="page-enter" style={{ padding: '24px 32px', maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        {title && (
+          <div style={{ marginBottom: '24px' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 500, color: '#ffffff', margin: 0, letterSpacing: '-0.5px' }}>{title}</h1>
+            {subtitle && <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>{subtitle}</p>}
+          </div>
+        )}
+        {children}
+      </div>
     </div>
   );
 }

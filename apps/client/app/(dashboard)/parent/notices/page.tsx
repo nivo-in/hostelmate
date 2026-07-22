@@ -68,7 +68,7 @@ export default function ParentNotices() {
                     </span>
                   </div>
 
-                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, margin: '12px 0 0 0', whitespace: 'pre-wrap' }}>
+                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, margin: '12px 0 0 0', whiteSpace: 'pre-wrap' }}>
                     {notice.content}
                   </p>
                 </div>
