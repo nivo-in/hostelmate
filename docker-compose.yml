@@ -1,19 +1,39 @@
 version: '3.8'
-services:
-  client:
-    build: ./apps/client
-    ports:
-      - "3000:3000"
-    env_file:
-      - ./apps/client/.env.local
-    depends_on:
-      - server
 
+services:
   server:
-    build: ./apps/server
+    build:
+      context: ./apps/server
+      dockerfile: Dockerfile
     ports:
       - "3001:3001"
     env_file:
       - ./apps/server/.env
     volumes:
       - ./apps/server/logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  client:
+    build:
+      context: ./apps/client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./apps/client/.env.local
+    depends_on:
+      server:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
