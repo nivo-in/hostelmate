@@ -51,9 +51,9 @@ export function PageShell({ children, spotlight = 'rgba(124,92,252,0.1)', title,
         .btn-primary:hover { filter: brightness(1.1); }
         .btn-ghost:hover { color: rgba(255,255,255,0.9) !important; border-color: rgba(255,255,255,0.2) !important; }
       `}</style>
-      <div className="page-enter" style={{ padding: '24px 32px', maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+      <div className="page-enter" style={{ position: 'relative', zIndex: 1 }}>
         {title && (
-          <div style={{ marginBottom: '24px' }}>
+          <div style={{ padding: '24px 32px 0', maxWidth: '1100px', margin: '0 auto' }}>
             <h1 style={{ fontSize: '24px', fontWeight: 500, color: '#ffffff', margin: 0, letterSpacing: '-0.5px' }}>{title}</h1>
             {subtitle && <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>{subtitle}</p>}
           </div>
