@@ -141,7 +141,7 @@ HostelMate provides a **role-based platform** where students, wardens, and paren
 | **Containers** | Docker + Docker Compose | Multi-service containerization with layer caching |
 | **API Docs** | Swagger / OpenAPI 3.0 | Interactive documentation at `/api/docs` |
 | **Monorepo** | Turborepo + pnpm 10 | Workspace management and parallel build orchestration |
-| **Unit Tests** | Jest 30 + Supertest | 23 suites · 245 tests · ≥80% coverage enforced |
+| **Unit Tests** | Jest 30 + Supertest | 23 suites · 261 tests · ≥80% coverage enforced |
 | **E2E Tests** | Playwright | Browser automation with auto-started dev servers |
 | **Git Hooks** | Husky v9 | Pre-commit: lint client → run server tests |
 | **Linting** | ESLint 9 (Next.js config) | TypeScript-aware linting with Core Web Vitals rules |
