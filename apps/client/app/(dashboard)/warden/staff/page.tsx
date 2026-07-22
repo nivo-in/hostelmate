@@ -1,7 +1,7 @@
 'use client';
 import { Star, Users, BarChart, FolderArchive, X, Check } from 'lucide-react';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageShell } from '@/components/ui/PageShell';
 import { Badge } from '@/components/ui/Badge';
@@ -25,7 +25,7 @@ interface StaffMember {
 
 export default function StaffDirectory() {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   // ── Main list state ──────────────────────────────────────────────────
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
@@ -112,7 +112,9 @@ export default function StaffDirectory() {
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'report') {
+    let isCancelled = false;
+
+    if (activeTab === 'report' && staffList.length > 0) {
       const fetchReport = async () => {
         setLoadingReport(true);
         const staffToReport = staffList;
@@ -177,16 +179,25 @@ export default function StaffDirectory() {
             })
           );
 
-          setReportData(data);
+          if (!isCancelled) {
+            setReportData(data);
+          }
         } catch {
-          setReportData([]);
+          if (!isCancelled) {
+            setReportData([]);
+          }
         } finally {
-          setLoadingReport(false);
+          if (!isCancelled) {
+            setLoadingReport(false);
+          }
         }
       };
       fetchReport();
     }
-  }, [activeTab, selectedMonth, staffList, supabase, apiGet]);
+    return () => {
+      isCancelled = true;
+    };
+  }, [activeTab, selectedMonth, staffList.length]);
 
   // ── Sign out ─────────────────────────────────────────────────────────
   const handleSignOut = async () => {
