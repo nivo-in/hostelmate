@@ -104,6 +104,17 @@ export default function ParentDashboard() {
   const hour = new Date().getHours();
   const greeting = hour >= 5 && hour < 12 ? 'Good morning,' : hour >= 12 && hour < 17 ? 'Good afternoon,' : 'Good evening,';
 
+  const studentFirstName = wardData?.student?.full_name
+    ? wardData.student.full_name.split(' ')[0]
+    : null;
+  const parentDisplayName = studentFirstName
+    ? `${studentFirstName}'s Parent`
+    : loading
+    ? 'Parent'
+    : firstName
+    ? `${firstName}'s Parent`
+    : 'Parent';
+
   const renderTodayStatus = () => {
     if (!wardData) {return null;}
     const { today_attendance } = wardData;
@@ -283,7 +294,7 @@ export default function ParentDashboard() {
         <div style={{ marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div>
             <h1 suppressHydrationWarning style={{ fontSize: '24px', fontWeight: 500, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>
-              {greeting} {loading && !firstName ? 'Parent' : firstName || 'Parent'}
+              {greeting} {parentDisplayName}
             </h1>
             <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>Tracking your ward</div>
           </div>
