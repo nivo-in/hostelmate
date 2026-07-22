@@ -260,7 +260,7 @@ export default function StudentDashboard() {
         <CursorGlow color="rgba(251, 146, 60, 0.12)" size={600} />
         {/* Greeting header */}
         <Reveal>
-        <div style={{ marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div style={{ marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div>
             <h1 suppressHydrationWarning style={{ fontSize: '26px', fontWeight: 500, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>
               {greeting} {loading && !firstName ? 'Student' : firstName || 'Student'}
