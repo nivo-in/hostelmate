@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useApi } from '@/hooks/useApi';
@@ -62,6 +62,17 @@ export default function StudentDashboard() {
   const [faceRegistered, setFaceRegistered] = useState<boolean | null>(null);
   const [showFaceScanner, setShowFaceScanner] = useState(false);
   const [stats, setStats] = useState<StudentStats>(EMPTY_STATS);
+  const scannerRef = useRef<HTMLDivElement>(null);
+
+  const handleToggleFaceScanner = () => {
+    const nextState = !showFaceScanner;
+    setShowFaceScanner(nextState);
+    if (nextState) {
+      setTimeout(() => {
+        scannerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+    }
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -378,7 +389,7 @@ export default function StudentDashboard() {
                   </span>
                 )}
                 <button
-                  onClick={() => setShowFaceScanner(!showFaceScanner)}
+                  onClick={handleToggleFaceScanner}
                   style={{ minWidth: '110px', display: 'flex', justifyContent: 'center', fontSize: '11px', color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', transition: 'all 0.2s' }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; e.currentTarget.style.borderColor = 'rgba(251,146,60,0.4)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
@@ -390,7 +401,7 @@ export default function StudentDashboard() {
 
             {/* Inline Face Scanner */}
             {showFaceScanner && (
-              <div style={{ marginTop: '20px', borderRadius: '16px', overflow: 'hidden', background: 'rgba(255,255,255,0.97)', padding: '16px' }}>
+              <div ref={scannerRef} style={{ marginTop: '20px', borderRadius: '16px', overflow: 'hidden', background: '#0a0a0c', border: '0.5px solid rgba(255,255,255,0.1)', padding: '0px' }}>
                 <Suspense fallback={<div style={{ padding: '32px', textAlign: 'center', fontSize: '13px', color: '#9ca3af' }}>Loading face scanner…</div>}>
                   <FaceEnrollment
                     subjectId={studentId}
