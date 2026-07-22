@@ -94,14 +94,14 @@ export default function StudentFaceVerification({
     blinkDetectedRef.current = false;
     setBlinkDetected(false);
 
-    // Fail if liveness check is not satisfied within 10 seconds
+    // Fail if eye blink is not detected within 10 seconds
     setTimeout(() => {
-      if (runningRef.current && (!blinkDetectedRef.current || !microMovementDetectedRef.current)) {
+      if (runningRef.current && !blinkDetectedRef.current) {
         runningRef.current = false;
         stopCamera();
         setStatus('liveness-failed');
         if (onFailedRef.current) {
-          onFailedRef.current('Liveness verification failed. Static photo or motion timeout.');
+          onFailedRef.current('Liveness verification failed. Eye blink timed out.');
         }
       }
     }, 10000);
