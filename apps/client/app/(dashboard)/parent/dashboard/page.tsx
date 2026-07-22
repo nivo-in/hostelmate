@@ -156,9 +156,14 @@ export default function ParentDashboard() {
     const todayDate = today.getDate();
 
     const attendanceMap = new Map<string, string>();
+    let daysPresentCount = 0;
     month_attendance.forEach((r) => {
       attendanceMap.set(r.date, r.status);
+      if (r.status === 'present') {daysPresentCount++;}
     });
+
+    const elapsedDays = Math.min(todayDate, daysInMonth);
+    const attendancePct = elapsedDays > 0 ? Math.min(100, Math.round((daysPresentCount / elapsedDays) * 100)) : 0;
 
     const dayHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
     const blanks = Array.from({ length: firstDay });
@@ -176,31 +181,31 @@ export default function ParentDashboard() {
       if (status === 'leave') {
         return { bg: 'rgba(251,146,60,0.2)', color: '#fb923c', border: 'rgba(251,146,60,0.4)' };
       }
-      return { bg: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.3)', border: 'transparent' };
+      return { bg: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.25)', border: 'transparent' };
     };
 
     return (
-      <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '0.5px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <span style={{ fontSize: '12px', fontWeight: 500, color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <CalendarIcon size={14} color="#60a5fa" />
-            {today.toLocaleString('default', { month: 'long', year: 'numeric' })} Attendance
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <CalendarIcon size={12} color="#60a5fa" />
+            {today.toLocaleString('default', { month: 'short' })} ({daysPresentCount}/{elapsedDays} Days - {attendancePct}%)
           </span>
-          <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4ade80' }} /> Present</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f87171' }} /> Absent</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#fb923c' }} /> Leave</span>
+          <div style={{ display: 'flex', gap: '8px', fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#4ade80' }} /> P</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#f87171' }} /> A</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#fb923c' }} /> L</span>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 22px)', gap: '3px', justifyContent: 'flex-start' }}>
           {dayHeaders.map((d, i) => (
-            <div key={i} style={{ textAlign: 'center', fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontWeight: 500, paddingBottom: '4px' }}>
+            <div key={i} style={{ textAlign: 'center', fontSize: '9px', color: 'rgba(255,255,255,0.3)', fontWeight: 500 }}>
               {d}
             </div>
           ))}
           {blanks.map((_, i) => (
-            <div key={`b-${i}`} />
+            <div key={`b-${i}`} style={{ width: '22px', height: '22px' }} />
           ))}
           {days.map((day) => {
             const st = getDayStyle(day);
@@ -209,10 +214,10 @@ export default function ParentDashboard() {
               <div
                 key={day}
                 style={{
-                  aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '11px', borderRadius: '6px', fontWeight: 500,
+                  width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '10px', borderRadius: '4px', fontWeight: 500,
                   background: st.bg, color: st.color, border: `0.5px solid ${st.border}`,
-                  boxShadow: isToday ? '0 0 0 1.5px #60a5fa' : 'none'
+                  boxShadow: isToday ? '0 0 0 1px #60a5fa' : 'none'
                 }}
               >
                 {day}
@@ -248,7 +253,7 @@ export default function ParentDashboard() {
       `}</style>
 
       {/* Top bar */}
-      <div style={{ padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+      <div style={{ padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1 }}>
         <div>
           <div style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.5)' }}>HostelMate</div>
           <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>BY NIVO</div>
@@ -277,49 +282,50 @@ export default function ParentDashboard() {
         </div>
       </div>
 
-      <div style={{ padding: '24px 32px', maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+      <div style={{ padding: '16px 32px 24px', maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         {/* Header */}
         <Reveal>
-        <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div style={{ marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div>
-            <h1 suppressHydrationWarning style={{ fontSize: '26px', fontWeight: 500, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>
+            <h1 suppressHydrationWarning style={{ fontSize: '24px', fontWeight: 500, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>
               {greeting} {loading && !firstName ? 'Parent' : firstName || 'Parent'}
             </h1>
-            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginTop: '4px' }}>Tracking your ward</div>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>Tracking your ward</div>
           </div>
         </div>
         </Reveal>
 
-        {/* Embedded Ward Tracking Panel */}
+        {/* Embedded Ward Tracking Panel (Compact 2-Column) */}
         <Reveal delay={50}>
         <div style={{
           background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.08)',
-          borderRadius: '20px', padding: '24px', marginBottom: '24px',
+          borderRadius: '16px', padding: '18px 20px', marginBottom: '16px',
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
           backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)'
         }}>
           {wardError ? (
-            <div style={{ fontSize: '13px', color: '#f87171', textAlign: 'center', padding: '16px' }}>{wardError}</div>
+            <div style={{ fontSize: '13px', color: '#f87171', textAlign: 'center', padding: '8px' }}>{wardError}</div>
           ) : !wardData ? (
-            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '16px' }}>Loading ward details…</div>
+            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '8px' }}>Loading ward details…</div>
           ) : (
-            <>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: '20px', alignItems: 'center' }}>
+              {/* Left Column: Student Details & Live Status */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
                   <div style={{
-                    width: '44px', height: '44px', borderRadius: '12px',
+                    width: '40px', height: '40px', borderRadius: '10px',
                     background: 'rgba(96,165,250,0.12)', border: '0.5px solid rgba(96,165,250,0.3)',
                     color: '#60a5fa', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '18px', fontWeight: 600
+                    fontSize: '16px', fontWeight: 600
                   }}>
                     {wardData.student.full_name?.[0] ?? 'W'}
                   </div>
                   <div>
-                    <h2 style={{ fontSize: '16px', fontWeight: 500, color: '#ffffff', margin: 0 }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 500, color: '#ffffff', margin: 0 }}>
                       {wardData.student.full_name}
                     </h2>
-                    <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '3px 0 0 0' }}>
-                      {wardData.student.roll_number && <span style={{ marginRight: '10px' }}>Roll: {wardData.student.roll_number}</span>}
+                    <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0 0' }}>
+                      {wardData.student.roll_number && <span style={{ marginRight: '8px' }}>Roll: {wardData.student.roll_number}</span>}
                       {wardData.student.room_number && (
                         <span>
                           Room {wardData.student.room_number} {wardData.student.block_name ? `(${wardData.student.block_name})` : ''}
@@ -328,11 +334,15 @@ export default function ParentDashboard() {
                     </p>
                   </div>
                 </div>
+
                 {renderTodayStatus()}
               </div>
 
-              {renderCalendar()}
-            </>
+              {/* Right Column: Mini Attendance Calendar */}
+              <div style={{ borderLeft: '0.5px solid rgba(255,255,255,0.08)', paddingLeft: '20px' }}>
+                {renderCalendar()}
+              </div>
+            </div>
           )}
         </div>
         </Reveal>
