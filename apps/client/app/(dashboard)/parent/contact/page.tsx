@@ -96,20 +96,36 @@ export default function ParentContact() {
                     )}
                   </div>
 
-                  {warden.phone && (
-                    <a
-                      href={`tel:${warden.phone}`}
-                      style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                        width: '100%', padding: '12px 16px', borderRadius: '12px',
-                        background: 'rgba(96,165,250,0.15)', border: '0.5px solid rgba(96,165,250,0.35)',
-                        color: '#60a5fa', fontWeight: 500, fontSize: '13px', textDecoration: 'none',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      <Phone size={16} /> Call Warden Now
-                    </a>
-                  )}
+                  <div style={{ display: 'grid', gridTemplateColumns: warden.email && warden.phone ? '1fr 1fr' : '1fr', gap: '10px' }}>
+                    {warden.phone && (
+                      <a
+                        href={`tel:${warden.phone}`}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                          padding: '12px 16px', borderRadius: '12px',
+                          background: 'rgba(96,165,250,0.15)', border: '0.5px solid rgba(96,165,250,0.35)',
+                          color: '#60a5fa', fontWeight: 500, fontSize: '13px', textDecoration: 'none',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <Phone size={16} /> Call Warden
+                      </a>
+                    )}
+                    {warden.email && (
+                      <a
+                        href={`mailto:${warden.email}`}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                          padding: '12px 16px', borderRadius: '12px',
+                          background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.12)',
+                          color: 'rgba(255,255,255,0.85)', fontWeight: 500, fontSize: '13px', textDecoration: 'none',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <Mail size={16} /> Send Email
+                      </a>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '13px' }}>
