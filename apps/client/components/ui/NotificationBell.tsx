@@ -61,13 +61,13 @@ const getThemeTokens = (pathname: string) => {
   }
   if (pathname?.startsWith('/parent')) {
     return {
-      primary: '#3b82f6', // Blue
-      primaryLight: '#93c5fd',
-      bgGlow: 'rgba(59, 130, 246, 0.15)',
-      border: 'rgba(59, 130, 246, 0.3)',
-      bgSoft: 'rgba(59, 130, 246, 0.08)',
-      bgHover: 'rgba(59, 130, 246, 0.12)',
-      gradient: 'linear-gradient(135deg, rgba(59,130,246,0.2) 0%, rgba(59,130,246,0) 100%)',
+      primary: '#60a5fa', // Parent Blue (matches dashboard accent)
+      primaryLight: '#bfdbfe',
+      bgGlow: 'rgba(96, 165, 250, 0.15)',
+      border: 'rgba(96, 165, 250, 0.3)',
+      bgSoft: 'rgba(96, 165, 250, 0.08)',
+      bgHover: 'rgba(96, 165, 250, 0.12)',
+      gradient: 'linear-gradient(135deg, rgba(96,165,250,0.2) 0%, rgba(96,165,250,0) 100%)',
     };
   }
   // Default to Warden (Purple)
