@@ -40,6 +40,7 @@ interface StatsData {
   pendingLeaves: number;
   openComplaints: number;
   activeNotices: number;
+  roomOccupancy: number;
 }
 
 interface StatsApiResponse {
@@ -49,6 +50,7 @@ interface StatsApiResponse {
     leaves?: { pending_count?: number };
     complaints?: { open_count?: number };
     notices?: { total_active?: number };
+    rooms?: { occupancy_rate?: number; occupied_beds?: number; total_beds?: number };
   };
 }
 
@@ -64,6 +66,7 @@ export default function WardenDashboard() {
     pendingLeaves: 0,
     openComplaints: 0,
     activeNotices: 0,
+    roomOccupancy: 0,
   });
 
   const { apiGet } = useApi();
@@ -120,6 +123,7 @@ export default function WardenDashboard() {
           pendingLeaves: statsResult.data.leaves?.pending_count ?? 0,
           openComplaints: statsResult.data.complaints?.open_count ?? 0,
           activeNotices: statsResult.data.notices?.total_active ?? 0,
+          roomOccupancy: statsResult.data.rooms?.occupancy_rate ?? 0,
         };
         setStats(newStats);
       }
@@ -231,7 +235,7 @@ export default function WardenDashboard() {
 
         {/* Stats row */}
         <Reveal delay={70}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '12px' }}>
           <div style={{ background: 'rgba(255,255,255,0.08)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>Attendance Today</div>
             <div style={{ fontSize: '28px', fontWeight: 500, color: '#4ade80' }}><AnimatedNumber value={stats.attendanceToday} />%</div>
@@ -243,6 +247,10 @@ export default function WardenDashboard() {
           <div style={{ background: 'rgba(255,255,255,0.08)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>Open Complaints</div>
             <div style={{ fontSize: '28px', fontWeight: 500, color: '#f87171' }}><AnimatedNumber value={stats.openComplaints} /></div>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.08)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '10px' }}>Room Occupancy</div>
+            <div style={{ fontSize: '28px', fontWeight: 500, color: '#60a5fa' }}><AnimatedNumber value={stats.roomOccupancy} />%</div>
           </div>
         </div>
         </Reveal>

@@ -32,6 +32,7 @@ router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => 
       { count: resolvedComplaintsMonth },
       { count: totalActiveNotices },
       { data: lostFoundData },
+      { data: roomsData },
     ] = await Promise.all([
       supabaseAdmin.from('students').select('*', { count: 'exact', head: true }),
       supabaseAdmin
@@ -68,6 +69,7 @@ router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => 
         .gte('resolution_date', startOfMonth),
       supabaseAdmin.from('notices').select('*', { count: 'exact', head: true }),
       supabaseAdmin.from('lost_and_found').select('status'),
+      supabaseAdmin.from('rooms').select('id, capacity'),
     ]);
 
     const total = totalStudents || 0;
@@ -86,6 +88,11 @@ router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => 
         else if (item.status === 'claimed') {totalClaimed++;}
       }
     }
+
+    const totalRooms = roomsData ? roomsData.length : 0;
+    const totalBeds = roomsData ? roomsData.reduce((acc, r) => acc + (r.capacity || 0), 0) : 0;
+    const occupiedBeds = total;
+    const occupancyRate = totalBeds > 0 ? Number(((occupiedBeds / totalBeds) * 100).toFixed(1)) : 0;
 
     const statsData = {
       attendance: {
@@ -110,6 +117,12 @@ router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => 
         total_lost: totalLost,
         total_found: totalFound,
         total_claimed: totalClaimed,
+      },
+      rooms: {
+        total_rooms: totalRooms,
+        total_beds: totalBeds,
+        occupied_beds: occupiedBeds,
+        occupancy_rate: occupancyRate,
       },
     };
 
