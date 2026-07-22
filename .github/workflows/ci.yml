@@ -58,12 +58,13 @@ jobs:
       - name: Check server syntax
         run: cd apps/server && node --check src/index.js
 
-      - name: Run server tests
+      - name: Run server tests (23 suites · 261 tests)
         run: cd apps/server && pnpm test
 
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
+    needs: lint-and-build
 
     steps:
       - name: Checkout code
@@ -73,6 +74,11 @@ jobs:
         uses: pnpm/action-setup@v3
         with:
           version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
