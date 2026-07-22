@@ -126,23 +126,25 @@ router.get('/reviews', authenticate, requireWarden, async (req, res, next) => {
 
     if (error) {throw error;}
 
-    // Calculate averages
-    const averages = data.reduce((acc, review) => {
-      if (!acc[review.meal_type]) {
-        acc[review.meal_type] = { totalRating: 0, count: 0 };
+    // Calculate averages efficiently in a single pass
+    const totals = {};
+    const counts = {};
+    for (let i = 0; i < data.length; i++) {
+      const { meal_type, rating } = data[i];
+      if (meal_type && typeof rating === 'number') {
+        totals[meal_type] = (totals[meal_type] || 0) + rating;
+        counts[meal_type] = (counts[meal_type] || 0) + 1;
       }
-      acc[review.meal_type].totalRating += review.rating;
-      acc[review.meal_type].count += 1;
-      return acc;
-    }, {});
+    }
 
-    Object.keys(averages).forEach((meal_type) => {
-      const avg = averages[meal_type].totalRating / averages[meal_type].count;
-      averages[meal_type] = Number(avg.toFixed(1));
-    });
+    const averages = {};
+    for (const type in totals) {
+      averages[type] = Number((totals[type] / counts[type]).toFixed(1));
+    }
 
     const responseData = { reviews: data, averages };
     await setCache(cacheKey, responseData, 300);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.json({ success: true, data: responseData });
   } catch (error) {
     next(error);
