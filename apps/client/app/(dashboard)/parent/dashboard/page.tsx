@@ -156,14 +156,9 @@ export default function ParentDashboard() {
     const todayDate = today.getDate();
 
     const attendanceMap = new Map<string, string>();
-    let daysPresentCount = 0;
     month_attendance.forEach((r) => {
       attendanceMap.set(r.date, r.status);
-      if (r.status === 'present') {daysPresentCount++;}
     });
-
-    const elapsedDays = Math.min(todayDate, daysInMonth);
-    const attendancePct = elapsedDays > 0 ? Math.min(100, Math.round((daysPresentCount / elapsedDays) * 100)) : 0;
 
     const dayHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
     const blanks = Array.from({ length: firstDay });
@@ -185,27 +180,27 @@ export default function ParentDashboard() {
     };
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', height: '100%', justifyContent: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', gap: '4px' }}>
             <CalendarIcon size={12} color="#60a5fa" />
-            {today.toLocaleString('default', { month: 'short' })} ({daysPresentCount}/{elapsedDays} Days - {attendancePct}%)
+            {today.toLocaleString('default', { month: 'short' })} Attendance
           </span>
           <div style={{ display: 'flex', gap: '8px', fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#4ade80' }} /> P</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#f87171' }} /> A</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#fb923c' }} /> L</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#4ade80' }} /> Present</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#f87171' }} /> Absent</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#fb923c' }} /> Leave</span>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 22px)', gap: '3px', justifyContent: 'flex-start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', width: '100%' }}>
           {dayHeaders.map((d, i) => (
             <div key={i} style={{ textAlign: 'center', fontSize: '9px', color: 'rgba(255,255,255,0.3)', fontWeight: 500 }}>
               {d}
             </div>
           ))}
           {blanks.map((_, i) => (
-            <div key={`b-${i}`} style={{ width: '22px', height: '22px' }} />
+            <div key={`b-${i}`} />
           ))}
           {days.map((day) => {
             const st = getDayStyle(day);
@@ -214,7 +209,7 @@ export default function ParentDashboard() {
               <div
                 key={day}
                 style={{
-                  width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '10px', borderRadius: '4px', fontWeight: 500,
                   background: st.bg, color: st.color, border: `0.5px solid ${st.border}`,
                   boxShadow: isToday ? '0 0 0 1px #60a5fa' : 'none'
@@ -295,11 +290,11 @@ export default function ParentDashboard() {
         </div>
         </Reveal>
 
-        {/* Embedded Ward Tracking Panel (Compact 2-Column) */}
+        {/* Embedded Ward Tracking Panel (3-Column Full-Width Design) */}
         <Reveal delay={50}>
         <div style={{
           background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.08)',
-          borderRadius: '16px', padding: '18px 20px', marginBottom: '16px',
+          borderRadius: '16px', padding: '20px 24px', marginBottom: '16px',
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
           backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)'
         }}>
@@ -308,20 +303,20 @@ export default function ParentDashboard() {
           ) : !wardData ? (
             <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '8px' }}>Loading ward details…</div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: '20px', alignItems: 'center' }}>
-              {/* Left Column: Student Details & Live Status */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr', gap: '24px', alignItems: 'center' }}>
+              {/* Column 1: Ward Profile & Today Status */}
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
                   <div style={{
-                    width: '40px', height: '40px', borderRadius: '10px',
+                    width: '42px', height: '42px', borderRadius: '12px',
                     background: 'rgba(96,165,250,0.12)', border: '0.5px solid rgba(96,165,250,0.3)',
                     color: '#60a5fa', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '16px', fontWeight: 600
+                    fontSize: '18px', fontWeight: 600, flexShrink: 0
                   }}>
                     {wardData.student.full_name?.[0] ?? 'W'}
                   </div>
                   <div>
-                    <h2 style={{ fontSize: '15px', fontWeight: 500, color: '#ffffff', margin: 0 }}>
+                    <h2 style={{ fontSize: '16px', fontWeight: 500, color: '#ffffff', margin: 0 }}>
                       {wardData.student.full_name}
                     </h2>
                     <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0 0' }}>
@@ -338,8 +333,32 @@ export default function ParentDashboard() {
                 {renderTodayStatus()}
               </div>
 
-              {/* Right Column: Mini Attendance Calendar */}
-              <div style={{ borderLeft: '0.5px solid rgba(255,255,255,0.08)', paddingLeft: '20px' }}>
+              {/* Column 2: Attendance Metrics & Progress Bar */}
+              <div style={{ borderLeft: '0.5px solid rgba(255,255,255,0.08)', borderRight: '0.5px solid rgba(255,255,255,0.08)', padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 500 }}>Monthly Rate</span>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#4ade80' }}>
+                    {Math.min(100, Math.round(((wardData.month_attendance.filter((r) => r.status === 'present').length) / Math.max(1, Math.min(new Date().getDate(), new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()))) * 100))}%
+                  </span>
+                </div>
+
+                {/* Progress bar */}
+                <div style={{ width: '100%', height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden', display: 'flex' }}>
+                  <div style={{
+                    width: `${Math.min(100, Math.round(((wardData.month_attendance.filter((r) => r.status === 'present').length) / Math.max(1, Math.min(new Date().getDate(), new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()))) * 100))}%`,
+                    background: '#4ade80', transition: 'width 0.5s ease'
+                  }} />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>
+                  <span>Present: <strong style={{ color: '#4ade80' }}>{wardData.month_attendance.filter((r) => r.status === 'present').length}d</strong></span>
+                  <span>Absent: <strong style={{ color: '#f87171' }}>{wardData.month_attendance.filter((r) => r.status === 'absent').length}d</strong></span>
+                  <span>Leave: <strong style={{ color: '#fb923c' }}>{wardData.month_attendance.filter((r) => r.status === 'leave').length}d</strong></span>
+                </div>
+              </div>
+
+              {/* Column 3: Calendar Grid */}
+              <div>
                 {renderCalendar()}
               </div>
             </div>
