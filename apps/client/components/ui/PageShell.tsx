@@ -34,6 +34,7 @@ export function PageShell({ children, spotlight = 'rgba(124,92,252,0.1)', title,
       <style>{`
         @keyframes spotlightFade { to { opacity: 1; } }
         @keyframes pageEnter { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
         /* Opacity-only entrance — never transform here, it would break the
            sticky PageHeader by creating a containing block. */
         .page-enter { animation: pageEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
@@ -47,9 +48,17 @@ export function PageShell({ children, spotlight = 'rgba(124,92,252,0.1)', title,
         .row-hover:hover { background: rgba(255,255,255,0.03) !important; }
         .hm-input::placeholder { color: rgba(255,255,255,0.25); }
         .hm-input:focus { border-color: rgba(124,92,252,0.5) !important; }
+        .hm-input-blue:focus { border-color: rgba(96,165,250,0.5) !important; }
+        .hm-input-orange:focus { border-color: rgba(251,146,60,0.5) !important; }
         select.hm-input option { background: #14141f; color: #fff; }
         .btn-primary:hover { filter: brightness(1.1); }
         .btn-ghost:hover { color: rgba(255,255,255,0.9) !important; border-color: rgba(255,255,255,0.2) !important; }
+        .skeleton {
+          background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 37%, rgba(255,255,255,0.04) 63%);
+          background-size: 400px 100%;
+          animation: shimmer 1.4s ease infinite;
+          border-radius: 6px;
+        }
       `}</style>
       <div className="page-enter" style={{ position: 'relative', zIndex: 1 }}>
         {title && (
