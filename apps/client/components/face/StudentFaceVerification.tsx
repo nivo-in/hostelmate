@@ -52,7 +52,7 @@ export default function StudentFaceVerification({
   const failedAttemptsRef = useRef(0);
   const [failedAttempts, setFailedAttempts] = useState(0);
 
-  // Liveness & Mismatch Tracking
+  // Mismatch & Liveness Tracking
   const blinkDetectedRef = useRef(false);
   const faceDetectedRef = useRef(false);
   const mismatchCountRef = useRef(0);
@@ -60,6 +60,7 @@ export default function StudentFaceVerification({
   const openFramesRef = useRef(0);
   const recentPositionsRef = useRef<{ x: number; y: number }[]>([]);
   const microMovementDetectedRef = useRef(false);
+  const baselineEARRef = useRef<number | null>(null);
 
   const onVerifiedRef = useRef(onVerified);
   const onFailedRef = useRef(onFailed);
@@ -89,6 +90,7 @@ export default function StudentFaceVerification({
     openFramesRef.current = 0;
     recentPositionsRef.current = [];
     microMovementDetectedRef.current = false;
+    baselineEARRef.current = null;
     blinkDetectedRef.current = false;
     setBlinkDetected(false);
 
@@ -123,7 +125,7 @@ export default function StudentFaceVerification({
           }
           const { descriptor, landmarks } = detection;
 
-          // ── 1. Face Match & Instant Rejection for Wrong Face ──────────────
+          // ── 1. Face Match & Rejection for Non-Matching Face ──────────────
           if (!storedDescriptorsRef.current) {return;}
           const { match } = isSamePerson(descriptor, storedDescriptorsRef.current);
 
@@ -132,8 +134,8 @@ export default function StudentFaceVerification({
             failedAttemptsRef.current += 1;
             setFailedAttempts(failedAttemptsRef.current);
 
-            // Instantly reject on non-matching face
-            if (mismatchCountRef.current >= 2 || failedAttemptsRef.current >= MAX_ATTEMPTS) {
+            // Rejects non-matching face after 10 frames (~1.5s grace period for camera exposure/autofocus)
+            if (mismatchCountRef.current >= 10 || failedAttemptsRef.current >= MAX_ATTEMPTS) {
               runningRef.current = false;
               stopCamera();
               setStatus('max-attempts');
@@ -149,7 +151,7 @@ export default function StudentFaceVerification({
             mismatchCountRef.current = 0;
           }
 
-          // ── 2. Micro-movement & Pixel/Landmark Shift Detection ───────────
+          // ── 2. Micro-movement & Landmark Shift Detection ─────────────
           const noseTip = landmarks.positions[30];
           if (noseTip) {
             recentPositionsRef.current.push({ x: noseTip.x, y: noseTip.y });
@@ -157,37 +159,44 @@ export default function StudentFaceVerification({
               recentPositionsRef.current.shift();
             }
 
-            if (recentPositionsRef.current.length >= 4) {
+            if (recentPositionsRef.current.length >= 3) {
               let totalDelta = 0;
               for (let i = 1; i < recentPositionsRef.current.length; i++) {
                 const prev = recentPositionsRef.current[i - 1];
                 const curr = recentPositionsRef.current[i];
                 totalDelta += Math.sqrt((curr.x - prev.x) ** 2 + (curr.y - prev.y) ** 2);
               }
-              if (totalDelta >= 0.8) {
+              if (totalDelta >= 0.3) {
                 microMovementDetectedRef.current = true;
               }
             }
           }
 
-          // ── 3. Robust Eye Blink State Machine (Open -> Closed -> Re-open) ──
+          // ── 3. Dynamic Eye Blink State Machine (Open -> Closed -> Re-open) ──
           const ear = calculateEAR(landmarks);
 
+          if (baselineEARRef.current === null && ear >= 0.18) {
+            baselineEARRef.current = ear;
+          } else if (baselineEARRef.current !== null && ear > baselineEARRef.current) {
+            baselineEARRef.current = 0.8 * baselineEARRef.current + 0.2 * ear;
+          }
+
+          const targetBaseline = baselineEARRef.current ?? 0.26;
+          const closeCutoff = targetBaseline * 0.78;
+
           if (blinkStageRef.current === 0) {
-            if (ear >= 0.25) {
+            if (ear >= targetBaseline * 0.85) {
               openFramesRef.current += 1;
               if (openFramesRef.current >= 2) {
                 blinkStageRef.current = 1; // Open confirmed
               }
-            } else {
-              openFramesRef.current = 0;
             }
           } else if (blinkStageRef.current === 1) {
-            if (ear <= 0.21) {
+            if (ear <= closeCutoff) {
               blinkStageRef.current = 2; // Closed
             }
           } else if (blinkStageRef.current === 2) {
-            if (ear >= 0.25) {
+            if (ear >= targetBaseline * 0.85) {
               blinkStageRef.current = 3; // Re-opened! Blink verified.
               blinkDetectedRef.current = true;
               setBlinkDetected(true);
