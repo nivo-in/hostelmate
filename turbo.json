@@ -16,6 +16,13 @@
     "test": {
       "dependsOn": ["^test"]
     },
+    "test:coverage": {
+      "dependsOn": ["^test:coverage"],
+      "outputs": ["coverage/**"]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"]
+    },
     "start": {
       "dependsOn": ["^build"],
       "persistent": true,
