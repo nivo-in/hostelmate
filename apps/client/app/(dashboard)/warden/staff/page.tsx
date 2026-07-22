@@ -115,17 +115,31 @@ export default function StaffDirectory() {
     if (activeTab === 'report') {
       const fetchReport = async () => {
         setLoadingReport(true);
-        const staffToReport = staffList.filter((s) => !s.isWarden);
+        const staffToReport = staffList;
+
+        const [yearStr, monthStr] = selectedMonth.split('-');
+        const year = parseInt(yearStr, 10);
+        const month = parseInt(monthStr, 10);
+        const lastDayNum = new Date(year, month, 0).getDate();
+        const startDate = `${selectedMonth}-01`;
+        const endDate = `${selectedMonth}-${String(lastDayNum).padStart(2, '0')}`;
 
         try {
           const data = await Promise.all(
             staffToReport.map(async (staff) => {
-              const { data: attendance } = await supabase
+              let attendanceQuery = supabase
                 .from('staff_attendance')
                 .select('*')
-                .eq('staff_id', staff.id)
-                .gte('date', `${selectedMonth}-01`)
-                .lte('date', `${selectedMonth}-31`);
+                .gte('date', startDate)
+                .lte('date', endDate);
+
+              if (staff.isWarden) {
+                attendanceQuery = attendanceQuery.eq('profile_id', staff.id);
+              } else {
+                attendanceQuery = attendanceQuery.eq('staff_id', staff.id);
+              }
+
+              const { data: attendance } = await attendanceQuery;
 
               const daysPresent = attendance?.filter((a) => a.is_present).length || 0;
               const daysAbsent = attendance?.filter((a) => !a.is_present).length || 0;
@@ -133,19 +147,21 @@ export default function StaffDirectory() {
               const attendancePercent =
                 totalDays > 0 ? Math.round((daysPresent / totalDays) * 100) : 0;
 
-              const res = await apiGet(`/api/v1/staff-feedback/${staff.id}`);
               let feedbackData = { average_rating: 0, total_reviews: 0, this_month_reviews: 0 };
 
-              if (res.success && res.data) {
-                const allFeedback = res.data.feedback || [];
-                const thisMonthReviews = allFeedback.filter((f: { created_at: string }) =>
-                  f.created_at.startsWith(selectedMonth)
-                ).length;
-                feedbackData = {
-                  average_rating: res.data.average_rating || 0,
-                  total_reviews: res.data.total_reviews || 0,
-                  this_month_reviews: thisMonthReviews,
-                };
+              if (!staff.isWarden) {
+                const res = await apiGet(`/api/v1/staff-feedback/${staff.id}`);
+                if (res.success && res.data) {
+                  const allFeedback = res.data.feedback || [];
+                  const thisMonthReviews = allFeedback.filter((f: { created_at: string }) =>
+                    f.created_at.startsWith(selectedMonth)
+                  ).length;
+                  feedbackData = {
+                    average_rating: res.data.average_rating || 0,
+                    total_reviews: res.data.total_reviews || 0,
+                    this_month_reviews: thisMonthReviews,
+                  };
+                }
               }
 
               const hasData = totalDays > 0 || feedbackData.this_month_reviews > 0;
@@ -170,7 +186,7 @@ export default function StaffDirectory() {
       };
       fetchReport();
     }
-  }, [activeTab, selectedMonth, staffList]);
+  }, [activeTab, selectedMonth, staffList, supabase, apiGet]);
 
   // ── Sign out ─────────────────────────────────────────────────────────
   const handleSignOut = async () => {
@@ -600,13 +616,16 @@ export default function StaffDirectory() {
             {/* ── Tab: Monthly Report ── */}
             {activeTab === 'report' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '384px', overflowY: 'auto' }}>
-                <input
-                  type="month"
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="hm-input"
-                  style={{ ...input, colorScheme: 'dark' }}
-                />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <label style={{ ...label, margin: 0 }}>Report Month</label>
+                  <input
+                    type="month"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="hm-input"
+                    style={{ ...input, width: 'auto', colorScheme: 'dark' }}
+                  />
+                </div>
 
                 {loadingReport ? (
                   <LoadingSpinner />
@@ -615,38 +634,39 @@ export default function StaffDirectory() {
                 ) : (
                   reportData.map((staff) => (
                     <div key={staff.id} style={{ ...panel, padding: '16px 18px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                        <p style={{ fontSize: '13px', fontWeight: 500, color: ui.text, margin: 0 }}>{staff.full_name}</p>
-                        <Badge variant={getRoleVariant(staff.staff_role)}>{roleLabel(staff.staff_role)}</Badge>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <p style={{ fontSize: '13px', fontWeight: 500, color: ui.text, margin: 0 }}>{staff.full_name}</p>
+                          <Badge variant={getRoleVariant(staff.staff_role)}>{roleLabel(staff.staff_role)}</Badge>
+                        </div>
+                        <span style={{ fontSize: '11px', color: staff.is_present ? ui.green : ui.red, fontWeight: 500 }}>
+                          Today: {staff.is_present ? 'Present' : 'Absent'}
+                        </span>
                       </div>
 
-                      {!staff.hasData ? (
-                        <p style={{ fontSize: '12px', color: ui.textMuted, margin: 0 }}>No data for this month</p>
-                      ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', fontSize: '13px' }}>
-                          <div>
-                            <p style={{ ...label, margin: '0 0 6px' }}>Attendance</p>
-                            <p style={{ color: ui.textSoft, margin: 0 }}>Days Present: {staff.daysPresent}</p>
-                            <p style={{ color: ui.textSoft, margin: 0 }}>Days Absent: {staff.daysAbsent}</p>
-                            <p style={{ color: ui.text, fontWeight: 500, margin: '4px 0 0' }}>
-                              Attendance %: {staff.attendancePercent}%
-                            </p>
-                          </div>
-                          <div>
-                            <p style={{ ...label, margin: '0 0 6px' }}>Feedback</p>
-                            <p style={{ color: ui.text, display: 'flex', alignItems: 'center', gap: '4px', margin: 0 }}>
-                              {Number(staff.average_rating || 0).toFixed(1)}{' '}
-                              <span style={{ color: ui.amber }}><Star size={16} strokeWidth={1.5} /></span>
-                            </p>
-                            <p style={{ color: ui.textMuted, fontSize: '11px', margin: '4px 0 0' }}>
-                              {staff.total_reviews} total reviews
-                            </p>
-                            <p style={{ color: ui.textMuted, fontSize: '11px', margin: 0 }}>
-                              {staff.this_month_reviews} this month reviews
-                            </p>
-                          </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', fontSize: '13px' }}>
+                        <div>
+                          <p style={{ ...label, margin: '0 0 6px' }}>Attendance ({selectedMonth})</p>
+                          <p style={{ color: ui.textSoft, margin: 0 }}>Days Present: <strong style={{ color: ui.green }}>{staff.daysPresent}</strong></p>
+                          <p style={{ color: ui.textSoft, margin: 0 }}>Days Absent: <strong style={{ color: ui.red }}>{staff.daysAbsent}</strong></p>
+                          <p style={{ color: ui.text, fontWeight: 500, margin: '4px 0 0' }}>
+                            Attendance Rate: {staff.attendancePercent}%
+                          </p>
                         </div>
-                      )}
+                        <div>
+                          <p style={{ ...label, margin: '0 0 6px' }}>Performance & Rating</p>
+                          <p style={{ color: ui.text, display: 'flex', alignItems: 'center', gap: '4px', margin: 0, fontWeight: 500 }}>
+                            {Number(staff.average_rating || 0).toFixed(1)}{' '}
+                            <span style={{ color: ui.amber }}><Star size={15} strokeWidth={1.5} /></span>
+                          </p>
+                          <p style={{ color: ui.textMuted, fontSize: '11px', margin: '4px 0 0' }}>
+                            {staff.total_reviews} total reviews
+                          </p>
+                          <p style={{ color: ui.textMuted, fontSize: '11px', margin: 0 }}>
+                            {staff.this_month_reviews} reviews this month
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   ))
                 )}
