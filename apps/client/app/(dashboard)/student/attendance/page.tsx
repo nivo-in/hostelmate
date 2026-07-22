@@ -130,8 +130,9 @@ export default function StudentAttendance() {
   const fetchHistory = useCallback(async () => {
     if (!profile?.id) {return;}
     try {
-      const res = await apiGet(`/api/v1/attendance/student/${profile.id}`);
-      if (res.success) {setHistory(res.data.slice(0, 30) || []);}
+      const ym = new Date().toISOString().slice(0, 7);
+      const res = await apiGet(`/api/v1/attendance/student/${profile.id}?month=${ym}`);
+      if (res.success) {setHistory(res.data || []);}
     } catch {
       /* silently fail */
     }

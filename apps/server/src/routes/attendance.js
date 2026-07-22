@@ -262,8 +262,12 @@ router.get('/student/:studentId', authenticate, async (req, res, next) => {
       .order('date', { ascending: false });
 
     if (month) {
+      const [yearStr, monthStr] = month.split('-');
+      const year = parseInt(yearStr, 10);
+      const m = parseInt(monthStr, 10);
+      const lastDay = new Date(year, m, 0).getDate();
       const startOfMonth = `${month}-01`;
-      const endOfMonth = `${month}-31`;
+      const endOfMonth = `${month}-${String(lastDay).padStart(2, '0')}`;
       query = query.gte('date', startOfMonth).lte('date', endOfMonth);
     }
 
