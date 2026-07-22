@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader } from '@/components/ui/PageHeader';
+import { PageShell } from '@/components/ui/PageShell';
+import { Reveal } from '@/components/ui/Reveal';
 import { createClient } from '@/lib/supabase/client';
 import { useApi } from '@/hooks/useApi';
-import { useRouter } from 'next/navigation';
-
-// ─── Razorpay window type ────────────────────────────────
+import { FileText } from 'lucide-react';
 
 interface RazorpayInstance {
   open(): void;
@@ -16,8 +15,6 @@ interface RazorpayConstructor {
   new (_options: Record<string, unknown>): RazorpayInstance;
 }
 type RazorpayWindow = Window & typeof globalThis & { Razorpay: RazorpayConstructor };
-
-// ─── Types ───────────────────────────────────────────────
 
 interface FeePayment {
   id: string;
@@ -57,37 +54,7 @@ interface ParentProfile {
 
 const fmt = (n: number) => '₹' + n.toLocaleString('en-IN');
 
-const statusBadge = (status: string, isOverdue: boolean) => {
-  const base = 'text-xs px-2.5 py-1 rounded-full font-medium';
-  if (isOverdue) {return <span className={`${base} bg-red-100 text-red-700`}>OVERDUE</span>;}
-  switch (status) {
-    case 'paid':
-      return <span className={`${base} bg-green-50 text-green-700`}>Paid</span>;
-    case 'pending':
-      return <span className={`${base} bg-yellow-50 text-yellow-700`}>Pending</span>;
-    case 'processing':
-      return <span className={`${base} bg-blue-50 text-blue-700`}>Processing</span>;
-    default:
-      return <span className={`${base} bg-gray-100 text-gray-600`}>{status}</span>;
-  }
-};
-
-const typeBadge = (type: string) => {
-  const base = 'text-xs px-2.5 py-1 rounded-full font-medium';
-  switch (type) {
-    case 'combined':
-      return <span className={`${base} bg-indigo-50 text-indigo-700`}>Hostel + Mess</span>;
-    case 'hostel':
-      return <span className={`${base} bg-orange-50 text-orange-700`}>Hostel</span>;
-    case 'mess':
-      return <span className={`${base} bg-teal-50 text-teal-700`}>Mess</span>;
-    default:
-      return <span className={`${base} bg-gray-100 text-gray-600`}>{type}</span>;
-  }
-};
-
 export default function ParentPaymentsPage() {
-  const router = useRouter();
   const [paymentsData, setPaymentsData] = useState<PaymentsData | null>(null);
   const [parentProfile, setParentProfile] = useState<ParentProfile | null>(null);
   const [receiptModal, setReceiptModal] = useState<ReceiptData | null>(null);
@@ -101,7 +68,9 @@ export default function ParentPaymentsPage() {
   const fetchPayments = useCallback(async () => {
     try {
       const res = await apiGet('/api/v1/payments/my');
-      if (res.success) {setPaymentsData(res.data);}
+      if (res.success) {
+        setPaymentsData(res.data);
+      }
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error(e);
@@ -122,16 +91,17 @@ export default function ParentPaymentsPage() {
           });
       }
     });
-  }, []);
+  }, [fetchPayments, supabase]);
 
-  // Load Razorpay script
   useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.async = true;
     document.body.appendChild(script);
     return () => {
-      document.body.removeChild(script);
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
     };
   }, []);
 
@@ -227,103 +197,94 @@ export default function ParentPaymentsPage() {
     }
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
-
   const totals = paymentsData?.totals;
-
   const pendingPayments = paymentsData?.payments.pending || [];
   const paidPayments = paymentsData?.payments.paid || [];
   const studentName = paymentsData?.student_name || 'Ward';
 
   return (
-    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
-      <PageHeader title="Fee Payments" showBack onSignOut={handleSignOut} />
-
+    <PageShell title="Fee Payments" subtitle={`Fee status for ${studentName}`}>
       {/* Alerts */}
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-600 flex justify-between">
-          {error} <button onClick={() => setError('')}>✕</button>
+        <div style={{ marginBottom: '16px', padding: '12px 16px', background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', borderRadius: '12px', fontSize: '13px', color: '#f87171', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>{error}</span>
+          <button onClick={() => setError('')} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer' }}>✕</button>
         </div>
       )}
       {success && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-100 rounded-lg text-sm text-green-700">
+        <div style={{ marginBottom: '16px', padding: '12px 16px', background: 'rgba(74,222,128,0.1)', border: '0.5px solid rgba(74,222,128,0.3)', borderRadius: '12px', fontSize: '13px', color: '#4ade80' }}>
           {success}
         </div>
       )}
 
-      {/* Ward label */}
-      <div className="mb-6">
-        <p className="text-xs text-gray-400">Fee status for</p>
-        <p className="text-lg font-medium text-gray-900">{studentName}</p>
-      </div>
+      {/* Summary Cards */}
+      <Reveal>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '18px 20px' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Total Paid</div>
+            <div style={{ fontSize: '24px', fontWeight: 600, color: '#4ade80' }}>{fmt(totals?.total_paid ?? 0)}</div>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '18px 20px' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Total Pending</div>
+            <div style={{ fontSize: '24px', fontWeight: 600, color: (totals?.total_pending ?? 0) > 0 ? '#f87171' : 'rgba(255,255,255,0.4)' }}>
+              {fmt(totals?.total_pending ?? 0)}
+            </div>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '18px 20px' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Next Due</div>
+            <div style={{ fontSize: '24px', fontWeight: 600, color: '#fb923c' }}>
+              {totals?.next_due
+                ? new Date(totals.next_due).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+                : '—'}
+            </div>
+          </div>
+        </div>
+      </Reveal>
 
-      {/* SECTION 1 — Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
-          <p className="text-xs text-gray-400 mb-1">Total Paid</p>
-          <p className="text-2xl font-medium text-green-600">{fmt(totals?.total_paid ?? 0)}</p>
-        </div>
-        <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
-          <p className="text-xs text-gray-400 mb-1">Total Pending</p>
-          <p
-            className={`text-2xl font-medium ${(totals?.total_pending ?? 0) > 0 ? 'text-red-500' : 'text-gray-400'}`}
-          >
-            {fmt(totals?.total_pending ?? 0)}
-          </p>
-        </div>
-        <div className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors">
-          <p className="text-xs text-gray-400 mb-1">Next Due</p>
-          <p className="text-2xl font-medium text-yellow-600">
-            {totals?.next_due
-              ? new Date(totals.next_due).toLocaleDateString('en-IN', {
-                  day: 'numeric',
-                  month: 'short',
-                })
-              : '—'}
-          </p>
-        </div>
-      </div>
-
-      {/* SECTION 2 — Pending / Pay on behalf */}
+      {/* Pending Payments */}
       {pendingPayments.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-sm font-medium text-gray-900 mb-4">
-            Pending Payments
-            <span className="ml-2 text-xs px-2.5 py-1 rounded-full bg-red-50 text-red-600 font-medium">
-              {pendingPayments.length} due
-            </span>
-          </h2>
-          <div className="space-y-3">
-            {pendingPayments.map((payment) => (
-              <div
-                key={payment.id}
-                className={`border rounded-xl p-6 transition-colors ${payment.is_overdue ? 'border-red-200 bg-red-50' : 'border-gray-100 hover:border-gray-300'}`}
-              >
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap mb-2">
-                      <span className="text-sm font-medium text-gray-900">
-                        {payment.fee_structures?.name}
-                      </span>
-                      {typeBadge(payment.fee_structures?.fee_type)}
-                      {statusBadge(payment.status, payment.is_overdue)}
+        <Reveal delay={40}>
+          <div style={{ marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+              <h2 style={{ fontSize: '15px', fontWeight: 500, color: '#ffffff', margin: 0 }}>Pending Payments</h2>
+              <span style={{ fontSize: '11px', color: '#f87171', background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.25)', borderRadius: '6px', padding: '2px 8px', fontWeight: 500 }}>
+                {pendingPayments.length} due
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {pendingPayments.map((payment) => (
+                <div
+                  key={payment.id}
+                  style={{
+                    background: payment.is_overdue ? 'rgba(248,113,113,0.04)' : 'rgba(255,255,255,0.03)',
+                    border: payment.is_overdue ? '0.5px solid rgba(248,113,113,0.3)' : '0.5px solid rgba(255,255,255,0.07)',
+                    borderRadius: '16px', padding: '20px 22px',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px'
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 500, color: '#ffffff' }}>{payment.fee_structures?.name}</span>
+                      {payment.is_overdue && (
+                        <span style={{ fontSize: '10px', color: '#f87171', background: 'rgba(248,113,113,0.15)', border: '0.5px solid rgba(248,113,113,0.3)', borderRadius: '4px', padding: '2px 6px', fontWeight: 600 }}>OVERDUE</span>
+                      )}
                     </div>
-                    <p className="text-xl font-medium text-gray-900 mb-1">{fmt(payment.amount)}</p>
-                    <p className="text-xs text-gray-500">
-                      Period: <span className="font-medium">{payment.period_label}</span>
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      Due: {new Date(payment.due_date).toLocaleDateString('en-IN')}
+                    <p style={{ fontSize: '20px', fontWeight: 600, color: '#ffffff', margin: '0 0 4px 0' }}>{fmt(payment.amount)}</p>
+                    <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+                      Period: <span style={{ color: 'rgba(255,255,255,0.7)' }}>{payment.period_label}</span> · Due: {new Date(payment.due_date).toLocaleDateString('en-IN')}
                     </p>
                   </div>
-                  <div className="flex flex-col items-end gap-2">
+
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
                     <button
                       onClick={() => handlePay(payment)}
                       disabled={loading}
-                      className="bg-gray-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-gray-700 transition-colors whitespace-nowrap disabled:opacity-50"
+                      style={{
+                        padding: '9px 18px', borderRadius: '10px', background: '#fb923c', color: '#000000',
+                        fontWeight: 600, fontSize: '12px', border: 'none', cursor: 'pointer', transition: 'all 0.2s ease',
+                        opacity: loading ? 0.6 : 1
+                      }}
                     >
                       Pay on behalf {fmt(payment.amount)}
                     </button>
@@ -331,129 +292,120 @@ export default function ParentPaymentsPage() {
                       <button
                         onClick={() => handleCancelPayment(payment.id)}
                         disabled={loading}
-                        className="text-xs text-red-600 hover:text-red-800 underline disabled:opacity-50"
+                        style={{ fontSize: '11px', color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
                       >
                         Cancel process
                       </button>
                     )}
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        </Reveal>
       )}
 
-      {/* SECTION 3 — Payment History */}
-      <div>
-        <h2 className="text-sm font-medium text-gray-900 mb-4">Payment History</h2>
-        {paidPayments.length === 0 ? (
-          <div className="border border-gray-100 rounded-xl p-12 text-center">
-            <p className="text-gray-400 text-sm">No payments made yet.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {paidPayments.map((payment) => (
-              <div
-                key={payment.id}
-                className="border border-gray-100 rounded-xl p-6 hover:border-gray-300 transition-colors"
-              >
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap mb-2">
-                      <span className="text-sm font-medium text-gray-900">
-                        {payment.fee_structures?.name}
-                      </span>
-                      {typeBadge(payment.fee_structures?.fee_type)}
-                      {statusBadge(payment.status, false)}
+      {/* Payment History */}
+      <Reveal delay={80}>
+        <div>
+          <h2 style={{ fontSize: '15px', fontWeight: 500, color: '#ffffff', marginBottom: '14px' }}>Payment History</h2>
+          {paidPayments.length === 0 ? (
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '40px', textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
+              No payments completed yet.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {paidPayments.map((payment) => (
+                <div
+                  key={payment.id}
+                  style={{
+                    background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)',
+                    borderRadius: '16px', padding: '18px 22px',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px'
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 500, color: '#ffffff' }}>{payment.fee_structures?.name}</span>
+                      <span style={{ fontSize: '10px', color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '0.5px solid rgba(74,222,128,0.25)', borderRadius: '4px', padding: '2px 6px', fontWeight: 600 }}>PAID</span>
                     </div>
-                    <p className="text-xl font-medium text-gray-900 mb-1">{fmt(payment.amount)}</p>
-                    <p className="text-xs text-gray-500">
-                      Period: <span className="font-medium">{payment.period_label}</span>
+                    <p style={{ fontSize: '18px', fontWeight: 600, color: '#4ade80', margin: '0 0 4px 0' }}>{fmt(payment.amount)}</p>
+                    <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+                      Period: <span style={{ color: 'rgba(255,255,255,0.7)' }}>{payment.period_label}</span>
+                      {payment.paid_at && <span> · Paid on {new Date(payment.paid_at).toLocaleDateString('en-IN')}</span>}
                     </p>
-                    <div className="flex gap-4 text-xs text-gray-400 mt-1">
-                      {payment.paid_at && (
-                        <span>Paid: {new Date(payment.paid_at).toLocaleDateString('en-IN')}</span>
-                      )}
-                    </div>
-                    {payment.receipt_number && (
-                      <p className="text-xs text-gray-400 mt-1 font-mono">
-                        {payment.receipt_number}
-                      </p>
-                    )}
                   </div>
+
                   <button
                     onClick={() => handleViewReceipt(payment.id)}
-                    className="border border-gray-200 text-gray-600 rounded-lg px-4 py-2.5 text-sm hover:border-gray-400 transition-colors whitespace-nowrap"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '10px',
+                      background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)',
+                      color: 'rgba(255,255,255,0.8)', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s ease'
+                    }}
                   >
+                    <FileText size={14} color="#60a5fa" />
                     View Receipt
                   </button>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </Reveal>
 
       {/* Receipt Modal */}
       {receiptModal && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-8 max-w-md w-full">
-            <div className="flex justify-between items-start mb-6">
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '16px' }}>
+          <div style={{ background: '#0d0d18', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '20px', padding: '28px', maxWidth: '440px', width: '100%', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
               <div>
-                <h3 className="text-sm font-medium text-gray-900">Payment Receipt</h3>
-                <p className="text-xs text-gray-400 font-mono mt-1">
+                <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#ffffff', margin: 0 }}>Payment Receipt</h3>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace', margin: '4px 0 0 0' }}>
                   {receiptModal.receipt_number}
                 </p>
               </div>
               <button
                 onClick={() => setReceiptModal(null)}
-                className="text-gray-400 hover:text-gray-600 text-lg"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'rgba(255,255,255,0.6)', width: '28px', height: '28px', cursor: 'pointer' }}
               >
                 ✕
               </button>
             </div>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Student</span>
-                <span className="text-gray-900 font-medium">
-                  {receiptModal.students?.profiles?.full_name}
-                </span>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'rgba(255,255,255,0.4)' }}>Student</span>
+                <span style={{ color: '#ffffff', fontWeight: 500 }}>{receiptModal.students?.profiles?.full_name}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Roll No.</span>
-                <span className="text-gray-900">{receiptModal.students?.roll_number}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'rgba(255,255,255,0.4)' }}>Roll No.</span>
+                <span style={{ color: 'rgba(255,255,255,0.8)' }}>{receiptModal.students?.roll_number}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Fee Plan</span>
-                <span className="text-gray-900">{receiptModal.fee_structures?.name}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'rgba(255,255,255,0.4)' }}>Fee Plan</span>
+                <span style={{ color: 'rgba(255,255,255,0.8)' }}>{receiptModal.fee_structures?.name}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Period</span>
-                <span className="text-gray-900">{receiptModal.period_label}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'rgba(255,255,255,0.4)' }}>Period</span>
+                <span style={{ color: 'rgba(255,255,255,0.8)' }}>{receiptModal.period_label}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Method</span>
-                <span className="text-gray-900 capitalize">{receiptModal.payment_method}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'rgba(255,255,255,0.4)' }}>Method</span>
+                <span style={{ color: 'rgba(255,255,255,0.8)', textTransform: 'capitalize' }}>{receiptModal.payment_method}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Paid on</span>
-                <span className="text-gray-900">
-                  {new Date(receiptModal.paid_at).toLocaleDateString('en-IN', {
-                    dateStyle: 'long',
-                  })}
-                </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'rgba(255,255,255,0.4)' }}>Paid On</span>
+                <span style={{ color: 'rgba(255,255,255,0.8)' }}>{new Date(receiptModal.paid_at).toLocaleDateString('en-IN', { dateStyle: 'long' })}</span>
               </div>
-              <div className="flex justify-between pt-3 border-t border-gray-100">
-                <span className="text-gray-900 font-medium">Amount Paid</span>
-                <span className="text-xl font-medium text-gray-900">
-                  {fmt(receiptModal.amount)}
-                </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '14px', borderTop: '0.5px solid rgba(255,255,255,0.1)', marginTop: '4px' }}>
+                <span style={{ color: '#ffffff', fontWeight: 500 }}>Amount Paid</span>
+                <span style={{ fontSize: '20px', fontWeight: 600, color: '#4ade80' }}>{fmt(receiptModal.amount)}</span>
               </div>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }

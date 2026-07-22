@@ -1,16 +1,14 @@
 'use client';
-import { Phone } from 'lucide-react';
+
 import { useEffect, useState } from 'react';
-import { PageHeader } from '@/components/ui/PageHeader';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { PageShell } from '@/components/ui/PageShell';
+import { Reveal } from '@/components/ui/Reveal';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
 import { Profile } from '@/types';
+import { Phone, Mail, MapPin, Clock, ShieldCheck } from 'lucide-react';
 
 export default function ParentContact() {
-  const router = useRouter();
   const supabase = createClient();
-
   const [warden, setWarden] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -24,7 +22,9 @@ export default function ParentContact() {
           .limit(1)
           .single();
 
-        if (data) {setWarden(data.profiles);}
+        if (data?.profiles) {
+          setWarden(data.profiles);
+        }
       } catch {
         // Silently fail
       } finally {
@@ -33,69 +33,109 @@ export default function ParentContact() {
     };
 
     fetchWarden();
-  }, []);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
-
-  if (loading)
-    {return (
-      <div className="min-h-screen bg-white px-6 py-10">
-        <LoadingSpinner />
-      </div>
-    );}
+  }, [supabase]);
 
   return (
-    <div className="min-h-screen bg-white px-6 py-10 max-w-4xl mx-auto">
-      <PageHeader title="Contact Warden" showBack onSignOut={handleSignOut} />
+    <PageShell title="Contact Warden" subtitle="Direct contact channels for hostel administration & emergency support">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+        <Reveal>
+          <div style={{
+            background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)',
+            borderRadius: '16px', padding: '24px', position: 'relative', overflow: 'hidden',
+            backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(251,146,60,0.1)', border: '0.5px solid rgba(251,146,60,0.25)', color: '#fb923c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <ShieldCheck size={18} />
+              </div>
+              <div>
+                <h2 style={{ fontSize: '15px', fontWeight: 500, color: '#ffffff', margin: 0 }}>Chief Warden Details</h2>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: '2px 0 0 0' }}>Official hostel administration contact</p>
+              </div>
+            </div>
 
-      {warden ? (
-        <div className="border border-gray-100 rounded-xl p-6 mb-8 bg-gray-50">
-          <h2 className="text-lg font-medium text-gray-900 mb-2">{warden.full_name}</h2>
-          <div className="space-y-1 mb-6">
-            <p className="text-sm text-gray-600">
-              Email:{' '}
-              <a href={`mailto:${warden.email}`} className="text-blue-600 hover:underline">
-                {warden.email}
-              </a>
-            </p>
-            <p className="text-sm text-gray-600">
-              Phone:{' '}
-              <a href={`tel:${warden.phone}`} className="text-blue-600 hover:underline">
-                {warden.phone}
-              </a>
-            </p>
+            {loading ? (
+              <div style={{ padding: '24px', textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
+                Loading warden details...
+              </div>
+            ) : warden ? (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.12)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 600 }}>
+                    {warden.full_name?.[0] ?? 'W'}
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '16px', fontWeight: 500, color: '#ffffff', margin: 0 }}>{warden.full_name}</h3>
+                    <p style={{ fontSize: '12px', color: '#fb923c', margin: '2px 0 0 0', fontWeight: 500 }}>Chief Hostel Warden</p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+                  {warden.email && (
+                    <a href={`mailto:${warden.email}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: 'rgba(255,255,255,0.8)', textDecoration: 'none' }}>
+                      <Mail size={16} color="rgba(255,255,255,0.4)" />
+                      {warden.email}
+                    </a>
+                  )}
+                  {warden.phone && (
+                    <a href={`tel:${warden.phone}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: 'rgba(255,255,255,0.8)', textDecoration: 'none' }}>
+                      <Phone size={16} color="rgba(255,255,255,0.4)" />
+                      {warden.phone}
+                    </a>
+                  )}
+                </div>
+
+                {warden.phone && (
+                  <a
+                    href={`tel:${warden.phone}`}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                      width: '100%', padding: '12px 16px', borderRadius: '12px',
+                      background: 'rgba(251,146,60,0.15)', border: '0.5px solid rgba(251,146,60,0.35)',
+                      color: '#fb923c', fontWeight: 500, fontSize: '13px', textDecoration: 'none',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <Phone size={16} /> Call Warden Now
+                  </a>
+                )}
+              </div>
+            ) : (
+              <div style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '13px' }}>
+                Warden details have not been configured yet.
+              </div>
+            )}
           </div>
+        </Reveal>
 
-          <a
-            href={`tel:${warden.phone}`}
-            className="flex items-center justify-center gap-2 w-full bg-red-500 text-white rounded-lg px-4 py-3 font-medium hover:bg-red-600 transition-colors"
-          >
-            <Phone size={18} /> Call Warden Now
-          </a>
-        </div>
-      ) : (
-        <div className="border border-gray-100 rounded-xl p-8 mb-8 text-center bg-gray-50">
-          <h2 className="text-lg font-medium text-gray-900 mb-2">
-            Contact Information Unavailable
-          </h2>
-          <p className="text-sm text-gray-500">Warden details have not been updated yet.</p>
-        </div>
-      )}
+        <Reveal delay={60}>
+          <div style={{
+            background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)',
+            borderRadius: '16px', padding: '24px',
+            backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)'
+          }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 500, color: '#ffffff', margin: '0 0 16px 0' }}>Hostel Office & Location</h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                <MapPin size={16} color="#60a5fa" style={{ marginTop: '2px', flexShrink: 0 }} />
+                <div>
+                  <strong style={{ color: '#ffffff', display: 'block', marginBottom: '2px' }}>Campus Address</strong>
+                  Hostel Management Office, Block B, Main University Campus
+                </div>
+              </div>
 
-      <div className="border border-gray-100 rounded-xl p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Hostel Information</h2>
-        <div className="space-y-2 text-sm text-gray-600">
-          <p>
-            <strong>Address:</strong> 123 Campus Drive, University Campus, Block B
-          </p>
-          <p>
-            <strong>Office Hours:</strong> 9:00 AM - 6:00 PM (Mon - Sat)
-          </p>
-        </div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                <Clock size={16} color="#4ade80" style={{ marginTop: '2px', flexShrink: 0 }} />
+                <div>
+                  <strong style={{ color: '#ffffff', display: 'block', marginBottom: '2px' }}>Office Visiting Hours</strong>
+                  09:00 AM – 06:00 PM (Monday to Saturday)
+                </div>
+              </div>
+            </div>
+          </div>
+        </Reveal>
       </div>
-    </div>
+    </PageShell>
   );
 }

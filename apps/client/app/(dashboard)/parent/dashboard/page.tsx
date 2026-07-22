@@ -1,17 +1,65 @@
 'use client';
-import { MapPin, Palmtree, Megaphone, Phone, CreditCard } from 'lucide-react';
-import { useEffect, useState, useCallback } from 'react';
+
+import { Palmtree, Megaphone, Phone, CreditCard, Check, X, Plane, Calendar as CalendarIcon } from 'lucide-react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { useApi } from '@/hooks/useApi';
+import { useSocket } from '@/hooks/useSocket';
+import { Reveal } from '@/components/ui/Reveal';
+import { TiltCard } from '@/components/ui/TiltCard';
+
+interface StudentInfo {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
+  roll_number: string | null;
+  room_number: string | null;
+  block_name: string | null;
+}
+
+interface AttendanceRecord {
+  id: string;
+  date: string;
+  status: string;
+  scan_time: string | null;
+}
+
+interface ParentStudentData {
+  student: StudentInfo;
+  today_attendance: AttendanceRecord | null;
+  month_attendance: AttendanceRecord[];
+  relation: string;
+}
 
 export default function ParentDashboard() {
   const router = useRouter();
+  const { apiGet } = useApi();
+  const supabase = createClient();
   const [firstName, setFirstName] = useState('');
   const [loading, setLoading] = useState(true);
+  const [wardData, setWardData] = useState<ParentStudentData | null>(null);
+  const [wardError, setWardError] = useState<string | null>(null);
+  const studentIdRef = useRef<string | null>(null);
+
+  const fetchWardData = useCallback(async () => {
+    try {
+      const res = await apiGet('/api/v1/parent/my-student');
+      if (res.success && res.data) {
+        setWardData(res.data);
+        studentIdRef.current = res.data.student.id;
+        setWardError(null);
+      } else {
+        setWardError(res.error || 'No linked student found');
+      }
+    } catch {
+      setWardError('Failed to load ward information');
+    }
+  }, [apiGet]);
 
   const init = useCallback(async () => {
     try {
-      const supabase = createClient();
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -21,32 +69,160 @@ export default function ParentDashboard() {
         return;
       }
 
-      const [profileResult] = await Promise.all([
-        supabase.from('profiles').select('full_name').eq('id', user.id).single(),
-      ]);
-
-      if (profileResult.data?.full_name) {
-        setFirstName(profileResult.data.full_name.split(' ')[0]);
+      const { data: profileData } = await supabase.from('profiles').select('full_name').eq('id', user.id).single();
+      if (profileData?.full_name) {
+        setFirstName(profileData.full_name.split(' ')[0]);
       }
+
+      await fetchWardData();
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [supabase, fetchWardData]);
 
   useEffect(() => {
     init();
   }, [init]);
 
+  useSocket({
+    'attendance:marked': (payload: unknown) => {
+      const data = payload as { student_id?: string };
+      if (!studentIdRef.current || data?.student_id === studentIdRef.current) {
+        fetchWardData();
+      }
+    },
+  });
+
   const handleSignOut = async () => {
-    await createClient().auth.signOut();
+    await supabase.auth.signOut();
     router.push('/login');
   };
 
   const hour = new Date().getHours();
   const greeting = hour >= 5 && hour < 12 ? 'Good morning,' : hour >= 12 && hour < 17 ? 'Good afternoon,' : 'Good evening,';
+
+  const renderTodayStatus = () => {
+    if (!wardData) {return null;}
+    const { today_attendance } = wardData;
+
+    if (!today_attendance) {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#9ca3af' }} />
+          Attendance not marked today
+        </div>
+      );
+    }
+
+    if (today_attendance.status === 'present') {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', borderRadius: '8px', background: 'rgba(74,222,128,0.1)', border: '0.5px solid rgba(74,222,128,0.25)', fontSize: '12px', color: '#4ade80', fontWeight: 500 }}>
+          <Check size={14} strokeWidth={2.5} />
+          Present Today {today_attendance.scan_time ? `(${new Date(today_attendance.scan_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})` : ''}
+        </div>
+      );
+    }
+
+    if (today_attendance.status === 'absent') {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', borderRadius: '8px', background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.25)', fontSize: '12px', color: '#f87171', fontWeight: 500 }}>
+          <X size={14} strokeWidth={2.5} />
+          Absent Today
+        </div>
+      );
+    }
+
+    if (today_attendance.status === 'leave') {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', borderRadius: '8px', background: 'rgba(251,146,60,0.1)', border: '0.5px solid rgba(251,146,60,0.25)', fontSize: '12px', color: '#fb923c', fontWeight: 500 }}>
+          <Plane size={14} strokeWidth={2} />
+          On Leave
+        </div>
+      );
+    }
+  };
+
+  const renderCalendar = () => {
+    if (!wardData) {return null;}
+    const { month_attendance } = wardData;
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDay = new Date(year, month, 1).getDay();
+    const todayDate = today.getDate();
+
+    const attendanceMap = new Map<string, string>();
+    month_attendance.forEach((r) => {
+      attendanceMap.set(r.date, r.status);
+    });
+
+    const dayHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    const blanks = Array.from({ length: firstDay });
+    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+    const getDayStyle = (day: number) => {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const status = attendanceMap.get(dateStr);
+      if (status === 'present') {
+        return { bg: 'rgba(74,222,128,0.2)', color: '#4ade80', border: 'rgba(74,222,128,0.4)' };
+      }
+      if (status === 'absent') {
+        return { bg: 'rgba(248,113,113,0.2)', color: '#f87171', border: 'rgba(248,113,113,0.4)' };
+      }
+      if (status === 'leave') {
+        return { bg: 'rgba(251,146,60,0.2)', color: '#fb923c', border: 'rgba(251,146,60,0.4)' };
+      }
+      return { bg: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.3)', border: 'transparent' };
+    };
+
+    return (
+      <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '0.5px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 500, color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <CalendarIcon size={14} color="#60a5fa" />
+            {today.toLocaleString('default', { month: 'long', year: 'numeric' })} Attendance
+          </span>
+          <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4ade80' }} /> Present</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f87171' }} /> Absent</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#fb923c' }} /> Leave</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
+          {dayHeaders.map((d, i) => (
+            <div key={i} style={{ textAlign: 'center', fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontWeight: 500, paddingBottom: '4px' }}>
+              {d}
+            </div>
+          ))}
+          {blanks.map((_, i) => (
+            <div key={`b-${i}`} />
+          ))}
+          {days.map((day) => {
+            const st = getDayStyle(day);
+            const isToday = day === todayDate;
+            return (
+              <div
+                key={day}
+                style={{
+                  aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '11px', borderRadius: '6px', fontWeight: 500,
+                  background: st.bg, color: st.color, border: `0.5px solid ${st.border}`,
+                  boxShadow: isToday ? '0 0 0 1.5px #60a5fa' : 'none'
+                }}
+              >
+                {day}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div style={{ background: '#080810', minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
@@ -58,9 +234,7 @@ export default function ParentDashboard() {
         opacity: 0,
       }} />
       <style>{`
-        @keyframes spotlightFade {
-          to { opacity: 1; }
-        }
+        @keyframes spotlightFade { to { opacity: 1; } }
         .dash-card { transition: all 0.3s ease; }
         .dash-card:hover {
           background: radial-gradient(circle at top left, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%) !important;
@@ -80,15 +254,15 @@ export default function ParentDashboard() {
           <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>BY NIVO</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <button 
-            onClick={handleSignOut} 
+          <button
+            onClick={handleSignOut}
             className="signout-btn"
-            style={{ 
-              display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'rgba(255,255,255,0.35)', 
-              background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '8px', 
-              padding: '6px 10px', cursor: 'pointer', transition: 'color 0.2s' 
-            }} 
-            onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.75)'} 
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'rgba(255,255,255,0.35)',
+              background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '8px',
+              padding: '6px 10px', cursor: 'pointer', transition: 'color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.75)'}
             onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.35)'}
           >
             Sign out
@@ -104,21 +278,75 @@ export default function ParentDashboard() {
       </div>
 
       <div style={{ padding: '24px 32px', maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        <div style={{ marginBottom: '32px' }}>
-          <div suppressHydrationWarning style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>{greeting}</div>
-          <h1 style={{ fontSize: '26px', fontWeight: 500, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>{loading ? 'Parent' : firstName}</h1>
-          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.28)', marginTop: '4px' }}>Tracking your ward</div>
+        {/* Header */}
+        <Reveal>
+        <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <div>
+            <h1 suppressHydrationWarning style={{ fontSize: '26px', fontWeight: 500, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>
+              {greeting} {loading && !firstName ? 'Parent' : firstName || 'Parent'}
+            </h1>
+            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginTop: '4px' }}>Tracking your ward</div>
+          </div>
         </div>
+        </Reveal>
 
+        {/* Embedded Ward Tracking Panel */}
+        <Reveal delay={50}>
+        <div style={{
+          background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.08)',
+          borderRadius: '20px', padding: '24px', marginBottom: '24px',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+          backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)'
+        }}>
+          {wardError ? (
+            <div style={{ fontSize: '13px', color: '#f87171', textAlign: 'center', padding: '16px' }}>{wardError}</div>
+          ) : !wardData ? (
+            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '16px' }}>Loading ward details…</div>
+          ) : (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{
+                    width: '44px', height: '44px', borderRadius: '12px',
+                    background: 'rgba(96,165,250,0.12)', border: '0.5px solid rgba(96,165,250,0.3)',
+                    color: '#60a5fa', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '18px', fontWeight: 600
+                  }}>
+                    {wardData.student.full_name?.[0] ?? 'W'}
+                  </div>
+                  <div>
+                    <h2 style={{ fontSize: '16px', fontWeight: 500, color: '#ffffff', margin: 0 }}>
+                      {wardData.student.full_name}
+                    </h2>
+                    <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '3px 0 0 0' }}>
+                      {wardData.student.roll_number && <span style={{ marginRight: '10px' }}>Roll: {wardData.student.roll_number}</span>}
+                      {wardData.student.room_number && (
+                        <span>
+                          Room {wardData.student.room_number} {wardData.student.block_name ? `(${wardData.student.block_name})` : ''}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                {renderTodayStatus()}
+              </div>
+
+              {renderCalendar()}
+            </>
+          )}
+        </div>
+        </Reveal>
+
+        {/* Quick Actions Grid (2x2) */}
+        <Reveal delay={100}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
           {[
-            { icon:<MapPin size={18} />, title:'Track Ward', desc:'Real-time location and attendance', href:'/parent/track' },
-            { icon:<Palmtree size={18} />, title:'Leave Status', desc:'View leave requests', href:'/parent/leaves' },
-            { icon:<Megaphone size={18} />, title:'Notices', desc:'Read hostel announcements', href:'/parent/notices' },
-            { icon:<Phone size={18} />, title:'Contact Warden', desc:'Get in touch', href:'/parent/contact' },
-            { icon:<CreditCard size={18} />, title:'Fee Payments', desc:"Pay ward's hostel fees", href:'/parent/payments' },
+            { icon: <Palmtree size={18} />, title: 'Leave Status', desc: "View ward's leave requests", href: '/parent/leaves' },
+            { icon: <Megaphone size={18} />, title: 'Notices', desc: 'Read hostel announcements', href: '/parent/notices' },
+            { icon: <Phone size={18} />, title: 'Contact Warden', desc: 'Get in touch with hostel warden', href: '/parent/contact' },
+            { icon: <CreditCard size={18} />, title: 'Fee Payments', desc: "Pay ward's hostel fees", href: '/parent/payments' },
           ].map((item, i) => (
-            <div
+            <TiltCard
               key={i}
               onClick={() => router.push(item.href)}
               style={{
@@ -151,9 +379,10 @@ export default function ParentDashboard() {
                 <div style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.82)', margin: '0 0 4px 0' }}>{item.title}</div>
                 <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.32)', lineHeight: 1.5 }}>{item.desc}</div>
               </div>
-            </div>
+            </TiltCard>
           ))}
         </div>
+        </Reveal>
       </div>
     </div>
   );
