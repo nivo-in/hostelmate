@@ -235,23 +235,26 @@ export default function ParentPaymentsPage() {
       {/* Summary Cards */}
       <Reveal>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '18px 20px' }}>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Total Paid</div>
-            <div style={{ fontSize: '24px', fontWeight: 600, color: '#4ade80' }}>{fmt(totals?.total_paid ?? 0)}</div>
+          <div className="glass-card" style={{ background: 'rgba(74,222,128,0.04)', border: '0.5px solid rgba(74,222,128,0.15)', borderRadius: '16px', padding: '18px 20px' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Paid</div>
+            <div style={{ fontSize: '22px', fontWeight: 600, color: '#4ade80' }}>{fmt(totals?.total_paid ?? 0)}</div>
+            <div style={{ fontSize: '11px', color: 'rgba(74,222,128,0.6)', marginTop: '4px' }}>{paidPayments.length} payment{paidPayments.length !== 1 ? 's' : ''}</div>
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '18px 20px' }}>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Total Pending</div>
-            <div style={{ fontSize: '24px', fontWeight: 600, color: (totals?.total_pending ?? 0) > 0 ? '#f87171' : 'rgba(255,255,255,0.4)' }}>
+          <div className="glass-card" style={{ background: (totals?.total_pending ?? 0) > 0 ? 'rgba(248,113,113,0.04)' : 'rgba(255,255,255,0.03)', border: `0.5px solid ${(totals?.total_pending ?? 0) > 0 ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.07)'}`, borderRadius: '16px', padding: '18px 20px' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pending</div>
+            <div style={{ fontSize: '22px', fontWeight: 600, color: (totals?.total_pending ?? 0) > 0 ? '#f87171' : 'rgba(255,255,255,0.4)' }}>
               {fmt(totals?.total_pending ?? 0)}
             </div>
+            <div style={{ fontSize: '11px', color: (totals?.total_pending ?? 0) > 0 ? 'rgba(248,113,113,0.6)' : 'rgba(255,255,255,0.2)', marginTop: '4px' }}>{pendingPayments.length} pending</div>
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '18px 20px' }}>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Next Due</div>
-            <div style={{ fontSize: '24px', fontWeight: 600, color: '#fb923c' }}>
+          <div className="glass-card" style={{ background: 'rgba(96,165,250,0.04)', border: '0.5px solid rgba(96,165,250,0.15)', borderRadius: '16px', padding: '18px 20px' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Next Due</div>
+            <div style={{ fontSize: '22px', fontWeight: 600, color: '#60a5fa' }}>
               {totals?.next_due
                 ? new Date(totals.next_due).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
                 : '—'}
             </div>
+            <div style={{ fontSize: '11px', color: 'rgba(96,165,250,0.6)', marginTop: '4px' }}>due date</div>
           </div>
         </div>
       </Reveal>
@@ -292,15 +295,16 @@ export default function ParentPaymentsPage() {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-                    <button
-                      onClick={() => handlePay(payment)}
-                      disabled={loading}
-                      style={{
-                        padding: '9px 18px', borderRadius: '10px', background: '#fb923c', color: '#000000',
-                        fontWeight: 600, fontSize: '12px', border: 'none', cursor: 'pointer', transition: 'all 0.2s ease',
-                        opacity: loading ? 0.6 : 1
-                      }}
-                    >
+                      <button
+                        onClick={() => handlePay(payment)}
+                        disabled={loading}
+                        style={{
+                          padding: '9px 18px', borderRadius: '10px',
+                          background: 'rgba(96,165,250,0.15)', border: '0.5px solid rgba(96,165,250,0.35)',
+                          color: '#60a5fa', fontWeight: 600, fontSize: '12px', cursor: 'pointer',
+                          transition: 'all 0.2s ease', opacity: loading ? 0.6 : 1
+                        }}
+                      >
                       Pay on behalf {fmt(payment.amount)}
                     </button>
                     {payment.status === 'processing' && (
