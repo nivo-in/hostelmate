@@ -68,9 +68,11 @@ export default function StudentDashboard() {
     const nextState = !showFaceScanner;
     setShowFaceScanner(nextState);
     if (nextState) {
-      setTimeout(() => {
-        scannerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 150);
+      const scrollToBottom = () => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      };
+      setTimeout(scrollToBottom, 100);
+      setTimeout(scrollToBottom, 350);
     }
   };
 
