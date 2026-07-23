@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/student/mess/page.tsx
+ * Student portal mess dashboard subpage rendering status and actions.
+ */
+
 'use client';
 
 import { useEffect, useState } from 'react';
