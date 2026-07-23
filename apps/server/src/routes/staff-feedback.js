@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/routes/staff-feedback.js
+ * Express route handlers managing staff-feedback operations and database queries.
+ */
+
 import { Router } from 'express';
 import { z } from 'zod';
 import { supabaseAdmin } from '../config/supabase.js';
