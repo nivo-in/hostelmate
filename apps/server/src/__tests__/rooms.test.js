@@ -243,6 +243,10 @@ describe('Rooms API', () => {
   });
 
   describe('POST /api/rooms/assign - Warden assigns room', () => {
+    /**
+     * Test: should assign room if capacity allows
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should assign room if capacity allows', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
