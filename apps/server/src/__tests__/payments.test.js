@@ -233,6 +233,10 @@ describe('Payments API', () => {
     expect(res.body.data).toHaveLength(1);
   });
 
+  /**
+   * Test: POST /api/v1/payments/send-reminders should notify and update cache
+   * Verifies behaviour under correct inputs and constraints.
+   */
   it('POST /api/v1/payments/send-reminders should notify and update cache', async () => {
     currentProfile = { id: 'warden-id', role: 'warden' };
     queryResults = [
