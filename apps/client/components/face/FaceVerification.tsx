@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/components/face/FaceVerification.tsx
+ * Shared client component for layout renders and user interaction flows.
+ */
+
 'use client';
 import { Lock, MapPin, Eye, Camera, Search } from 'lucide-react';
 
