@@ -242,6 +242,10 @@ describe('Zod Validation Schemas', () => {
       expect(messReviewSchema.safeParse({ meal_type: 'dinner', date: '2026-05-10', rating: 0 }).success).toBe(false);
     });
     
+    /**
+     * Test: should accept review without comments
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept review without comments', () => {
       expect(messReviewSchema.safeParse({ meal_type: 'dinner', date: '2026-05-10', rating: 3 }).success).toBe(true);
     });
