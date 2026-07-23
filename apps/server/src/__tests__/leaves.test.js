@@ -150,6 +150,10 @@ describe('Leaves API', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should accept valid leave request
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept valid leave request', async () => {
       const futureDate1 = new Date(Date.now() + 86400000).toISOString().split('T')[0];
       const futureDate2 = new Date(Date.now() + 172800000).toISOString().split('T')[0];
