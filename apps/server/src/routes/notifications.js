@@ -5,6 +5,12 @@ import { getCache, setCache, deleteCache } from '../config/redis.js';
 
 const router = Router();
 
+/**
+ * GET /api/v1/notifications
+ * Retrieves a paginated list of notifications for the authenticated user.
+ * Caches page 1 results in Redis for 30 seconds to ease load under rapid polling/refresh.
+ * Returns absolute unread count alongside list results.
+ */
 router.get('/', authenticate, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
