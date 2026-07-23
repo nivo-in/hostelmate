@@ -78,6 +78,10 @@ describe('Zod Validation Schemas', () => {
       expect(result.success).toBe(true);
     });
 
+    /**
+     * Test: should default is_urgent to false
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should default is_urgent to false', () => {
       const result = complaintSchema.safeParse({
         category: 'plumbing',
