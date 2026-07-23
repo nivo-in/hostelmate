@@ -131,6 +131,10 @@ describe('Visitors API', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should reject phone shorter than 10 digits
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject phone shorter than 10 digits', async () => {
       const res = await request(app).post('/api/v1/visitors').send({
         visitor_name: 'John Doe',
