@@ -326,6 +326,10 @@ describe('Rooms API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: PATCH /transfer-requests/:id/reject - should reject
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('PATCH /transfer-requests/:id/reject - should reject', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: { id: 'req-1', student_id: 'student-1' }, error: null }];
