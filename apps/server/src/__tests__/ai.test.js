@@ -55,6 +55,10 @@ describe('AI Assistant API', () => {
   });
 
   describe('POST /api/v1/ai/chat', () => {
+    /**
+     * Test: should reject if messages array is missing
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject if messages array is missing', async () => {
       const res = await request(app).post('/api/v1/ai/chat').send({});
       expect(res.status).toBe(400);
