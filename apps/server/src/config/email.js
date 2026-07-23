@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/config/email.js
+ * Server configuration and helper utilities for email operations.
+ */
+
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
