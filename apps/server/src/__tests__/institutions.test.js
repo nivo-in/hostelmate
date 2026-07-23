@@ -70,6 +70,10 @@ describe('Institutions API', () => {
       expect(res.body.metadata.cached).toBe(true);
     });
 
+    /**
+     * Test: should fetch and cache results if not in cache
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should fetch and cache results if not in cache', async () => {
       getCache.mockResolvedValueOnce(null);
       
