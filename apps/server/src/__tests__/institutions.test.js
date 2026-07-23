@@ -90,6 +90,10 @@ describe('Institutions API', () => {
       expect(setCache).toHaveBeenCalled();
     });
 
+    /**
+     * Test: should handle hipolabs api failure gracefully
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should handle hipolabs api failure gracefully', async () => {
       getCache.mockResolvedValueOnce(null);
       
