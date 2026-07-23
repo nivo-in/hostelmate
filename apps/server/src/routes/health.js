@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/routes/health.js
+ * Express route handlers managing health operations and database queries.
+ */
+
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 import { redis } from '../config/redis.js';
