@@ -293,6 +293,10 @@ describe('Complaints API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should update status to resolved with resolution date
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should update status to resolved with resolution date', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.single.mockResolvedValueOnce({
