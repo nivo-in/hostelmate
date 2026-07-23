@@ -468,14 +468,23 @@ hostelmate/
 │   │   │   └── landing.module.css       # Landing page styles with Apple liquid glass nav
 │   │   ├── components/
 │   │   │   ├── ui/                      # Shared UI components
-│   │   │   │   ├── Badge.tsx
-│   │   │   │   ├── Card.tsx
-│   │   │   │   ├── EmptyState.tsx
-│   │   │   │   ├── Header.tsx
-│   │   │   │   ├── LoadingSpinner.tsx
+│   │   │   │   ├── AiAnalysisCard.tsx   # Glassmorphic AI summary visualizer
+│   │   │   │   ├── AiAssistant.tsx      # Cmd+K floating AI agent chat assistant
+│   │   │   │   ├── AnimatedNumber.tsx   # Odometer-style numeric transition display
+│   │   │   │   ├── AnimatedProgress.tsx # Smooth SVG circular progress loader
+│   │   │   │   ├── Badge.tsx            # Dot-accented role and status indicators
+│   │   │   │   ├── Card.tsx             # Hover-glow glass boundary wraps
+│   │   │   │   ├── CountUp.tsx          # Realtime counting statistics triggers
+│   │   │   │   ├── CursorGlow.tsx       # Dynamic light tracking pointer shadows
+│   │   │   │   ├── EmptyState.tsx       # Centred status display placeholder cards
+│   │   │   │   ├── Header.tsx           # Standardised page-top navigations
+│   │   │   │   ├── LoadingSpinner.tsx   # Size-configurable rotating visual loaders
+│   │   │   │   ├── NivoBadge.tsx        # Styled brand indicators
 │   │   │   │   ├── NotificationBell.tsx # Apple-style slide-in notification center
-│   │   │   │   ├── NivoBadge.tsx
-│   │   │   │   └── PageHeader.tsx
+│   │   │   │   ├── PageHeader.tsx       # Back-button breadcrumb transitions
+│   │   │   │   ├── PageShell.tsx        # Responsive parent grid frames
+│   │   │   │   ├── Reveal.tsx           # Framer-motion scroll animations
+│   │   │   │   └── TiltCard.tsx         # 3D interactive pointer tilt effect wrappers
 │   │   │   ├── face/                    # Biometric components
 │   │   │   │   ├── FaceRegistration.tsx       # 5-angle guided enrolment
 │   │   │   │   ├── FaceVerification.tsx       # Blink-gated liveness + match
@@ -485,13 +494,20 @@ hostelmate/
 │   │   ├── e2e/                         # Playwright E2E tests (59 tests, 5 projects)
 │   │   │   ├── auth.setup.ts            # Per-role auth state generation + login UI tests
 │   │   │   ├── login.spec.ts            # Login page: title, fields, toggle, redirect (9 tests)
-│   │   │   ├── student.spec.ts          # All 10 student pages + form validation (13 tests)
+│   │   │   ├── student.spec.ts          # All 10 student pages + leave form validation (13 tests)
 │   │   │   ├── warden.spec.ts           # All 13 warden pages + content checks (16 tests)
 │   │   │   └── parent.spec.ts           # All 6 parent pages + content checks (9 tests)
 │   │   ├── hooks/
 │   │   │   ├── useApi.ts                # Typed fetch wrapper with auth
+│   │   │   ├── useClickOutside.ts       # Detect outside popover clicks
+│   │   │   ├── useDebounce.ts           # Stabilize filter value triggers
+│   │   │   ├── useIsMounted.ts          # Resolve client-side hydration ticks
+│   │   │   ├── useLocalStorage.ts       # Local storage key persistence hook
+│   │   │   ├── useMediaQuery.ts         # Match active tailwind screen breakpoints
 │   │   │   ├── useProfile.ts            # Cached Supabase profile hook
-│   │   │   └── useSocket.ts             # WebSocket hook (Socket.io connection)
+│   │   │   ├── useSocket.ts             # WebSocket hook (Socket.io connection)
+│   │   │   ├── useThrottle.ts           # High-frequency event rate limiters
+│   │   │   └── useWindowSize.ts         # Detect browser size changes for canvas scaling
 │   │   ├── lib/
 │   │   │   ├── faceRecognition.ts       # face-api.js wrapper (5-angle scan, Open-Close-Open EAR blink, frame-diff)
 │   │   │   ├── socket.ts                # Socket.io client singleton
