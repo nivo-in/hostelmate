@@ -65,6 +65,10 @@ describe('Zod Validation Schemas', () => {
       expect(result.success).toBe(false);
     });
 
+    /**
+     * Test: should accept valid complaint
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept valid complaint', () => {
       const result = complaintSchema.safeParse({
         category: 'electrical',
