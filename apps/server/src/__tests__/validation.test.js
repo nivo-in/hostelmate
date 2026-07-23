@@ -276,6 +276,10 @@ describe('Zod Validation Schemas', () => {
       expect(lostFoundSchema.safeParse({ item_name: 'Wallet', status: 'found', location_found: 'Library' }).success).toBe(true);
     });
     
+    /**
+     * Test: should reject short item name
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject short item name', () => {
       expect(lostFoundSchema.safeParse({ item_name: 'K', status: 'lost' }).success).toBe(false);
     });
