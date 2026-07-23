@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/warden/complaints/page.tsx
+ * Warden portal complaints administrative page rendering statistics and actions.
+ */
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
