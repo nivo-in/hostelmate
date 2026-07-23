@@ -235,6 +235,10 @@ describe('Notifications API Integration', () => {
   });
 
   describe('DELETE /api/notifications/:id', () => {
+    /**
+     * Test: should delete notification
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should delete notification', async () => {
       queryResults = [{ error: null }];
       const res = await request(app).delete('/api/v1/notifications/1');
