@@ -93,6 +93,10 @@ describe('Mess API', () => {
   });
 
   describe('GET /api/mess/menu', () => {
+    /**
+     * Test: should return menu for any authenticated user
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return menu for any authenticated user', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/mess/menu');
