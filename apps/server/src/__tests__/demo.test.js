@@ -80,6 +80,10 @@ describe('Demo API', () => {
       expect(sendEmail).toHaveBeenCalled();
     });
 
+    /**
+     * Test: should hit IP rate limit
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should hit IP rate limit', async () => {
       redis.incr.mockResolvedValueOnce(20); // triggers MAX_OTP_REQUESTS_PER_IP
       const res = await request(app)
