@@ -159,6 +159,10 @@ describe('Mess API', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should reject invalid meal_type
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject invalid meal_type', async () => {
       currentProfile = mockWardenProfile;
       const res = await request(app)
