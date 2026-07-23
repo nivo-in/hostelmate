@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/warden/leaves/page.tsx
+ * Warden portal leaves administrative page rendering statistics and actions.
+ */
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
