@@ -83,6 +83,10 @@ describe('Health API', () => {
     expect(res.body.services.database).toBe('degraded');
   });
 
+  /**
+   * Test: should return degraded when Redis is down
+   * Verifies behaviour under correct inputs and constraints.
+   */
   it('should return degraded when Redis is down', async () => {
     redisPingThrows = true;
     const res = await request(app).get('/health');
