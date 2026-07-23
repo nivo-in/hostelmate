@@ -93,6 +93,10 @@ describe('Zod Validation Schemas', () => {
   });
 
   describe('Notice Schema', () => {
+    /**
+     * Test: should reject notice with short title
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject notice with short title', () => {
       const result = noticeSchema.safeParse({
         title: 'Hi',
