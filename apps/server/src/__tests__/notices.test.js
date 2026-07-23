@@ -168,6 +168,10 @@ describe('Notices API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should accept notice targeting parents
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept notice targeting parents', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '3' }, error: null });
