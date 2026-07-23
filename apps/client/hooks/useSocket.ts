@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/hooks/useSocket.ts
+ * Custom React hook managing local state and side effects.
+ */
+
 'use client';
 import { useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
