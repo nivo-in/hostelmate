@@ -242,6 +242,10 @@ describe('Attendance API Integration', () => {
   });
 
   describe('GET /api/attendance/student/:studentId', () => {
+    /**
+     * Test: should return attendance for specific student
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return attendance for specific student', async () => {
       queryResults = [{ data: [{ id: 1, date: '2026-05-31' }], error: null }];
       const res = await request(app).get('/api/v1/attendance/student/student-id');
