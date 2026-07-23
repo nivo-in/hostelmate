@@ -2,19 +2,35 @@
 
 import { useCallback, useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 
+/**
+ * Props for the TiltCard component.
+ */
 type TiltCardProps = {
+  /** React children rendered inside the card */
   children: ReactNode;
+  /** Optional click handler callback */
   onClick?: () => void;
+  /** Optional mouse/pointer hover entry callback */
   onMouseEnter?: () => void;
+  /** Glow spotlight hex/rgb color code. Defaults to white. */
   accent?: string;
+  /** Maximum tilt angle in degrees. Defaults to 3. */
   max?: number;
+  /** Optional CSS class name */
   className?: string;
+  /** Inline CSS styles */
   style?: CSSProperties;
 };
 
 const reduced = () =>
   typeof window !== 'undefined' &&
   window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+/**
+ * 3D card tilt animation component with hardware-accelerated pointer tracking.
+ * Smoothly tilts the card towards the pointer and renders a custom radial glow spotlight.
+ * Automatically respects `prefers-reduced-motion` preferences.
+ */
 
 export function TiltCard({
   children,
