@@ -126,6 +126,10 @@ describe('Mess API', () => {
   });
 
   describe('PUT /api/mess/menu - Warden updates', () => {
+    /**
+     * Test: should update menu item
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should update menu item', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '1' }, error: null });
