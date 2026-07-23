@@ -73,6 +73,10 @@ describe('Geofence Utilities', () => {
       expect(result).toHaveProperty('allowed');
     });
 
+    /**
+     * Test: should use custom radius when provided
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should use custom radius when provided', () => {
       // ~300m away — outside 100m but inside 500m
       const result500m = isWithinGeofence(12.9422, 77.5669, HOSTEL_LAT, HOSTEL_LNG, 500);
