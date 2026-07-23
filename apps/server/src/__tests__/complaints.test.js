@@ -320,6 +320,10 @@ describe('Complaints API', () => {
       expect(res.status).toBe(403);
     });
 
+    /**
+     * Test: should reject invalid status value
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject invalid status value', async () => {
       currentProfile = mockWardenProfile;
       const res = await request(app)
