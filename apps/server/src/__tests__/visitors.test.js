@@ -295,6 +295,10 @@ describe('Visitors API', () => {
   });
 
   describe('GET /api/visitors — Warden views all', () => {
+    /**
+     * Test: should return all visitor requests
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return all visitor requests', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: [{ id: 'visitor-1' }, { id: 'visitor-2' }], error: null }];
