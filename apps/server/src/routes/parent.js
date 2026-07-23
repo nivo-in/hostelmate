@@ -6,9 +6,11 @@ import { requireParent } from '../middleware/rbac.js';
 const router = Router();
 
 /**
- * GET /api/parent/my-student
- * Returns the linked student's profile + today's attendance for the authenticated parent.
- * Uses supabaseAdmin to bypass RLS.
+ * GET /api/v1/parent/my-student
+ * Retrieves the profile, room details, today's attendance, and month-to-date attendance metrics
+ * of the student linked to the authenticated parent user.
+ * Bypasses RLS to query multiple tables by linking profiles, parents, students, and attendance.
+ * Restricted to Parents.
  */
 router.get('/my-student', authenticate, requireParent, async (req, res, next) => {
   try {
