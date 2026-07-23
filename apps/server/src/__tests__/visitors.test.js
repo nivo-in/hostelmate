@@ -307,6 +307,10 @@ describe('Visitors API', () => {
       expect(res.body.data).toHaveLength(2);
     });
 
+    /**
+     * Test: should filter by status query param
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should filter by status query param', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: [{ id: 'visitor-1', status: 'pending' }], error: null }];
