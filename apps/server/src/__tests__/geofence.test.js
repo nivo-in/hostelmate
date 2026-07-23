@@ -43,6 +43,10 @@ describe('Geofence Utilities', () => {
   });
 
   describe('isWithinGeofence', () => {
+    /**
+     * Test: should return allowed:true at exact hostel location
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return allowed:true at exact hostel location', () => {
       const result = isWithinGeofence(HOSTEL_LAT, HOSTEL_LNG, HOSTEL_LAT, HOSTEL_LNG);
       expect(result.allowed).toBe(true);
