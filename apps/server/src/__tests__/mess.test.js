@@ -175,6 +175,10 @@ describe('Mess API', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should return 403 for student
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 403 for student', async () => {
       const res = await request(app)
         .put('/api/v1/mess/menu')
