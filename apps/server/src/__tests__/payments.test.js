@@ -183,6 +183,10 @@ describe('Payments API', () => {
     expect(res.body.data.summary.total_collected).toBe(500);
   });
 
+  /**
+   * Test: POST /api/v1/payments/generate-bills should generate bills for warden
+   * Verifies behaviour under correct inputs and constraints.
+   */
   it('POST /api/v1/payments/generate-bills should generate bills for warden', async () => {
     currentProfile = { id: 'warden-id', role: 'warden' };
     queryResults = [
