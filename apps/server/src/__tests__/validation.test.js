@@ -119,6 +119,10 @@ describe('Zod Validation Schemas', () => {
       expect(result.success).toBe(false);
     });
 
+    /**
+     * Test: should accept valid notice
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept valid notice', () => {
       const result = noticeSchema.safeParse({
         title: 'Important Notice',
