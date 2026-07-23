@@ -111,6 +111,10 @@ describe('Lost & Found Matcher', () => {
       expect(matches.length).toBe(0);
     });
 
+    /**
+     * Test: should sort by score descending
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should sort by score descending', () => {
       const moreCandidates = [
         ...candidates,
