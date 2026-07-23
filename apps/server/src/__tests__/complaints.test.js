@@ -232,6 +232,10 @@ describe('Complaints API', () => {
       expect(supabaseMock.limit).toHaveBeenCalledWith(5);
     });
 
+    /**
+     * Test: should return 401 without auth
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 401 without auth', async () => {
       currentProfile = null;
       const res = await request(app).get('/api/v1/complaints/my');
