@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/hooks/useApi.ts
+ * Custom React hook managing local state and side effects.
+ */
+
 import { createClient } from '@/lib/supabase/client';
 
 // Compute once at module load time — avoids window.location access on every hook call
