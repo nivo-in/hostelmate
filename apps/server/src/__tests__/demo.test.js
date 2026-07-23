@@ -134,6 +134,10 @@ describe('Demo API', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should fail on missing redis hash
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should fail on missing redis hash', async () => {
       redis.get.mockResolvedValueOnce(null);
       const res = await request(app)
