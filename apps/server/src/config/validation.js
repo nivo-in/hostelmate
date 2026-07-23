@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/config/validation.js
+ * Server configuration and helper utilities for validation operations.
+ */
+
 import { z } from 'zod';
 
 export const attendanceSchema = z
