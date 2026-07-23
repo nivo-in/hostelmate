@@ -14,7 +14,11 @@ const staffFeedbackSchema = z.object({
   comment: z.string().optional(),
 });
 
-// GET / — requireWarden
+/**
+ * GET /api/v1/staff-feedback
+ * Retrieves a list of all staff members decorated with aggregate rating metrics
+ * (total reviews, average rating, and current month reviews).
+ */
 router.get('/', authenticate, async (req, res, next) => {
   try {
     const { role } = req.query;
