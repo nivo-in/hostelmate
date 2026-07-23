@@ -20,7 +20,7 @@ import { useState, useEffect, useRef } from 'react';
  */
 export function useThrottle<T>(value: T, interval = 200): T {
   const [throttledValue, setThrottledValue] = useState<T>(value);
-  const lastUpdated = useRef<number>(Date.now());
+  const lastUpdated = useRef<number>(0);
 
   useEffect(() => {
     const now = Date.now();
