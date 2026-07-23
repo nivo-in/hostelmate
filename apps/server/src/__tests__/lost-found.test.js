@@ -226,6 +226,10 @@ describe('Lost and Found API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should respect the limit and page query parameters
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should respect the limit and page query parameters', async () => {
       supabaseMock.range.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/lost-found?limit=15&page=2');
