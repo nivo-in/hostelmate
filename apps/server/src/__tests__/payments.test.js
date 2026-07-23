@@ -250,6 +250,10 @@ describe('Payments API', () => {
     expect(res.body.reminders_sent).toBe(1);
   });
 
+  /**
+   * Test: PATCH /api/v1/payments/:id/mark-paid should mark as paid offline
+   * Verifies behaviour under correct inputs and constraints.
+   */
   it('PATCH /api/v1/payments/:id/mark-paid should mark as paid offline', async () => {
     currentProfile = { id: 'warden-id', role: 'warden' };
     queryResults = [
