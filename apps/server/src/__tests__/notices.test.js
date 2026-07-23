@@ -93,6 +93,10 @@ describe('Notices API', () => {
   });
 
   describe('POST /api/notices - Warden posts', () => {
+    /**
+     * Test: should reject notice with short title
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject notice with short title', async () => {
       const res = await request(app).post('/api/v1/notices').send({
         title: 'ab',
