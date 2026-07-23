@@ -1,10 +1,11 @@
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
-const { combine, timestamp, printf, colorize } = winston.format;
+const { combine, timestamp, printf, colorize, json } = winston.format;
 
-const logFormat = printf(({ level, message, timestamp }) => {
-  return `[${level}] ${timestamp} - ${message}`;
+const logFormat = printf(({ level, message, timestamp, ...meta }) => {
+  const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
+  return `[${level}] ${timestamp} - ${message}${metaStr}`;
 });
 
 const fileTransport = new DailyRotateFile({
@@ -16,6 +17,16 @@ const fileTransport = new DailyRotateFile({
   level: process.env.NODE_ENV === 'production' ? 'warn' : 'debug',
 });
 
+// Separate error-only log file for production alerting
+const errorFileTransport = new DailyRotateFile({
+  filename: 'logs/hostelmate-error-%DATE%.log',
+  datePattern: 'YYYY-MM-DD',
+  zippedArchive: true,
+  maxSize: '10m',
+  maxFiles: '30d',
+  level: 'error',
+});
+
 const consoleTransport = new winston.transports.Console({
   level: process.env.NODE_ENV === 'production' ? 'warn' : 'debug',
   format: combine(colorize(), timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), logFormat),
@@ -24,6 +35,7 @@ const consoleTransport = new winston.transports.Console({
 const transports = [consoleTransport];
 if (process.env.NODE_ENV !== 'test') {
   transports.push(fileTransport);
+  transports.push(errorFileTransport);
 }
 
 const logger = winston.createLogger({
@@ -34,7 +46,7 @@ const logger = winston.createLogger({
     http: 3,
     debug: 4,
   },
-  defaultMeta: { service: 'hostelmate-api' },
+  defaultMeta: { service: 'hostelmate-api', env: process.env.NODE_ENV || 'development' },
   format: combine(timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), logFormat),
   transports,
 });
