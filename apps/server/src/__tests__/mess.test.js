@@ -192,6 +192,10 @@ describe('Mess API', () => {
   });
 
   describe('POST /api/mess/review - Student rates', () => {
+    /**
+     * Test: should accept valid review
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept valid review', async () => {
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '1' }, error: null });
       const res = await request(app).post('/api/v1/mess/review').send({
