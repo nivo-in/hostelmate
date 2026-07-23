@@ -158,6 +158,10 @@ describe('Demo API', () => {
       expect(res.status).toBe(429);
     });
 
+    /**
+     * Test: should succeed with valid otp
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should succeed with valid otp', async () => {
       redis.incr.mockResolvedValueOnce(1);
       
