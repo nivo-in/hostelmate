@@ -250,6 +250,10 @@ describe('Visitors API', () => {
   });
 
   describe('GET /api/visitors/my — Student views own', () => {
+    /**
+     * Test: should return student own visitor requests
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return student own visitor requests', async () => {
       queryResults = [{ data: [{ id: 'visitor-1', visitor_name: 'John Doe' }], error: null }];
       const res = await request(app).get('/api/v1/visitors/my');
