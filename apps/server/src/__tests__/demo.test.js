@@ -218,6 +218,10 @@ describe('Demo API', () => {
       expect(res.body.success).toBe(true);
     });
 
+    /**
+     * Test: should handle internal errors gracefully
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should handle internal errors gracefully', async () => {
       redis.get.mockRejectedValueOnce(new Error('Redis died'));
       const res = await request(app)
