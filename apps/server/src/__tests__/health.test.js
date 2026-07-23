@@ -58,6 +58,10 @@ describe('Health API', () => {
     expect(res.body.version).toBeDefined();
   });
 
+  /**
+   * Test: should return degraded when DB is down
+   * Verifies behaviour under correct inputs and constraints.
+   */
   it('should return degraded when DB is down', async () => {
     supabaseError = new Error('DB down');
     const res = await request(app).get('/health');
