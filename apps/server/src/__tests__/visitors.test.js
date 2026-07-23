@@ -381,6 +381,10 @@ describe('Visitors API', () => {
   });
 
   describe('PATCH /api/visitors/:id/reject — Warden rejects', () => {
+    /**
+     * Test: should reject visitor request
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject visitor request', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: { id: 'visitor-1', student_id: 'student-id' }, error: null }];
