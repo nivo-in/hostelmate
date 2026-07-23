@@ -105,6 +105,10 @@ describe('Leaves API', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should reject leave with past start_date
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject leave with past start_date', async () => {
       const pastDate = new Date(Date.now() - 86400000).toISOString().split('T')[0];
       const futureDate = new Date(Date.now() + 86400000).toISOString().split('T')[0];
