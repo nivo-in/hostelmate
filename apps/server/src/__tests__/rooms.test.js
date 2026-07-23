@@ -282,6 +282,10 @@ describe('Rooms API', () => {
   });
 
   describe('Room Transfer Requests', () => {
+    /**
+     * Test: POST /transfer-request - should submit request
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('POST /transfer-request - should submit request', async () => {
       queryResults = [{ data: { room_id: 'room-1' }, error: null }, { error: null }];
 
