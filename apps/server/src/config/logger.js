@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/config/logger.js
+ * Server configuration and helper utilities for logger operations.
+ */
+
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
