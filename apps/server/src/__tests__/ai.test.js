@@ -162,6 +162,10 @@ describe('AI Assistant API', () => {
       expect(analyzeGeneric).toHaveBeenCalled();
     });
 
+    /**
+     * Test: should return empty summary when no data is found
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return empty summary when no data is found', async () => {
       currentProfile = mockStudentProfile;
       supabaseMock.then.mockImplementationOnce((resolve) => resolve({ data: [], error: null }));
