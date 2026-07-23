@@ -12,20 +12,59 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Parent dashboard notification bell with real-time push support
 - Interactive status filter chips (All / Approved / Pending / Rejected) on Parent Leave Status page
 - Live search filter on Parent Notices & Announcements page
+- Live search filter on Student Notices page (matches Parent feature parity)
+- Live search filter on Warden Leave Management by student name, roll number, or reason
+- Live search filter on Warden Complaints by student name, roll number, or description
 - Skeleton shimmer animation (`.skeleton` CSS class) for consistent loading states across all pages
+- Skeleton card placeholders on Parent Notices loading state
+- Skeleton row placeholders on Parent Leaves loading state
+- Skeleton row/card placeholders on Student Notices loading state
 - Role-specific `hm-input` focus rings: `hm-input-blue` (Parent) and `hm-input-orange` (Student)
 - `aria-label` accessibility attributes on search inputs
+- Parent dashboard role badge ("PARENT") and live date subtitle in greeting header
+- `PARENT` role badge beside greeting for contextual role identification
+- Community docs: `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`
+- GitHub templates: PR template, bug report issue template, feature request issue template
+- `CODEOWNERS` file for automatic PR review assignment by team area
+- `.editorconfig` for cross-editor formatting consistency
+- `Makefile` with developer convenience targets (dev, build, lint, test, docker, clean)
+- `useThrottle` hook for high-frequency value throttling with JSDoc
+- `test:coverage` and `typecheck` Turborepo pipeline tasks in `turbo.json`
+- Role-specific accent color tokens (`wardenAccent`, `studentAccent`, `parentAccent`) in `ui.ts`
+- `on_leave` and `pending` status variants to Student Leaves STATUS_STYLES
+- `orange` variant and `dot` indicator prop to Badge component
+- `subtitle` prop and glassmorphism icon tile to EmptyState component
+- Configurable `color`, `size`, and `label` props to LoadingSpinner component
+- JSDoc on `useDebounce`, `AnimatedNumber`, `Reveal`, `EmptyState`, `Badge`, `LoadingSpinner`, `NivoBadge`
+- JSDoc on server utilities: `createNotification`, `calculateDistance`, `isWithinGeofence`, `extractKeywords`
+- JSDoc on all three rate limiters in `rateLimit.js`
+- Error-only `DailyRotateFile` transport to Winston logger for production alerting
+- Meta field logging with structured objects in logger
+- Docker: healthchecks, restart policies, and explicit Dockerfile paths in `docker-compose.yml`
+- HTTP 503 response for degraded services in `/health` endpoint
+- `nodeVersion`, `environment`, and dynamic `version` fields in `/health` response
 
 ### Changed
 - Aligned NotificationBell Parent theme accent from `#3b82f6` to `#60a5fa` for design consistency
 - Parent dashboard quick-action icon tiles now use Parent Blue (`rgba(96,165,250,0.1)`) accents
-- Parent Contact page: dual Call + Email action buttons rendered side-by-side in a grid
+- Parent Contact page: Office Location card now uses glassmorphism icon tiles with colored borders
+- Parent Payments: Pay button changed from orange to Parent Blue; summary cards use colored glass borders
+- Parent Payments: summary cards updated with glass-card hover, colored borders, and counts
 - Leave Requests card header: filter chips replace plain "Total: N" count
+- Student Leaves `STATUS_STYLES`: added explicit `pending` and `on_leave` entries
+- `NivoBadge`: switched from hardcoded Tailwind `text-gray-400` to inline dark theme rgba styling
+- `.env.example`: replaced stale MongoDB/Firebase variables with correct Supabase/Redis/Razorpay/Groq config
+- CI pipeline: security-audit job now depends on `lint-and-build` (gates on test success)
+- README: corrected test counts (23 suites / 261 tests), added community doc badges, expanded feature tables
 
 ### Fixed
 - Full-width edge-to-edge `PageHeader` on all pages (removed inner `maxWidth` from `PageShell` wrapper)
 - TypeScript: `whiteSpace` camelCase property in JSX inline style objects
 - TypeScript: `PageShellProps` interface — removed non-existent `subtitle`/`title` from production exports
+- TypeScript: `getStatusVariant` return type annotation syntax in Warden Leaves page
+- ESLint: removed unused `json` from `winston.format` destructure in `logger.js`
+- ESLint: merged duplicate `lucide-react` imports in Warden Complaints page
+- `useThrottle`: initialize `lastUpdated` ref to `0` instead of `Date.now()` for React hooks purity
 
 ---
 
