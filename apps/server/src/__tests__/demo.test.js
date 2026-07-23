@@ -277,6 +277,10 @@ describe('Demo API', () => {
       expect(sendEmail).toHaveBeenCalled();
     });
 
+    /**
+     * Test: should hit FAQ rate limit
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should hit FAQ rate limit', async () => {
       redis.incr.mockResolvedValueOnce(20);
       const res = await request(app).post('/api/v1/demo/faq').send({
