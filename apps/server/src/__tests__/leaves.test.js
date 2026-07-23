@@ -180,6 +180,10 @@ describe('Leaves API', () => {
   });
 
   describe('GET /api/leaves/my - Student views own leaves', () => {
+    /**
+     * Test: should return student own leaves
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return student own leaves', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: [{ id: '1' }], error: null });
       const res = await request(app).get('/api/v1/leaves/my');
