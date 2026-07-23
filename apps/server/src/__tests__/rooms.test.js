@@ -192,6 +192,10 @@ describe('Rooms API', () => {
   });
 
   describe('POST /api/rooms - Warden creates room', () => {
+    /**
+     * Test: should create room in existing block
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should create room in existing block', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
