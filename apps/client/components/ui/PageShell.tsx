@@ -1,17 +1,23 @@
 import type { ReactNode } from 'react';
 
+/**
+ * Props for the PageShell component.
+ */
 type PageShellProps = {
+  /** The children nodes to render within the page layout */
   children: ReactNode;
-  /** Spotlight tint at the top of the page. Defaults to the warden purple accent. */
+  /** Radial spotlight background colour tint. Defaults to warden purple accent ('rgba(124,92,252,0.1)'). */
   spotlight?: string;
+  /** Optional page title header text rendered at the top */
   title?: string;
+  /** Optional secondary subtitle text rendered beneath the title */
   subtitle?: string;
 };
 
 /**
- * Dark glassmorphism page backdrop matching the warden dashboard:
- * #080810 base, a soft radial spotlight, and the shared hover/animation classes
- * (.glass-card, .row-hover) used across feature pages.
+ * Global dark glassmorphism layout shell component.
+ * Provides a uniform base styling (`#080810`), custom keyframe animations,
+ * role-specific spotlight backdrops, and common input styles.
  */
 export function PageShell({ children, spotlight = 'rgba(124,92,252,0.1)', title, subtitle }: PageShellProps) {
   return (
