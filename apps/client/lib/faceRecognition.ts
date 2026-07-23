@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/lib/faceRecognition.ts
+ * Source code module for HostelMate faceRecognition.ts.
+ */
+
 'use client';
 
 // All face-api.js imports must be dynamic because it requires browser APIs
