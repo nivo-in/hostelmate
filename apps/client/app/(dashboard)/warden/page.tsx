@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/warden/page.tsx
+ * Warden portal page.tsx administrative page rendering statistics and actions.
+ */
+
 import { redirect } from 'next/navigation';
 
 // The live warden dashboard is the redesigned dark UI at /warden/dashboard.
