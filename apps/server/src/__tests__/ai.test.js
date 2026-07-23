@@ -134,6 +134,10 @@ describe('AI Assistant API', () => {
       expect(res.body.error).toBe('Invalid analysis type');
     });
 
+    /**
+     * Test: should return success for warden analyzing complaints
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return success for warden analyzing complaints', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.then.mockImplementationOnce((resolve) => resolve({ data: [{ id: 1 }], error: null }));
