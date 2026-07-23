@@ -249,6 +249,10 @@ describe('Lost and Found API', () => {
   });
 
   describe('PATCH /api/lost-found/:id/claim', () => {
+    /**
+     * Test: should mark item as claimed
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should mark item as claimed', async () => {
       supabaseMock.single.mockResolvedValueOnce({
         data: { id: '1', status: 'claimed' },
