@@ -393,6 +393,10 @@ describe('Visitors API', () => {
       expect(res.body.success).toBe(true);
     });
 
+    /**
+     * Test: should return 403 for student
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 403 for student', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).patch('/api/v1/visitors/visitor-1/reject');
