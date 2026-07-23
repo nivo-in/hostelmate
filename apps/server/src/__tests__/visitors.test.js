@@ -283,6 +283,10 @@ describe('Visitors API', () => {
       expect(supabaseMock.limit).toHaveBeenCalledWith(5);
     });
 
+    /**
+     * Test: should return 401 without auth
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 401 without auth', async () => {
       authEnabled = false;
       const res = await request(app).get('/api/v1/visitors/my');
