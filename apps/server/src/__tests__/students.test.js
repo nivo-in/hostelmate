@@ -79,6 +79,10 @@ describe('Students API', () => {
   });
 
   describe('GET /api/students', () => {
+    /**
+     * Test: should return all students formatted correctly
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return all students formatted correctly', async () => {
       queryResults = [
         {
