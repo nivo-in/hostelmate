@@ -140,6 +140,10 @@ describe('Stats API', () => {
       expect(res.status).toBe(401);
     });
 
+    /**
+     * Test: should return cached data if available
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return cached data if available', async () => {
       const { getCache } = await import('../config/redis.js');
       getCache.mockResolvedValueOnce({ attendance: { today_present: 50 } });
