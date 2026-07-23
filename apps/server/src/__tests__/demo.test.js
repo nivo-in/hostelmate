@@ -146,6 +146,10 @@ describe('Demo API', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should fail if too many verify attempts
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should fail if too many verify attempts', async () => {
       redis.incr.mockResolvedValueOnce(10);
       const res = await request(app)
