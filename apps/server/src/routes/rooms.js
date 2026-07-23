@@ -7,6 +7,11 @@ import { auditLog } from '../config/audit.js';
 
 const router = Router();
 
+/**
+ * GET /api/v1/rooms/my
+ * Retrieves details about the authenticated student's assigned room and roommates.
+ * Join queries students, rooms, and blocks, then maps roommates' profiles.
+ */
 router.get('/my', authenticate, requireStudent, async (req, res, next) => {
   try {
     const { data: student, error } = await supabaseAdmin
@@ -52,6 +57,11 @@ router.get('/my', authenticate, requireStudent, async (req, res, next) => {
   }
 });
 
+/**
+ * GET /api/v1/rooms/available
+ * Retrieves a list of rooms with at least one vacant bed.
+ * Filters by block name and target capacity if provided.
+ */
 router.get('/available', authenticate, requireStudent, async (req, res, next) => {
   try {
     const { block, capacity } = req.query;
