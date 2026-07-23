@@ -1,3 +1,17 @@
+/**
+ * Extracts meaningful keywords from a text description by:
+ * 1. Lowercasing and stripping punctuation
+ * 2. Removing stop words (a, the, in, etc.)
+ * 3. Applying basic suffix stemming (ies→y, es→, s→, ing→, ed→)
+ * 4. Deduplicating the result
+ *
+ * @param {string} text - Raw item description or name
+ * @returns {string[]} Deduplicated array of stemmed keyword tokens
+ *
+ * @example
+ * extractKeywords('Lost black leather wallet near Block A')
+ * // → ['black', 'leather', 'wallet', 'block']
+ */
 export function extractKeywords(text) {
   if (!text) {return [];}
 
