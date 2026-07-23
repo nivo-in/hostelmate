@@ -116,6 +116,10 @@ describe('Audit API', () => {
       expect(supabaseMock.range).toHaveBeenCalledWith(20, 29);
     });
 
+    /**
+     * Test: should reject non-warden access
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject non-warden access', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).get('/api/v1/audit');
