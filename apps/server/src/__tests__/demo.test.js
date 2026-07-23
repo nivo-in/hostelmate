@@ -230,6 +230,10 @@ describe('Demo API', () => {
       expect(res.status).toBe(500);
     });
 
+    /**
+     * Test: should skip email if no recipient is configured
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should skip email if no recipient is configured', async () => {
       redis.get.mockResolvedValueOnce('valid-token');
       const originalDemoEmail = process.env.DEMO_RECIPIENT_EMAIL;
