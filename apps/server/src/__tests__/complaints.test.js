@@ -193,6 +193,10 @@ describe('Complaints API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should default is_urgent to false
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should default is_urgent to false', async () => {
       supabaseMock.single.mockResolvedValueOnce({
         data: { id: '1', is_urgent: false },
