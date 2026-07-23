@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/config/curfewJob.js
+ * Server configuration and helper utilities for curfewJob operations.
+ */
+
 import { supabaseAdmin } from './supabase.js';
 import { redis } from './redis.js';
 import logger from './logger.js';
