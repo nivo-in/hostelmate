@@ -60,6 +60,10 @@ describe('Lost & Found Matcher', () => {
       expect(score).toBe(0);
     });
 
+    /**
+     * Test: should return partial score for partial matches
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return partial score for partial matches', () => {
       const score = calculateSimilarity(['key', 'wallet'], ['key', 'phone']);
       expect(score).toBeGreaterThan(0);
