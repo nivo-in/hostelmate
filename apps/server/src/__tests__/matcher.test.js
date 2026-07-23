@@ -89,6 +89,10 @@ describe('Lost & Found Matcher', () => {
       expect(matches[0].item.id).toBe(1);
     });
 
+    /**
+     * Test: should not match items with same status
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should not match items with same status', () => {
       const matches = findMatches(newItem, candidates, 0.1);
       expect(matches.some((m) => m.item.id === 3)).toBe(false);
