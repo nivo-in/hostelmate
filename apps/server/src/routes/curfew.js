@@ -8,6 +8,12 @@ import { createNotification } from '../config/notify.js';
 
 const router = Router();
 
+/**
+ * GET /api/v1/curfew/violations
+ * Retrieves a list of students who have violated curfew rules today.
+ * Looks up curfew time config in Redis cache, checks current IST time,
+ * and matches students against today's attendance records to find absentees.
+ */
 router.get('/violations', authenticate, requireWarden, async (req, res, next) => {
   try {
     const today = new Date().toISOString().split('T')[0];
