@@ -307,6 +307,10 @@ describe('Rooms API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: PATCH /transfer-requests/:id/approve - should approve
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('PATCH /transfer-requests/:id/approve - should approve', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
