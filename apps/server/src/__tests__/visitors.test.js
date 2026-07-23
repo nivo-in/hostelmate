@@ -318,6 +318,10 @@ describe('Visitors API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should filter by date query param
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should filter by date query param', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: [{ id: 'visitor-1' }], error: null }];
