@@ -207,6 +207,10 @@ describe('Notices API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should return notices for parent (filtered)
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return notices for parent (filtered)', async () => {
       currentProfile = { id: 'parent-id', role: 'parent', email: 'parent@test.com' };
       supabaseMock.limit.mockResolvedValueOnce({ data: [], error: null });
