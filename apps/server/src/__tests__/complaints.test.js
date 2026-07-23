@@ -145,6 +145,10 @@ describe('Complaints API', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should accept valid complaint
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept valid complaint', async () => {
       supabaseMock.single.mockResolvedValueOnce({
         data: { id: '1', ai_category: 'electrical' },
