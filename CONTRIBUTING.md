@@ -30,6 +30,9 @@ Copy the example environment files and fill in your credentials:
 # Server
 cp apps/server/.env.example apps/server/.env
 
+# Start local server and client in development mode
+pnpm dev
+
 # Client
 cp apps/client/.env.example apps/client/.env.local
 ```
