@@ -31,6 +31,18 @@ export const ui = {
   amber: '#fbbf24',
   red: '#f87171',
   blue: '#60a5fa',
+  orange: '#fb923c',
+
+  // Role-specific accent colours
+  /** Warden portal accent — default purple */
+  wardenAccent: '#7c5cfc',
+  wardenAccentAlpha: 'rgba(124,92,252,0.15)',
+  /** Student portal accent — warm orange */
+  studentAccent: '#fb923c',
+  studentAccentAlpha: 'rgba(251,146,60,0.15)',
+  /** Parent portal accent — sky blue */
+  parentAccent: '#60a5fa',
+  parentAccentAlpha: 'rgba(96,165,250,0.15)',
 
   // Radii
   radius: '16px',
