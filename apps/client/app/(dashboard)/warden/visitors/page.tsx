@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/warden/visitors/page.tsx
+ * Warden portal visitors administrative page rendering statistics and actions.
+ */
+
 'use client';
 import { DoorOpen } from 'lucide-react';
 
