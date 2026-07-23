@@ -131,6 +131,10 @@ describe('Payments API', () => {
     expect(res.body.data.payments.history).toBeUndefined(); // It actually splits into paid and failed
   });
 
+  /**
+   * Test: POST /api/v1/payments/create-order should create a Razorpay order
+   * Verifies behaviour under correct inputs and constraints.
+   */
   it('POST /api/v1/payments/create-order should create a Razorpay order', async () => {
     queryResults = [
       { data: { id: 'payment-1', amount: 5000, status: 'pending' }, error: null },
