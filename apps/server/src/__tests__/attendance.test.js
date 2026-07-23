@@ -187,6 +187,10 @@ describe('Attendance API Integration', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should reject invalid QR token
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject invalid QR token', async () => {
       queryResults = [
         { data: null, error: null }, // existing check
