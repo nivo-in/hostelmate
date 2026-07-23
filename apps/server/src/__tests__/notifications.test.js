@@ -144,6 +144,10 @@ describe('Notifications API Integration', () => {
       expect(res.body.data.notifications).toHaveLength(0);
     });
 
+    /**
+     * Test: should catch exceptions safely
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should catch exceptions safely', async () => {
       queryResults = [{ throwMsg: 'Network Error' }];
       const res = await request(app).get('/api/v1/notifications');
