@@ -205,6 +205,10 @@ describe('Payments API', () => {
     expect(res.body.generated).toBe(1);
   });
 
+  /**
+   * Test: POST /api/v1/payments/cancel should cancel payment for student
+   * Verifies behaviour under correct inputs and constraints.
+   */
   it('POST /api/v1/payments/cancel should cancel payment for student', async () => {
     queryResults = [
       { data: null, error: null },
