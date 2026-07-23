@@ -13,6 +13,12 @@ import { createNotification } from '../config/notify.js';
 
 const router = Router();
 
+/**
+ * POST /api/v1/attendance/mark
+ * Marks a student's daily attendance records.
+ * Supports face biometrics bypass or GPS coordinate verification against
+ * the hostel geofence coordinates. Invalidates dashboard metrics caches.
+ */
 router.post(
   '/mark',
   authenticate,
