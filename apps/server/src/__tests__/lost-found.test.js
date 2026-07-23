@@ -215,6 +215,10 @@ describe('Lost and Found API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should filter by status
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should filter by status', async () => {
       supabaseMock.range.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/lost-found?status=claimed');
