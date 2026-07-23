@@ -11,6 +11,10 @@ describe('Geofence Utilities', () => {
   const HOSTEL_LNG = 77.5669014;
 
   describe('calculateDistance', () => {
+    /**
+     * Test: should return 0 for same coordinates
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 0 for same coordinates', () => {
       const dist = calculateDistance(HOSTEL_LAT, HOSTEL_LNG, HOSTEL_LAT, HOSTEL_LNG);
       expect(dist).toBe(0);
