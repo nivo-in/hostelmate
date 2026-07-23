@@ -226,6 +226,10 @@ describe('Zod Validation Schemas', () => {
       expect(messReviewSchema.safeParse({ meal_type: 'dinner', date: '2026-05-10', rating: 4, comments: 'Good' }).success).toBe(true);
     });
     
+    /**
+     * Test: should reject rating > 5
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject rating > 5', () => {
       expect(messReviewSchema.safeParse({ meal_type: 'dinner', date: '2026-05-10', rating: 6 }).success).toBe(false);
     });
