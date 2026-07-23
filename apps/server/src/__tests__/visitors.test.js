@@ -232,6 +232,10 @@ describe('Visitors API', () => {
       expect(res.status).toBe(403);
     });
 
+    /**
+     * Test: should return 401 without auth
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 401 without auth', async () => {
       authEnabled = false;
       const res = await request(app).post('/api/v1/visitors').send({
