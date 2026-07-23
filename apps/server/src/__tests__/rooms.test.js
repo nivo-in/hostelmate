@@ -144,6 +144,10 @@ describe('Rooms API', () => {
       expect(res.body.data[0].room_number).toBe('101');
       expect(res.body.data[0].occupancy).toBe(1);
     });
+    /**
+     * Test: should filter available rooms by capacity if specified
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should filter available rooms by capacity if specified', async () => {
       queryResults = [
         {
