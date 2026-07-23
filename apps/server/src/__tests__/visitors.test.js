@@ -193,6 +193,10 @@ describe('Visitors API', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should accept valid visitor request
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept valid visitor request', async () => {
       queryResults = [
         { data: { id: 'visitor-1', status: 'pending' }, error: null },
