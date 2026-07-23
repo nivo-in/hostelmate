@@ -136,6 +136,10 @@ describe('Staff Feedback API Integration', () => {
       currentProfile = mockStudentProfile;
     });
 
+    /**
+     * Test: should accept valid feedback from student
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept valid feedback from student', async () => {
       queryResults = [
         { data: { id: 'staff-1' }, error: null }, // check staff exists
