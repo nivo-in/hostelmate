@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/warden/staff/page.tsx
+ * Warden portal staff administrative page rendering statistics and actions.
+ */
+
 'use client';
 import { Star, Users, BarChart, FolderArchive, X, Check } from 'lucide-react';
 
