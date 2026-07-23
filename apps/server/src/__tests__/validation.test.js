@@ -11,6 +11,10 @@ import {
 
 describe('Zod Validation Schemas', () => {
   describe('Leave Schema', () => {
+    /**
+     * Test: should reject reason shorter than 20 chars
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject reason shorter than 20 chars', () => {
       const result = leaveSchema.safeParse({
         start_date: '2026-05-10',
