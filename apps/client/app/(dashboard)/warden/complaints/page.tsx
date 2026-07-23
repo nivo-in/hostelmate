@@ -79,9 +79,9 @@ export default function WardenComplaints() {
       const q = searchQuery.toLowerCase();
       result = result.filter(
         (c) =>
-          c.profiles?.full_name?.toLowerCase().includes(q) ||
+          c.students?.profiles?.full_name?.toLowerCase().includes(q) ||
           c.description?.toLowerCase().includes(q) ||
-          c.roll_number?.toLowerCase().includes(q)
+          c.students?.roll_number?.toLowerCase().includes(q)
       );
     }
     return result;
