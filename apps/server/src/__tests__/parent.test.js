@@ -111,6 +111,10 @@ describe('Parent API Integration', () => {
       expect(res.status).toBe(404);
     });
 
+    /**
+     * Test: should reject non-parent access
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject non-parent access', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).get('/api/v1/parent/my-student');
