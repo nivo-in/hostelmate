@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/parent/page.tsx
+ * Parent portal page.tsx monitoring page rendering ward status and payment options.
+ */
+
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
