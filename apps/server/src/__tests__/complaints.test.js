@@ -369,6 +369,10 @@ describe('Complaints API', () => {
   });
 
   describe('DELETE /api/complaints/:id', () => {
+    /**
+     * Test: should soft delete for student
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should soft delete for student', async () => {
       supabaseMock.single.mockResolvedValueOnce({ data: null, error: null });
       const res = await request(app).delete('/api/v1/complaints/1');
