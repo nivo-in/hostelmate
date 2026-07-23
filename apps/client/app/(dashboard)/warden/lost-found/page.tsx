@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/warden/lost-found/page.tsx
+ * Warden portal lost-found administrative page rendering statistics and actions.
+ */
+
 'use client';
 import { Search } from 'lucide-react';
 
