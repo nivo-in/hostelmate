@@ -53,6 +53,10 @@ describe('Geofence Utilities', () => {
       expect(result.distance).toBe(0);
     });
 
+    /**
+     * Test: should return allowed:false for location 500m away
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return allowed:false for location 500m away', () => {
       const result = isWithinGeofence(12.944, 77.5669, HOSTEL_LAT, HOSTEL_LNG);
       expect(result.allowed).toBe(false);
