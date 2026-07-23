@@ -205,6 +205,10 @@ describe('Lost and Found API', () => {
   });
 
   describe('GET /api/lost-found', () => {
+    /**
+     * Test: should return all items
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return all items', async () => {
       supabaseMock.range.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/lost-found');
