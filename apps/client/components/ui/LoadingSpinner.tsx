@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/components/ui/LoadingSpinner.tsx
+ * Shared client component for layout renders and user interaction flows.
+ */
+
 type LoadingSpinnerProps = {
   /** Accent colour for the spinner arc. Defaults to warden purple. */
   color?: string;
