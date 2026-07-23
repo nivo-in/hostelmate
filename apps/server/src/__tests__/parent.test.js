@@ -121,6 +121,10 @@ describe('Parent API Integration', () => {
       expect(res.status).toBe(403);
     });
 
+    /**
+     * Test: should catch unhandled exceptions gracefully
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should catch unhandled exceptions gracefully', async () => {
       queryResults = [
         { data: { student_id: 'student-id' }, error: null }, // parent lookup passes
