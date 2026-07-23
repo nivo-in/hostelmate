@@ -113,6 +113,10 @@ describe('Mess API', () => {
       expect(res.status).toBe(401);
     });
 
+    /**
+     * Test: should return cached menu on second request
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return cached menu on second request', async () => {
       const { getCache } = await import('../config/redis.js');
       getCache.mockResolvedValueOnce([{ day: 'Monday' }]);
