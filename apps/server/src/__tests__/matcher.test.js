@@ -98,6 +98,10 @@ describe('Lost & Found Matcher', () => {
       expect(matches.some((m) => m.item.id === 3)).toBe(false);
     });
 
+    /**
+     * Test: should return empty array if no matches
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return empty array if no matches', () => {
       const matches = findMatches(
         { status: 'lost', item_name: 'watch', description: 'gold' },
