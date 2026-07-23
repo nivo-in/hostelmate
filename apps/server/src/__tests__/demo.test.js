@@ -193,6 +193,10 @@ describe('Demo API', () => {
   });
 
   describe('POST /api/demo/submit', () => {
+    /**
+     * Test: should fail if no valid verified token exists
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should fail if no valid verified token exists', async () => {
       redis.get.mockResolvedValueOnce(null);
       const res = await request(app)
