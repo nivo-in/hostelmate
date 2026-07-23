@@ -179,6 +179,10 @@ describe('Complaints API', () => {
       expect(res.body.ai.classified).toBe(true);
     });
 
+    /**
+     * Test: should work even if AI classification fails
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should work even if AI classification fails', async () => {
       classifyComplaint.mockRejectedValueOnce(new Error('AI failed'));
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '1' }, error: null });
