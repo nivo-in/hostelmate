@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/parent/dashboard/page.tsx
+ * Parent portal dashboard monitoring page rendering ward status and payment options.
+ */
+
 'use client';
 
 import { Palmtree, Megaphone, Phone, CreditCard, Check, X, Plane, Calendar as CalendarIcon } from 'lucide-react';
