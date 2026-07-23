@@ -57,6 +57,10 @@ describe('Demo API', () => {
   });
 
   describe('POST /api/demo/send-otp', () => {
+    /**
+     * Test: should require a valid email
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should require a valid email', async () => {
       const res = await request(app).post('/api/v1/demo/send-otp').send({ email: 'invalid' });
       expect(res.status).toBe(400);
