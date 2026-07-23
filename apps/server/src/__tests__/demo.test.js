@@ -67,6 +67,10 @@ describe('Demo API', () => {
       expect(res.body.success).toBe(false);
     });
 
+    /**
+     * Test: should send otp on valid email
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should send otp on valid email', async () => {
       const res = await request(app)
         .post('/api/v1/demo/send-otp')
