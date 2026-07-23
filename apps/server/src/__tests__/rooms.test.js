@@ -227,6 +227,10 @@ describe('Rooms API', () => {
   });
 
   describe('GET /api/rooms/unassigned - Warden views unassigned students', () => {
+    /**
+     * Test: should return unassigned students
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return unassigned students', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
