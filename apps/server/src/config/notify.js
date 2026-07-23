@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/config/notify.js
+ * Server configuration and helper utilities for notify operations.
+ */
+
 import { supabaseAdmin } from './supabase.js';
 import logger from './logger.js';
 
