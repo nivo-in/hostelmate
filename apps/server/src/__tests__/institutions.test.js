@@ -56,6 +56,10 @@ describe('Institutions API', () => {
       expect(res.body.results).toEqual([]);
     });
 
+    /**
+     * Test: should return cached results if available
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return cached results if available', async () => {
       const mockCached = [{ name: 'Cached Univ', city: 'Test' }];
       getCache.mockResolvedValueOnce(mockCached);
