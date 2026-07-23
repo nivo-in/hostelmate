@@ -2,10 +2,17 @@ import type { ReactNode } from 'react';
 
 type EmptyStateProps = {
   message: string;
+  subtitle?: string;
   icon?: ReactNode;
 };
 
-export function EmptyState({ message, icon }: EmptyStateProps) {
+/**
+ * Generic empty-state placeholder used across all dashboard pages.
+ * Renders a centred icon tile (glassmorphism), a bold message, and an
+ * optional subtitle. All wrapped in a low-opacity container so it blends
+ * naturally into the dark #080810 background.
+ */
+export function EmptyState({ message, subtitle, icon }: EmptyStateProps) {
   return (
     <div
       style={{
@@ -13,12 +20,32 @@ export function EmptyState({ message, icon }: EmptyStateProps) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '10px',
+        gap: '12px',
         padding: '48px 24px',
+        textAlign: 'center',
       }}
     >
-      {icon && <div style={{ fontSize: '32px', opacity: 0.5 }}>{icon}</div>}
-      <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', margin: 0, textAlign: 'center' }}>{message}</p>
+      {icon && (
+        <div
+          style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
+            background: 'rgba(255,255,255,0.04)',
+            border: '0.5px solid rgba(255,255,255,0.08)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: 0.6,
+          }}
+        >
+          {icon}
+        </div>
+      )}
+      <p style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.7)', margin: 0 }}>{message}</p>
+      {subtitle && (
+        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', margin: 0 }}>{subtitle}</p>
+      )}
     </div>
   );
 }
