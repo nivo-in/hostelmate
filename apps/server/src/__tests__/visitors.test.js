@@ -176,6 +176,10 @@ describe('Visitors API', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should reject past expected_visit_date
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject past expected_visit_date', async () => {
       const res = await request(app)
         .post('/api/v1/visitors')
