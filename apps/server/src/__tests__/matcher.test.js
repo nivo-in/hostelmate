@@ -23,6 +23,10 @@ describe('Lost & Found Matcher', () => {
       expect(res).toEqual(expect.arrayContaining(['key', 'wallet']));
     });
 
+    /**
+     * Test: should deduplicate keywords
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should deduplicate keywords', () => {
       const res = extractKeywords('wallet wallet key');
       expect(res.filter((k) => k === 'wallet').length).toBe(1);
