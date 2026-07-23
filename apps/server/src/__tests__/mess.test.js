@@ -272,6 +272,10 @@ describe('Mess API', () => {
       expect(supabaseMock.limit).toHaveBeenCalledWith(5);
     });
 
+    /**
+     * Test: should return 403 for student
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 403 for student', async () => {
       const res = await request(app).get('/api/v1/mess/reviews');
       expect(res.status).toBe(403);
