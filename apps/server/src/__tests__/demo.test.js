@@ -254,6 +254,10 @@ describe('Demo API', () => {
   });
 
   describe('POST /api/demo/faq', () => {
+    /**
+     * Test: should fail with invalid inputs
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should fail with invalid inputs', async () => {
       const res = await request(app).post('/api/v1/demo/faq').send({ email: 'invalid' });
       expect(res.status).toBe(400);
