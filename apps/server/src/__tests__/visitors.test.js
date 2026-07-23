@@ -261,6 +261,10 @@ describe('Visitors API', () => {
       expect(res.body.data).toHaveLength(1);
     });
 
+    /**
+     * Test: should return empty array if none
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return empty array if none', async () => {
       queryResults = [{ data: [], error: null }];
       const res = await request(app).get('/api/v1/visitors/my');
