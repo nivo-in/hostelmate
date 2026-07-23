@@ -236,6 +236,10 @@ describe('Leaves API', () => {
   });
 
   describe('GET /api/leaves/all - Warden views all leaves', () => {
+    /**
+     * Test: should return all leave requests for warden
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return all leave requests for warden', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.range.mockResolvedValueOnce({ data: [{ id: '1' }], error: null });
