@@ -212,6 +212,10 @@ describe('Rooms API', () => {
       expect(res.body.data.id).toBe('room-new');
     });
 
+    /**
+     * Test: should return 403 for student
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 403 for student', async () => {
       const res = await request(app).post('/api/v1/rooms').send({
         room_number: '102',
