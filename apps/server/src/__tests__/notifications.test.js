@@ -245,6 +245,10 @@ describe('Notifications API Integration', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should handle errors gracefully
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should handle errors gracefully', async () => {
       queryResults = [{ error: new Error('DB Error') }];
       const res = await request(app).delete('/api/v1/notifications/1');
