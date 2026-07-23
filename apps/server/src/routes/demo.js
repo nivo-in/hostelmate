@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/routes/demo.js
+ * Express route handlers managing demo operations and database queries.
+ */
+
 import { Router } from 'express';
 import crypto from 'crypto';
 import { redis } from '../config/redis.js';
