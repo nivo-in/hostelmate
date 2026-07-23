@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/middleware/auth.js
+ * Express middleware for auth request preprocessing and validation.
+ */
+
 import { supabaseAdmin } from '../config/supabase.js';
 import logger from '../config/logger.js';
 
