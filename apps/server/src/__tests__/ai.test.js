@@ -77,6 +77,10 @@ describe('AI Assistant API', () => {
       expect(res.body.error).toMatch(/too long/i);
     });
 
+    /**
+     * Test: should return success for warden role
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return success for warden role', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.then.mockImplementation((resolve) => resolve({ data: [], count: 100, error: null }));
