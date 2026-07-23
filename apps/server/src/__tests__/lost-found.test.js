@@ -139,6 +139,10 @@ describe('Lost and Found API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should reject missing item_name
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject missing item_name', async () => {
       const res = await request(app).post('/api/v1/lost-found').send({
         status: 'lost',
