@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/routes/ai.js
+ * Express route handlers managing ai operations and database queries.
+ */
+
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { processWardenChat, processStudentChat, analyzeGeneric } from '../config/openai.js';
