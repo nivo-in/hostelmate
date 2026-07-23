@@ -247,6 +247,10 @@ describe('Leaves API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should return 403 for student role
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 403 for student role', async () => {
       const res = await request(app).get('/api/v1/leaves/all');
       expect(res.status).toBe(403);
