@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/warden/mess/page.tsx
+ * Warden portal mess administrative page rendering statistics and actions.
+ */
+
 'use client';
 
 import { useEffect, useState } from 'react';
