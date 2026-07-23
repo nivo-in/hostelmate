@@ -355,6 +355,10 @@ describe('Complaints API', () => {
     });
   });
   describe('GET /api/complaints/analytics', () => {
+    /**
+     * Test: should return analytics for warden
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return analytics for warden', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.gte.mockResolvedValueOnce({ data: [{ category: 'electrical', created_at: new Date() }], error: null });
