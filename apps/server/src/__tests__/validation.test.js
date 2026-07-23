@@ -24,6 +24,10 @@ describe('Zod Validation Schemas', () => {
       expect(result.success).toBe(false);
     });
 
+    /**
+     * Test: should accept valid leave request
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept valid leave request', () => {
       const result = leaveSchema.safeParse({
         start_date: '2026-05-10',
