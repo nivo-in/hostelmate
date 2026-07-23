@@ -7,6 +7,12 @@ import logger from '../config/logger.js';
 
 const router = Router();
 
+/**
+ * GET /api/v1/stats/dashboard
+ * Aggregates statistics for the Warden Dashboard.
+ * Fetches attendance rate, pending leaves, unresolved complaints, active notices,
+ * and room occupancy in parallel. Caches the result in Redis ('stats:dashboard') for 5 minutes.
+ */
 router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => {
   try {
     const today = new Date().toISOString().split('T')[0];
