@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/hooks/useProfile.ts
+ * Custom React hook managing local state and side effects.
+ */
+
 import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
