@@ -20,6 +20,10 @@ describe('Geofence Utilities', () => {
       expect(dist).toBe(0);
     });
 
+    /**
+     * Test: should calculate correct distance between two points
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should calculate correct distance between two points', () => {
       // ~1.5km between these coordinates
       const dist = calculateDistance(12.9394941, 77.5669014, 12.9258, 77.5669);
