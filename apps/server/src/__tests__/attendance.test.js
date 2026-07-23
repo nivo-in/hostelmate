@@ -253,6 +253,10 @@ describe('Attendance API Integration', () => {
       expect(res.body.data).toHaveLength(1);
     });
 
+    /**
+     * Test: should reject student accessing other student data
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject student accessing other student data', async () => {
       const res = await request(app).get('/api/v1/attendance/student/other-id');
       expect(res.status).toBe(403);
