@@ -250,6 +250,10 @@ describe('Zod Validation Schemas', () => {
       expect(messReviewSchema.safeParse({ meal_type: 'dinner', date: '2026-05-10', rating: 3 }).success).toBe(true);
     });
     
+    /**
+     * Test: should reject invalid date format
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject invalid date format', () => {
       expect(messReviewSchema.safeParse({ meal_type: 'dinner', date: '26-05-10', rating: 3 }).success).toBe(false);
     });
