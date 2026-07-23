@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/warden/notices/page.tsx
+ * Warden portal notices administrative page rendering statistics and actions.
+ */
+
 'use client';
 import { Megaphone } from 'lucide-react';
 
