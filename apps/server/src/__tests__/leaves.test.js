@@ -168,6 +168,10 @@ describe('Leaves API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should return 401 without auth token
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 401 without auth token', async () => {
       currentProfile = null;
       const res = await request(app).post('/api/v1/leaves').send({});
