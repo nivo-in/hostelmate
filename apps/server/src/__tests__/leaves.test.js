@@ -278,6 +278,10 @@ describe('Leaves API', () => {
       expect(res.status).toBe(403);
     });
 
+    /**
+     * Test: should return 404 for non-existent leave id
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 404 for non-existent leave id', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.single.mockResolvedValue({ data: null, error: null });
