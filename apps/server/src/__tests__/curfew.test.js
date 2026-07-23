@@ -127,6 +127,10 @@ describe('Curfew API', () => {
       expect(res.body.data[0].student_id).toBe('s1');
     });
 
+    /**
+     * Test: should return empty if before curfew time
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return empty if before curfew time', async () => {
       mockRedisGet.mockResolvedValueOnce(JSON.stringify({ curfew_time: '23:59', enabled: true }));
 
