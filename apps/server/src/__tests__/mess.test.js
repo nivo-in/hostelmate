@@ -260,6 +260,10 @@ describe('Mess API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should respect the limit query parameter
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should respect the limit query parameter', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
