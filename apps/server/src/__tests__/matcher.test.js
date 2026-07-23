@@ -79,6 +79,10 @@ describe('Lost & Found Matcher', () => {
       { id: 3, status: 'lost', item_name: 'iPhone 13', description: 'black cover' }, // same type
     ];
 
+    /**
+     * Test: should find matching lost/found items above threshold
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should find matching lost/found items above threshold', () => {
       const matches = findMatches(newItem, candidates, 0.3);
       expect(matches.length).toBeGreaterThan(0);
