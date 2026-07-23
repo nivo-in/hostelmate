@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/config/socket.js
+ * Server configuration and helper utilities for socket operations.
+ */
+
 import { Server } from 'socket.io';
 import logger from './logger.js';
 
