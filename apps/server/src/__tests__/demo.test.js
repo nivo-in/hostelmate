@@ -93,6 +93,10 @@ describe('Demo API', () => {
       expect(res.body.error).toMatch(/network/i);
     });
 
+    /**
+     * Test: should hit email rate limit
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should hit email rate limit', async () => {
       redis.incr.mockResolvedValueOnce(1); // IP limit pass
       redis.incr.mockResolvedValueOnce(10); // triggers MAX_OTP_REQUESTS_PER_EMAIL
