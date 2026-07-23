@@ -193,6 +193,10 @@ describe('Curfew API', () => {
       expect(res.body.data.curfew_time).toBe('22:00');
     });
 
+    /**
+     * Test: should return cached settings
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return cached settings', async () => {
       mockRedisGet.mockResolvedValueOnce(JSON.stringify({ curfew_time: '23:00', enabled: false }));
       const res = await request(app).get('/api/v1/curfew/settings');
