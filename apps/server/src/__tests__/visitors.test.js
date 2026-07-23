@@ -432,6 +432,10 @@ describe('Visitors API', () => {
   });
 
   describe('PATCH /api/visitors/:id/checkout — Warden checks out', () => {
+    /**
+     * Test: should set status to checked_out with check_out_time
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should set status to checked_out with check_out_time', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
