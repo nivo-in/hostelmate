@@ -262,6 +262,10 @@ describe('Rooms API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should return 400 if room is full
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 400 if room is full', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
