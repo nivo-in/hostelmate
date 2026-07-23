@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/lib/supabase/server.ts
+ * Source code module for HostelMate server.ts.
+ */
+
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
