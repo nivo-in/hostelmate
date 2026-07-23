@@ -168,6 +168,10 @@ describe('Rooms API', () => {
   });
 
   describe('GET /api/rooms - Warden views all rooms', () => {
+    /**
+     * Test: should return all rooms with current occupants
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return all rooms with current occupants', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
