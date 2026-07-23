@@ -405,6 +405,10 @@ describe('Visitors API', () => {
   });
 
   describe('PATCH /api/visitors/:id/checkin — Warden checks in', () => {
+    /**
+     * Test: should set status to checked_in with check_in_time
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should set status to checked_in with check_in_time', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
