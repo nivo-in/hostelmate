@@ -45,6 +45,10 @@ describe('Institutions API', () => {
       expect(res.body.results).toEqual([]);
     });
 
+    /**
+     * Test: should return empty results when query parameter is missing
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return empty results when query parameter is missing', async () => {
       const res = await request(app).get('/api/v1/institutions/search');
       expect(res.status).toBe(200);
