@@ -6,11 +6,10 @@ import logger from '../config/logger.js';
 const router = Router();
 
 /**
- * GET /api/v1/institutions/search?q=...&limit=8
- *
- * Public, read-only autocomplete for the demo / onboarding flows. Results are
- * cached in Redis for a day keyed by the normalized query — institution data is
- * effectively static, so this collapses repeat keystroke traffic.
+ * GET /api/v1/institutions/search
+ * Autocomplete query handler for the onboarding registration flows.
+ * Performs lookup on static institutions list, with fallback to Hipolabs University database API.
+ * Results are cached in Redis under 'inst:search:v2:...' for 24 hours.
  */
 router.get('/search', async (req, res) => {
   try {
