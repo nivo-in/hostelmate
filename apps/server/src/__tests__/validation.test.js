@@ -260,6 +260,10 @@ describe('Zod Validation Schemas', () => {
   });
 
   describe('Lost Found Schema', () => {
+    /**
+     * Test: should accept valid lost item
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept valid lost item', () => {
       expect(lostFoundSchema.safeParse({ item_name: 'Keys', status: 'lost' }).success).toBe(true);
     });
