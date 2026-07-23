@@ -1,6 +1,16 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import logger from '../config/logger.js';
 
+/**
+ * Express middleware to authenticate API requests.
+ * Parses the Bearer token from the Authorization header, validates it against
+ * Supabase auth.getUser, retrieves the matching user profile, and decorates the
+ * Request object with `req.user` and `req.profile` properties.
+ *
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @param {import('express').NextFunction} next - Express next middleware function
+ */
 export const authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
