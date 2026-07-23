@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/hooks/useLocalStorage.ts
+ * Custom React hook managing local state and side effects.
+ */
+
 import { useState } from 'react';
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
