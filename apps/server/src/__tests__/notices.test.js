@@ -106,6 +106,10 @@ describe('Notices API', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should reject invalid target_audience
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject invalid target_audience', async () => {
       const res = await request(app).post('/api/v1/notices').send({
         title: 'valid title',
