@@ -98,6 +98,10 @@ describe('Lost and Found API', () => {
   });
 
   describe('POST /api/lost-found - Student reports', () => {
+    /**
+     * Test: should accept lost item report
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept lost item report', async () => {
       console.error('DEBUG DATE IN TEST:', new Date().toISOString());
       supabaseMock.single.mockResolvedValueOnce({
