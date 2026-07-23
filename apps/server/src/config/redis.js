@@ -9,6 +9,12 @@ export const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
+/**
+ * Retrieves a parsed value from Redis cache by key.
+ *
+ * @param {string} key - Cache key
+ * @returns {Promise<any|null>} Cached value or null if missed/failed
+ */
 export async function getCache(key) {
   try {
     return await redis.get(key);
@@ -18,6 +24,14 @@ export async function getCache(key) {
   }
 }
 
+/**
+ * Sets a value in the Redis cache with a configurable TTL.
+ *
+ * @param {string} key - Cache key
+ * @param {any} value - Value to cache
+ * @param {number} [ttlSeconds=300] - Expiry TTL in seconds
+ * @returns {Promise<void>}
+ */
 export async function setCache(key, value, ttlSeconds = 300) {
   try {
     await redis.set(key, value, { ex: ttlSeconds });
@@ -26,6 +40,12 @@ export async function setCache(key, value, ttlSeconds = 300) {
   }
 }
 
+/**
+ * Removes a specific key from the cache.
+ *
+ * @param {string} key - Cache key to remove
+ * @returns {Promise<void>}
+ */
 export async function deleteCache(key) {
   try {
     await redis.del(key);
@@ -34,6 +54,13 @@ export async function deleteCache(key) {
   }
 }
 
+/**
+ * Scans keys matching a glob pattern and deletes them from cache.
+ * Used for smart bulk cache invalidation (e.g. notices:*).
+ *
+ * @param {string} pattern - Glob matching pattern
+ * @returns {Promise<void>}
+ */
 export async function deleteCachePattern(pattern) {
   try {
     const keys = await redis.keys(pattern);
