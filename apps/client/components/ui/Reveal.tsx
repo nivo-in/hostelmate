@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/components/ui/Reveal.tsx
+ * Shared client component for layout renders and user interaction flows.
+ */
+
 'use client';
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
