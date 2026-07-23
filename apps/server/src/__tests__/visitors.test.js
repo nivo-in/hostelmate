@@ -272,6 +272,10 @@ describe('Visitors API', () => {
       expect(res.body.data).toEqual([]);
     });
 
+    /**
+     * Test: should respect the limit query parameter for student visitors
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should respect the limit query parameter for student visitors', async () => {
       queryResults = [{ data: [], error: null }];
       const res = await request(app).get('/api/v1/visitors/my?limit=5');
