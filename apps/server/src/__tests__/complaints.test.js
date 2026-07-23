@@ -277,6 +277,10 @@ describe('Complaints API', () => {
   });
 
   describe('PATCH /api/complaints/:id/status - Warden updates', () => {
+    /**
+     * Test: should update status to in_progress
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should update status to in_progress', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.single.mockResolvedValueOnce({
