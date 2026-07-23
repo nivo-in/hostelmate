@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/hooks/useThrottle.ts
+ * Custom React hook managing local state and side effects.
+ */
+
 import { useState, useEffect, useRef } from 'react';
 
 /**
