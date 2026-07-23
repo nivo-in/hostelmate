@@ -119,6 +119,10 @@ describe('Lost and Found API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should accept found item report
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept found item report', async () => {
       supabaseMock.single.mockResolvedValueOnce({
         data: { id: '2', status: 'found', item_name: 'Wallet' },
