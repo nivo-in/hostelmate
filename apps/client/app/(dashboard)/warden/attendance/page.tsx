@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/warden/attendance/page.tsx
+ * Warden portal attendance administrative page rendering statistics and actions.
+ */
+
 'use client';
 import { ClipboardList, Search } from 'lucide-react';
 
