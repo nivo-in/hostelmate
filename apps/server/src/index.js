@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/index.js
+ * Source code module for HostelMate index.js.
+ */
+
 import dotenv from 'dotenv';
 dotenv.config();
 
