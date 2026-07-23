@@ -218,6 +218,10 @@ describe('Zod Validation Schemas', () => {
   });
 
   describe('Mess Review Schema', () => {
+    /**
+     * Test: should accept valid review
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept valid review', () => {
       expect(messReviewSchema.safeParse({ meal_type: 'dinner', date: '2026-05-10', rating: 4, comments: 'Good' }).success).toBe(true);
     });
