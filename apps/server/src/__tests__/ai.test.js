@@ -148,6 +148,10 @@ describe('AI Assistant API', () => {
       expect(analyzeGeneric).toHaveBeenCalled();
     });
 
+    /**
+     * Test: should return success for student analyzing leaves
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return success for student analyzing leaves', async () => {
       currentProfile = mockStudentProfile;
       supabaseMock.then.mockImplementationOnce((resolve) => resolve({ data: [{ id: 1 }], error: null }));
