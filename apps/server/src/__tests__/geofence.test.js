@@ -31,6 +31,10 @@ describe('Geofence Utilities', () => {
       expect(dist).toBeLessThan(2000);
     });
 
+    /**
+     * Test: should return same distance regardless of direction
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return same distance regardless of direction', () => {
       const dist1 = calculateDistance(12.94, 77.57, 12.93, 77.56);
       const dist2 = calculateDistance(12.93, 77.56, 12.94, 77.57);
