@@ -104,6 +104,10 @@ describe('Staff Feedback API Integration', () => {
   });
 
   describe('GET /api/staff-feedback/:staffId', () => {
+    /**
+     * Test: should return feedback for specific staff member
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return feedback for specific staff member', async () => {
       queryResults = [{ data: [{ id: 'fb-1', rating: 4 }], error: null }];
 
