@@ -268,6 +268,10 @@ describe('Zod Validation Schemas', () => {
       expect(lostFoundSchema.safeParse({ item_name: 'Keys', status: 'lost' }).success).toBe(true);
     });
     
+    /**
+     * Test: should accept valid found item with location
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept valid found item with location', () => {
       expect(lostFoundSchema.safeParse({ item_name: 'Wallet', status: 'found', location_found: 'Library' }).success).toBe(true);
     });
