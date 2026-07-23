@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/lib/socket.ts
+ * Source code module for HostelMate socket.ts.
+ */
+
 import { io, Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
