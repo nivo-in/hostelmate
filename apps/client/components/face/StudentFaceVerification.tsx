@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/components/face/StudentFaceVerification.tsx
+ * Shared client component for layout renders and user interaction flows.
+ */
+
 'use client';
 import { AlertTriangle, Camera, Search } from 'lucide-react';
 
