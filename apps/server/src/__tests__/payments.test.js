@@ -74,6 +74,10 @@ describe('Payments API', () => {
     queryResults = [];
   });
 
+  /**
+   * Test: GET /api/v1/payments/fee-structures should return grouped fee structures
+   * Verifies behaviour under correct inputs and constraints.
+   */
   it('GET /api/v1/payments/fee-structures should return grouped fee structures', async () => {
     queryResults = [
       {
