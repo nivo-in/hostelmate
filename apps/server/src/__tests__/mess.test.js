@@ -103,6 +103,10 @@ describe('Mess API', () => {
       expect(res.status).toBe(200);
     });
 
+    /**
+     * Test: should return 401 without auth
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return 401 without auth', async () => {
       currentProfile = null;
       const res = await request(app).get('/api/v1/mess/menu');
