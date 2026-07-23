@@ -156,6 +156,10 @@ describe('Lost and Found API', () => {
       expect(res.status).toBe(400);
     });
 
+    /**
+     * Test: should check for matches after submit
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should check for matches after submit', async () => {
       supabaseMock.single.mockResolvedValueOnce({
         data: { id: '1', status: 'lost', item_name: 'Keys' },
