@@ -117,6 +117,10 @@ describe('Visitors API', () => {
   });
 
   describe('POST /api/visitors — Student submits', () => {
+    /**
+     * Test: should reject missing visitor_name
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject missing visitor_name', async () => {
       const res = await request(app).post('/api/v1/visitors').send({
         visitor_phone: '1234567890',
