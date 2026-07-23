@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/student/lost-found/page.tsx
+ * Student portal lost-found dashboard subpage rendering status and actions.
+ */
+
 'use client';
 
 import { useEffect, useState } from 'react';
