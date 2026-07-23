@@ -216,6 +216,10 @@ describe('Attendance API Integration', () => {
   });
 
   describe('GET /api/attendance/today', () => {
+    /**
+     * Test: should return attendance for today for warden
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should return attendance for today for warden', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: [{ id: 1, status: 'present' }], error: null }];
