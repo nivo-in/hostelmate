@@ -66,6 +66,10 @@ describe('AI Assistant API', () => {
       expect(res.body.error).toBe('Messages array is required');
     });
 
+    /**
+     * Test: should reject if conversation is too long (MAX_MESSAGES)
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject if conversation is too long (MAX_MESSAGES)', async () => {
       const messages = Array(35).fill({ role: 'user', content: 'test' });
       const res = await request(app).post('/api/v1/ai/chat').send({ messages });
