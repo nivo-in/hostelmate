@@ -1,3 +1,8 @@
+/**
+ * @file apps/server/src/config/redis.js
+ * Server configuration and helper utilities for redis operations.
+ */
+
 import dotenv from 'dotenv';
 dotenv.config();
 
