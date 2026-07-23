@@ -159,6 +159,10 @@ describe('Staff Feedback API Integration', () => {
       expect(res.body.success).toBe(true);
     });
 
+    /**
+     * Test: should reject if already reviewed today
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should reject if already reviewed today', async () => {
       queryResults = [
         { data: { id: 'staff-1' }, error: null }, // check staff exists
