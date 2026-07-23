@@ -96,6 +96,10 @@ describe('Payments API', () => {
     expect(res.body.data.yearly).toHaveLength(1);
   });
 
+  /**
+   * Test: POST /api/v1/payments/fee-structures should create structure if warden
+   * Verifies behaviour under correct inputs and constraints.
+   */
   it('POST /api/v1/payments/fee-structures should create structure if warden', async () => {
     currentProfile = { id: 'warden-id', role: 'warden' };
     queryResults = [{ data: { id: '3', name: 'New Fee' }, error: null }];
