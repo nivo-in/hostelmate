@@ -1,3 +1,8 @@
+/**
+ * @file apps/client/app/(dashboard)/parent/contact/page.tsx
+ * Parent portal contact monitoring page rendering ward status and payment options.
+ */
+
 'use client';
 
 import { useEffect, useState } from 'react';
