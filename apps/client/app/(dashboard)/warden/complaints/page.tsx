@@ -1,5 +1,4 @@
 'use client';
-import { Wrench, Bot, Lightbulb } from 'lucide-react';
 
 import { useEffect, useState, useMemo } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -12,7 +11,7 @@ import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { ComplaintWithStudent } from '@/types';
 import { ui, panel, buttonPrimary, buttonGhost, container } from '@/lib/ui';
-import { Search } from 'lucide-react';
+import { Wrench, Bot, Lightbulb, Search } from 'lucide-react';
 
 export default function WardenComplaints() {
   const [activeTab, setActiveTab] = useState('All');
