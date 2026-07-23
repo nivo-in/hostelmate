@@ -341,6 +341,10 @@ describe('Visitors API', () => {
   });
 
   describe('PATCH /api/visitors/:id/approve — Warden approves', () => {
+    /**
+     * Test: should approve visitor request
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should approve visitor request', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
