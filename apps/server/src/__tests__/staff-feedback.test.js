@@ -117,6 +117,10 @@ describe('Staff Feedback API Integration', () => {
       expect(res.body.data.average_rating).toBe(4);
     });
 
+    /**
+     * Test: should respect the limit query parameter for staff feedback details
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should respect the limit query parameter for staff feedback details', async () => {
       queryResults = [{ data: [], error: null }];
 
