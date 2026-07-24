@@ -405,25 +405,6 @@ export default function DemoPage() {
           }
         `}</style>
         <div className={landingStyles.navLogo}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '-2px' }}>
-            <rect x="3" y="3" width="6" height="18" rx="2" fill="url(#leftPillar)" />
-            <rect x="15" y="3" width="6" height="18" rx="2" fill="url(#rightPillar)" />
-            <rect x="9" y="10" width="6" height="4" fill="url(#middleBar)" />
-            <defs>
-              <linearGradient id="leftPillar" x1="3" y1="3" x2="9" y2="21" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#7c5cfc" />
-                <stop offset="1" stopColor="#5b3bdf" />
-              </linearGradient>
-              <linearGradient id="rightPillar" x1="15" y1="3" x2="21" y2="21" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#4ade80" />
-                <stop offset="1" stopColor="#22c55e" />
-              </linearGradient>
-              <linearGradient id="middleBar" x1="9" y1="10" x2="15" y2="14" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#7c5cfc" />
-                <stop offset="1" stopColor="#4ade80" />
-              </linearGradient>
-            </defs>
-          </svg>
           HostelMate
           <span className={landingStyles.logoSub}>by Nivo</span>
         </div>
