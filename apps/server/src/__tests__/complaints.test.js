@@ -71,7 +71,8 @@ jest.unstable_mockModule('../config/openai.js', () => ({
 }));
 
 jest.unstable_mockModule('../config/notify.js', () => ({
-  createNotification: jest.fn(),
+  createNotification: jest.fn().mockResolvedValue(true),
+  notifyWardens: jest.fn().mockResolvedValue(true),
 }));
 
 jest.unstable_mockModule('../config/audit.js', () => ({

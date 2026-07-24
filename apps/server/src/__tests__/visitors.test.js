@@ -63,6 +63,7 @@ jest.unstable_mockModule('../config/socket.js', () => ({
 
 jest.unstable_mockModule('../config/notify.js', () => ({
   createNotification: jest.fn().mockResolvedValue(true),
+  notifyWardens: jest.fn().mockResolvedValue(true),
 }));
 
 const mockWardenProfile = {

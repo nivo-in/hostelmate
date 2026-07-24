@@ -121,7 +121,7 @@ app.use('/api/v1/lost-found', lostFoundRoutes);
 app.use('/api/v1/stats', statsRoutes);
 app.use('/api/v1/staff-feedback', staffFeedbackRoutes);
 app.use('/api/v1/curfew', curfewRoutes);
-app.use('/api/v1/notifications', notificationLimiter, notificationsRoutes);
+app.use('/api/v1/notifications', notificationsRoutes);
 app.use('/api/v1/rooms', roomsRoutes);
 app.use('/api/v1/audit', auditRoutes);
 app.use('/api/v1/students', studentsRoutes);

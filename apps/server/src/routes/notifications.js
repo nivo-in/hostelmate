@@ -6,9 +6,13 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 import { authenticate } from '../middleware/auth.js';
+import { notificationLimiter } from '../middleware/rateLimit.js';
 import { getCache, setCache, deleteCache } from '../config/redis.js';
 
 const router = Router();
+
+router.use(authenticate);
+router.use(notificationLimiter);
 
 /**
  * GET /api/v1/notifications
@@ -16,7 +20,7 @@ const router = Router();
  * Caches page 1 results in Redis for 30 seconds to ease load under rapid polling/refresh.
  * Returns absolute unread count alongside list results.
  */
-router.get('/', authenticate, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
