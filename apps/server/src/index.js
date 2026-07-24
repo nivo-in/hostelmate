@@ -14,7 +14,7 @@ import morgan from 'morgan';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
-import { generalLimiter, notificationLimiter } from './middleware/rateLimit.js';
+import { generalLimiter } from './middleware/rateLimit.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import requestLogger from './middleware/requestLogger.js';
 import { requestId } from './middleware/requestId.js';
