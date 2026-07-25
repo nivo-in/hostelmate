@@ -1161,7 +1161,6 @@ export default function Home() {
 
       <nav className={styles.nav}>
         <div className={styles.navLogo}>
-          <div className={styles.logoDot} />
           HostelMate
           <span className={styles.logoSub}>by Nivo</span>
         </div>
