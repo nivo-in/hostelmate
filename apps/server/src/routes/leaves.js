@@ -11,7 +11,7 @@ import { validate } from '../middleware/validate.js';
 import { leaveSchema } from '../config/validation.js';
 import logger from '../config/logger.js';
 import { deleteCache, publishEvent } from '../config/redis.js';
-import { createNotification } from '../config/notify.js';
+import { createNotification, notifyWardens } from '../config/notify.js';
 import { auditLog } from '../config/audit.js';
 import { emitToUser } from '../config/socket.js';
 
@@ -54,6 +54,15 @@ router.post('/', authenticate, requireStudent, validate(leaveSchema), async (req
     if (error) {throw error;}
 
     logger.info(`Leave request submitted by user ${req.user.id}`);
+
+    const studentName = req.profile?.full_name || 'A student';
+    await notifyWardens(
+      'New Leave Request',
+      `${studentName} requested leave from ${start_date} to ${end_date}`,
+      'leave',
+      record.id
+    );
+
     await deleteCache('stats:dashboard');
     res.json({ success: true, data: record });
   } catch (error) {

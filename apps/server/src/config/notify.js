@@ -33,3 +33,29 @@ export async function createNotification(userId, title, message, type, relatedId
     logger.error('Failed to create notification', { userId, title, type, error: err?.message });
   }
 }
+
+/**
+ * Sends a notification to all warden and admin profiles in the system.
+ *
+ * @param {string} title - Headline text
+ * @param {string} message - Body text
+ * @param {string} type - Category tag
+ * @param {string|null} [relatedId] - Optional resource UUID
+ * @returns {Promise<void>}
+ */
+export async function notifyWardens(title, message, type, relatedId = null) {
+  try {
+    const { data: wardens } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .in('role', ['warden', 'admin']);
+
+    if (wardens && wardens.length > 0) {
+      await Promise.all(
+        wardens.map((w) => createNotification(w.id, title, message, type, relatedId))
+      );
+    }
+  } catch (err) {
+    logger.error('Failed to notify wardens', { title, type, error: err?.message });
+  }
+}

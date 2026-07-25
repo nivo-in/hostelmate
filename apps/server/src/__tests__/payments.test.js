@@ -43,6 +43,7 @@ jest.unstable_mockModule('../config/redis.js', () => ({
 
 jest.unstable_mockModule('../config/notify.js', () => ({
   createNotification: jest.fn().mockResolvedValue(true),
+  notifyWardens: jest.fn().mockResolvedValue(true),
 }));
 
 let currentProfile = { id: 'student-id', role: 'student' };
