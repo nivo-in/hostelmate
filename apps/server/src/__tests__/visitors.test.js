@@ -355,6 +355,10 @@ describe('Visitors API', () => {
       expect(res.body.success).toBe(true);
     });
 
+    /**
+     * Test: should accept optional warden_notes
+     * Verifies behaviour under correct inputs and constraints.
+     */
     it('should accept optional warden_notes', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: { id: 'visitor-1', student_id: 'student-id' }, error: null }];
