@@ -94,9 +94,9 @@ describe('Curfew API', () => {
     mockRedisGet.mockResolvedValue(null);
     mockRedisSet.mockResolvedValue('OK');
 
-    // Set time to 23:00 (11 PM) to bypass curfew check
+    // Set time to 17:00 UTC (22:30 IST) for curfew checks
     jest.useFakeTimers();
-    jest.setSystemTime(new Date('2026-05-31T23:30:00Z'));
+    jest.setSystemTime(new Date('2026-05-31T17:00:00Z'));
   });
 
   afterEach(() => {
