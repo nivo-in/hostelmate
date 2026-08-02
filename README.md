@@ -6,8 +6,6 @@
 
 [![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
-[![CHANGELOG](https://img.shields.io/badge/Changelog-Keep_a_Changelog-blue?style=for-the-badge)](CHANGELOG.md)
-[![Contributing](https://img.shields.io/badge/Contributing-Guide-6c3eff?style=for-the-badge)](CONTRIBUTING.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://supabase.com/)
 [![Redis](https://img.shields.io/badge/Redis-Upstash-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://upstash.com/)
@@ -20,18 +18,20 @@
 
 **HostelMate replaces manual hostel registers, WhatsApp complaint groups, and paper-based leave forms with a secure, real-time platform — built for scale.**
 
-[Getting Started](#-getting-started) · [Architecture](#-architecture) · [API Docs](#-api-documentation) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [Security](SECURITY.md)
+[Getting Started](#-getting-started) · [Architecture](#-architecture) · [API Docs](#-api-documentation) · [Contributing](#-contributing)
 
 ---
 
-> <img width="728" height="418" alt="2026-05-28_19-17-29" src="https://github.com/user-attachments/assets/286575f9-5675-4091-b20e-3f4a06102559" />
+> <img width="2940" height="1670" alt="WhatsApp Image 2026-07-24 at 22 56 43" src="https://github.com/user-attachments/assets/c591c7c6-6f06-46be-96cb-365bcbcd0635" />
+
+
+
+>
+> <img width="2940" height="1670" alt="WhatsApp Image 2026-07-24 at 22 58 05" src="https://github.com/user-attachments/assets/2cc537a6-2968-4b03-a9cf-f59ba72c6bea" />
 
 
 >
-> <img width="728" height="418" alt="2026-05-28_19-19-14" src="https://github.com/user-attachments/assets/6eba77e7-ef48-45d5-ba26-6548a70ce419" />
-
->
-> <img width="728" height="418" alt="image" src="https://github.com/user-attachments/assets/d55c1143-61ad-47cb-999a-2afd2cde33f1" />
+> <img width="2940" height="1670" alt="WhatsApp Image 2026-07-24 at 23 09 34" src="https://github.com/user-attachments/assets/8177dbfb-da57-4006-b01d-3b04afa96e17" />
 
 
 
@@ -82,31 +82,31 @@ HostelMate provides a **role-based platform** where students, wardens, and paren
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        CLIENT (Next.js 16)                      │
-│              TypeScript · App Router · Tailwind CSS             │
-│         Role-based dashboards: Student / Warden / Parent        │
+│              TypeScript · App Router · Tailwind CSS              │
+│         Role-based dashboards: Student / Warden / Parent         │
 └───────────────────────────┬─────────────────────────────────────┘
                             │ HTTPS (REST)
                             ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│                      API SERVER (Express.js)                         │
-│                                                                      │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────────┐       │
-│  │   Auth   │ │   RBAC   │ │  Zod     │ │  Rate Limiter      │       │
-│  │Middleware│ │Middleware│ │Validate  │ │  100 req/15min     │       │
-│  └──────────┘ └──────────┘ └──────────┘ └────────────────────┘       │
-│                                                                      │
-│ Routes: /attendance /leaves /complaints /notices /payments /visitors │
-└──────┬─────────────────────────────┬─────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                      API SERVER (Express.js)                     │
+│                                                                  │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────────┐  │
+│  │   Auth   │ │   RBAC   │ │  Zod     │ │  Rate Limiter      │  │
+│  │Middleware│ │Middleware │ │Validate  │ │  100 req/15min     │  │
+│  └──────────┘ └──────────┘ └──────────┘ └────────────────────┘  │
+│                                                                  │
+│  Routes: /attendance /leaves /complaints /notices /payments /visitors │
+└──────┬─────────────────────────────┬────────────────────────────┘
        │                             │
        ▼                             ▼
-┌──────────────┐            ┌───────────────────┐
+┌──────────────┐            ┌──────────────────┐
 │   Supabase   │            │   Redis (Upstash) │
 │  PostgreSQL  │            │   Cache Layer     │
 │              │            │                   │
 │  • RLS       │            │  • TTL: 2-60 min  │
 │  • Auth      │            │  • Smart invalidn │
 │  • Realtime  │            │  • Pattern delete │
-└──────────────┘            └───────────────────┘
+└──────────────┘            └──────────────────┘
        │
        ▼
 ┌──────────────┐
@@ -143,7 +143,7 @@ HostelMate provides a **role-based platform** where students, wardens, and paren
 | **Containers** | Docker + Docker Compose | Multi-service containerization with layer caching |
 | **API Docs** | Swagger / OpenAPI 3.0 | Interactive documentation at `/api/docs` |
 | **Monorepo** | Turborepo + pnpm 10 | Workspace management and parallel build orchestration |
-| **Unit Tests** | Jest 30 + Supertest | 23 suites · 261 tests · ≥80% line/function coverage enforced |
+| **Unit Tests** | Jest 30 + Supertest | 20 suites · 200 tests · ≥80% coverage enforced |
 | **E2E Tests** | Playwright | Browser automation with auto-started dev servers |
 | **Git Hooks** | Husky v9 | Pre-commit: lint client → run server tests |
 | **Linting** | ESLint 9 (Next.js config) | TypeScript-aware linting with Core Web Vitals rules |
@@ -256,12 +256,13 @@ Pipeline completes in **~55 seconds**. No broken code reaches `main`.
 
 HostelMate uses **client-side biometric verification** powered by `face-api.js` (SsdMobilenetv1 + 68-point landmarks). Registration captures **5 angles** (straight, left, right, up, down) — 24 frames total, averaged into 5 per-angle descriptors stored in Supabase.
 
-**Verification runs two strict gates before accepting a match:**
+**Verification runs three hard gates before accepting a match:**
 
 | Gate | Check | How it blocks spoofing |
 |---|---|---|
-| **1 — Intentional Blink Sequence** | Eye Aspect Ratio (EAR) tracking requiring an explicit **Open → Close → Open** eye sequence. | A static photo **cannot perform a coordinated blink**. |
-| **2 — Face match** | Euclidean distance vs all 5 stored angle descriptors. Best (minimum) distance must be < 0.42. | Threshold set below face-api's default 0.6 — tight enough to reject strangers, loose enough to match front-facing without head rotation. |
+| **1 — Blink (mandatory)** | Eye Aspect Ratio (EAR) falling-edge detection using 68-point landmarks. EAR = `(‖p2−p6‖ + ‖p3−p5‖) / (2 × ‖p1−p4‖)`. EAR < 0.25 on a falling edge = blink confirmed. | A static photo on a phone screen **cannot blink** — no real eye movement, no EAR drop. |
+| **2 — Frame-diff (hard-block)** | A 32×32 patch of the face region is sampled every tick, compared pixel-by-pixel (grayscale) to the previous frame. Avg diff < 6/255 over 10+ frames = static source. | Catches a photo held still after a fake EAR dip (e.g., tilting the phone). |
+| **3 — Face match** | Euclidean distance vs all 5 stored angle descriptors. Best (minimum) distance must be < 0.52. | Threshold set below face-api's default 0.6 — tight enough to reject strangers, loose enough to match front-facing without head rotation. |
 
 **Performance:** Recursive async tick instead of `setInterval` — next detection fires 50ms after the previous completes (~3× more detections/sec). Blink → verified in **~300ms total**. EMA smoothing on the confidence bar prevents jitter.
 
@@ -366,7 +367,7 @@ Each role project uses **saved auth storage state** from the setup project — l
 | Feature | Description |
 |---|---|
 | QR Attendance | Scan rotating QR code (30-sec rotation) within geofenced zone |
-| **Face Recognition** | **Biometric attendance with Open-Close-Open blink sequence + Frame-diff analysis** |
+| **Face Recognition** | **Biometric attendance with blink-based liveness check** |
 | Leave Requests | Submit with date range and reason (20+ chars) |
 | Complaints | File categorized complaints with AI-powered urgency flags |
 | Mess Reviews | Rate meals (1-5 stars) with comments |
@@ -401,12 +402,11 @@ Each role project uses **saved auth storage state** from the setup project — l
 ### 👨‍👩‍👧 Parent
 | Feature | Description |
 |---|---|
-| **Ward Dashboard** | **3-column real-time ward tracking: profile, monthly attendance rate, calendar heatmap** |
-| **Leave Status (Filtered)** | **View ward's leaves with status filter chips: All / Approved / Pending / Rejected** |
-| **Notices (Searchable)** | **Live search bar across parent-targeted announcements and hostel bulletins** |
-| **Contact Warden** | **Dual action buttons: Call Warden + Send Email with office hours info** |
-| **Fee Payments** | **Pay ward's hostel fees via Razorpay; colored summary cards; view receipts** |
-| **Notification Bell** | **Real-time push notifications with Parent Blue (#60a5fa) themed panel** |
+| Student Tracking | Real-time attendance and leave status of linked ward |
+| Leave Visibility | Track child's leave requests and approvals |
+| Notices | View parent-targeted announcements |
+| Contact Warden | Direct communication channel |
+| **Fee Payments** | **Pay ward's fees via Razorpay; view payment history and receipts** |
 | **Curfew Alerts** | **Receive notification if ward hasn't checked in by curfew time** |
 
 ---
@@ -426,7 +426,6 @@ hostelmate/
 │   │   ├── app/
 │   │   │   ├── (auth)/
 │   │   │   │   └── login/               # Login page
-│   │   │   │       └── page.tsx         # Role detection, googly eyes toggle, animated spotlight, 3D card tilt
 │   │   │   ├── (dashboard)/
 │   │   │   │   ├── student/             # Student dashboard
 │   │   │   │   │   ├── attendance/
@@ -464,27 +463,17 @@ hostelmate/
 │   │   │   │       └── track/
 │   │   │   ├── globals.css
 │   │   │   ├── layout.tsx
-│   │   │   ├── page.tsx                 # Landing page — dark theme, scroll-driven 3D cylinder feature carousel
-│   │   │   └── landing.module.css       # Landing page styles with Apple liquid glass nav
+│   │   │   └── page.tsx                 # Root redirect to login/dashboard
 │   │   ├── components/
 │   │   │   ├── ui/                      # Shared UI components
-│   │   │   │   ├── AiAnalysisCard.tsx   # Glassmorphic AI summary visualizer
-│   │   │   │   ├── AiAssistant.tsx      # Cmd+K floating AI agent chat assistant
-│   │   │   │   ├── AnimatedNumber.tsx   # Odometer-style numeric transition display
-│   │   │   │   ├── AnimatedProgress.tsx # Smooth SVG circular progress loader
-│   │   │   │   ├── Badge.tsx            # Dot-accented role and status indicators
-│   │   │   │   ├── Card.tsx             # Hover-glow glass boundary wraps
-│   │   │   │   ├── CountUp.tsx          # Realtime counting statistics triggers
-│   │   │   │   ├── CursorGlow.tsx       # Dynamic light tracking pointer shadows
-│   │   │   │   ├── EmptyState.tsx       # Centred status display placeholder cards
-│   │   │   │   ├── Header.tsx           # Standardised page-top navigations
-│   │   │   │   ├── LoadingSpinner.tsx   # Size-configurable rotating visual loaders
-│   │   │   │   ├── NivoBadge.tsx        # Styled brand indicators
-│   │   │   │   ├── NotificationBell.tsx # Apple-style slide-in notification center
-│   │   │   │   ├── PageHeader.tsx       # Back-button breadcrumb transitions
-│   │   │   │   ├── PageShell.tsx        # Responsive parent grid frames
-│   │   │   │   ├── Reveal.tsx           # Framer-motion scroll animations
-│   │   │   │   └── TiltCard.tsx         # 3D interactive pointer tilt effect wrappers
+│   │   │   │   ├── Badge.tsx
+│   │   │   │   ├── Card.tsx
+│   │   │   │   ├── EmptyState.tsx
+│   │   │   │   ├── Header.tsx
+│   │   │   │   ├── LoadingSpinner.tsx
+│   │   │   │   ├── NotificationBell.tsx # Real-time notification dropdown
+│   │   │   │   ├── NivoBadge.tsx
+│   │   │   │   └── PageHeader.tsx
 │   │   │   ├── face/                    # Biometric components
 │   │   │   │   ├── FaceRegistration.tsx       # 5-angle guided enrolment
 │   │   │   │   ├── FaceVerification.tsx       # Blink-gated liveness + match
@@ -494,22 +483,15 @@ hostelmate/
 │   │   ├── e2e/                         # Playwright E2E tests (59 tests, 5 projects)
 │   │   │   ├── auth.setup.ts            # Per-role auth state generation + login UI tests
 │   │   │   ├── login.spec.ts            # Login page: title, fields, toggle, redirect (9 tests)
-│   │   │   ├── student.spec.ts          # All 10 student pages + leave form validation (13 tests)
+│   │   │   ├── student.spec.ts          # All 10 student pages + form validation (13 tests)
 │   │   │   ├── warden.spec.ts           # All 13 warden pages + content checks (16 tests)
 │   │   │   └── parent.spec.ts           # All 6 parent pages + content checks (9 tests)
 │   │   ├── hooks/
 │   │   │   ├── useApi.ts                # Typed fetch wrapper with auth
-│   │   │   ├── useClickOutside.ts       # Detect outside popover clicks
-│   │   │   ├── useDebounce.ts           # Stabilize filter value triggers
-│   │   │   ├── useIsMounted.ts          # Resolve client-side hydration ticks
-│   │   │   ├── useLocalStorage.ts       # Local storage key persistence hook
-│   │   │   ├── useMediaQuery.ts         # Match active tailwind screen breakpoints
 │   │   │   ├── useProfile.ts            # Cached Supabase profile hook
-│   │   │   ├── useSocket.ts             # WebSocket hook (Socket.io connection)
-│   │   │   ├── useThrottle.ts           # High-frequency event rate limiters
-│   │   │   └── useWindowSize.ts         # Detect browser size changes for canvas scaling
+│   │   │   └── useSocket.ts             # Socket.io connection hook
 │   │   ├── lib/
-│   │   │   ├── faceRecognition.ts       # face-api.js wrapper (5-angle scan, Open-Close-Open EAR blink, frame-diff)
+│   │   │   ├── faceRecognition.ts       # EAR, EMA, frame-diff, bestMatchDistance
 │   │   │   ├── socket.ts                # Socket.io client singleton
 │   │   │   └── supabase/
 │   │   │       ├── client.ts            # Browser Supabase client (singleton)
@@ -860,7 +842,7 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | **Input Validation** | Zod v4 Schemas | Type-safe validation on every POST/PUT/PATCH |
 | **QR Anti-Fraud** | Rotating Tokens | 30-second rotation prevents screenshot sharing |
 | **Payment Security** | HMAC-SHA256 | Razorpay signature verified server-side before marking paid |
-| **Biometric Anti-Spoofing** | EAR Sequence + Frame-diff | 3-gate liveness: intentional Open-Close-Open blink + frame-diff + face match |
+| **Biometric Anti-Spoofing** | EAR + Frame-diff | 3-gate liveness: mandatory blink + frame-diff + face match |
 | **Pre-commit Gate** | Husky | ESLint + Jest must pass before any commit is created |
 | **Error Handling** | Global Handler | Stack traces never exposed in production responses |
 | **Audit Trail** | Winston + DB | Every warden action logged with timestamp, resource, and actor |
@@ -875,10 +857,9 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | ✅ | **GitHub Actions CI/CD** | Lint → build → server tests → security audit → Docker verify on every push |
 | ✅ | **Husky Pre-commit Hooks** | Client lint + server tests enforced before every `git commit` |
 | ✅ | **E2E Tests (Playwright)** | Browser-level login flow tests with auto-started dev servers |
-| ✅ | **Jest Integration Tests** | 23 suites, 261 tests — ≥80% line/function threshold enforced |
+| ✅ | **Jest Integration Tests** | 20 suites, 200 tests — ≥80% line/function threshold enforced |
 | ✅ | **ESLint 9 Flat Config** | Next.js Core Web Vitals + TypeScript rules across the client |
 | ✅ | **Redis Caching** | Tiered TTL caching (2–60 min) with smart pattern-based invalidation |
-| ✅ | **Redis Pub/Sub** | Real-time event propagation via Upstash Redis channels |
 | ✅ | **Docker** | Multi-service containerisation with `docker-compose` (client + server) |
 | ✅ | **Winston Logging** | Structured logging with daily file rotation and 14-day retention |
 | ✅ | **Zod v4 Validation** | Type-safe request validation schemas on every POST / PUT / PATCH |
@@ -891,7 +872,7 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | ✅ | **Staff Management** | Directory, attendance tracking, and monthly staff reports |
 | ✅ | **Staff Feedback** | Student rating system (1–5★) per staff member with warden aggregate view |
 | ✅ | **Emergency Alerts** | Warden broadcasts instant system-wide emergency notice to all students |
-| ✅ | **Face Recognition** | 5-angle biometric (SsdMobilenetv1) + Open-Close-Open EAR blink + frame-diff liveness |
+| ✅ | **Face Recognition** | 5-angle biometric (SsdMobilenetv1) + EAR blink liveness + frame-diff anti-spoofing |
 | ✅ | **Room Allocation** | Room assignment, transfer requests, and availability tracking |
 | ✅ | **Night Curfew Alerts** | Scheduled job (1-min interval, IST-aware) auto-notifies wardens of violations |
 | ✅ | **In-App Notifications** | Per-user notification centre with read/unread state |
@@ -902,19 +883,6 @@ Interactive Swagger docs available at **`http://localhost:3001/api/docs`**
 | ✅ | **Razorpay Payments** | Full fee lifecycle: bill generation → Razorpay checkout → HMAC verify → receipt |
 | ✅ | **Visitor Management** | Digital guest pre-registration, warden approval, and check-in/out tracking |
 | ✅ | **E2E Coverage Expansion** | 59 tests across 5 Playwright projects — all critical user flows per role |
-| ✅ | **Landing page** | Dark theme, scroll-driven 3D cylinder feature carousel, parallax hero |
-| ✅ | **Login page** | Role detection, animated spotlight, 3D card tilt, googly eyes password toggle |
-| ✅ | **Apple liquid glass navigation** | visionOS-style backdrop blur, multi-layer refraction, inner highlights |
-| ✅ | **Cinematic login card transition** | Card fly-to-centre + overlay fade from landing page to /login |
-| ✅ | **Notification Bell** | Apple notification center–style slide-in panel, role-themed colors, search, real-time push |
-| ✅ | **Parent Leave Filter** | Interactive status chips (All / Approved / Pending / Rejected) on Parent Leaves page |
-| ✅ | **Parent Notices Search** | Live search bar filtering announcements by title and content |
-| ✅ | **Skeleton Shimmer** | Global `.skeleton` CSS class for consistent animated loading placeholders |
-| ✅ | **CHANGELOG** | Full release history following Keep a Changelog format |
-| ✅ | **CONTRIBUTING guide** | Branching, commit conventions, testing, and PR submission guide |
-| ✅ | **SECURITY policy** | Responsible disclosure, supported versions, and security architecture |
-| ✅ | **EditorConfig** | Cross-editor formatting consistency (.editorconfig) |
-| ✅ | **Makefile** | Developer convenience targets: dev, lint, test, build, docker, clean |
 | 🔲 | **Mobile App** | React Native cross-platform app for students and parents |
 | 🔲 | **Multi-tenancy** | Support multiple hostels under one instance with tenant isolation |
 
