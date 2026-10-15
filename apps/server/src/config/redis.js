@@ -8,6 +8,7 @@ dotenv.config();
 
 import { Redis } from '@upstash/redis';
 import logger from './logger.js';
+import { withTimeout } from './withTimeout.js';
 
 export const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
@@ -22,7 +23,7 @@ export const redis = new Redis({
  */
 export async function getCache(key) {
   try {
-    return await redis.get(key);
+    return await withTimeout(redis.get(key));
   } catch (error) {
     logger.error(`Redis get error: ${error.message}`);
     return null;
@@ -39,7 +40,7 @@ export async function getCache(key) {
  */
 export async function setCache(key, value, ttlSeconds = 300) {
   try {
-    await redis.set(key, value, { ex: ttlSeconds });
+    await withTimeout(redis.set(key, value, { ex: ttlSeconds }));
   } catch (error) {
     logger.error(`Redis set error: ${error.message}`);
   }
@@ -53,7 +54,7 @@ export async function setCache(key, value, ttlSeconds = 300) {
  */
 export async function deleteCache(key) {
   try {
-    await redis.del(key);
+    await withTimeout(redis.del(key));
   } catch (error) {
     logger.error(`Redis del error: ${error.message}`);
   }
@@ -68,9 +69,9 @@ export async function deleteCache(key) {
  */
 export async function deleteCachePattern(pattern) {
   try {
-    const keys = await redis.keys(pattern);
+    const keys = await withTimeout(redis.keys(pattern));
     if (keys && keys.length > 0) {
-      await redis.del(...keys);
+      await withTimeout(redis.del(...keys));
     }
   } catch (error) {
     logger.error(`Redis del pattern error: ${error.message}`);
@@ -84,7 +85,7 @@ export async function deleteCachePattern(pattern) {
  */
 export async function publishEvent(channel, data) {
   try {
-    await redis.publish(channel, JSON.stringify(data));
+    await withTimeout(redis.publish(channel, JSON.stringify(data)));
   } catch (err) {
     logger.warn('Redis publish failed', { error: err.message });
   }

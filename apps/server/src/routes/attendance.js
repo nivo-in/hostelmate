@@ -76,7 +76,7 @@ router.post(
           status: 'present',
           scan_time: record.scan_time,
         });
-        publishEvent('attendance', { student_id: req.user.id, date: today, status: 'present' });
+        void publishEvent('attendance', { student_id: req.user.id, date: today, status: 'present' });
 
         // Emit directly to parent if linked + create notifications
         const { data: studentRow } = await supabaseAdmin
@@ -178,7 +178,7 @@ router.post(
         status: 'present',
         scan_time: record.scan_time,
       });
-      publishEvent('attendance', { student_id: req.user.id, date: today, status: 'present' });
+      void publishEvent('attendance', { student_id: req.user.id, date: today, status: 'present' });
 
       // Emit directly to parent if linked + create notifications
       const { data: studentRowQr } = await supabaseAdmin

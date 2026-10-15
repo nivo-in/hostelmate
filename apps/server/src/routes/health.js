@@ -6,8 +6,18 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 import { redis } from '../config/redis.js';
+import { withTimeout } from '../config/withTimeout.js';
 
 const router = Router();
+
+/**
+ * GET /health/live
+ * Cheap liveness probe with no external calls. Used by Render so a slow or
+ * down dependency never marks the whole service as failed.
+ */
+router.get('/live', (req, res) => {
+  res.json({ status: 'ok', uptime: Math.round(process.uptime()) });
+});
 
 /**
  * GET /health
@@ -21,14 +31,17 @@ router.get('/', async (req, res) => {
   let redisStatus = 'ok';
 
   try {
-    const { error } = await supabaseAdmin.from('profiles').select('id').limit(1);
+    const { error } = await withTimeout(
+      supabaseAdmin.from('profiles').select('id').limit(1),
+      4000
+    );
     if (error) {dbStatus = 'degraded';}
   } catch {
     dbStatus = 'degraded';
   }
 
   try {
-    await redis.ping();
+    await withTimeout(redis.ping(), 4000);
   } catch {
     redisStatus = 'degraded';
   }

@@ -5,7 +5,7 @@ services:
     plan: free
     rootDir: apps/server
     dockerfilePath: ./Dockerfile
-    healthCheckPath: /
+    healthCheckPath: /health/live
     envVars:
       - key: NODE_ENV
         value: production
