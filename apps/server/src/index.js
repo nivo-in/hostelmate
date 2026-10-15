@@ -72,6 +72,12 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// Comma-separated list of deployed frontend origins
+const allowedOrigins = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((o) => o.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
 // Middleware
 app.use(helmet());
 app.use(
@@ -84,7 +90,8 @@ app.use(
         origin.includes('localhost') ||
         origin.includes('127.0.0.1') ||
         origin.match(/^https?:\/\/192\.168\.\d+\.\d+/) ||
-        origin.match(/^https?:\/\/10\.\d+\.\d+\.\d+/)
+        origin.match(/^https?:\/\/10\.\d+\.\d+\.\d+/) ||
+        allowedOrigins.includes(origin)
       ) {
         return callback(null, true);
       }

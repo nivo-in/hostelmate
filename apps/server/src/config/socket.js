@@ -19,7 +19,10 @@ export function initSocket(httpServer) {
     cors: {
       origin:
         process.env.NODE_ENV === 'production'
-          ? process.env.FRONTEND_URL
+          ? (process.env.FRONTEND_URL || '')
+            .split(',')
+            .map((o) => o.trim().replace(/\/$/, ''))
+            .filter(Boolean)
           : ['http://localhost:3000', 'http://192.168.29.142:3000'],
       methods: ['GET', 'POST'],
       credentials: true,
