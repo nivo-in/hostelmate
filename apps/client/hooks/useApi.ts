@@ -5,11 +5,13 @@
 
 import { createClient } from '@/lib/supabase/client';
 
-// Compute once at module load time — avoids window.location access on every hook call
+// Compute once at module load time. NEXT_PUBLIC_API_URL wins in deployed builds;
+// the hostname:3001 fallback only exists so LAN dev (phone -> laptop) keeps working.
 const BASE_URL =
-  typeof window !== 'undefined'
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== 'undefined'
     ? `${window.location.protocol}//${window.location.hostname}:3001`
-    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    : 'http://localhost:3001');
 
 export function useApi() {
   const getToken = async () => {
