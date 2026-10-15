@@ -2,6 +2,7 @@ services:
   - type: web
     name: hostelmate-server
     runtime: docker
+    plan: free
     rootDir: apps/server
     dockerfilePath: ./Dockerfile
     healthCheckPath: /health
